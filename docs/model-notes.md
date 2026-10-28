@@ -733,6 +733,243 @@ Estimated at $0.18 per audio hour from `audioDurationMs`; the API returns no cos
 
 ## P1-05 — SAM 3.1 and output parser
 
+Status: done (pending review). Recorded 2026-10-28 against `ai@7.0.155`, `@ai-sdk/openai@4.0.104`,
+ffmpeg 9.0.2. Sources: Meta's [Segmenting with prompts](https://dev.meta.ai/docs/sam/segmenting),
+[Read segmentation output](https://dev.meta.ai/docs/sam/reading-segmentation),
+[SAM client libraries](https://dev.meta.ai/docs/sam/client-libraries),
+[Pricing and rate limits](https://dev.meta.ai/docs/pricing-rate-limits) (SAM section), the
+cookbook recipe `07_sam/01_api_basics` (`typescript/sam-api.ts`), and Meta's official
+`@meta-sam/parser@0.1.0` (installed; used for mask decoding).
+
+### Code
+
+| File                  | Purpose                                                                                                      |
+| --------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `meta/sam.ts`         | `segmentImage(clients, { modelId, phrase, image, reasoningEffort, includeConfidence? })`                     |
+| `meta/sam-output.ts`  | `parseSamImageOutput(text)` → `{ sourceSize, instances }`; `boxIoU(a, b)`                                    |
+| `meta/sam-mask.ts`    | `decodeSamMask(mask)`: thin wrapper over `@meta-sam/parser`'s `decodeMaskToRaster` (errors → `SamMaskError`) |
+| `meta/sam-overlay.ts` | Inspection only: `renderSamOverlayPng` (RGBA layer via `media/png.ts`, composited by ffmpeg)                 |
+| `media/png.ts`        | Minimal RGBA PNG encoder on `node:zlib` (`deflateSync`, `crc32`)                                             |
+| `meta/sam-*.test.ts`  | Parser/codec unit tests, stubbed-fetch helper tests, record/replay (`sam-integrity`, `sam-privacy`)          |
+
+`media/convert.ts` now exports `runFfmpeg` and `fileUrl` (unchanged behaviour) for the overlay.
+
+### Request (verified live)
+
+`POST /v1/responses`, **non-streaming**, through the AI SDK: `generateText({ model:
+clients.languageModel('sam-3.1'), messages: [{ role: 'user', content: [{ type: 'text', text:
+phrase }, { type: 'file', mediaType: 'image/jpeg', data }] }], providerOptions })`. The SDK
+serializes it as `input: [{ role: "user", content: [{ type: "input_text" }, { type:
+"input_image", image_url: "data:image/jpeg;base64,…" }] }]`.
+
+- **Client: AI SDK; no `openai` fallback needed.** The AI SDK returns the special-token text
+  byte-for-byte: the replay test asserts `result.text` equals the recorded `output_text` for all
+  36 responses. Meta's docs and the cookbook stream (`stream: true`), but the docs state a
+  non-streaming request returns the same result in the same format; for a single image there is
+  nothing to render progressively, so the helper does not stream.
+- `providerOptions.openai` = `metaProviderOptions({ reasoningEffort })` plus `metadata:
+{ mask_encoding: "one_bit", include_confidence: "true" }` (metadata values are strings).
+- **Effort: accepted and echoed** (`reasoning: { effort: "minimal" }`), no documented or
+  observed effect; tokens stay 0. The helper takes it from the caller like every Responses call;
+  `minimal` is the natural definition value. The `include: ["reasoning.encrypted_content"]` the
+  SDK adds with `store: false` is accepted and ignored (no reasoning item comes back).
+- **`store: false`** is echoed.
+- **One noun phrase per request.** Per the docs, commas/semicolons/plus lists return zero matches
+  and `and`/newlines segment only one concept; text starting with `<0f>` is parsed as box/point
+  prompts. `assertSamPhrase` rejects empty phrases, phrases over 80 characters, and any of
+  `\n \r , ; + < > |` before a call is made.
+- The helper also rejects a response whose `w`/`h` differ from the image header size (EXIF
+  rotation not applied, wrong file). Boxes are always in the pixels of the image as sent.
+
+### Response (verified live)
+
+```json
+{
+  "id": "resp_…",
+  "object": "response",
+  "status": "completed",
+  "model": "sam-3.1",
+  "store": false,
+  "reasoning": { "effort": "minimal" },
+  "metadata": { "mask_encoding": "one_bit", "include_confidence": "true" },
+  "output": [
+    {
+      "type": "message",
+      "role": "assistant",
+      "status": "completed",
+      "content": [{ "type": "output_text", "text": "<0f>0<|box;…|><|mask;…|>,1<|box;…|>…\n" }]
+    }
+  ],
+  "usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "total_tokens": 0,
+    "output_tokens_details": { "reasoning_tokens": 0 },
+    "images_processed": 1
+  }
+}
+```
+
+- **Billing unit is in the response: `usage.images_processed` (1 per call)**, matching the
+  pricing page ($2.50 per 1,000 images, streaming or not). Token counts are reported as 0
+  (informational). `UsageEntry.images` is taken from `images_processed` (via the AI SDK's
+  `usage.raw`), never assumed. If it is missing, the entry is recorded with `images: undefined`
+  (the P2-04 ledger then raises `UnpricedUsageError`) and the call throws `SamResponseError`.
+  The AI SDK `onLanguageModelCallEnd` hook is not passed for SAM, so no zero-token entry is
+  recorded twice.
+- Usage is recorded **before** the output is parsed: a malformed output still counts against
+  the budget.
+- **Zero matches:** `output_text` is `""` (one message item, `status: completed`), still billed.
+- Every non-empty output is one line ending in `\n`. Response bodies are 0.9–2.7 KB with
+  `one_bit` masks; no fixture `externals` were needed.
+
+### Special-token grammar and parser
+
+`parseSamImageOutput` implements the documented image grammar
+(`<0f>id<|box;x1;y1;x2;y2;w;h[;c]|><|mask;x=0;y=0[;c];data=H,W,<enc><base85>|>` records joined
+by `,`) and returns:
+
+```ts
+interface SamInstance {
+  objectId: number; // per-response id; sparse, not a class
+  score: number | undefined; // `c`, 0..1, only with include_confidence
+  box: { x0; y0; x1; y1 }; // source-image PIXELS, origin top-left, HALF-OPEN
+  mask: { encoding: 'one_bit' | 'lossless'; width; height; payload };
+}
+```
+
+- **Coordinates:** pixels of the image as sent, not normalized. The wire's `x2`/`y2` are
+  inclusive (Meta's prompt docs and parser), so `x1 = x2 + 1`. Masks are **box-local** rasters:
+  `H × W` equals the box's inclusive height × width in every recorded record (57/57) and every
+  doc example, and mask pixel (0, 0) is the box's top-left pixel.
+- `segmentImage` adds `label` = the request phrase (SAM segments; it does not classify).
+- **Strict, loud rejection** (`SamOutputError`, with the record index): no frame marker, a frame
+  other than `<0f>`, more than one line, unknown tokens or fields, repeated fields, missing or
+  misplaced `,`, duplicate ids, boxes outside the image or inverted, inconsistent `w`/`h`
+  across records, mask origin ≠ `0,0`, raster size ≠ box size, a payload that is empty or not
+  printable ASCII free of token delimiters (`| ; , < >`), box/mask confidence mismatch,
+  confidence outside 0..1, and any payload the mask decoder rejects. Being stricter than Meta's own parser (which skips unknown fields with a
+  warning) is deliberate: a format change should stop the run, not silently change counts.
+- Whitespace-only output is the valid empty result.
+
+### Mask decoding: `@meta-sam/parser` (decision)
+
+The docs specify the token, `~` = lossless (default), `!` = one_bit, and "base85, not base64",
+but not the payload codec (a context-modelled range coder); they point to Meta's parser.
+
+- **Decision (user, P1-05 review): `@meta-sam/parser@0.1.0` is a dependency of `@evidomo/api`,
+  under the SAM License.** It is used only for `decodeMaskToRaster`. Our own code covers the
+  special-token grammar, boxes, validation, and the overlay; it contains no codec logic. A
+  first, self-written decoder was removed in favour of the official one.
+- `decodeSamMask` wraps `decodeMaskToRaster`: `InvalidSegmentationMaskError` becomes
+  `SamMaskError` with the original as `cause`. The parser validates strictly (marker,
+  base85 shape and length prefix, decoder finalization, and for `one_bit` a canonical
+  re-encode), so truncated, corrupted, or wrongly dimensioned payloads are rejected, not
+  decoded to noise (`sam-mask.test.ts`, `sam-output.test.ts`).
+- **Type comment vs behaviour:** the package's `SegmentationMask.payload` is documented as "the
+  text after the encoding marker", but `decodeMaskToRaster` requires the marker (`!`/`~`) at the
+  start of `payload`, and its own stream parser passes it that way. A marker-less payload failed
+  for all 57 recorded masks, so `SamEncodedMask.payload` keeps the marker and maps 1:1.
+- The parser also decodes `lossless` masks, so there is no "unsupported" branch; requests still
+  ask for `one_bit` (smaller payloads). No `lossless` payload has been recorded, so that path is
+  untested here.
+- Before the swap, the self-written decoder and `decodeMaskToRaster` were compared on all 57
+  recorded masks: identical rasters (0 mismatches).
+- The package's encoder is internal (not exported), so tests build wire records from real
+  payloads extracted from `fixtures/meta/p1-05/sam-integrity.json` (`recordedMasks()` in
+  `sam-test-support.ts`).
+
+### Measured: counts vs ground truth (P1-07 starting point)
+
+Phrases `window`, `door`, `radiator`, effort `minimal`, confidence on, one recording each
+(`fixtures/meta/p1-05/sam-integrity.json`). Ground truth from the samples README. Cells:
+SAM count (ground truth).
+
+| Image                                          | Window | Door                       | Radiator | Scores (min–max)                            |
+| ---------------------------------------------- | ------ | -------------------------- | -------- | ------------------------------------------- |
+| `living-empty`                                 | 1 (1)  | 1 (1)                      | 1 (1)    | 0.85–0.95                                   |
+| `living-empty.edit-add-sofa`                   | 1 (1)  | 1 (1)                      | 1 (1)    | 0.85–0.96                                   |
+| `living-empty.edit-remove-window`              | 0 (0)  | 1 (1)                      | 1 (1)    | 0.89–0.95                                   |
+| `living-dining-cluttered`                      | 2 (2)  | 1 (1)                      | 2 (2)    | 0.81–0.90                                   |
+| `living-dining-cluttered.edit-declutter-table` | 2 (2)  | 1 (1)                      | 2 (2)    | 0.85–0.94                                   |
+| `kitchen-cluttered`                            | 1 (1)  | **9** (1 open + 1 in hall) | 1 (1)    | window 0.88, radiator 0.94; doors 0.53–0.78 |
+| `bedroom-empty`                                | 1 (1)  | **4** (1 + wardrobe doors) | 1 (1)    | doors 0.66–0.86                             |
+| `bedroom-empty.edit-add-bed`                   | 1 (1)  | **4** (1 + wardrobe doors) | 1 (1)    | radiator (half hidden by the bed) 0.56      |
+| `hallway`                                      | 1 (1)  | 3 (3)                      | 1 (1)    | 0.82–0.88                                   |
+| `hallway.edit-add-rug-plant`                   | 1 (1)  | 3 (3)                      | 1 (1)    | 0.73–0.88                                   |
+| `dining-chairs`                                | 1 (1)  | 1 (1)                      | 1 (1)    | radiator (behind chairs) 0.68               |
+| `dining-chairs.edit-replace-chairs`            | 1 (1)  | 1 (1)                      | 1 (1)    | radiator 0.75                               |
+
+Original vs edit, best-match box IoU per phrase (same 1024-px space; the hallway edit is
+1024×672, its `y` scaled by 682/672):
+
+| Edit pair                          | Window     | Door             | Radiator   |
+| ---------------------------------- | ---------- | ---------------- | ---------- |
+| `living-empty` + add sofa          | 0.96       | 0.97             | 0.94       |
+| `living-empty` + **remove window** | **1 → 0**  | 0.98             | 0.94       |
+| `living-dining` + declutter        | 0.96, 0.98 | 0.97             | 0.88, 0.92 |
+| `bedroom` + add bed                | 0.96       | 0.97 ×3, 0.96    | **0.81**   |
+| `hallway` + rug and plant          | 0.91       | 0.95, 0.96, 0.96 | 0.98       |
+| `dining-chairs` + replace chairs   | 0.99       | 0.97             | **0.52**   |
+
+Findings:
+
+- **Counts:** windows and radiators match ground truth on all 12 images; the window-removal edit
+  is caught by count alone (1 → 0) while door and radiator stay put. Counts are identical for
+  every benign pair.
+- **`door` also matches cupboard and wardrobe doors** (kitchen 9, bedroom 4), at lower scores
+  (0.53–0.66 kitchen cabinets; wardrobe 0.66–0.77) than room doors (0.78–0.92), with no clean threshold between them (wardrobe 0.77 vs the open
+  kitchen door 0.78). It is
+  consistent between an original and its edit, so the integrity check (compare, not count
+  against truth) is unaffected; the README's "1 in hall" kitchen door was not found. A
+  `door` count is not usable as a listing fact without Spark.
+- **Occlusion shrinks or reshapes boxes:** the radiator hidden behind new chairs dropped to IoU
+  0.52 (its box grew to the right, as the mask follows the visible slats), and the one behind
+  the bed to 0.81 (score 0.56). Masks cover only the visible part. P1-07 must not use a single
+  global IoU threshold blindly; count equality plus a lenient IoU, or IoU only for unoccluded
+  classes, looks viable.
+- Boxes and masks line up on all 12 overlays inspected (masks follow door panels, window frames,
+  and radiator slats; masks stop at occluders such as the table and chairs).
+- Latency: privacy calls 0.6–1.7 s; the 36-call run took 22 s at 3 concurrent calls (≈1.8 s per
+  image for 3 phrases).
+
+### Privacy phrases (negative cases only)
+
+`person` and `license plate` on `living-empty`, `kitchen-cluttered`, and `hallway`
+(`fixtures/meta/p1-05/sam-privacy.json`): 6/6 empty, as expected (no people or vehicles).
+**Positive privacy-mask behaviour (faces, bodies, partial people, reflections, plates at
+distance) is unverified** until real photos with consent arrive; P2-08 must not assume recall
+from these fixtures.
+
+### Overlays
+
+`P1_05_OUT_DIR=data/p1-05 npx vitest run --project api sam-integrity` writes
+`data/p1-05/overlays/<image>.png` (window blue, door green, radiator orange; masks at alpha
+110/255, boxes 3 px) and `segments.jsonl`, in replay too (no credit). `data/` is gitignored.
+
+### Record
+
+```sh
+RECORD=1 node --env-file=.env node_modules/vitest/vitest.mjs run --project api sam-integrity
+RECORD=1 node --env-file=.env node_modules/vitest/vitest.mjs run --project api sam-privacy
+```
+
+SAM output varies slightly between runs (per Meta's docs), so a re-recording may change the
+pinned counts in `sam-integrity.test.ts`; that failure is intentional.
+
+### Live calls and cost (P1-05)
+
+| Call                                                       | Calls  | Images billed | Est. USD   |
+| ---------------------------------------------------------- | ------ | ------------- | ---------- |
+| Probe: AI SDK, `metaProviderOptions` + metadata (`window`) | 1      | 1             | 0.0025     |
+| Integrity set: 12 images × `window`/`door`/`radiator`      | 36     | 36            | 0.0900     |
+| Privacy negatives: 3 images × `person`/`license plate`     | 6      | 6             | 0.0150     |
+| **Total**                                                  | **43** | **43**        | **0.1075** |
+
+Budget 0.40 USD. Estimated from `images_processed` × $0.0025; Meta's billing dashboard was not
+checked. No call failed or was retried. The probe ran from a scratch script in the gitignored
+`data/p1-05/` folder.
+
 ## P1-06 — Muse Image edits
 
 Status: done (pending review). Recorded 2026-10-28 against `ai@7.0.155`, `@ai-sdk/openai@4.0.104`.

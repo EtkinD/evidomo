@@ -39,7 +39,7 @@ export interface ConvertToWavOptions {
  * `file:` forces ffmpeg's local-file protocol, so a path can never be read as an option, a
  * network URL, or a `concat:`/`subfile:` pseudo-protocol.
  */
-function fileUrl(filePath: string): string {
+export function fileUrl(filePath: string): string {
   return `file:${path.resolve(filePath)}`;
 }
 
@@ -83,7 +83,8 @@ export function ffmpegWavArgs(
   ];
 }
 
-function runFfmpeg(
+/** Runs ffmpeg with an argument array (no shell), a SIGKILL timeout, and stderr capture. */
+export function runFfmpeg(
   ffmpegPath: string,
   args: readonly string[],
   timeoutMs: number,

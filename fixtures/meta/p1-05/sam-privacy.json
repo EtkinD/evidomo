@@ -1,0 +1,439 @@
+{
+  "formatVersion": 1,
+  "cassette": "p1-05/sam-privacy",
+  "recordedAt": "2026-10-28T09:33:19.351Z",
+  "interactions": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "593a5b157fa0b5a3c488e4b18b310b22f061f076f321a1e9cf0af594d1a8b2d7"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "metadata": {
+              "include_confidence": "true",
+              "mask_encoding": "one_bit"
+            },
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "sam-3.1",
+            "reasoning": {
+              "effort": "minimal"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae1c15dc9e5c42eccc643f2",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793179997,
+            "completed_at": 1793179997,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "message",
+                "id": "msg_7553a9f2-e1ef-4519-8ddc-fcce366e82cc",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 0,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 0,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 0,
+              "images_processed": 1
+            },
+            "parallel_tool_calls": true,
+            "store": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "614495f48288cfa5645af85faa3435245617c21e7679c8f363a606197c9b0a58"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "metadata": {
+              "include_confidence": "true",
+              "mask_encoding": "one_bit"
+            },
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "sam-3.1",
+            "reasoning": {
+              "effort": "minimal"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae1c15e8aa4e982d44d4dcb",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793179998,
+            "completed_at": 1793179998,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "message",
+                "id": "msg_92c7fe65-77e2-46f2-a0ae-f2315b90ce40",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 0,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 0,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 0,
+              "images_processed": 1
+            },
+            "parallel_tool_calls": true,
+            "store": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "7ca74c9882f8a649c1cb6e08e9b3e9bde2a177b85cb918696361f14558ea0d66"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "metadata": {
+              "include_confidence": "true",
+              "mask_encoding": "one_bit"
+            },
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "sam-3.1",
+            "reasoning": {
+              "effort": "minimal"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae1c15b0cfb585c06894a96",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793179995,
+            "completed_at": 1793179995,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "message",
+                "id": "msg_0c515a96-30e9-48f2-9044-4dc8ee13e2ca",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 0,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 0,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 0,
+              "images_processed": 1
+            },
+            "parallel_tool_calls": true,
+            "store": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "8bab4e5deafb2b0374fd129345f5143a6f9f608d49d63f94da8ea8e192340b5e"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "metadata": {
+              "mask_encoding": "one_bit",
+              "include_confidence": "true"
+            },
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "sam-3.1",
+            "reasoning": {
+              "effort": "minimal"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae1c15f2759ece969584471",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793179999,
+            "completed_at": 1793179999,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "message",
+                "id": "msg_5ac3f008-aede-49f8-9615-bac72dc4df7f",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 0,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 0,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 0,
+              "images_processed": 1
+            },
+            "parallel_tool_calls": true,
+            "store": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "94256e97eef8b59a61ef15a2e55b87b809c6f7e30325cc7055559feef933fa8d"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "metadata": {
+              "include_confidence": "true",
+              "mask_encoding": "one_bit"
+            },
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "sam-3.1",
+            "reasoning": {
+              "effort": "minimal"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae1c15c1abe2e389d744770",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793179996,
+            "completed_at": 1793179996,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "message",
+                "id": "msg_81cea665-25b2-4f03-b70d-e8c040d74146",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 0,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 0,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 0,
+              "images_processed": 1
+            },
+            "parallel_tool_calls": true,
+            "store": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "a4c2f68912f22ff0eec04f555c7a04542572d05101a0accf12bac7b41bc2c4f6"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "metadata": {
+              "include_confidence": "true",
+              "mask_encoding": "one_bit"
+            },
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "sam-3.1",
+            "reasoning": {
+              "effort": "minimal"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae1c15abb5c89575dbd4eca",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793179993,
+            "completed_at": 1793179994,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "message",
+                "id": "msg_ba7b62db-19b1-4eaf-a24a-fd29cb45807d",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 0,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 0,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 0,
+              "images_processed": 1
+            },
+            "parallel_tool_calls": true,
+            "store": false
+          }
+        }
+      }
+    }
+  ]
+}

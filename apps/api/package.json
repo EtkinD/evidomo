@@ -15,6 +15,7 @@
   "dependencies": {
     "@ai-sdk/openai": "^4.0.104",
     "@evidomo/shared": "0.0.0",
+    "@meta-sam/parser": "^0.1.0",
     "ai": "^7.0.155",
     "drizzle-orm": "^0.45.4",
     "express": "^5.3.0",

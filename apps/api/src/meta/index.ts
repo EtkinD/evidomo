@@ -36,6 +36,31 @@ export {
   type MetaReasoningEffort,
 } from './options.ts';
 export {
+  assertSamPhrase,
+  SamRequestError,
+  SamResponseError,
+  segmentImage,
+  type SamSegment,
+  type SamSegmentRequest,
+  type SamSegmentResult,
+} from './sam.ts';
+export {
+  decodeSamMask,
+  maskArea,
+  SamMaskError,
+  type SamEncodedMask,
+  type SamMaskEncoding,
+} from './sam-mask.ts';
+export {
+  boxIoU,
+  parseSamImageOutput,
+  SamOutputError,
+  type ParseSamOptions,
+  type SamBox,
+  type SamImageOutput,
+  type SamInstance,
+} from './sam-output.ts';
+export {
   createInMemoryUsageRecorder,
   createTokenPriceEstimator,
   UsageCaptureError,

@@ -76,7 +76,7 @@ The orchestrator (main session) delegates each task to its owner — see `.claud
 - [x] **P1-04 — Voice Transcribe**
   - Depends on: P1-01
   - Done when: ffmpeg converts m4a/webm to 16 kHz mono 16-bit PCM WAV; a 2–5 minute Dutch sample is transcribed with keyword biasing through the `openai` SDK's custom request (native `fetch` only if the SDK cannot send the multipart body — documented in model notes); turns with `startMs`/`endMs` are parsed into typed objects; fixture recorded.
-- [ ] **P1-05 — SAM 3.1 and output parser**
+- [x] **P1-05 — SAM 3.1 and output parser**
   - Depends on: P1-01
   - Done when: text-prompt segmentation works via the Responses API through the AI SDK (or the `openai` SDK's `responses.create` if the AI SDK alters the special-token output); the special-token output parser returns typed boxes and masks and is unit-tested on recorded output; a mask overlay renders to PNG for visual inspection.
 - [x] **P1-06 — Muse Image edits**
