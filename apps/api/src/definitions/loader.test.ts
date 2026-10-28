@@ -40,7 +40,7 @@ describe('the repository definitions', () => {
   it('give the service an exact-decimal budget, efforts on every language-model step, and priced models', async () => {
     const service = (await loadDefinitions()).getService('listing-launch', 1);
 
-    expect(service.budget.max_cost_usd_per_run).toBe('0.50');
+    expect(service.budget.max_cost_usd_per_run).toBe('1.00');
     expect(service.steps.map((step) => step.id)).toEqual([
       'intake',
       'fact_extraction',

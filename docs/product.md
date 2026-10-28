@@ -109,7 +109,7 @@ The service never:
 - 100% of factual claims carry valid evidence links (enforced in code, not by prompt).
 - A seeded-defect evaluation set reports the catch rate for planted conflicts and unsupported claims; all planted defects on the demo property are caught.
 - The staging integrity check passes valid edits and rejects a structure-altering edit (or the documented fallback is in place).
-- Cost per run is measured, displayed, and capped (target: under $0.50).
+- Cost per run is measured, displayed, and capped at $1.00 (a typical 10–20 photo run costs ~$0.43–0.60).
 - The product is live on a public HTTPS deployment, with a replayable demo run that needs no login.
 
 ## 11. Non-goals for the MVP

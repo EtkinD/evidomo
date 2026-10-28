@@ -108,4 +108,4 @@ service:
   budget:
     # Quoted on purpose: an unquoted 0.50 is a YAML float. The schema rejects numbers so the
     # cap reaches the usage ledger as an exact decimal string.
-    max_cost_usd_per_run: '0.50'
+    max_cost_usd_per_run: '1.00'

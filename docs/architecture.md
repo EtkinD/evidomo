@@ -246,7 +246,7 @@ service:
     - id: export
       agent: exporter
   budget:
-    max_cost_usd_per_run: '0.50'
+    max_cost_usd_per_run: '1.00'
 ```
 
 - Steps are a union on `agent` (`intake`, `extractor`, `vision`, `reconciler`, `creative`, `qa_writer`, `integrity_checker`, `verifier`, `exporter`); each agent allows only its own fields. Buyer Q&A is its own step, so cut level 1 removes one entry.
@@ -435,20 +435,19 @@ Assumptions:
 | Verification (Wonder `low`)    | $0.050    | $0.050    | $0.150                | measured; worst = 3 passes                                                           |
 | **Total**                      | **$0.43** | **$0.55** | **~$1.15**            |                                                                                      |
 
-- **Does the $0.50 cap fit a 20-photo run? No.** A 20-photo run costs ~$0.55 at the measured reconciliation cost. If reconciliation grows with a P2-07-sized catalog (~$0.13, extrapolated), it costs ~$0.60.
-  - A 10-photo run fits, at $0.43–0.49, with almost no room for a revision loop or an integrity retry.
-  - The break-even is about 15 photos at the measured reconciliation cost and about 11 with the extrapolated one. Each photo adds $0.0114: $0.0064 Spark and $0.005 SAM.
-  - Steps run in order, and the cap is checked before each call, so a 20-photo run crosses the cap somewhere between staging and verification. Whether it fails before the claim audit, after spending nearly all of its budget, or overshoots through the single verification call depends on a few cents. Either way, no revision loop fits.
+- **Run cap: $1.00 (raised from $0.50 on 28 Oct, after P1-08).** At $0.50 a 20-photo run did not fit: it costs ~$0.55 at the measured reconciliation cost and ~$0.60 if reconciliation grows with a P2-07-sized catalog (~$0.13, extrapolated). The break-even was about 15 photos, or 11 with the extrapolated reconciliation; each photo adds $0.0114 ($0.0064 Spark, $0.005 SAM).
+  - At $1.00 a 30-photo typical run (~$0.67) fits, with ~$0.30–0.45 of headroom for revision loops and integrity retries.
+  - The ~$1.15 worst case still stops at the cap. Steps run in order and the cap is checked before each call, so such a run ends in the late steps (staging, integrity, or verification revision loops).
 - **Worst case:** ~$1.15 in expected tokens. Every step at its output cap would cost more: vision alone $0.77, reconciliation $0.28. Such a run stops at the run cap. It overshoots by at most the calls already in flight, which is up to 4 vision calls, a few cents.
-- **Daily cap ($5.00 by default):** 10–11 typical 10-photo runs, or about 10 runs that stop at the $0.50 cap. With a $0.75 run cap, about 8 typical 20-photo runs fit, or 6 runs that hit the cap.
-- **Levers (none applied):** each needs a definition change and, for model settings, a re-recording.
-  1. **Raise the run cap to $0.75.** A 20-photo run then fits with ~$0.15–0.20 of headroom for one partial revision loop or integrity retries, but not the worst case. It also leaves fewer runs per daily cap.
+- **Daily cap ($5.00 by default):** 10–11 typical 10-photo runs or about 9 typical 20-photo runs, but only 5 runs that hit the $1.00 cap. Raise `DAILY_BUDGET_USD` for a demo day with many live runs.
+- **Further levers (not applied):** each needs a definition change and, for model settings, a re-recording.
+  1. ~~Raise the run cap to $0.75.~~ Superseded: the cap is $1.00.
   2. **Spark `minimal` for classification.** This saves roughly the reasoning share, ~$0.003 per photo, or ~$0.06 at 20 photos. The quality impact is unmeasured; a re-recording of the six samples costs ~$0.04.
   3. **Lower the vision `max_output_tokens` from 4,000 to 2,000.** The typical cost does not change, because the measured maximum is 1,137 tokens. The worst case per photo halves, from $0.0195 to $0.011, and Spark at 30 photos drops from $0.59 to $0.33.
   4. **Run `license plate` only on exterior photos.** This saves $0.0025 per interior photo, ~$0.04 at 20 photos. The privacy calls would then have to wait for classification (today they run in parallel). It also weakens the rule that every photo is checked for every phrase, and a misclassified exterior photo would skip the plate check.
   5. **Promote Spark `medium` to primary for reconciliation.** This saves ~$0.04 per run (measured) at +60% latency.
 
-  Levers 2 and 4 together bring a 20-photo run to ~$0.45, which fits $0.50 only at the measured reconciliation cost. Two design choices in upcoming tasks also cut the worst case:
+  Levers 2 and 4 together bring a 20-photo run to ~$0.45. Two design choices in upcoming tasks also cut the worst case:
   - re-verifying and regenerating only the revised segments in P3-06, about $0.01–0.02 per loop instead of $0.08;
   - reusing the vision step's SAM results for the originals in P3-05.
 
