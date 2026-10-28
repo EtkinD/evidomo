@@ -50,13 +50,11 @@ export interface UsageRecorder {
   record(entry: UsageEntry): void;
 }
 
-/**
- * Hook for a display/log cost estimate (the ledger persists its own exact cost). Audio-priced
- * calls also pass `audioDurationMs`.
- */
-export type CostEstimator = (
-  usage: TokenUsage & { readonly audioDurationMs?: number },
-) => number | undefined;
+/** What a cost estimate is based on: token counts plus the image or audio units, if any. */
+export type BillableUsage = TokenUsage & Pick<UsageEntry, 'images' | 'audioDurationMs'>;
+
+/** Hook for a display/log cost estimate (the ledger persists its own exact cost). */
+export type CostEstimator = (usage: BillableUsage) => number | undefined;
 
 export interface InMemoryUsageRecorder extends UsageRecorder {
   readonly entries: readonly UsageEntry[];
@@ -81,15 +79,24 @@ export interface TokenPrice {
   readonly outputUsdPerMillion: number;
 }
 
+/** Flat per-image price (Muse Image); the token counts it reports are not billed. */
+export interface ImagePrice {
+  readonly usdPerImage: number;
+}
+
 /**
- * Estimates cost from a per-model token price list. Reasoning tokens are billed at the output
- * rate and are already part of `outputTokens`, so they are not added a second time.
+ * Estimates cost from a per-model price list. Token-priced models: reasoning tokens are billed
+ * at the output rate and are already part of `outputTokens`, so they are not added a second time.
+ * Image-priced models: `images × usdPerImage`, `undefined` when the image count is unknown.
  */
 export function createTokenPriceEstimator(
-  prices: Readonly<Record<string, TokenPrice>>,
+  prices: Readonly<Record<string, TokenPrice | ImagePrice>>,
 ): CostEstimator {
   return (usage) => {
     const price = Object.hasOwn(prices, usage.modelId) ? prices[usage.modelId] : undefined;
+    if (price !== undefined && 'usdPerImage' in price) {
+      return usage.images === undefined ? undefined : usage.images * price.usdPerImage;
+    }
     if (
       price === undefined ||
       usage.inputTokens === undefined ||

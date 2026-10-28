@@ -13,6 +13,20 @@ export {
   type MetaClients,
 } from './clients.ts';
 export {
+  editMetaImage,
+  generateMetaImage,
+  ImageDecodeError,
+  imageDimensions,
+  type ImageContainer,
+  type ImageDimensions,
+  type MetaImage,
+  type MetaImageEditRequest,
+  type MetaImageOutputFormat,
+  type MetaImageRequest,
+  type MetaImageResult,
+  type MetaImageSize,
+} from './images.ts';
+export {
   META_REASONING_EFFORTS,
   metaProviderOptions,
   metaReasoningEffortSchema,
@@ -25,7 +39,9 @@ export {
   createInMemoryUsageRecorder,
   createTokenPriceEstimator,
   UsageCaptureError,
+  type BillableUsage,
   type CostEstimator,
+  type ImagePrice,
   type InMemoryUsageRecorder,
   type MetaSdk,
   type TokenPrice,

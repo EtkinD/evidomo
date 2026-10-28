@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readdir, readFile, rm, rmdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { z } from 'zod';
 
@@ -22,8 +22,22 @@ const requestDescriptorSchema = z.object({
   bodySha256: z.string().regex(/^[0-9a-f]{64}$/),
 });
 
+/**
+ * Large base64 strings in JSON bodies (Muse Image `b64_json`) are stored as separate binary
+ * files next to the cassette, so cassettes stay small and the images stay viewable. `pointer` is
+ * an RFC 6901 JSON pointer into `value`, where the string is replaced by the file name.
+ */
+const externalBlobSchema = z.object({
+  pointer: z.string().startsWith('/'),
+  file: z.string().regex(/^[0-9a-f]{64}\.(webp|png|jpg|bin)$/),
+});
+
 const fixtureBodySchema = z.discriminatedUnion('type', [
-  z.object({ type: z.literal('json'), value: z.json() }),
+  z.object({
+    type: z.literal('json'),
+    value: z.json(),
+    externals: z.array(externalBlobSchema).optional(),
+  }),
   z.object({ type: z.literal('text'), value: z.string() }),
   z.object({ type: z.literal('base64'), value: z.base64() }),
   z.object({ type: z.literal('empty') }),
@@ -47,6 +61,7 @@ const cassetteSchema = z.object({
 
 export type RequestDescriptor = z.infer<typeof requestDescriptorSchema>;
 export type FixtureBody = z.infer<typeof fixtureBodySchema>;
+export type ExternalBlob = z.infer<typeof externalBlobSchema>;
 export type Interaction = z.infer<typeof interactionSchema>;
 export type Cassette = z.infer<typeof cassetteSchema>;
 
@@ -63,6 +78,107 @@ export function cassettePath(name: string, fixturesDir: string = META_FIXTURES_D
     );
   }
   return path.join(fixturesDir, `${name}.json`);
+}
+
+/** Directory holding a cassette's external blobs: `<name>.files/` next to `<name>.json`. */
+export function cassetteBlobDir(file: string): string {
+  return file.replace(/\.json$/, '.files');
+}
+
+/** Strings at least this long that are canonical base64 are stored as external blobs. */
+export const EXTERNAL_BLOB_MIN_LENGTH = 16 * 1024;
+
+type JsonValue = z.infer<ReturnType<typeof z.json>>;
+
+function pointerToken(key: string | number): string {
+  return String(key).replaceAll('~', '~0').replaceAll('/', '~1');
+}
+
+function pointerTokens(pointer: string): string[] {
+  return pointer
+    .slice(1)
+    .split('/')
+    .map((token) => token.replaceAll('~1', '/').replaceAll('~0', '~'));
+}
+
+/** Decoded bytes if `value` is canonical base64 (re-encoding yields the identical string). */
+function canonicalBase64Bytes(value: string): Buffer | undefined {
+  if (value.length < EXTERNAL_BLOB_MIN_LENGTH || value.length % 4 !== 0) return undefined;
+  if (!/^[A-Za-z0-9+/]+={0,2}$/.test(value)) return undefined;
+  const bytes = Buffer.from(value, 'base64');
+  return bytes.toString('base64') === value ? bytes : undefined;
+}
+
+function blobExtension(bytes: Uint8Array): 'webp' | 'png' | 'jpg' | 'bin' {
+  const head = Buffer.from(bytes.subarray(0, 12));
+  if (
+    head.subarray(0, 4).toString('latin1') === 'RIFF' &&
+    head.subarray(8, 12).toString('latin1') === 'WEBP'
+  ) {
+    return 'webp';
+  }
+  if (head.subarray(0, 4).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47]))) return 'png';
+  if (head.subarray(0, 3).equals(Buffer.from([0xff, 0xd8, 0xff]))) return 'jpg';
+  return 'bin';
+}
+
+/** Copies `value`, moving large base64 strings out into `blobs` (file name → bytes). */
+function externalize(
+  value: JsonValue,
+  pointer: string,
+  externals: ExternalBlob[],
+  blobs: Map<string, Uint8Array>,
+): JsonValue {
+  if (typeof value === 'string') {
+    const bytes = canonicalBase64Bytes(value);
+    if (bytes === undefined) return value;
+    const file = `${sha256(bytes)}.${blobExtension(bytes)}`;
+    externals.push({ pointer, file });
+    blobs.set(file, bytes);
+    return file;
+  }
+  if (Array.isArray(value)) {
+    return value.map((item, index) => externalize(item, `${pointer}/${index}`, externals, blobs));
+  }
+  if (typeof value === 'object' && value !== null) {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, item]) => [
+        key,
+        externalize(item, `${pointer}/${pointerToken(key)}`, externals, blobs),
+      ]),
+    );
+  }
+  return value;
+}
+
+/** Replaces the string at `pointer` (which must equal `expected`) with `replacement`, in place. */
+function replaceAtPointer(
+  root: JsonValue,
+  pointer: string,
+  expected: string,
+  replacement: string,
+): boolean {
+  const tokens = pointerTokens(pointer);
+  const last = tokens.pop();
+  if (last === undefined) return false;
+  let node: JsonValue = root;
+  for (const token of tokens) {
+    if (Array.isArray(node)) node = node[Number(token)] ?? null;
+    else if (typeof node === 'object' && node !== null && Object.hasOwn(node, token))
+      node = node[token] ?? null;
+    else return false;
+  }
+  if (Array.isArray(node)) {
+    const index = Number(last);
+    if (node[index] !== expected) return false;
+    node[index] = replacement;
+    return true;
+  }
+  if (typeof node === 'object' && node !== null && node[last] === expected) {
+    node[last] = replacement;
+    return true;
+  }
+  return false;
 }
 
 /** Recursively sorts object keys so semantically equal JSON bodies hash the same. */
@@ -226,11 +342,72 @@ export async function readCassette(file: string): Promise<Cassette> {
       `Meta API fixture ${file} has an invalid format:\n${z.prettifyError(parsed.error)}`,
     );
   }
+  const blobDir = cassetteBlobDir(file);
+  for (const interaction of parsed.data.interactions) {
+    const { body } = interaction.response;
+    if (body.type !== 'json' || body.externals === undefined) continue;
+    for (const external of body.externals) {
+      let bytes: Buffer;
+      try {
+        bytes = await readFile(path.join(blobDir, external.file));
+      } catch (error) {
+        throw new FixtureError(`Meta API fixture ${file}: blob ${external.file} is missing`, {
+          cause: error,
+        });
+      }
+      if (`${sha256(bytes)}.${blobExtension(bytes)}` !== external.file) {
+        throw new FixtureError(`Meta API fixture ${file}: blob ${external.file} is corrupted`);
+      }
+      if (
+        !replaceAtPointer(body.value, external.pointer, external.file, bytes.toString('base64'))
+      ) {
+        throw new FixtureError(
+          `Meta API fixture ${file}: ${external.pointer} does not reference ${external.file}`,
+        );
+      }
+    }
+    // Replay sees the original body, exactly as recorded.
+    delete body.externals;
+  }
   return parsed.data;
 }
 
+/**
+ * Writes a cassette, storing large base64 strings as blobs in `<name>.files/`. Blobs left over
+ * from an earlier recording of the same cassette are removed.
+ */
 export async function writeCassette(file: string, cassette: Cassette): Promise<void> {
   const validated = cassetteSchema.parse(cassette);
+  const blobs = new Map<string, Uint8Array>();
+  const interactions = validated.interactions.map((interaction): Interaction => {
+    const { body } = interaction.response;
+    if (body.type !== 'json') return interaction;
+    const externals: ExternalBlob[] = [];
+    const value = externalize(body.value, '', externals, blobs);
+    return {
+      ...interaction,
+      response: {
+        ...interaction.response,
+        body: externals.length === 0 ? { type: 'json', value } : { type: 'json', value, externals },
+      },
+    };
+  });
+
   await mkdir(path.dirname(file), { recursive: true });
-  await writeFile(file, `${JSON.stringify(validated, null, 2)}\n`, 'utf8');
+  const blobDir = cassetteBlobDir(file);
+  let existing: string[] = [];
+  try {
+    existing = await readdir(blobDir);
+  } catch (error) {
+    if (!(error instanceof Error && 'code' in error && error.code === 'ENOENT')) throw error;
+  }
+  if (blobs.size > 0) await mkdir(blobDir, { recursive: true });
+  for (const [name, bytes] of blobs) {
+    await writeFile(path.join(blobDir, name), bytes);
+  }
+  for (const name of existing) {
+    if (!blobs.has(name)) await rm(path.join(blobDir, name));
+  }
+  if (blobs.size === 0 && existing.length > 0) await rmdir(blobDir);
+  await writeFile(file, `${JSON.stringify({ ...validated, interactions }, null, 2)}\n`, 'utf8');
 }

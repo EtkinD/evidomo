@@ -519,4 +519,181 @@ Estimated at $0.18 per audio hour from `audioDurationMs`; the API returns no cos
 
 ## P1-06 — Muse Image edits
 
+Status: done (pending review). Recorded 2026-10-28 against `ai@7.0.155`, `@ai-sdk/openai@4.0.104`.
+Sources: Meta's [image generation guide](https://dev.meta.ai/docs/image-generation), the
+[Images API schemas](https://dev.meta.ai/docs/api-reference/images/schemas), the cookbook recipe
+`05_muse_image/01_image_api_fundamentals`, and the installed SDK sources.
+
+### Endpoints and client choice
+
+Muse Image is reachable three ways: `POST /v1/images/generations` (text-to-image),
+`POST /v1/images/edits` (image-to-image), and the Responses API (`responses.create` with
+`model: "muse-image-1.0"`, image returned as an `image_generation_call` output item; the
+cookbook's route, multi-turn via `previous_response_id`, `store` defaults to `true`).
+
+**Decision: the AI SDK image API is the client** (`meta/images.ts`). `@ai-sdk/openai`'s
+`OpenAIImageModel.doGenerate` posts to `/images/generations` (JSON) for a text prompt and to
+`/images/edits` (multipart) as soon as `generateImage({ prompt: { text, images } })` carries input
+images. No `openai` SDK fallback was needed. What the SDK sends (proven by the stubbed-fetch
+tests in `images.test.ts` and the recorded calls):
+
+- Generation: JSON `{ model, prompt, n: 1, size?, output_format?, response_format: "b64_json" }`.
+  The SDK adds `response_format` for every model ID outside OpenAI's `gpt-image-*` and `chatgpt-image-*` families; Meta
+  accepts it (`b64_json` is also its default).
+- Edit: multipart `model`, `prompt`, `n`, `size?`, `output_format?`, and one `image` part (a Blob
+  without a file name, so it goes out as `blob`, with the media type sniffed from the bytes;
+  JPEG input worked). Several images would go out as `image[]`. Meta's docs name `image` or
+  `image[N]`; multi-image edits are untested.
+- `providerOptions` must use the **`openai`** key (same as for Responses models). Only OpenAI's
+  options pass: `outputFormat`, `outputCompression`, `quality`, `background`, `user`, and for
+  edits `inputFidelity`. Per Meta's docs `mask` and `input_fidelity` return 400; the helper sends neither.
+- **Gap:** Meta-specific fields (`reasoning_strength`, default `high`; `tool_enablement`, default
+  all on: image search, web search, shell; `temperature`) cannot be sent through the AI SDK image
+  model. All P1-06 calls ran with Meta's defaults. If P3-04 wants built-in search off for
+  customer photos, or `low` strength for speed, it needs the `openai` SDK (`images.edit` with
+  extra fields; how its multipart encoder flattens the nested `tool_enablement` object is
+  untested) or the documented JSON edit body (`images: [{ image_url: <data URL> }]`) via
+  `openai.post`. Price does not change with either setting.
+- `generateImage` has no `timeout` option and no usage callback. The helper bounds the whole call
+  (retries included) with `AbortSignal.timeout(timeoutMs)`, matching the AI SDK's own `timeout`
+  semantics, measures latency around the call, and records usage via `clients.recordUsage`. Its
+  retry layer is the SDK's (`maxRetries` from `aiSdkCallOptions()`); note it also retries a 2xx
+  response with zero images (Meta: failed or safety-filtered images are not billed).
+
+### Response shape
+
+From `fixtures/meta/p1-06/edit.json` (the image is stored in `edit.files/`):
+
+```json
+{
+  "created": 1793154087,
+  "data": [{ "b64_json": "<base64 JPEG>" }],
+  "output_format": "jpeg",
+  "background": "opaque",
+  "usage": { "input_tokens": 11867, "output_tokens": 787, "total_tokens": 12654 }
+}
+```
+
+- No `id`, no `model`, no `size`: the usage entry takes `modelId` from the request and has no
+  `responseId`. The helper reads the pixel size from the image header (`imageDimensions`, PNG /
+  JPEG / WebP) instead, which also rejects a payload that is not an image.
+- `usage` is token counts only. **Billing is flat $0.01 per returned image** (Meta's pricing
+  page); the tokens are informational. `UsageEntry.images` carries the billable unit and the
+  estimator takes `ImagePrice { usdPerImage }` for image models.
+- Every output (WebP and JPEG) carries an XMP packet with IPTC
+  `DigitalSourceType = trainedAlgorithmicMedia` (the "AI-generated" marker) and nothing else.
+  P2-05's metadata stripping applies to uploads, not to staged outputs; whether the export keeps
+  this marker on staged images (it supports the staging disclosure) is a P3-04/P3-07 decision.
+
+### Output dimensions vs input
+
+| Call            | Input               | `size` sent | Output             |
+| --------------- | ------------------- | ----------- | ------------------ |
+| Generation (6×) | text                | `1536x1024` | 1920×1280 WebP     |
+| Edit (5×)       | 1024×682 JPEG (3:2) | `1536x1024` | 1920×1280 JPEG     |
+| Edit, hallway   | 1024×682 JPEG (3:2) | none        | **1952×1280** JPEG |
+
+- `size` sets the aspect ratio only; the model renders at its own resolution (here 1.25× the
+  requested width and height). Output is never the input size: the 1024×682 edit inputs came back
+  at 1.875× their width and height.
+- Without `size`, the edit came back at 1952×1280 (aspect 1.525 vs the input's 1.502), so the
+  edit pipeline should send `size` derived from the input's aspect ratio, and the integrity check
+  must resize (and tolerate a ~1.5% aspect difference) before comparing positions.
+- Default output format is `webp`; `output_format: "jpeg"` (via `providerOptions.openai.
+outputFormat`) is honored and echoed.
+
+### Edits
+
+Inputs are the downscaled generated samples in `fixtures/samples/synthetic-interiors/` (see its
+README for prompts). Each prompt wraps one declared operation: "Edit this photo: `<operation>`.
+Change nothing else: keep the camera angle, framing, walls, floor, ceiling, windows, doors,
+radiators, and lighting exactly as they are. Do not add people, text, or logos." SSIM/PSNR:
+ffmpeg `ssim`/`psnr` filters, output scaled to 1024×682 against the input JPEG.
+
+| Edit (operation)                                   | Out       | Latency | SSIM  | PSNR dB | Visual impression                                                                                                                                                   |
+| -------------------------------------------------- | --------- | ------- | ----- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `living-empty`: add a sofa                         | 1920×1280 | 10.0 s  | 0.771 | 21.0    | Very good. Window, radiator, door, walls, and framing unchanged; sofa placed plausibly.                                                                             |
+| `living-dining-cluttered`: declutter the table     | 1920×1280 | 8.4 s   | 0.806 | 20.0    | Clutter fully removed; windows (2), radiators (2), and door kept. But the table itself was redrawn larger and closer to the camera: an unrequested geometry change. |
+| `bedroom-empty`: add a bed with linen              | 1920×1280 | 15.4 s  | 0.873 | 22.0    | Good. Door, window, wardrobe kept; the bed stands against the window wall and hides the lower half of the radiator.                                                 |
+| `dining-chairs`: replace the dining chairs         | 1920×1280 | 9.1 s   | 0.769 | 18.7    | Good. Six new oak chairs, table, window, door kept; chairs partly occlude the radiator.                                                                             |
+| `hallway`: add a runner rug and a plant (no size)  | 1952×1280 | 15.9 s  | 0.900 | 25.6    | Very good. Three doors, radiator, high window, coat rail kept; rug and plant added.                                                                                 |
+| `living-empty`: **remove the window** (structural) | 1920×1280 | 9.6 s   | 0.777 | 23.9    | Obeyed despite the "change nothing else" clause: window gone, plain wall, radiator and door kept. A clear structural violation.                                     |
+
+Findings:
+
+- **No pixel preservation, good semantic preservation.** An amplified difference image lights up
+  every edge in the frame for every edit: the whole image is re-rendered (floor plank pattern,
+  tree texture in the window panes, slight sub-pixel shifts), not composited. Fixed elements kept
+  their count and approximate position in all five benign edits.
+- **Global similarity cannot be the integrity check.** The structure-altering edit (SSIM 0.777)
+  sits inside the benign range (0.769–0.900). This supports the planned object-level check
+  (SAM counts + box IoU) for P1-07.
+- **Occlusion is legitimate.** Added furniture partly hides radiators in two benign edits; a
+  count/IoU check must not treat a partially hidden radiator as removed (P1-07 threshold work).
+- **Unrequested object changes happen** (the redrawn table). They are not structural, but the
+  staged image is labeled as staged and linked to its original (P3-04), and Gate 2 shows both.
+- Latency: edits 8.4–15.9 s (median ~9.8 s), generations 9.3–29.4 s (median ~16 s), all at
+  Meta's default `reasoning_strength: high`. Edits reporting ~11–12k input tokens took 8–10 s;
+  those reporting ~20k (more internal reasoning or tool use) took 15–16 s.
+
+### Fixture format: external blobs
+
+Muse Image responses carry the image as base64 inside JSON (0.2–0.55 MB per image, about 4.5 MB
+for 12 calls). The cassette format (still `formatVersion: 1`) gained an optional `externals` list
+on JSON bodies:
+
+```json
+"body": {
+  "type": "json",
+  "value": { "data": [{ "b64_json": "<sha256>.jpg" }], "...": "..." },
+  "externals": [{ "pointer": "/data/0/b64_json", "file": "<sha256>.jpg" }]
+}
+```
+
+- `writeCassette` moves every string of at least 16 KiB that is canonical base64 (re-encoding
+  gives the identical string) into `<cassette>.files/<sha256>.<webp|png|jpg|bin>` as decoded
+  bytes, so the images are viewable and the JSON stays at ~6 KB. Other strings stay inline.
+  Stale blobs from an earlier recording of the same cassette are deleted.
+- `readCassette` checks each blob's hash, writes the base64 back at its RFC 6901 pointer, and
+  drops `externals`, so replay serves the byte-identical recorded body (verified: replayed images
+  equal the live ones). A missing or altered blob fails loudly.
+- Cassettes without `externals` (P1-01, P1-02) are unchanged and still load (tested).
+- Sizes: `generate.files/` 1.86 MB (6 WebP), `edit.files/` 2.79 MB (6 JPEG, because the edits
+  requested `jpeg`; the WebP generations average ~310 KB per image vs ~465 KB for the JPEG
+  edits). Each cassette JSON is ~6 KB; `edit.files/` is above the ~2 MB per-cassette target.
+
+### Record
+
+```sh
+RECORD=1 node --env-file=.env node_modules/vitest/vitest.mjs run --project api muse-image-generate
+RECORD=1 node --env-file=.env node_modules/vitest/vitest.mjs run --project api muse-image-edit
+```
+
+`P1_06_EXPORT_DIR=<dir>` writes every returned image (and, when recording, a `metrics.jsonl`
+with dimensions, latency, and usage) to `<dir>`; it also works in replay. Re-recording the
+generations changes the sample set; the edit test reads its inputs from the committed samples,
+so the samples must be regenerated before the edits are re-recorded.
+
+### Live calls and cost (P1-06)
+
+| #   | Call                                      | Images | Latency | Input / output tok | Est. USD |
+| --- | ----------------------------------------- | ------ | ------- | ------------------ | -------- |
+| 1   | Generate `living-empty`                   | 1      | 9.5 s   | 10,394 / 1,068     | 0.01     |
+| 2   | Generate `living-dining-cluttered`        | 1      | 16.7 s  | 18,923 / 2,034     | 0.01     |
+| 3   | Generate `kitchen-cluttered`              | 1      | 17.7 s  | 19,020 / 2,141     | 0.01     |
+| 4   | Generate `bedroom-empty`                  | 1      | 9.3 s   | 10,432 / 1,123     | 0.01     |
+| 5   | Generate `hallway`                        | 1      | 15.9 s  | 18,887 / 2,115     | 0.01     |
+| 6   | Generate `dining-chairs`                  | 1      | 29.4 s  | 18,556 / 1,844     | 0.01     |
+| 7   | Edit `living-empty`: add sofa             | 1      | 10.0 s  | 11,867 / 787       | 0.01     |
+| 8   | Edit `living-dining-cluttered`: declutter | 1      | 8.4 s   | 11,606 / 548       | 0.01     |
+| 9   | Edit `bedroom-empty`: add bed             | 1      | 15.4 s  | 20,869 / 1,721     | 0.01     |
+| 10  | Edit `dining-chairs`: replace chairs      | 1      | 9.1 s   | 11,699 / 640       | 0.01     |
+| 11  | Edit `hallway`: rug and plant (no size)   | 1      | 15.9 s  | 20,210 / 1,385     | 0.01     |
+| 12  | Edit `living-empty`: remove window        | 1      | 9.6 s   | 11,682 / 606       | 0.01     |
+|     | **Total**                                 | **12** |         |                    | **0.12** |
+
+No call failed: each run recorded six successful interactions, and the latencies show no retry
+backoff (a failed attempt would not be billed anyway). Budget 0.40 USD; spent
+0.12 USD (estimated from the list price; Meta's billing dashboard was not checked).
+
 ## P1-07 — Integrity check feasibility

@@ -1,14 +1,21 @@
-import { readdir, readFile } from 'node:fs/promises';
+import { mkdtemp, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { z } from 'zod';
 import {
+  cassetteBlobDir,
   cassettePath,
   describeRequest,
+  EXTERNAL_BLOB_MIN_LENGTH,
+  FIXTURE_FORMAT_VERSION,
   FixtureError,
   interactionFromResponse,
   META_FIXTURES_DIR,
   readCassette,
   responseFromInteraction,
+  writeCassette,
+  type Cassette,
 } from './fixtures.ts';
 
 const URL_BASE = 'https://api.meta.ai/v1/responses';
@@ -134,6 +141,98 @@ describe('cassettePath', () => {
     expect(() => cassettePath('../secrets', '/fx')).toThrow(FixtureError);
     expect(() => cassettePath('/abs', '/fx')).toThrow(FixtureError);
     expect(() => cassettePath('Upper', '/fx')).toThrow(FixtureError);
+  });
+});
+
+describe('external blobs', () => {
+  let dir: string;
+  beforeEach(async () => {
+    dir = await mkdtemp(path.join(tmpdir(), 'evidomo-fixtures-'));
+  });
+  afterEach(async () => {
+    await rm(dir, { recursive: true, force: true });
+  });
+
+  // A PNG signature padded past the threshold: canonical base64 that decodes to "image" bytes.
+  const pngBytes = Buffer.concat([
+    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+    Buffer.alloc(EXTERNAL_BLOB_MIN_LENGTH, 7),
+  ]);
+  const largeBase64 = pngBytes.toString('base64');
+
+  function cassette(value: unknown): Cassette {
+    return {
+      formatVersion: FIXTURE_FORMAT_VERSION,
+      cassette: 'p9/blobs',
+      recordedAt: '2026-10-28T00:00:00.000Z',
+      interactions: [
+        {
+          request: { method: 'POST', path: '/v1/images/edits', bodySha256: 'a'.repeat(64) },
+          response: {
+            status: 200,
+            headers: { 'content-type': 'application/json' },
+            // Parsed copy: writeCassette must not depend on the caller's object identity.
+            body: { type: 'json', value: z.json().parse(structuredClone(value)) },
+          },
+        },
+      ],
+    };
+  }
+
+  it('stores large base64 strings as files and restores them on read', async () => {
+    const file = path.join(dir, 'p9/blobs.json');
+    const value = { data: [{ b64_json: largeBase64 }], 'a/b~c': [largeBase64], small: 'abcd' };
+    await writeCassette(file, cassette(value));
+
+    const json = await readFile(file, 'utf8');
+    expect(json.length).toBeLessThan(2_000);
+    const blobs = await readdir(cassetteBlobDir(file));
+    expect(blobs).toHaveLength(1);
+    expect(blobs[0]).toMatch(/^[0-9a-f]{64}\.png$/);
+    expect(await readFile(path.join(cassetteBlobDir(file), blobs[0] ?? ''))).toEqual(pngBytes);
+    expect(JSON.parse(json)).toMatchObject({
+      interactions: [
+        {
+          response: {
+            body: {
+              externals: [
+                { pointer: '/data/0/b64_json', file: blobs[0] },
+                { pointer: '/a~1b~0c/0', file: blobs[0] },
+              ],
+            },
+          },
+        },
+      ],
+    });
+
+    const restored = await readCassette(file);
+    expect(restored.interactions[0]?.response.body).toEqual({ type: 'json', value });
+  });
+
+  it('keeps short or non-canonical base64 inline and removes stale blobs on rewrite', async () => {
+    const file = path.join(dir, 'p9/blobs.json');
+    await writeCassette(file, cassette({ b64_json: largeBase64 }));
+    expect(await readdir(cassetteBlobDir(file))).toHaveLength(1);
+
+    const wrapped = `${largeBase64.slice(0, 76)}\n${largeBase64.slice(76)}`;
+    await writeCassette(file, cassette({ b64_json: wrapped }));
+    await expect(stat(cassetteBlobDir(file))).rejects.toThrow();
+    expect((await readCassette(file)).interactions[0]?.response.body).toEqual({
+      type: 'json',
+      value: { b64_json: wrapped },
+    });
+  });
+
+  it('fails loudly when a referenced blob is missing or altered', async () => {
+    const file = path.join(dir, 'p9/blobs.json');
+    await writeCassette(file, cassette({ b64_json: largeBase64 }));
+    const [blob = ''] = await readdir(cassetteBlobDir(file));
+    const blobPath = path.join(cassetteBlobDir(file), blob);
+
+    await writeFile(blobPath, Buffer.concat([pngBytes, Buffer.from([1])]));
+    await expect(readCassette(file)).rejects.toThrow(/corrupted/);
+    await rm(blobPath);
+    await expect(readCassette(file)).rejects.toThrow(/missing/);
   });
 });
 

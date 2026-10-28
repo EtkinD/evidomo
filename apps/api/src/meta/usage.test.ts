@@ -120,3 +120,15 @@ describe('createInMemoryUsageRecorder', () => {
     expect(recorder.entries).toEqual([]);
   });
 });
+
+describe('createTokenPriceEstimator with image prices', () => {
+  const images = createTokenPriceEstimator({ 'image-model': { usdPerImage: 0.01 } });
+
+  it('bills image models per image and ignores their token counts', () => {
+    expect(images({ ...tokens({ modelId: 'image-model' }), images: 3 })).toBeCloseTo(0.03, 10);
+  });
+
+  it('returns undefined when the image count is unknown', () => {
+    expect(images(tokens({ modelId: 'image-model' }))).toBeUndefined();
+  });
+});

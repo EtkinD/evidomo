@@ -1,11 +1,12 @@
 import { createOpenAI, type OpenAIProvider } from '@ai-sdk/openai';
-import type { LanguageModel, LanguageModelCallEndEvent } from 'ai';
+import type { ImageModel, LanguageModel, LanguageModelCallEndEvent } from 'ai';
 import OpenAI, { type ClientOptions } from 'openai';
 import type { Logger } from 'pino';
 import {
   usageEntryFromAiSdkCall,
   usageEntryFromOpenAIResult,
   type CostEstimator,
+  type UsageEntry,
   type UsageRecorder,
 } from './usage.ts';
 
@@ -117,10 +118,20 @@ export interface MetaClients {
   readonly openai: OpenAI;
   /** A Responses API language model; rejects Contributor-mode IDs. */
   languageModel(modelId: string): LanguageModel;
+  /**
+   * An AI SDK image model (`/v1/images/generations`, or `/v1/images/edits` when input images are
+   * given); rejects Contributor-mode IDs. Call it through `meta/images.ts`, which records usage.
+   */
+  imageModel(modelId: string): ImageModel;
   /** Retry/timeout policy and usage capture for one AI SDK call. */
   aiSdkCallOptions(): AiSdkCallOptions;
   /** Runs one `openai` SDK call, measures latency, and records its usage. */
   captureOpenAIUsage<T>(call: () => Promise<T>): Promise<T>;
+  /**
+   * Records usage measured by the caller (calls without an SDK usage hook, such as AI SDK image
+   * calls), adding the cost estimate. Returns the recorded entry.
+   */
+  recordUsage(entry: Omit<UsageEntry, 'estimatedCostUsd'>): UsageEntry;
 }
 
 export function createMetaClients(options: MetaClientOptions): MetaClients {
@@ -153,6 +164,10 @@ export function createMetaClients(options: MetaClientOptions): MetaClients {
       assertStandardModelId(modelId);
       return provider.responses(modelId);
     },
+    imageModel(modelId) {
+      assertStandardModelId(modelId);
+      return provider.image(modelId);
+    },
     aiSdkCallOptions() {
       return {
         maxRetries,
@@ -167,6 +182,11 @@ export function createMetaClients(options: MetaClientOptions): MetaClients {
       const result = await call();
       usage.record(usageEntryFromOpenAIResult(result, performance.now() - startedAt, estimateCost));
       return result;
+    },
+    recordUsage(measured) {
+      const entry: UsageEntry = { ...measured, estimatedCostUsd: estimateCost?.(measured) };
+      usage.record(entry);
+      return entry;
     },
   };
 }

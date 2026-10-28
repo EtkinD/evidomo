@@ -1,0 +1,229 @@
+{
+  "formatVersion": 1,
+  "cassette": "p1-06/generate",
+  "recordedAt": "2026-10-28T02:20:26.087Z",
+  "interactions": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/images/generations",
+        "bodySha256": "57c5b89163783decba885c5206e7c7e92e77e036f681f1cab1c5a3dbd0a76573"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "created": 1793154025,
+            "data": [
+              {
+                "b64_json": "c7d2fc82de233a2198c2d8e9ded8e5da211f11bde4632d1601b6408db14e9af0.webp"
+              }
+            ],
+            "output_format": "webp",
+            "background": "opaque",
+            "usage": {
+              "input_tokens": 18556,
+              "output_tokens": 1844,
+              "total_tokens": 20400
+            }
+          },
+          "externals": [
+            {
+              "pointer": "/data/0/b64_json",
+              "file": "c7d2fc82de233a2198c2d8e9ded8e5da211f11bde4632d1601b6408db14e9af0.webp"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/images/generations",
+        "bodySha256": "712b29f046a682d5fcc5385b7e7577fdaf4c25e868af9fd85524cf32947b9bef"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "created": 1793153995,
+            "data": [
+              {
+                "b64_json": "b5307568f127eb4b0b205f904b63cfbbe1942e4712bba1a78700c70545d3e602.webp"
+              }
+            ],
+            "output_format": "webp",
+            "background": "opaque",
+            "usage": {
+              "input_tokens": 18887,
+              "output_tokens": 2115,
+              "total_tokens": 21002
+            }
+          },
+          "externals": [
+            {
+              "pointer": "/data/0/b64_json",
+              "file": "b5307568f127eb4b0b205f904b63cfbbe1942e4712bba1a78700c70545d3e602.webp"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/images/generations",
+        "bodySha256": "719fee44843c2b240c06ce04844a62bbc583f8036b5824219e5187a7b3376e28"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "created": 1793153935,
+            "data": [
+              {
+                "b64_json": "31c4d7230ea2f675364f960f17048ddcce59dd63bf031a494bedb5c28a224098.webp"
+              }
+            ],
+            "output_format": "webp",
+            "background": "opaque",
+            "usage": {
+              "input_tokens": 10394,
+              "output_tokens": 1068,
+              "total_tokens": 11462
+            }
+          },
+          "externals": [
+            {
+              "pointer": "/data/0/b64_json",
+              "file": "31c4d7230ea2f675364f960f17048ddcce59dd63bf031a494bedb5c28a224098.webp"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/images/generations",
+        "bodySha256": "8306223b3574e74366e6403f862df6ac59f366cfca3d3e5949da91bed3f60af7"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "created": 1793153970,
+            "data": [
+              {
+                "b64_json": "8d76d1fe59cf9675d99832a13f5f754c58598c9d5581f036e1d1ea746238fdb0.webp"
+              }
+            ],
+            "output_format": "webp",
+            "background": "opaque",
+            "usage": {
+              "input_tokens": 19020,
+              "output_tokens": 2141,
+              "total_tokens": 21161
+            }
+          },
+          "externals": [
+            {
+              "pointer": "/data/0/b64_json",
+              "file": "8d76d1fe59cf9675d99832a13f5f754c58598c9d5581f036e1d1ea746238fdb0.webp"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/images/generations",
+        "bodySha256": "cc7eac4d318588204a37c041c8f05cd9cfe50e0f8d3868c016b3170ee3406d93"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "created": 1793153980,
+            "data": [
+              {
+                "b64_json": "9379ad298deb77537971c6d7cdaba4c099fd565c3bbef42e1ebc4a9c6684b1a9.webp"
+              }
+            ],
+            "output_format": "webp",
+            "background": "opaque",
+            "usage": {
+              "input_tokens": 10432,
+              "output_tokens": 1123,
+              "total_tokens": 11555
+            }
+          },
+          "externals": [
+            {
+              "pointer": "/data/0/b64_json",
+              "file": "9379ad298deb77537971c6d7cdaba4c099fd565c3bbef42e1ebc4a9c6684b1a9.webp"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/images/generations",
+        "bodySha256": "f5f534277bbc021eea4266ba43d09ee3f5d0f84612096aa2253253c51164cc43"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "created": 1793153952,
+            "data": [
+              {
+                "b64_json": "112d1f5eb1e8ea903d4a4d74a19391b11822e8a2f53820ad13741ce222ef9e79.webp"
+              }
+            ],
+            "output_format": "webp",
+            "background": "opaque",
+            "usage": {
+              "input_tokens": 18923,
+              "output_tokens": 2034,
+              "total_tokens": 20957
+            }
+          },
+          "externals": [
+            {
+              "pointer": "/data/0/b64_json",
+              "file": "112d1f5eb1e8ea903d4a4d74a19391b11822e8a2f53820ad13741ce222ef9e79.webp"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

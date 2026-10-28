@@ -1,0 +1,229 @@
+{
+  "formatVersion": 1,
+  "cassette": "p1-06/edit",
+  "recordedAt": "2026-10-28T02:22:26.861Z",
+  "interactions": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/images/edits",
+        "bodySha256": "1158206415afbf6f87ac33cf4d5d7d2fc403cf06f1c5edd3171632967c6028c0"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "created": 1793154087,
+            "data": [
+              {
+                "b64_json": "6ed0a43fc67bfa764eb71777e9d12e1b5be39941bcc7d8b4250652b912a4d4ef.jpg"
+              }
+            ],
+            "output_format": "jpeg",
+            "background": "opaque",
+            "usage": {
+              "input_tokens": 11867,
+              "output_tokens": 787,
+              "total_tokens": 12654
+            }
+          },
+          "externals": [
+            {
+              "pointer": "/data/0/b64_json",
+              "file": "6ed0a43fc67bfa764eb71777e9d12e1b5be39941bcc7d8b4250652b912a4d4ef.jpg"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/images/edits",
+        "bodySha256": "1a4361a6fd457cfb5834c6a6ce82cd9b4d21cc3971c6617ac9ccd3d2b7905e4e"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "created": 1793154146,
+            "data": [
+              {
+                "b64_json": "f2bc1f54f6e3856b8dbeefd7b84415c9904df4972cf1f57769dec9dade10c279.jpg"
+              }
+            ],
+            "output_format": "jpeg",
+            "background": "opaque",
+            "usage": {
+              "input_tokens": 11682,
+              "output_tokens": 606,
+              "total_tokens": 12288
+            }
+          },
+          "externals": [
+            {
+              "pointer": "/data/0/b64_json",
+              "file": "f2bc1f54f6e3856b8dbeefd7b84415c9904df4972cf1f57769dec9dade10c279.jpg"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/images/edits",
+        "bodySha256": "6325fd0fbaf04de86032d0c23cb8f38e03f717d377b63cc3f47baee64df51ccd"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "created": 1793154095,
+            "data": [
+              {
+                "b64_json": "2c344b1dd3d9ded21fd5304ae089d70befb6f048cf0b0863a8a1bef5303e0d3c.jpg"
+              }
+            ],
+            "output_format": "jpeg",
+            "background": "opaque",
+            "usage": {
+              "input_tokens": 11606,
+              "output_tokens": 548,
+              "total_tokens": 12154
+            }
+          },
+          "externals": [
+            {
+              "pointer": "/data/0/b64_json",
+              "file": "2c344b1dd3d9ded21fd5304ae089d70befb6f048cf0b0863a8a1bef5303e0d3c.jpg"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/images/edits",
+        "bodySha256": "6ebd1dec8f42ee5de5c1e0e2c11cebdfc5d1b9d9b529cd52fe0b5a3a89b03902"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "created": 1793154111,
+            "data": [
+              {
+                "b64_json": "4e85528e9743be5f39f5363839609f07910d22c181749c0ff07062db1415886b.jpg"
+              }
+            ],
+            "output_format": "jpeg",
+            "background": "opaque",
+            "usage": {
+              "input_tokens": 20869,
+              "output_tokens": 1721,
+              "total_tokens": 22590
+            }
+          },
+          "externals": [
+            {
+              "pointer": "/data/0/b64_json",
+              "file": "4e85528e9743be5f39f5363839609f07910d22c181749c0ff07062db1415886b.jpg"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/images/edits",
+        "bodySha256": "d026e590e398db576c84989d0c9bcef1d452701edde3ef5ae4d72d1e1ad9db8d"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "created": 1793154120,
+            "data": [
+              {
+                "b64_json": "fafb8083e3374f50dd8407b38dd53ae6ef30996889662c2c2cb85e731f0caa06.jpg"
+              }
+            ],
+            "output_format": "jpeg",
+            "background": "opaque",
+            "usage": {
+              "input_tokens": 11699,
+              "output_tokens": 640,
+              "total_tokens": 12339
+            }
+          },
+          "externals": [
+            {
+              "pointer": "/data/0/b64_json",
+              "file": "fafb8083e3374f50dd8407b38dd53ae6ef30996889662c2c2cb85e731f0caa06.jpg"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/images/edits",
+        "bodySha256": "fe6286af079dcb1a36dccf09ba9630f5f3dd3abf02214ed3efc89f104e25d16b"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "created": 1793154136,
+            "data": [
+              {
+                "b64_json": "d3353c7e40a5d21160201c2da848346dfac306b32d4df9415a25605f309f6247.jpg"
+              }
+            ],
+            "output_format": "jpeg",
+            "background": "opaque",
+            "usage": {
+              "input_tokens": 20210,
+              "output_tokens": 1385,
+              "total_tokens": 21595
+            }
+          },
+          "externals": [
+            {
+              "pointer": "/data/0/b64_json",
+              "file": "d3353c7e40a5d21160201c2da848346dfac306b32d4df9415a25605f309f6247.jpg"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

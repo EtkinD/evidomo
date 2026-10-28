@@ -79,7 +79,7 @@ The orchestrator (main session) delegates each task to its owner — see `.claud
 - [ ] **P1-05 — SAM 3.1 and output parser**
   - Depends on: P1-01
   - Done when: text-prompt segmentation works via the Responses API through the AI SDK (or the `openai` SDK's `responses.create` if the AI SDK alters the special-token output); the special-token output parser returns typed boxes and masks and is unit-tested on recorded output; a mask overlay renders to PNG for visual inspection.
-- [ ] **P1-06 — Muse Image edits**
+- [x] **P1-06 — Muse Image edits**
   - Depends on: P1-01
   - Done when: five declared-operation edits of interior photos are recorded (via the AI SDK image API if it reaches `/v1/images/edits`, otherwise the `openai` SDK's `images.edit`); output dimensions vs. input are documented.
 - [ ] **P1-07 — Integrity check feasibility**
