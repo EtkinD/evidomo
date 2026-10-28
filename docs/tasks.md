@@ -91,7 +91,7 @@ The orchestrator (main session) delegates each task to its owner — see `.claud
 
 ## Phase 2 — Run engine and intake
 
-- [ ] **P2-01 — Data model**
+- [x] **P2-01 — Data model**
   - Depends on: P0-05
   - Done when: Drizzle schema and migrations for users, sessions, projects, materials, runs, run_events, facts, artifacts, claims, decisions, usage_ledger; repository functions have integration tests.
 - [ ] **P2-02 — Definition and market profile loader**

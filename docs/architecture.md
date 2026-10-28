@@ -161,18 +161,26 @@ market:
   flagged_phrasing: [exclusionary, investment_promise, unverifiable_superlative]
 ```
 
-## 8. Data model (sketch)
+## 8. Data model
 
-- `users`, `sessions` — single-operator accounts.
-- `projects` — one listing job: owner, office profile snapshot, market profile ID + version, output language, status.
-- `materials` — uploaded files: type, storage key, hash, processing status.
-- `runs` — one execution of a service definition version; states `queued → running → awaiting_gate → completed | failed`; definition and profile versions recorded for reproducibility.
-- `run_events` — append-only event log per run (step started/finished, gate opened/decided, cost updates). Drives SSE progress and demo replay.
-- `facts` — key, value, unit, measurement basis, provenance (`form | transcript turn | photo region`), status (`candidate | verified | conflicted | rejected`).
-- `artifacts` — generated outputs with the model call IDs that produced them.
-- `claims` — one row per factual claim in generated copy: text span, artifact, fact IDs, validator result, verifier verdict.
-- `decisions` — human gate decisions: gate, choice, edited value, timestamp.
-- `usage_ledger` — per model call: model, units (tokens incl. reasoning / audio seconds / images / frames), estimated cost, run.
+Drizzle schema in `apps/api/src/db/schema.ts`, migrations in `apps/api/drizzle/`, repository functions in `apps/api/src/db/repositories/` (each takes the database or an open transaction, so callers compose writes and pg-boss enqueues into one transaction).
+
+- `users`, `sessions` — single-operator accounts. Emails are stored normalized (unique on `lower(email)`); sessions are keyed by a hash of the session token, never the raw token.
+- `projects` — one listing job: owner, title, office profile snapshot (JSON, zod-validated), market profile ID + version, output language, fact form values (JSON), status (`draft | active | archived`).
+- `materials` — uploaded files: kind (`photo | voice_memo`), storage key (unique), MIME type, size, SHA-256, processing status (`uploaded | processing | ready | failed`), processing metadata.
+- `runs` — one execution of a service definition version: service ID + version and market profile ID + version recorded for reproducibility; status `queued → running → awaiting_gate → completed | failed`; the open gate, current step, failure reason, start/finish times.
+  - Allowed transitions: `queued → running | failed`, `running → awaiting_gate | completed | failed`, `awaiting_gate → running | failed`, `failed → queued` (resume). `completed` is terminal. `transitionRun` locks the run row, rejects other transitions with a typed error, and appends a `run_status_changed` event in the same transaction.
+  - Check constraints make gates real states: `gate` is set exactly when `status = 'awaiting_gate'`, and `failed` requires a failure reason.
+- `run_events` — append-only event log per run, primary key `(run_id, seq)`. `seq` is gapless and strictly increasing per run: it comes from incrementing `runs.last_event_seq`, which row-locks the run, so concurrent appends serialize and commit in order. `occurred_at` defaults to `clock_timestamp()` so events in one transaction keep distinct times for replay. A trigger rejects direct UPDATE and DELETE; deletes cascading from `runs` are allowed. Event types are an app-validated text set (`RUN_EVENT_TYPES` in `packages/shared`), so new types need no migration.
+- `facts` — per run: key, value (JSON), unit, measurement basis, producing step, provenance (`source_kind`: `form | transcript_turn | photo_region`, plus `source_ref` JSON: form field; transcript artifact ID + turn index + start/end ms; or photo material ID + normalized region + optional mask artifact ID), status (`candidate | verified | conflicted | rejected`).
+- `artifacts` — generated outputs per run and step: kind (open snake_case set), JSON content and/or a stored file (storage key + MIME type), and the `usage_ledger` IDs of the model calls that produced them.
+- `claims` — one row per copy segment: artifact, segment index, text, fact IDs exactly as cited (text array, no FK, so the validator can record and reject unknown IDs), validator result (`pass | fail`) + details, verifier verdict (`supported | unsupported | flagged`) + details.
+- `decisions` — human gate decisions: gate (`fact_conflicts | claim_audit`), target (`fact | claim | artifact` + ID), choice (`accept | edit | remove | reject`), edited value (required exactly for `edit`), decided by, decided at. One decision per target per gate. `recordDecision` refuses unless the run is currently awaiting that gate and the target belongs to the run.
+- `usage_ledger` — one row per model call: model ID, step, input/output/reasoning tokens, audio seconds (`numeric(10,3)`), images, estimated cost in USD (`numeric(12,8)`, exact decimal strings end to end — never floats), latency, run (nullable for calls outside a run).
+
+**State columns** use Postgres enums generated from `as const` tuples in `packages/shared` (one source for the DB, API, and web; erasable-TS compatible). Open taxonomies that the pipeline extends (run event types, artifact kinds) are text validated in code.
+
+**Deletion:** every project-derived row cascades from `projects` (and `projects` from `users`), so deleting a project hard-deletes its materials, runs, events, facts, artifacts, claims, and decisions in one statement; `deleteProject` returns the storage keys so the caller removes the files. `usage_ledger` is the exception: its `run_id` is set to NULL. Ledger rows contain no customer content (model ID, unit counts, cost, latency), and keeping them stops a deleted project from erasing spend from the global daily cap.
 
 ## 9. Runs, jobs, and reliability
 
@@ -225,7 +233,7 @@ Fixtures are recorded from real calls in Phase 1 (`RECORD=1`) and must not conta
 
 - Uploads validated by type and size; images re-encoded with all metadata (including GPS) removed.
 - Faces and license plates blurred in exported images by default.
-- Project deletion hard-deletes materials, artifacts, and derived data.
+- Project deletion hard-deletes materials, artifacts, and derived data. Usage ledger rows (no customer content) are kept with their run reference cleared, so cost caps stay accurate (§8).
 - No customer content is sent to Contributor-mode models or used for training/fine-tuning.
 - EU hosting; data minimization by default (GDPR).
 
