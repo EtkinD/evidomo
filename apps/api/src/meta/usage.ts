@@ -26,8 +26,16 @@ export interface UsageEntry extends TokenUsage {
   readonly responseId: string | undefined;
   /** Wall-clock time of the call including SDK retries, in milliseconds. */
   readonly latencyMs: number;
-  /** `undefined` when no estimator is configured or the model has no known price. */
+  /**
+   * For display and logs only. The usage ledger persists an exact decimal cost computed from
+   * the units with the shared price table (`computeCostUsd`), never this float.
+   * `undefined` when no estimator is configured or the model has no known price.
+   */
   readonly estimatedCostUsd: number | undefined;
+  /** Billed audio duration in whole milliseconds, for per-audio-second models (Voice). */
+  readonly audioDurationMs?: number | undefined;
+  /** Number of billed images, for per-image models (Muse Image, SAM). */
+  readonly images?: number | undefined;
 }
 
 /**

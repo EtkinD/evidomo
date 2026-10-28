@@ -1,5 +1,5 @@
 import { usdAmountSchema } from '@evidomo/shared';
-import { eq, gte, sql, type SQL } from 'drizzle-orm';
+import { and, eq, gte, lt, sql, type SQL } from 'drizzle-orm';
 import { z } from 'zod';
 import type { Executor } from '../client.ts';
 import { usageLedger } from '../schema.ts';
@@ -58,7 +58,11 @@ export async function getRunCostUsd(db: Executor, runId: string): Promise<string
   return sumCost(db, eq(usageLedger.runId, runId));
 }
 
-/** Total estimated cost of all calls recorded at or after `since` (e.g. the global daily cap). */
-export async function getCostUsdSince(db: Executor, since: Date): Promise<string> {
-  return sumCost(db, gte(usageLedger.createdAt, since));
+/**
+ * Total estimated cost of all calls recorded at or after `since` and, when given, before
+ * `until` (exclusive), e.g. one UTC day for the global daily cap.
+ */
+export async function getCostUsdSince(db: Executor, since: Date, until?: Date): Promise<string> {
+  const from = gte(usageLedger.createdAt, since);
+  return sumCost(db, until === undefined ? from : and(from, lt(usageLedger.createdAt, until)));
 }

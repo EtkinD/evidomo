@@ -100,7 +100,7 @@ The orchestrator (main session) delegates each task to its owner — see `.claud
 - [ ] **P2-03 — Run state machine on pg-boss**
   - Depends on: P2-01, P2-02
   - Done when: steps run as jobs with idempotency keys; state change and enqueue are transactional; gates pause runs; an integration test kills the worker mid-run, restarts it, and the run completes without re-executing completed steps.
-- [ ] **P2-04 — Usage ledger and budget caps**
+- [x] **P2-04 — Usage ledger and budget caps**
   - Depends on: P1-01, P2-01
   - Done when: each model call records units and estimated cost from the shared price table; per-run and global daily caps stop work with an explicit error (tested with fake prices).
 - [ ] **P2-05 — Upload processing**
