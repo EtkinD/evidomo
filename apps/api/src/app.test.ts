@@ -13,7 +13,9 @@ const silentLogger = pino({ enabled: false });
 
 // pg pools connect lazily: nothing in this file reaches the database, and a test that did
 // would fail on the unreachable port instead of passing by accident.
-const unusedDb = createDbClient('postgres://unused:unused@127.0.0.1:1/unused');
+const unusedDb = createDbClient('postgres://unused:unused@127.0.0.1:1/unused', {
+  logger: silentLogger,
+});
 afterAll(async () => {
   await unusedDb.close();
 });

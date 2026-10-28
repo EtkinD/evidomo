@@ -41,7 +41,7 @@ export const DEFAULT_SHUTDOWN_TIMEOUT_MS = 25_000;
 
 export async function startWorkerRuntime(options: WorkerRuntimeOptions): Promise<WorkerRuntime> {
   const { env, logger } = options;
-  const dbClient = createDbClient(env.DATABASE_URL);
+  const dbClient = createDbClient(env.DATABASE_URL, { logger });
   const boss = new PgBoss({
     connectionString: env.DATABASE_URL,
     useListenNotify: true,

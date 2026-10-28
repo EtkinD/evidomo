@@ -10,7 +10,7 @@ const env = loadEnv();
 const logger = createLogger(env);
 // Before the pool and the port: an invalid definition must stop the process, not a later run.
 const registry = await bootDefinitions({ dir: env.DEFINITIONS_DIR, logger });
-const dbClient = createDbClient(env.DATABASE_URL);
+const dbClient = createDbClient(env.DATABASE_URL, { logger });
 
 // The API only enqueues (a gate decision resumes its run in the same transaction); the worker
 // works jobs and runs pg-boss maintenance, so supervision and cron stay off here.

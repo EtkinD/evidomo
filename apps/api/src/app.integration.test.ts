@@ -13,7 +13,7 @@ describe('GET /api/healthz against a real PostgreSQL', () => {
 
   beforeAll(async () => {
     container = await new PostgreSqlContainer('postgres:18-alpine').start();
-    dbClient = createDbClient(container.getConnectionUri());
+    dbClient = createDbClient(container.getConnectionUri(), { logger: pino({ enabled: false }) });
   });
 
   afterAll(async () => {

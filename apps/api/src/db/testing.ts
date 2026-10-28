@@ -4,6 +4,7 @@
 import { fileURLToPath } from 'node:url';
 import { PostgreSqlContainer, type StartedPostgreSqlContainer } from '@testcontainers/postgresql';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
+import { createLogger } from '../logger.ts';
 import { createDbClient, type Database, type DbClient } from './client.ts';
 import { createProject, type NewProject, type Project } from './repositories/projects.ts';
 import { createRun, type NewRun, type Run } from './repositories/runs.ts';
@@ -21,7 +22,10 @@ export interface TestDatabase {
 /** Starts PostgreSQL and applies every migration, exactly as `db:migrate` does. */
 export async function startTestDatabase(): Promise<TestDatabase> {
   const container = await new PostgreSqlContainer('postgres:18-alpine').start();
-  const client = createDbClient(container.getConnectionUri());
+  // The test logger is disabled; idle-connection errors during container teardown are expected.
+  const client = createDbClient(container.getConnectionUri(), {
+    logger: createLogger({ LOG_LEVEL: 'error', NODE_ENV: 'test' }),
+  });
   try {
     await migrate(client.db, { migrationsFolder });
   } catch (error) {
