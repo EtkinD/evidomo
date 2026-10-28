@@ -35,6 +35,7 @@ describe('facts repository', () => {
         turnIndex: 3,
         startMs: 41_200,
         endMs: 45_900,
+        quote: 'zo’n 90 vierkante meter',
       },
       {
         kind: 'photo_region',
@@ -100,6 +101,7 @@ describe('facts repository', () => {
             turnIndex: 0,
             startMs: 5000,
             endMs: 1000,
+            quote: '84 vierkante meter',
           },
         },
       ]),
@@ -125,6 +127,34 @@ describe('facts repository', () => {
     expect((await listFacts(testDb.db, a.run.id, { status: 'conflicted' })).length).toBe(2);
     expect((await listFacts(testDb.db, b.run.id))[0]?.status).toBe('candidate');
     expect(await setFactStatus(testDb.db, a.run.id, [], 'verified')).toBe(0);
+  });
+
+  it('stores the assertion and never lets an opinion become verified', async () => {
+    const { run } = await seedRunWithParents(testDb.db);
+    const source = { kind: 'form', field: 'location' } as const;
+    const [stated, opinion] = await insertFacts(testDb.db, run.id, [
+      { stepId: 'fact_extraction', key: 'other:parking', value: 'free street parking', source },
+      {
+        stepId: 'fact_extraction',
+        key: 'other:street_quality',
+        value: 'the nicest street in town',
+        assertion: 'opinion',
+        source,
+      },
+    ]);
+    expect(stated?.assertion).toBe('stated');
+    expect(opinion?.assertion).toBe('opinion');
+
+    await expect(
+      setFactStatus(testDb.db, run.id, [opinion?.id ?? never()], 'verified'),
+    ).rejects.toMatchObject({ cause: { constraint: 'facts_opinion_never_verified' } });
+    await expect(
+      insertFacts(testDb.db, run.id, [
+        { stepId: 'x', key: 'k', value: 1, assertion: 'opinion', status: 'verified', source },
+      ]),
+    ).rejects.toMatchObject({ cause: { constraint: 'facts_opinion_never_verified' } });
+    expect(await setFactStatus(testDb.db, run.id, [opinion?.id ?? never()], 'rejected')).toBe(1);
+    expect(await setFactStatus(testDb.db, run.id, [stated?.id ?? never()], 'verified')).toBe(1);
   });
 });
 

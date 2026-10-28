@@ -1,3 +1,4 @@
+import { FACT_ASSERTIONS } from '@evidomo/shared';
 import { z } from 'zod';
 
 // Reconciliation input and output contracts, first measured in P1-03 (docs/model-notes.md) and
@@ -19,12 +20,17 @@ export const PHOTO_REGION_ID_PATTERN = /^P\d{2,3}\.R\d+$/;
 export const INVENTORY_ID_PATTERN = /^INV\d+$/;
 
 const factValueSchema = z.union([z.number(), z.string()]);
+/**
+ * Input values also take booleans: the fact form stores boolean market facts (`ground_lease`)
+ * as JSON booleans, and P2-07 candidates keep them so (yes/no facts).
+ */
+const evidenceValueSchema = z.union([z.number(), z.string(), z.boolean()]);
 
 const formFieldSchema = z.object({
   id: z.string().regex(FORM_ID_PATTERN),
   field: z.string().min(1),
   /** `null` means the agent left the field empty (unknown), not "zero" or "no". */
-  value: factValueSchema.nullable(),
+  value: evidenceValueSchema.nullable(),
   unit: z.string().nullable(),
   /** Measurement basis for areas and volumes, e.g. `NEN2580`; `null` when not applicable. */
   basis: z.string().nullable(),
@@ -33,7 +39,11 @@ const formFieldSchema = z.object({
 const transcriptTurnSchema = z
   .object({
     turnId: z.string().regex(TURN_ID_PATTERN),
-    speaker: z.enum(['agent', 'seller']),
+    /**
+     * A role (`agent`, `seller`) or the transcription's diarization label (`A`, P2-06); `null`
+     * when the transcript has no speaker labels.
+     */
+    speaker: z.string().min(1).nullable(),
     startMs: z.int().nonnegative(),
     endMs: z.int().nonnegative(),
     text: z.string().min(1),
@@ -43,9 +53,11 @@ const transcriptTurnSchema = z
 const candidateFactSchema = z.object({
   id: z.string().regex(CANDIDATE_ID_PATTERN),
   key: z.string().min(1),
-  value: factValueSchema,
+  value: evidenceValueSchema,
   unit: z.string().nullable(),
   basis: z.string().nullable(),
+  /** P2-07 marks opinions; they can never become verified facts (database check). */
+  assertion: z.enum(FACT_ASSERTIONS).optional(),
   /** Verbatim span of the turn the candidate was extracted from. */
   quote: z.string().min(1),
   turnId: z.string().regex(TURN_ID_PATTERN),
@@ -161,7 +173,7 @@ export function evidenceIds(input: ReconciliationInput): ReadonlySet<string> {
 export function evidenceValue(
   input: ReconciliationInput,
   id: string,
-): number | string | null | undefined {
+): number | string | boolean | null | undefined {
   const form = input.form.find((field) => field.id === id);
   if (form !== undefined) return form.value;
   const candidate = input.candidates.find((item) => item.id === id);

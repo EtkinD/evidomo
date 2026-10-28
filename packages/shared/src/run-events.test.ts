@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  factsExtractedPayloadSchema,
   stepCompletedPayloadSchema,
   stepFailedPayloadSchema,
   transcriptStoredPayloadSchema,
@@ -60,6 +61,29 @@ describe('transcript_stored payload', () => {
     ).toBe(false);
     expect(
       transcriptStoredPayloadSchema.safeParse({ ...summary, keywords: ['Zandmeer'] }).success,
+    ).toBe(false);
+  });
+});
+
+describe('facts_extracted payload', () => {
+  const summary = {
+    stepId: 'fact_extraction',
+    artifactId: '3bfcf0bb-5581-4e10-8691-6cc7a8e66dcf',
+    formFactCount: 7,
+    modelFactCount: 30,
+    transcriptFactCount: 28,
+    opinionCount: 3,
+    repairedCount: 1,
+    rejectedCount: 2,
+  };
+
+  it('carries counts only and rejects fact values or keys', () => {
+    expect(factsExtractedPayloadSchema.parse(summary)).toEqual(summary);
+    expect(
+      factsExtractedPayloadSchema.safeParse({ ...summary, keys: ['living_area'] }).success,
+    ).toBe(false);
+    expect(
+      factsExtractedPayloadSchema.safeParse({ ...summary, transcriptFactCount: -1 }).success,
     ).toBe(false);
   });
 });

@@ -29,6 +29,13 @@
       "when": 1793173689074,
       "tag": "0003_artifacts_singleton_kind",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793175012231,
+      "tag": "0004_fact_extraction",
+      "breakpoints": true
     }
   ]
 }

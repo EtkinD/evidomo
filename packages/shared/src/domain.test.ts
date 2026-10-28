@@ -13,6 +13,7 @@ describe('factSourceSchema', () => {
         turnIndex: 0,
         startMs: 0,
         endMs: 1200,
+        quote: 'twee slaapkamers',
       }).kind,
     ).toBe('transcript_turn');
     expect(
@@ -32,8 +33,22 @@ describe('factSourceSchema', () => {
         turnIndex: 0,
         startMs: 2000,
         endMs: 1000,
+        quote: 'twee slaapkamers',
       }).success,
     ).toBe(false);
+    // No quote, no claim: a transcript fact must carry the span it was extracted from.
+    for (const quote of [undefined, '']) {
+      expect(
+        factSourceSchema.safeParse({
+          kind: 'transcript_turn',
+          transcriptArtifactId: uuid,
+          turnIndex: 0,
+          startMs: 0,
+          endMs: 1000,
+          quote,
+        }).success,
+      ).toBe(false);
+    }
     expect(
       factSourceSchema.safeParse({
         kind: 'photo_region',

@@ -242,6 +242,58 @@ describe('Meta record/replay', () => {
     await expect(readFile(path.join(fixturesDir, 'failure.json'))).rejects.toThrow(/ENOENT/);
   });
 
+  it('serves included cassettes read-only in both modes and never re-records them', async () => {
+    // An earlier step's recording...
+    const first = createMetaReplay({
+      cassette: 'chain-first',
+      mode: 'record',
+      baseURL,
+      fixturesDir,
+      env: { MODEL_API_KEY: SECRET },
+    });
+    await first.start();
+    const firstAnswer = await callBothSdks(first.apiKey, 'first step');
+    await first.stop();
+    hits.length = 0;
+
+    // ...is served from its file while the later step records live.
+    const recorder = createMetaReplay({
+      cassette: 'chain-second',
+      mode: 'record',
+      baseURL,
+      fixturesDir,
+      env: { MODEL_API_KEY: SECRET },
+      include: ['chain-first'],
+    });
+    await recorder.start();
+    expect(await callBothSdks(recorder.apiKey, 'first step')).toEqual(firstAnswer);
+    expect(hits).toHaveLength(0);
+    await callBothSdks(recorder.apiKey, 'second step, longer');
+    expect(hits).toHaveLength(2);
+    await recorder.stop();
+    recorder.assertAllMatched();
+    const second = await readCassette(path.join(fixturesDir, 'chain-second.json'));
+    expect(second.interactions).toHaveLength(2);
+
+    hits.length = 0;
+    const player = createMetaReplay({
+      cassette: 'chain-second',
+      mode: 'replay',
+      baseURL,
+      fixturesDir,
+      include: ['chain-first'],
+    });
+    await player.start();
+    try {
+      await callBothSdks(player.apiKey, 'first step');
+      await callBothSdks(player.apiKey, 'second step, longer');
+      player.assertAllMatched();
+      expect(hits).toHaveLength(0);
+    } finally {
+      await player.stop();
+    }
+  });
+
   it('refuses to start replay when the cassette is missing', async () => {
     const player = createMetaReplay({ cassette: 'missing', mode: 'replay', baseURL, fixturesDir });
     await expect(player.start()).rejects.toThrow(/Record it with RECORD=1/);

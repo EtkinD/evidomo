@@ -1001,3 +1001,101 @@ RECORD=1 node --env-file=.env node_modules/vitest/vitest.mjs run --project api i
 
 Budget 0.05 USD. Estimated at $0.00005 per audio second from `audioDurationMs`; the API returns no
 cost field, and Meta's billing dashboard was not checked.
+
+## P2-07 — Fact extraction
+
+Status: done (pending review). Recorded 2026-10-28 against `ai@7.0.155`, `@ai-sdk/openai@4.0.104`.
+Code: `apps/api/src/pipeline/extraction/`; design in
+[architecture.md §5 Fact extraction](./architecture.md#5-run-pipeline).
+
+### Request
+
+- Spark through the AI SDK, `generateText` + `Output.object` (name `fact_extraction`, strict
+  `json_schema`), `metaProviderOptions({ reasoningEffort })` (`openai` key, `forceReasoning`,
+  `store: false`), effort and `max_output_tokens` from the step. Meta echoed `effort: low`,
+  `store: false`, `strict: true`.
+- Output schema per market, every field required: `turnIndex` (number; integrality is checked in
+  code, strict mode is not relied on for `minimum`/`maximum`), `quote`, `key` (enum of the profile
+  keys + `other`), `otherKey` (nullable), `value` (`number | string | boolean`, sent as
+  `type: ["number","string","boolean"]`), `unit` and `basis` (nullable enums, sent as `anyOf`),
+  `assertion` (`stated | opinion`). Meta accepted the union and the `anyOf` enums.
+- Input: system prompt (9 rules) + compact JSON user message with the nl v1 vocabulary (keys,
+  labels, types, units, bases, enum values) and the 15 diarized turns (`turnIndex`, `text`; no
+  speakers or timestamps). The fact form is deliberately not sent. 2,092 input tokens.
+
+### Measurements (two live calls, same request apart from the cap)
+
+| Call                              | Input tok (cached) | Output tok | Reasoning tok | Answer tok | Result                          | Est. USD |
+| --------------------------------- | ------------------ | ---------- | ------------- | ---------- | ------------------------------- | -------- |
+| `low`, `max_output_tokens` 8,000  | 2,092 (0)          | 8,000      | 5,468         | 2,532      | `incomplete: max_output_tokens` | 0.0366   |
+| `low`, `max_output_tokens` 14,000 | 2,092 (2,033)      | 8,357      | 3,969         | 4,388      | completed, 73 facts             | 0.0381   |
+
+- **8,000 was too small.** The P1-03 estimate (~$0.02, extrapolated from a 280-token toy prompt)
+  did not hold: a 3-minute walkthrough yields ~70 facts at ~60 answer tokens each (8 JSON fields
+  per fact), and `low` still reasons 4–5.5k tokens on this prompt. The first call was cut off at
+  fact 43, which drops the closing turns, exactly where the planted "zo'n 95" sits. The cap is now
+  14,000 in `listing-launch` v1 (changed in place before any run existed): ~1.7× the measured 8.4k,
+  worst case $0.062 per call. Longer memos (up to 10 min) scale the answer roughly linearly; if
+  real memos approach the cap, either raise it or split extraction by turn ranges.
+- **Reasoning varies ±30% between identical requests** (5,468 vs 3,969).
+- **Prompt caching:** the repeated prefix reported 2,033 of 2,092 input tokens as cached. The
+  estimator bills them at full price (no cached rate in the price table), so it is an upper bound.
+- Latency: ~25 s for the completed call (test wall time; the cassette stores no timing).
+- A truncated answer is unparseable (`NoObjectGeneratedError`, `finishReason: 'length'`). The
+  handler maps it to `NonRetryableStepError`: a retry at the same cap would pay for the same
+  truncation.
+
+### Quality on the planted items (the recorded call)
+
+| Check                                                          | Result                                                                                        |
+| -------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Form 92 m² as a candidate                                      | yes: `living_area` 92, `m2`, `NEN2580`, `source = form/living_area`                           |
+| Transcript 92 (turn 2, NEN 2580)                               | yes: `living_area` 92, basis `NEN2580`, quote "92 vierkante meter"                            |
+| Transcript "zo'n 95" (turn 14, closing summary)                | yes: `living_area` 95, basis `unspecified`, quote "zo'n 95 vierkante meter woonoppervlak"     |
+| Both kept separately (no merge, no correction toward the form) | yes                                                                                           |
+| Opinions marked                                                | 5: "goed georganiseerd", "rustigeige straat", "gezonde VvE", "licht", "instapklaar"           |
+| VvE amount                                                     | `vve_monthly_contribution` 165 `EUR` (turn 12)                                                |
+| Spelled-out numbers normalized                                 | correct: drie→3, tweede→2, twaalf→12, zes→6 (storage), zeven→7 (balcony), zes→6 (groups)      |
+| Other numbers                                                  | 1987, 2021 (×4), 2019, 2020, 34/14/9 m² (room areas as `other:*_area`, `unspecified`), 10 min |
+| Gross/room areas kept off `living_area`                        | yes: storage, balcony, living room, bedrooms all `other:` with `unspecified`                  |
+| Quotes verbatim incl. ASR noise ("groepen groepen", "zit zit") | 73/73 passed the quote check; 0 rejected, 0 repaired                                          |
+
+- Only 6 facts used profile keys (`build_year`, `living_area` ×2, `energy_label` ×2,
+  `vve_monthly_contribution`); 67 went to `other:`. That is the intended split: reconciliation
+  treats `other:` as non-core, and nl v1 has only 8 typed facts.
+- Debatable calls, all on the safe side: "je hebt hier de hele middag zon" and "parkeren voor de
+  deur" were `stated` (checkable); "een kleine bergzolder" folded into one `attic_access` phrase.
+  The address ("Kwartelhoflaan 27 in Zandmeer", fictional) became `other:address`: the copy step
+  must decide whether a street may appear in a listing; it is in the candidate set either way.
+- Zero repairs and rejections on this recording means the code path is exercised by unit tests,
+  not by the fixture. P1-03's free-text-key problem cannot occur by construction (enum + code
+  check); whether `basis` is ever claimed without the speaker naming it is untested here (the one
+  `NEN2580` was named in the turn).
+
+### Replay and record
+
+`fact-extraction.test.ts` (`api` project) gets the turns by replaying the P2-06 cassette through
+the intake request and `toStoredTurns`, then sends the extraction request and asserts structure
+(echoed settings, ≥90% of facts survive validation, quotes verbatim, keys and bases within the
+vocabulary, valid provenance, and that the candidates parse as a reconciliation catalog with only
+IDs assigned). `fact-extraction.integration.test.ts` runs intake → fact extraction through the
+engine with both cassettes. `createMetaReplay({ include })` (new) serves earlier cassettes
+read-only in both modes, so recording the extraction neither repeats nor re-records the
+transcription. The tests pin the step settings the cassette was recorded with
+(`walkthroughExtractionStep`). Changing the prompt, schema, vocabulary, or nl v1 facts changes
+the request hash and needs a re-record (~$0.04):
+
+```sh
+RECORD=1 node --env-file=.env node_modules/vitest/vitest.mjs run --project api fact-extraction
+```
+
+### Live calls and cost (P2-07)
+
+| #   | Call                                         | Input tok | Output tok (reasoning) | Latency | Est. USD   |
+| --- | -------------------------------------------- | --------- | ---------------------- | ------- | ---------- |
+| 1   | Spark `low`, cap 8,000 (truncated, not kept) | 2,092     | 8,000 (5,468)          | ~25 s   | 0.0366     |
+| 2   | Spark `low`, cap 14,000 (the fixture)        | 2,092     | 8,357 (3,969)          | ~25 s   | 0.0381     |
+|     | **Total (2 calls of 3 authorized)**          | 4,184     | 16,357 (9,437)         |         | **0.0747** |
+
+Budget 0.10 USD. Costs from the price table ($1.25 / $4.25 per 1M), cached input billed at the
+full rate; Meta's billing dashboard was not checked.

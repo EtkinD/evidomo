@@ -1,6 +1,7 @@
 import {
   factSourceSchema,
   jsonValueSchema,
+  type FactAssertion,
   type FactSource,
   type FactStatus,
   type JsonValue,
@@ -24,6 +25,8 @@ export interface NewFact {
   basis?: string | null;
   source: FactSource;
   status?: FactStatus;
+  /** Defaults to `stated`; an `opinion` can never be set to `verified` (database check). */
+  assertion?: FactAssertion;
 }
 
 function toFact(row: FactRow): Fact {
@@ -49,6 +52,7 @@ function toInsert(runId: string, fact: NewFact): typeof facts.$inferInsert {
     sourceKind: kind,
     sourceRef: ref,
     ...(fact.status === undefined ? {} : { status: fact.status }),
+    ...(fact.assertion === undefined ? {} : { assertion: fact.assertion }),
   };
 }
 

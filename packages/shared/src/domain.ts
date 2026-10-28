@@ -34,6 +34,15 @@ export const FACT_STATUSES = ['candidate', 'verified', 'conflicted', 'rejected']
 export const factStatusSchema = z.enum(FACT_STATUSES);
 export type FactStatus = z.infer<typeof factStatusSchema>;
 
+/**
+ * What kind of statement a fact is. `opinion` marks subjective judgments, sales talk, and
+ * predictions ("the nicest street", "it will only go up in value"): they stay in the candidate
+ * set for context, and a database check stops them from ever becoming `verified`.
+ */
+export const FACT_ASSERTIONS = ['stated', 'opinion'] as const;
+export const factAssertionSchema = z.enum(FACT_ASSERTIONS);
+export type FactAssertion = z.infer<typeof factAssertionSchema>;
+
 export const FACT_SOURCE_KINDS = ['form', 'transcript_turn', 'photo_region'] as const;
 export const factSourceKindSchema = z.enum(FACT_SOURCE_KINDS);
 export type FactSourceKind = z.infer<typeof factSourceKindSchema>;
@@ -65,6 +74,7 @@ export const RUN_EVENT_TYPES = [
   'gate_decided',
   'usage_recorded',
   'transcript_stored',
+  'facts_extracted',
 ] as const;
 export const runEventTypeSchema = z.enum(RUN_EVENT_TYPES);
 export type RunEventType = z.infer<typeof runEventTypeSchema>;
@@ -103,6 +113,11 @@ export const factSourceSchema = z.discriminatedUnion('kind', [
       turnIndex: z.int().nonnegative(),
       startMs: z.int().nonnegative(),
       endMs: z.int().nonnegative(),
+      /**
+       * The exact span of the turn's text that states the fact, so a normalized value (e.g.
+       * "twee" stored as 2) can always be checked against what was said.
+       */
+      quote: z.string().min(1),
     })
     .refine((s) => s.endMs >= s.startMs, { message: 'endMs must not be before startMs' }),
   z.object({

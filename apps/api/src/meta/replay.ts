@@ -41,6 +41,12 @@ export interface MetaReplayOptions {
   readonly env?: NodeJS.ProcessEnv;
   /** Request matching options; must be identical when recording and replaying a cassette. */
   readonly match?: MatchOptions;
+  /**
+   * Further cassettes served read-only in both modes and never written, for tests that chain
+   * steps (e.g. the intake transcript feeding fact extraction): recording the later step then
+   * neither repeats nor re-records the earlier step's call. Matched before `cassette`.
+   */
+  readonly include?: readonly string[];
 }
 
 export interface MetaReplay {
@@ -84,11 +90,20 @@ export function createMetaReplay(options: MetaReplayOptions): MetaReplay {
     mode === 'record' ? recordApiKey(options.env ?? process.env) : REPLAY_PLACEHOLDER_API_KEY;
 
   const interactions = new Map<string, Interaction>();
+  const included = new Map<string, Interaction>();
+  const includedFiles = (options.include ?? []).map((name) =>
+    cassettePath(name, options.fixturesDir ?? META_FIXTURES_DIR),
+  );
   const unmatched: string[] = [];
 
   const metaHandler = http.all(`${origin}/*`, async ({ request }) => {
     const descriptor = await describeRequest(request.clone(), options.match);
     const key = matchKey(descriptor);
+
+    const fixed = included.get(key);
+    if (fixed !== undefined) {
+      return responseFromInteraction(fixed);
+    }
 
     if (mode === 'record') {
       const live = await fetch(bypass(request));
@@ -130,6 +145,12 @@ export function createMetaReplay(options: MetaReplayOptions): MetaReplay {
     unmatched,
     async start() {
       if (started) throw new ReplayError('Meta replay is already started');
+      for (const includedFile of includedFiles) {
+        const cassette = await readCassette(includedFile);
+        for (const interaction of cassette.interactions) {
+          included.set(matchKey(interaction.request), interaction);
+        }
+      }
       if (mode === 'replay') {
         const cassette = await readCassette(file);
         for (const interaction of cassette.interactions) {

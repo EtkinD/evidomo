@@ -8,6 +8,7 @@
 import {
   DECISION_CHOICES,
   DECISION_TARGET_KINDS,
+  FACT_ASSERTIONS,
   FACT_SOURCE_KINDS,
   FACT_STATUSES,
   GATES,
@@ -44,6 +45,7 @@ export const runStepStatus = pgEnum('run_step_status', RUN_STEP_STATUSES);
 export const gate = pgEnum('gate', GATES);
 export const factStatus = pgEnum('fact_status', FACT_STATUSES);
 export const factSourceKind = pgEnum('fact_source_kind', FACT_SOURCE_KINDS);
+export const factAssertion = pgEnum('fact_assertion', FACT_ASSERTIONS);
 export const validatorResult = pgEnum('validator_result', VALIDATOR_RESULTS);
 export const verifierVerdict = pgEnum('verifier_verdict', VERIFIER_VERDICTS);
 export const decisionTargetKind = pgEnum('decision_target_kind', DECISION_TARGET_KINDS);
@@ -259,10 +261,18 @@ export const facts = pgTable(
     sourceKind: factSourceKind('source_kind').notNull(),
     sourceRef: jsonb('source_ref').notNull(),
     status: factStatus('status').notNull().default('candidate'),
+    assertion: factAssertion('assertion').notNull().default('stated'),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [index('facts_run_id_key_idx').on(t.runId, t.key)],
+  (t) => [
+    index('facts_run_id_key_idx').on(t.runId, t.key),
+    // An opinion or sales claim can be shown as context but never published as a fact (P2-07).
+    check(
+      'facts_opinion_never_verified',
+      sql`${t.assertion} = 'stated' or ${t.status} <> 'verified'`,
+    ),
+  ],
 );
 
 export const artifacts = pgTable(
@@ -287,11 +297,12 @@ export const artifacts = pgTable(
   },
   (t) => [
     index('artifacts_run_id_idx').on(t.runId),
-    // Kinds a step produces exactly once per run (the intake transcript): a re-executed or
-    // duplicated commit cannot store a second one, and facts keep citing the first (P2-06).
+    // Kinds a step produces exactly once per run: a re-executed or duplicated commit cannot
+    // store a second one. Facts keep citing the first transcript (P2-06), and the candidate
+    // facts are inserted only together with the first fact_extraction report (P2-07).
     uniqueIndex('artifacts_singleton_kind_key')
       .on(t.runId, t.stepId, t.kind)
-      .where(sql`${t.kind} in ('transcript')`),
+      .where(sql`${t.kind} in ('transcript', 'fact_extraction')`),
     check('artifacts_has_payload', sql`${t.content} is not null or ${t.storageKey} is not null`),
     check('artifacts_file_has_mime', sql`${t.storageKey} is null or ${t.mimeType} is not null`),
   ],

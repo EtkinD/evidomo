@@ -79,3 +79,26 @@ export const transcriptStoredPayloadSchema = z.strictObject({
   keywordCount: count,
 });
 export type TranscriptStoredPayload = z.infer<typeof transcriptStoredPayloadSchema>;
+
+/**
+ * Appended by the fact extraction step together with its candidate facts: counts for the run
+ * monitor. Never fact keys, values, quotes, or transcript text.
+ */
+export const factsExtractedPayloadSchema = z.strictObject({
+  stepId: z.string().min(1),
+  /** The step's `fact_extraction` report artifact. */
+  artifactId: z.uuid(),
+  /** Candidate facts stored from the fact form (no model call). */
+  formFactCount: count,
+  /** Facts the model returned, before validation. */
+  modelFactCount: count,
+  /** Transcript facts stored after validation (opinions included). */
+  transcriptFactCount: count,
+  /** Stored transcript facts marked as opinions. */
+  opinionCount: count,
+  /** Stored transcript facts whose key, unit, basis, or value was repaired deterministically. */
+  repairedCount: count,
+  /** Model facts dropped by validation (unknown turn, quote mismatch, invalid key or value, ...). */
+  rejectedCount: count,
+});
+export type FactsExtractedPayload = z.infer<typeof factsExtractedPayloadSchema>;

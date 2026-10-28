@@ -2,6 +2,7 @@ import { bootDefinitions } from './definitions/boot.ts';
 import { loadEnv } from './env.ts';
 import { createLogger } from './logger.ts';
 import { createMetaClients } from './meta/clients.ts';
+import { createFactExtractionHandler } from './pipeline/extraction/handler.ts';
 import { createIntakeHandler } from './pipeline/intake/handler.ts';
 import { shutdownOnSignals, startWorkerRuntime } from './runs/worker-runtime.ts';
 import { createLocalStorage } from './storage/local.ts';
@@ -25,6 +26,7 @@ try {
       // handler yet fails the run with "No step handler is registered for agent ...".
       handlers: {
         intake: createIntakeHandler({ storage, markets: registry }),
+        extractor: createFactExtractionHandler({ markets: registry }),
       },
       createMetaClients: (usage) =>
         createMetaClients({ apiKey: env.MODEL_API_KEY, usage, estimateCost, logger }),

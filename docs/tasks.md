@@ -109,7 +109,7 @@ The orchestrator (main session) delegates each task to its owner — see `.claud
 - [x] **P2-06 — Step: intake**
   - Depends on: P1-04, P2-03, P2-05
   - Done when: the transcript is stored as turns with timestamps; keyword list is built from the fact form and market profile.
-- [ ] **P2-07 — Step: fact extraction**
+- [x] **P2-07 — Step: fact extraction**
   - Depends on: P1-02, P2-06
   - Done when: candidate facts are extracted with structured output; each has provenance (form field or transcript turn).
 - [ ] **P2-08 — Step: vision inventory**

@@ -51,7 +51,7 @@ export async function insertArtifact(db: Executor, input: NewArtifact): Promise<
  * Kinds covered by the `artifacts_singleton_kind_key` partial unique index: at most one per run,
  * step, and kind. Keep in sync with the index predicate in `schema.ts`.
  */
-export const SINGLETON_ARTIFACT_KINDS = ['transcript'] as const;
+export const SINGLETON_ARTIFACT_KINDS = ['transcript', 'fact_extraction'] as const;
 export type SingletonArtifactKind = (typeof SINGLETON_ARTIFACT_KINDS)[number];
 
 /**
@@ -76,7 +76,8 @@ export async function insertSingletonArtifact(
     })
     .onConflictDoNothing({
       target: [artifacts.runId, artifacts.stepId, artifacts.kind],
-      where: sql`${artifacts.kind} in ('transcript')`,
+      // Must match the index predicate for Postgres to infer the partial index.
+      where: sql`${artifacts.kind} in ('transcript', 'fact_extraction')`,
     })
     .returning();
   const [inserted] = rows;
