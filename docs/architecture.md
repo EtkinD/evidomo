@@ -435,24 +435,24 @@ Assumptions:
 - **Typical run:** a 3-minute memo, 3 staged images (each from a different original, no integrity retry), one verification pass, and no fallback.
 - **Worst case:** 30 photos, a 10-minute memo, 6 staged images each retried once, and two full revision loops. Each loop re-runs copy, Q&A, and verification.
 
-| Step                           | 10 photos | 20 photos | Worst case, 30 photos | Basis                                                                                |
-| ------------------------------ | --------- | --------- | --------------------- | ------------------------------------------------------------------------------------ |
-| Intake (Voice)                 | $0.010    | $0.010    | $0.030                | measured per second                                                                  |
-| Fact extraction (Spark `low`)  | $0.038    | $0.038    | $0.062                | measured; worst = 14k cap                                                            |
-| Vision: Spark classification   | $0.064    | $0.128    | $0.219                | measured mean; worst = measured max $0.0073 per photo                                |
-| Vision: SAM privacy + evidence | $0.080    | $0.130    | $0.180                | measured                                                                             |
-| Reconciliation (Wonder `low`)  | $0.076    | $0.076    | $0.130                | measured on a 24-candidate catalog; worst **extrapolated** to P2-07's ~70 candidates |
-| Creative copy (Spark `medium`) | $0.030    | $0.030    | $0.090                | **extrapolated**; worst = 3 generations                                              |
-| Buyer Q&A (Spark `low`)        | $0.010    | $0.010    | $0.030                | **extrapolated**; worst = 3 generations                                              |
-| Staging (Muse Image)           | $0.030    | $0.030    | $0.120                | measured; worst = 12 images                                                          |
-| Integrity (SAM)                | $0.045    | $0.045    | $0.135                | measured; 18 calls typical, 54 worst                                                 |
-| Verification (Wonder `low`)    | $0.050    | $0.050    | $0.150                | measured; worst = 3 passes                                                           |
-| **Total**                      | **$0.43** | **$0.55** | **~$1.15**            |                                                                                      |
+| Step                           | 10 photos | 20 photos | Worst case, 30 photos | Basis                                                                                                                                                                                  |
+| ------------------------------ | --------- | --------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Intake (Voice)                 | $0.010    | $0.010    | $0.030                | measured per second                                                                                                                                                                    |
+| Fact extraction (Spark `low`)  | $0.038    | $0.038    | $0.062                | measured; worst = 14k cap                                                                                                                                                              |
+| Vision: Spark classification   | $0.064    | $0.128    | $0.219                | measured mean; worst = measured max $0.0073 per photo                                                                                                                                  |
+| Vision: SAM privacy + evidence | $0.080    | $0.130    | $0.180                | measured                                                                                                                                                                               |
+| Reconciliation (Wonder `low`)  | $0.096    | $0.096    | $0.150                | measured on a 73-candidate catalog (P2-09: 7.1k in, 3.4k out); worst **extrapolated** to ~20k input tokens (10-minute memo); $0.33 if Wonder truncates at its cap and Spark falls back |
+| Creative copy (Spark `medium`) | $0.030    | $0.030    | $0.090                | **extrapolated**; worst = 3 generations                                                                                                                                                |
+| Buyer Q&A (Spark `low`)        | $0.010    | $0.010    | $0.030                | **extrapolated**; worst = 3 generations                                                                                                                                                |
+| Staging (Muse Image)           | $0.030    | $0.030    | $0.120                | measured; worst = 12 images                                                                                                                                                            |
+| Integrity (SAM)                | $0.045    | $0.045    | $0.135                | measured; 18 calls typical, 54 worst                                                                                                                                                   |
+| Verification (Wonder `low`)    | $0.050    | $0.050    | $0.150                | measured; worst = 3 passes                                                                                                                                                             |
+| **Total**                      | **$0.45** | **$0.57** | **~$1.17**            |                                                                                                                                                                                        |
 
 - **Run cap: $1.00 (raised from $0.50 on 28 Oct, after P1-08).** At $0.50 a 20-photo run did not fit: it costs ~$0.55 at the measured reconciliation cost and ~$0.60 if reconciliation grows with a P2-07-sized catalog (~$0.13, extrapolated). The break-even was about 15 photos, or 11 with the extrapolated reconciliation; each photo adds $0.0114 ($0.0064 Spark, $0.005 SAM).
-  - At $1.00 a 30-photo typical run (~$0.67) fits, with ~$0.30–0.45 of headroom for revision loops and integrity retries.
-  - The ~$1.15 worst case still stops at the cap. Steps run in order and the cap is checked before each call, so such a run ends in the late steps (staging, integrity, or verification revision loops).
-- **Worst case:** ~$1.15 in expected tokens. Every step at its output cap would cost more: vision alone $0.77, reconciliation $0.28. Such a run stops at the run cap. It overshoots by at most the calls already in flight, which is up to 4 vision calls, a few cents.
+  - At $1.00 a 30-photo typical run (~$0.69, with P2-09's measured reconciliation) fits, with ~$0.30 of headroom for revision loops and integrity retries.
+  - The ~$1.17 worst case still stops at the cap. Steps run in order and the cap is checked before each call, so such a run ends in the late steps (staging, integrity, or verification revision loops).
+- **Worst case:** ~$1.17 in expected tokens. Every step at its output cap would cost more: vision alone $0.77, reconciliation $0.33 (with a fallback after a billed truncation). Such a run stops at the run cap. It overshoots by at most the calls already in flight, which is up to 4 vision calls, a few cents.
 - **Daily cap ($5.00 by default):** 10–11 typical 10-photo runs or about 9 typical 20-photo runs, but only 5 runs that hit the $1.00 cap. Raise `DAILY_BUDGET_USD` for a demo day with many live runs.
 - **Further levers (not applied):** each needs a definition change and, for model settings, a re-recording.
   1. ~~Raise the run cap to $0.75.~~ Superseded: the cap is $1.00.
