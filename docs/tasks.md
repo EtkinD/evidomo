@@ -7,25 +7,25 @@ Format: `ID — title`, with **Depends on** and **Done when** as sub-items. Ever
 
 ## Phase 0 — Foundation
 
-- [ ] **P0-01 — Monorepo scaffold**
+- [x] **P0-01 — Monorepo scaffold**
   - Depends on: —
   - Done when: npm workspaces (`apps/web`, `apps/api`, `packages/shared`) exist; root `tsconfig` has `strict`, `noUncheckedIndexedAccess`, `noImplicitOverride`; Node LTS pinned (`.nvmrc` + `engines`); `npm install` and `npm run typecheck` pass on a clean clone.
-- [ ] **P0-02 — Lint and format**
+- [x] **P0-02 — Lint and format**
   - Depends on: P0-01
   - Done when: shared ESLint + Prettier config; `npm run lint` and `npm run format:check` pass across all workspaces.
-- [ ] **P0-03 — Web app skeleton**
+- [x] **P0-03 — Web app skeleton**
   - Depends on: P0-01
   - Done when: Next.js (Pages Router) with Tailwind CSS + daisyUI renders a themed placeholder page; no API routes exist.
-- [ ] **P0-04 — API and worker skeleton**
+- [x] **P0-04 — API and worker skeleton**
   - Depends on: P0-01
   - Done when: Express 5 server with zod-validated env, pino logging, and `GET /api/healthz`; a worker entrypoint starts pg-boss; both run locally against Docker PostgreSQL.
-- [ ] **P0-05 — Database tooling**
+- [x] **P0-05 — Database tooling**
   - Depends on: P0-04
   - Done when: local `docker-compose` PostgreSQL; Drizzle config; `npm run db:generate` and `npm run db:migrate` run successfully against the local database (the schema stays empty until P2-01 adds the first tables).
-- [ ] **P0-06 — Unit and integration test setup**
+- [x] **P0-06 — Unit and integration test setup**
   - Depends on: P0-03, P0-05
   - Done when: Vitest runs for web (React Testing Library + happy-dom), api (Supertest), and shared; one Testcontainers PostgreSQL integration test passes; `npm test` is green.
-- [ ] **P0-07 — E2E setup**
+- [x] **P0-07 — E2E setup**
   - Depends on: P0-03
   - Done when: Playwright installed with one smoke test (home page loads); `npm run test:e2e` passes locally.
 - [ ] **P0-08 — CI**
