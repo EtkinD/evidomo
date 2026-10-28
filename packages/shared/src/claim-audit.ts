@@ -54,6 +54,11 @@ export const CLAIM_AUDIT_STOP_REASONS = [
   'loop_limit',
   /** A budget cap was reached during a revision loop; the last audited draft stands. */
   'budget',
+  /**
+   * A revision or its audit failed for a model reason (an error response, a truncated or
+   * unusable answer, a timeout, after any fallback); the last audited draft stands.
+   */
+  'revision_failed',
 ] as const;
 export const claimAuditStopReasonSchema = z.enum(CLAIM_AUDIT_STOP_REASONS);
 export type ClaimAuditStopReason = z.infer<typeof claimAuditStopReasonSchema>;

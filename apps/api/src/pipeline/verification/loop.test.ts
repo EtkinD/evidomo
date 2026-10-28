@@ -76,6 +76,56 @@ describe('revision loop', () => {
     expect(result).toMatchObject({ stopReason: 'budget', passes: [{ draft: 0 }] });
   });
 
+  it('ends at the last audited draft when a revision or its audit fails for a model reason', async () => {
+    const modelFailure = new Error('model failure');
+    const failureClass = (error: unknown) =>
+      error === modelFailure ? 'APICallError 503' : undefined;
+
+    // The revision itself fails: only the initial pass stands.
+    const { audit } = script([1, 1]);
+    await expect(
+      runRevisionLoop({
+        initial: 0,
+        maxRevisionLoops: 2,
+        audit,
+        revise: () => Promise.reject(modelFailure),
+        failureClass,
+      }),
+    ).resolves.toMatchObject({
+      stopReason: 'revision_failed',
+      failure: 'APICallError 503',
+      passes: [{ draft: 0 }],
+    });
+
+    // The second revision's audit fails: the first revision, fully audited, stands.
+    const auditFailsOnSecond = vi.fn((draft: number) =>
+      draft === 2 ? Promise.reject(modelFailure) : Promise.resolve<Audit>({ flags: ['flag'] }),
+    );
+    const result = await runRevisionLoop({
+      initial: 0,
+      maxRevisionLoops: 2,
+      audit: auditFailsOnSecond,
+      revise: (_draft: number, _audit: Audit, revision: number) => Promise.resolve(revision),
+      failureClass,
+    });
+    expect(result).toMatchObject({
+      stopReason: 'revision_failed',
+      passes: [{ draft: 0 }, { draft: 1 }],
+    });
+
+    // A failure the classifier does not recognise (abort, configuration, bugs) still throws.
+    const bug = new TypeError('bug');
+    await expect(
+      runRevisionLoop({
+        initial: 0,
+        maxRevisionLoops: 2,
+        audit,
+        revise: () => Promise.reject(bug),
+        failureClass,
+      }),
+    ).rejects.toBe(bug);
+  });
+
   it('fails when the first audit cannot be paid for, and on any other error', async () => {
     const budget = new BudgetExceededError('daily', '5.00', '5.00000000');
     await expect(

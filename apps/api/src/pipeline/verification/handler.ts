@@ -33,6 +33,7 @@ import {
   buildCopyInput,
   buildCopyRequests,
   buildListingCopyContent,
+  copyFailureClass,
   generateListingCopy,
   toCopyDraft,
   type CopySources,
@@ -116,6 +117,18 @@ function assertSameCatalog(content: ListingCopyContent, catalog: CopyFactCatalog
   }
 }
 
+/**
+ * The class of a failure inside a revision loop that ends the loop at the last audited draft,
+ * or `undefined` to fail the execution (abort, budget, configuration, programming errors).
+ * A truncated revision arrives as `NonRetryableStepError` (creative's `classifyCopyError`) whose
+ * cause is the model's failure; any other `NonRetryableStepError` is configuration.
+ */
+export function revisionFailureClass(error: unknown, signal?: AbortSignal): string | undefined {
+  const cause =
+    error instanceof NonRetryableStepError && error.cause !== undefined ? error.cause : error;
+  return copyFailureClass(cause, signal);
+}
+
 export interface VerificationLoopDeps {
   /** Called only when a model call is needed, so a run without calls never needs the API key. */
   readonly clients: () => MetaClients;
@@ -151,6 +164,7 @@ export function verifyCopy(
   return runRevisionLoop<VerificationDraft, DraftAudit>({
     initial: params.initial,
     maxRevisionLoops: step.max_revision_loops,
+    failureClass: (error) => revisionFailureClass(error, deps.signal),
     audit: (draft) =>
       auditDraft({
         content: draft.content,
@@ -228,6 +242,7 @@ export function createVerificationHandler(deps: VerificationHandlerDeps): StepHa
       {
         // Counts only: flags quote copy text and stay in the artifact and the claims.
         stopReason: result.stopReason,
+        failure: result.failure ?? null,
         passes: result.passes.map(({ audit }) => ({
           segments: audit.segments,
           audited: audit.auditedSegments,
