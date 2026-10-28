@@ -52,11 +52,11 @@ docs/
 docker-compose.yml  local development services (PostgreSQL)
 ```
 
-Consequences of native type stripping for `apps/api` and `packages/shared`: only erasable TypeScript syntax (no `enum`, no parameter properties, no namespaces with runtime code), relative imports carry the `.ts` extension, type-only imports use `import type`, and tsconfig `paths` aliases are not available. The web app uses bundler resolution and is unaffected.
+Consequences of native type stripping for `apps/api` and `packages/shared`: only erasable TypeScript syntax (no `enum`, no parameter properties, no namespaces with runtime code), relative imports carry the `.ts` extension, type-only imports use `import type`, and tsconfig `paths` aliases are not available. The web app uses bundler resolution and is unaffected. The web app consumes `@evidomo/shared` as source without a build step: `transpilePackages: ['@evidomo/shared']` in `apps/web/next.config.ts` makes Next compile it and bundle it into the routes (so the web runtime image needs no shared sources), and `allowImportingTsExtensions` in `apps/web/tsconfig.json` lets the web type check follow its `.ts` imports. The web app's own imports stay extensionless.
 
 Pages Router treats every file under `apps/web/src/pages` as a route, so web tests live in `apps/web/src/__tests__`.
 
-Caddy routes `/api/*` to the API and everything else to the web app on the same domain, so cookies stay same-site and no CORS configuration is needed.
+Caddy routes `/api/*` to the API and everything else to the web app on the same domain, so cookies stay same-site and no CORS configuration is needed. In development the Next.js dev server plays that role: a rewrite active only under `next dev` proxies `/api/:path*` to `API_PROXY_ORIGIN` (default `http://localhost:4000`), so the browser stays on `http://localhost:3000`, the API's default `APP_ORIGIN`. Production builds carry no rewrite (`next start` answers 404 on `/api`; Caddy never sends it there).
 
 ## 4. Meta Model API integration
 
@@ -475,10 +475,12 @@ A completed run's `run_events` and artifacts are replayed in the UI with the ori
 | ----------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Unit        | Vitest                                    | Claim validator, number matching, area-basis comparison, state machine transitions, cost calculation, SAM output parser, definition/profile validation, React components (RTL) |
 | Integration | Vitest + Supertest + Testcontainers + MSW | API routes against a real PostgreSQL; full pipeline runs against recorded Meta API fixtures (no credit spent, deterministic)                                                   |
-| E2E         | Playwright                                | Capture → run → gates → export against the stack in replay mode; production smoke test                                                                                         |
+| E2E         | Playwright                                | Auth (register, logout, redirect, login); capture → run → gates → export against the stack in replay mode; production smoke test                                               |
 | Evaluation  | `npm run eval`                            | Seeded-defect property sets: catch rate for planted conflicts and unsupported claims. Fixture mode is free; live mode is run deliberately and logged.                          |
 
 Fixtures are recorded from real calls in Phase 1 (`RECORD=1`) and must not contain personal data.
+
+Local e2e (`npm run test:e2e`) starts the API on :4000 (`npm run start -w @evidomo/api`, environment passed by `playwright.config.ts`, no `.env` file) and the web dev server on :3000, and needs a migrated local PostgreSQL (`npm run db:up && npm run db:migrate`; `E2E_DATABASE_URL` overrides the default local URL). Specs that create accounts skip themselves when `E2E_BASE_URL` points at a deployment. CI does not run e2e yet.
 
 ## 13. Deployment
 
@@ -518,6 +520,12 @@ Fixtures are recorded from real calls in Phase 1 (`RECORD=1`) and must not conta
 - **Protecting routes:** `createSessionMiddleware({ db, config })` returns `requireUser` (401 `unauthenticated` JSON; the web app does the redirect) and `loadUser` (optional). Handlers read the user with `currentUser(req)` (typed `AuthUser = { id, email }`; throws, so 500, on a route not behind `requireUser`) or `optionalUser(req)`. State lives in a per-request `WeakMap`, not on an untyped `req` property. Project routes (P4-02 onwards) mount in `createApp` behind `session.requireUser` and check `projects.owner_id` against `currentUser(req).id`.
 - **Logging:** user IDs only, never emails, passwords, tokens, cookies, or IPs. The HTTP error handler logs body-parser errors by type only (they carry the raw body) and reduces database errors to the SQL text and PostgreSQL code (`errorForLog`), because Drizzle's `DrizzleQueryError` embeds every bound parameter in its message.
 - **Not here yet:** the access code for live runs and the per-account run limits are P4-10. Registration is public on the deployment; an account alone cannot start a live run once P4-10 lands.
+- **Web side** (`apps/web/src/lib/auth.ts`, `components/AuthGate.tsx`, `pages/login.tsx`, `pages/register.tsx`):
+  - `useMe()` (TanStack Query on `GET /api/auth/me`) is the only source of "who is signed in", because the cookie is httpOnly. A 401 resolves to `null`, not an error, so it is never retried; other 4xx are not retried either, network failures and 5xx twice. Login and register mutations write the returned user into the `me` cache; logout navigates to `/` first and then sets `me` to `null` and drops every other cached query.
+  - Every response is parsed with the shared schemas (`authUserResponseSchema`, `apiErrorSchema`) by a small fetch helper (`lib/api.ts`, `credentials: 'same-origin'`, JSON `Content-Type` only on requests with a body). Errors become `ApiRequestError { status, code, issues, retryAfterSeconds }`; forms map `validation_failed` issues to fields by `path[0]`, `invalid_credentials` to one generic message, `email_taken` to an inline message with a login link, and `rate_limited` to the `Retry-After` wait.
+  - **Guards** are opt-in per page: `Page.auth = 'required'` (signed-in only) or `'guest'` (login, register), read in `_app` by `AuthGate`; pages without the flag are public, which keeps the demo replay (§11) open to visitors. `required` renders a session check while `me` loads, never the content, and on `null` calls `router.replace('/login?next=<asPath>')` once the router is ready. `guest` sends a signed-in user to `next`, which also completes a successful login or registration. This is client-side gating for the user experience only; `requireUser` on the API is the enforcement.
+  - **`next` validation** (`lib/next-path.ts`, prevents an open redirect): a string of at most 2,048 characters that starts with exactly one `/`, contains no backslash, control, or whitespace character (browsers turn `/\host` and `/<TAB>/host` into `//host`), resolves to the same origin, and is not `/login` or `/register`. Anything else falls back to `/`.
+  - `/projects` is the protected signed-in landing page (an empty state until P4-02).
 - **Environment:** `APP_ORIGIN` (the browser-facing origin, e.g. `https://evidomo.example`; default `http://localhost:3000`, required in production), `SESSION_TTL_DAYS` (1–365, default 30), `TRUST_PROXY_HOPS` (0–5; default 1 in production, 0 elsewhere).
 
 ## 15. References

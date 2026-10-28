@@ -4,3 +4,10 @@
     light --default,
     dark --prefersdark;
 }
+
+/* daisyUI's error colour is a background tone: as small text on base-100 it reaches only about
+   2.9:1 in the light theme. Mixing it toward the content colour keeps the hue and gives about
+   6:1 (light) and 8.5:1 (dark), above WCAG AA. */
+@utility text-error-strong {
+  color: color-mix(in oklab, var(--color-error) 60%, var(--color-base-content));
+}

@@ -6,6 +6,9 @@
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
     "noEmit": true,
+    // @evidomo/shared is raw TypeScript for Node type stripping, so its relative imports end in
+    // `.ts`. The web app's own imports stay extensionless (bundler resolution).
+    "allowImportingTsExtensions": true,
     "allowJs": false,
     "incremental": true,
     "types": ["node"],

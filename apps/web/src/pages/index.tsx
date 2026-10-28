@@ -10,7 +10,7 @@ export default function Home() {
           content="Verified, source-linked listing packs for real estate agents."
         />
       </Head>
-      <main className="hero min-h-screen bg-base-200">
+      <main className="hero flex-1 bg-base-200">
         <div className="hero-content max-w-xl text-center">
           <div>
             <h1 className="text-5xl font-bold">Evidomo</h1>

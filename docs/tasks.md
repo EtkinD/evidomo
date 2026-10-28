@@ -157,7 +157,7 @@ The orchestrator (main session) delegates each task to its owner — see `.claud
 
 ## Phase 4 — Web application
 
-- [ ] **P4-01 — Auth**
+- [x] **P4-01 — Auth**
   - Depends on: P2-01
   - Done when: register, login, logout with argon2 and httpOnly cookie sessions; protected routes redirect to login.
 - [ ] **P4-02 — Project creation**

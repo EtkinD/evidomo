@@ -37,6 +37,8 @@ export default defineConfig({
           root: './apps/web',
           include: ['src/**/*.test.{ts,tsx}'],
           environment: 'happy-dom',
+          // Vitest globals are off, so Testing Library cannot register its own cleanup.
+          setupFiles: ['./src/__tests__/setup.ts'],
         },
       },
     ],
