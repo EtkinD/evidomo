@@ -905,3 +905,12 @@ backoff (a failed attempt would not be billed anyway). Budget 0.40 USD; spent
 0.12 USD (estimated from the list price; Meta's billing dashboard was not checked).
 
 ## P1-07 — Integrity check feasibility
+
+## P2-02 — Model settings in the service definition
+
+Per-step model settings are enforced when definitions load at boot (`packages/shared/src/definitions.ts`, format in [architecture.md §7](./architecture.md#7-definition-formats)), not when a step first calls a model:
+
+- `META_REASONING_EFFORTS` / `metaReasoningEffortSchema` moved to `packages/shared/src/reasoning.ts` so the definition schema can use them; `apps/api/src/meta/options.ts` re-exports the same objects. P1-03 confirmed Wonder accepts the same set as Spark.
+- Every language-model step must state `reasoning_effort` and `max_output_tokens`. Spark's API default effort is `high` (P1-02), and reasoning tokens bill at output rates, so neither the effort nor the worst-case output may be left to the API default. The schema caps `max_output_tokens` at 128,000 as a typo guard; that is not a documented API limit.
+- A fallback model carries its own `fallback_reasoning_effort` (Wonder at `low` falls back to Spark at `medium` in `listing-launch.v1`).
+- Every model ID in a definition must be in `PRICE_TABLE`, and an effort is rejected on a model that is not billed per token (Voice, SAM, Muse Image). `-contributor` IDs are rejected at load time as well as in the fetch wrapper.

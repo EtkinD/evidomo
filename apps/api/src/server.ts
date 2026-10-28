@@ -1,10 +1,14 @@
 import { createApp } from './app.ts';
 import { createDbClient } from './db/client.ts';
+import { bootDefinitions } from './definitions/boot.ts';
 import { loadEnv } from './env.ts';
 import { createLogger } from './logger.ts';
 
 const env = loadEnv();
 const logger = createLogger(env);
+// Before the pool and the port: an invalid definition must stop the process, not a later run.
+// The registry is handed to the run engine and routes once they exist (P2-03, P4).
+await bootDefinitions({ dir: env.DEFINITIONS_DIR, logger });
 const dbClient = createDbClient(env.DATABASE_URL);
 const app = createApp({ db: dbClient, logger });
 

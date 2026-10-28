@@ -1,9 +1,13 @@
 import { PgBoss } from 'pg-boss';
+import { bootDefinitions } from './definitions/boot.ts';
 import { loadEnv } from './env.ts';
 import { createLogger } from './logger.ts';
 
 const env = loadEnv();
 const logger = createLogger(env);
+// Before pg-boss starts: an invalid definition must stop the process, not a later run.
+// The registry is handed to the run engine once it exists (P2-03).
+await bootDefinitions({ dir: env.DEFINITIONS_DIR, logger });
 
 const boss = new PgBoss(env.DATABASE_URL);
 boss.on('error', (error) => {

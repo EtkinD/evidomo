@@ -1,0 +1,15 @@
+# Test fixture: a minimal market profile whose area fact names a basis not in area_bases.
+market:
+  id: broken
+  version: 1
+  name: Broken fixture
+  source_languages: [en]
+  output_languages: [en]
+  default_output_language: en
+  units: { area: m2 }
+  area_bases:
+    - { id: net_internal, label: Net internal floor area }
+  facts:
+    - { key: living_area, label: Living area, type: area, basis: NEN2580, required: true }
+  publication_checklist: []
+  flagged_phrasing: [exclusionary]

@@ -19,7 +19,7 @@ Companion: [product.md](./product.md)
 | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Language/runtime | TypeScript 6.0 (`strict`, `noUncheckedIndexedAccess`, `noImplicitOverride`; pinned to `~6.0` because typescript-eslint does not support TypeScript 7 yet), Node.js 24 LTS (≥ 24.12), npm workspaces. API, worker, and shared code run on Node's native TypeScript type stripping — no build step and no runtime transpiler |
 | Web              | Next.js **Pages Router**, frontend only (no API routes); Tailwind CSS + daisyUI; TanStack Query                                                                                                                                                                                                                            |
-| API              | Express 5, zod validation, Server-Sent Events for run progress, pino logging, express-rate-limit                                                                                                                                                                                                                           |
+| API              | Express 5, zod validation, Server-Sent Events for run progress, pino logging, express-rate-limit, yaml (strict YAML 1.2 parsing of definition files)                                                                                                                                                                       |
 | Worker           | Separate Node process from the same codebase, consuming pg-boss jobs                                                                                                                                                                                                                                                       |
 | Database         | PostgreSQL, Drizzle ORM + drizzle-kit migrations, `pg` driver                                                                                                                                                                                                                                                              |
 | Queue            | pg-boss (Postgres-backed); no Redis                                                                                                                                                                                                                                                                                        |
@@ -42,7 +42,7 @@ apps/
 packages/
   shared/         zod schemas, shared types, price table
 definitions/
-  services/       listing-launch.v1.yaml
+  services/       listing-launch.v1.yaml (loaded and validated at boot, §7)
   markets/        international.v1.yaml, nl.v1.yaml
 fixtures/meta/    recorded Meta API responses (no personal data)
 e2e/              Playwright tests
@@ -123,64 +123,163 @@ To verify in Phase 1 against the pinned SDK versions: which SDK covers each endp
 3. The verifier judges semantic support: does the cited fact actually justify this wording?
 4. In the UI, clicking a claim shows its evidence: the form field, the transcript turn (with timestamp and audio playback from that point), or the photo with its SAM mask overlay.
 
-## 7. Definition formats (sketches)
+## 7. Definition formats
 
-Service definition:
+Files: `definitions/services/<id>.v<version>.yaml` and `definitions/markets/<id>.v<version>.yaml`; the file name must match the content's ID and version. Schemas: `packages/shared/src/definitions.ts` (shared because the web fact form is generated from the market profile schema). Loader: `apps/api/src/definitions/` (P2-02).
+
+- **Parsing:** YAML 1.2 core schema with duplicate keys, unknown tags (every parser warning), merge keys, and aliases rejected. All objects are strict zod objects, so an unknown key is an error.
+- **Errors** name the file, line and column, the path inside the document, and the problem, e.g. `markets/nl.v1.yaml:12:66: market.facts[1].basis: Area basis "gross" is not listed in area_bases`. One error lists every problem in every file.
+- **Boot:** `server.ts` and `worker.ts` call `bootDefinitions` before opening the database pool, port, or queue; any problem is logged as fatal and the process exits with code 1. Boot also requires the published `listing-launch` v1, `international` v1, and `nl` v1 to be present. The directory defaults to the repository's `definitions/` (resolved from the source location; the API image copies it to `/app/definitions`) and can be overridden with `DEFINITIONS_DIR`.
+- **Versions are immutable** once runs reference them: a change is a new file with the next version. The registry is frozen and looked up by `getService(id, version)` / `getMarket(id, version)`.
+
+Service definition (`listing-launch.v1.yaml` without comments; steps read model, effort, and token cap from here, never from code):
 
 ```yaml
 service:
   id: listing-launch
   version: 1
+  name: Listing launch
   inputs:
-    - { key: photos, type: image[], min: 10, max: 30, required: true }
-    - { key: voice_memo, type: audio, max_seconds: 600, required: true }
-    - { key: facts, type: form, schema: from_market_profile, source_of_truth: true }
+    - key: photos
+      type: images
+      min: 10
+      max: 30
+      required: true
+    - key: voice_memo
+      type: audio
+      max_seconds: 600
+      required: true
+    - key: facts
+      type: form
+      schema: from_market_profile
+      source_of_truth: true
+      required: true
   steps:
-    - { id: intake, agent: intake }
-    - { id: fact_extraction, agent: extractor, model: muse-spark-1.3, reasoning_effort: low,
-        max_output_tokens: 8000 }
-    - { id: vision_inventory, agent: vision, model: muse-spark-1.3, reasoning_effort: low,
-        max_output_tokens: 4000, max_evidence_masks: 12 }   # per photo
-    - { id: reconciliation, agent: reconciler, model: muse-wonder-1.0, reasoning_effort: low,
-        fallback_model: muse-spark-1.3, fallback_reasoning_effort: medium,
-        max_output_tokens: 12000, gate_after: fact_conflicts }
-    - { id: creative, agent: creative, model: muse-spark-1.3, reasoning_effort: medium,
-        max_output_tokens: 16000 }
-    - { id: qa_cards, agent: qa_writer, model: muse-spark-1.3, reasoning_effort: low,
-        max_output_tokens: 8000 }
-    - { id: integrity, agent: integrity_checker }
-    - { id: verification, agent: verifier, model: muse-wonder-1.0, reasoning_effort: low,
-        fallback_model: muse-spark-1.3, fallback_reasoning_effort: medium,
-        max_output_tokens: 12000, max_revision_loops: 2, gate_after: claim_audit }
-    - { id: export, agent: exporter }
-  budget: { max_cost_usd_per_run: 0.50 }
+    - id: intake
+      agent: intake
+      model: muse-voice-transcribe-1.0
+    - id: fact_extraction
+      agent: extractor
+      model: muse-spark-1.3
+      reasoning_effort: low
+      max_output_tokens: 8000
+    - id: vision_inventory
+      agent: vision
+      model: muse-spark-1.3
+      reasoning_effort: low
+      max_output_tokens: 4000
+      segmentation_model: sam-3.1
+      max_evidence_masks: 12
+    - id: reconciliation
+      agent: reconciler
+      model: muse-wonder-1.0
+      reasoning_effort: low
+      max_output_tokens: 12000
+      fallback_model: muse-spark-1.3
+      fallback_reasoning_effort: medium
+      gate_after: fact_conflicts
+    - id: creative
+      agent: creative
+      model: muse-spark-1.3
+      reasoning_effort: medium
+      max_output_tokens: 16000
+      image_model: muse-image-1.0
+    - id: qa_cards
+      agent: qa_writer
+      model: muse-spark-1.3
+      reasoning_effort: low
+      max_output_tokens: 8000
+    - id: integrity
+      agent: integrity_checker
+      segmentation_model: sam-3.1
+    - id: verification
+      agent: verifier
+      model: muse-wonder-1.0
+      reasoning_effort: low
+      max_output_tokens: 12000
+      fallback_model: muse-spark-1.3
+      fallback_reasoning_effort: medium
+      max_revision_loops: 2
+      gate_after: claim_audit
+    - id: export
+      agent: exporter
+  budget:
+    max_cost_usd_per_run: '0.50'
 ```
 
-`reasoning_effort`, `fallback_reasoning_effort`, and `max_output_tokens` are required on every language-model step: an omitted effort silently defaults to `high` (P1-01). Efforts are validated with `metaReasoningEffortSchema`. The values above are the P1-03 defaults (§5). Q&A cards (P3-03) are shown as their own step so they get their own effort; P2-02 decides whether they stay a sub-step of `creative`.
+- Steps are a union on `agent` (`intake`, `extractor`, `vision`, `reconciler`, `creative`, `qa_writer`, `integrity_checker`, `verifier`, `exporter`); each agent allows only its own fields. Buyer Q&A is its own step, so cut level 1 removes one entry.
+- Every model ID (`model`, `fallback_model`, `segmentation_model`, `image_model`) must exist in `PRICE_TABLE`, so an unpriced model fails at boot rather than at the first call. `-contributor` IDs are rejected.
+- Language-model steps require `reasoning_effort` (validated by `metaReasoningEffortSchema`, the same set for Spark and Wonder) and `max_output_tokens` (bounds the worst-case reasoning cost of one call; per photo in vision inventory). Efforts are rejected on models not billed per token. `fallback_model` must differ from `model` and requires `fallback_reasoning_effort`.
+- Step IDs, input keys, and gates are unique; `gate_after` is a known gate.
+- `max_cost_usd_per_run` is a quoted exact decimal (`usdAmountSchema`, greater than zero). An unquoted YAML number is a float and is rejected, not coerced, so the cap reaches the ledger without a float round trip.
 
-Market profile (Netherlands; values to be verified before encoding):
+Market profile (`nl.v1.yaml` without comments; `international.v1.yaml` has the same shape with generic facts and bases):
 
 ```yaml
 market:
   id: nl
   version: 1
+  name: Netherlands
   source_languages: [nl, en]
+  output_languages: [en, nl]
   default_output_language: en
-  units: { area: m2, volume: m3 }
-  area_bases: [NEN2580]
+  units:
+    area: m2
+    volume: m3
+  currency: EUR
+  area_bases:
+    - id: NEN2580
+      label: NEN 2580 usable area (gebruiksoppervlakte wonen), per the BBMI measurement instruction
+    - id: cadastral
+      label: Plot size as registered by the Kadaster
   facts:
-    - { key: energy_label, type: enum, required: true }
-    - { key: living_area, type: area, basis: NEN2580, required: true }
-    - { key: volume, type: volume }
-    - { key: plot_area, type: area }
-    - { key: build_year, type: integer }
-    - { key: vve_monthly_contribution, type: money }
-    - { key: ground_lease, type: object }
+    - key: energy_label
+      label: Energy label (energielabel)
+      type: enum
+      values: [A++++, A+++, A++, A+, A, B, C, D, E, F, G]
+      required: true
+    - key: living_area
+      label: Living area (woonoppervlakte)
+      type: area
+      basis: NEN2580
+      required: true
+    - key: volume
+      label: Volume (inhoud)
+      type: volume
+    - key: plot_area
+      label: Plot area (perceeloppervlakte)
+      type: area
+      basis: cadastral
+    - key: build_year
+      label: Build year (bouwjaar)
+      type: integer
+      min: 1000
+      max: 2100
+    - key: vve_monthly_contribution
+      label: Owners' association (VvE) monthly contribution
+      type: money
+    - key: ground_lease
+      label: Land under ground lease (erfpacht)
+      type: boolean
+    - key: ground_lease_annual_fee
+      label: Ground lease annual fee (canon)
+      type: money
   publication_checklist:
-    - { id: energy_label_shown, rule: fact_present(energy_label) }
-    - { id: staging_disclosed, rule: all_staged_images_labeled }
+    - id: energy_label_shown
+      label: The energy label class is shown in the listing
+      rule: fact_present
+      fact: energy_label
+    - id: staging_disclosed
+      label: Every virtually staged image is labeled as such
+      rule: staged_images_labeled
   flagged_phrasing: [exclusionary, investment_promise, unverifiable_superlative]
 ```
+
+- Fact types: `enum` (`values`), `area` (`basis`), `volume`, `integer` (`min`/`max`), `money`, `boolean`. Facts are scalar so the form and the Fact Sheet stay flat; ground lease is two facts rather than an object. `required` defaults to `false`; `label` feeds the generated form.
+- Area facts carry a basis listed in `area_bases`; their unit is `units.area`. Volume facts need `units.volume`, money facts need `currency`.
+- Checklist rules: `fact_present` (references a known fact), `staged_images_labeled`, `no_flagged_phrasing` (category listed in `flagged_phrasing`). Phrasing categories are a closed set because the verifier implements each.
+- Languages are known ISO 639-1 codes; `default_output_language` must be in `output_languages`. Fact keys, basis IDs, checklist IDs, and enum values are unique.
+- The energy label classes follow RVO and the official conversion table for homes (sources cited in the YAML). A0 (zero-emission homes from 2026) is an indicator on the label, not a class.
 
 ## 8. Data model
 

@@ -1,0 +1,14 @@
+# Test fixture: a minimal service definition with exactly one defect (see the file name).
+service:
+  id: broken
+  version: 1
+  name: Broken fixture
+  inputs:
+    - { key: facts, type: form, schema: from_market_profile, source_of_truth: true, required: true }
+  steps:
+    - id: fact_extraction
+      agent: extractor
+      model: muse-spark-1.3
+      reasoning_efort: low
+      max_output_tokens: 8000
+  budget: { max_cost_usd_per_run: '0.50' }

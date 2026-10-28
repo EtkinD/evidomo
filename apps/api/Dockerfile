@@ -29,6 +29,8 @@ RUN --mount=type=cache,target=/root/.npm \
 COPY packages/shared/src packages/shared/src
 COPY apps/api/src apps/api/src
 COPY apps/api/drizzle apps/api/drizzle
+# Service definitions and market profiles, validated at boot (resolved as /app/definitions).
+COPY definitions definitions
 
 FROM base AS runtime
 # ffmpeg converts audio to WAV for transcription (docs/architecture.md section 2).

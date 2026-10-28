@@ -1,0 +1,94 @@
+# Listing launch service, version 1 (docs/architecture.md §5 and §7).
+#
+# Published versions are immutable: runs record the service ID and version, so any change to
+# steps, models, efforts, or the budget goes into a new file (listing-launch.v2.yaml).
+# Validated at api/worker boot by the schema in packages/shared/src/definitions.ts.
+#
+# Reasoning efforts and output-token caps are the per-step defaults measured in P1-02/P1-03
+# (docs/model-notes.md). Spark's API default effort is `high`, so every language-model step
+# states its effort, and max_output_tokens bounds the worst-case reasoning cost of one call.
+service:
+  id: listing-launch
+  version: 1
+  name: Listing launch
+
+  inputs:
+    - key: photos
+      type: images
+      min: 10
+      max: 30
+      required: true
+    - key: voice_memo
+      type: audio
+      max_seconds: 600
+      required: true
+    - key: facts
+      type: form
+      schema: from_market_profile
+      source_of_truth: true
+      required: true
+
+  steps:
+    - id: intake
+      agent: intake
+      model: muse-voice-transcribe-1.0
+
+    - id: fact_extraction
+      agent: extractor
+      model: muse-spark-1.3
+      reasoning_effort: low
+      max_output_tokens: 8000
+
+    # Spark classifies each photo (max_output_tokens is per photo); SAM segments, no effort.
+    - id: vision_inventory
+      agent: vision
+      model: muse-spark-1.3
+      reasoning_effort: low
+      max_output_tokens: 4000
+      segmentation_model: sam-3.1
+      max_evidence_masks: 12
+
+    - id: reconciliation
+      agent: reconciler
+      model: muse-wonder-1.0
+      reasoning_effort: low
+      max_output_tokens: 12000
+      fallback_model: muse-spark-1.3
+      fallback_reasoning_effort: medium
+      gate_after: fact_conflicts
+
+    - id: creative
+      agent: creative
+      model: muse-spark-1.3
+      reasoning_effort: medium
+      max_output_tokens: 16000
+      image_model: muse-image-1.0
+
+    # Its own step so roadmap cut level 1 (no Buyer Q&A) means removing just this entry.
+    - id: qa_cards
+      agent: qa_writer
+      model: muse-spark-1.3
+      reasoning_effort: low
+      max_output_tokens: 8000
+
+    - id: integrity
+      agent: integrity_checker
+      segmentation_model: sam-3.1
+
+    - id: verification
+      agent: verifier
+      model: muse-wonder-1.0
+      reasoning_effort: low
+      max_output_tokens: 12000
+      fallback_model: muse-spark-1.3
+      fallback_reasoning_effort: medium
+      max_revision_loops: 2
+      gate_after: claim_audit
+
+    - id: export
+      agent: exporter
+
+  budget:
+    # Quoted on purpose: an unquoted 0.50 is a YAML float. The schema rejects numbers so the
+    # cap reaches the usage ledger as an exact decimal string.
+    max_cost_usd_per_run: '0.50'

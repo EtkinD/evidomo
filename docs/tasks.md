@@ -94,7 +94,7 @@ The orchestrator (main session) delegates each task to its owner — see `.claud
 - [x] **P2-01 — Data model**
   - Depends on: P0-05
   - Done when: Drizzle schema and migrations for users, sessions, projects, materials, runs, run_events, facts, artifacts, claims, decisions, usage_ledger; repository functions have integration tests.
-- [ ] **P2-02 — Definition and market profile loader**
+- [x] **P2-02 — Definition and market profile loader**
   - Depends on: P0-01
   - Done when: `listing-launch.v1`, `international.v1`, and `nl.v1` load and validate with zod at startup; an invalid definition fails fast with a clear error (tested).
 - [ ] **P2-03 — Run state machine on pg-boss**

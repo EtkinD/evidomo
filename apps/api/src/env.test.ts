@@ -75,4 +75,19 @@ describe('loadEnv', () => {
       expect(loadEnv({ ...production, DAILY_BUDGET_USD: '20' }).DAILY_BUDGET_USD).toBe('20');
     });
   });
+
+  describe('DEFINITIONS_DIR', () => {
+    const DATABASE_URL = 'postgres://u:p@localhost:5432/db';
+
+    it('is optional, and an empty value means unset', () => {
+      expect(loadEnv({ DATABASE_URL }).DEFINITIONS_DIR).toBeUndefined();
+      expect(loadEnv({ DATABASE_URL, DEFINITIONS_DIR: '' }).DEFINITIONS_DIR).toBeUndefined();
+    });
+
+    it('passes a configured directory through', () => {
+      expect(loadEnv({ DATABASE_URL, DEFINITIONS_DIR: '/srv/definitions' }).DEFINITIONS_DIR).toBe(
+        '/srv/definitions',
+      );
+    });
+  });
 });

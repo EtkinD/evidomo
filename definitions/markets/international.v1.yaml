@@ -1,0 +1,86 @@
+# International market profile, version 1: the default profile for markets without their own.
+#
+# Generic residential facts in metric units. Every area states its measurement basis, so a
+# figure measured inside the walls is never mistaken for a contradiction with a gross figure.
+# Published versions are immutable: a change goes into international.v2.yaml.
+market:
+  id: international
+  version: 1
+  name: International
+
+  source_languages: [en]
+  output_languages: [en]
+  default_output_language: en
+
+  units:
+    area: m2
+    volume: m3
+
+  area_bases:
+    - id: net_internal
+      label: Net internal floor area (usable floor space inside the walls, as stated by the agent)
+    - id: registered_plot
+      label: Plot size as recorded in the land register
+
+  facts:
+    - key: property_type
+      label: Property type
+      type: enum
+      values: [apartment, house]
+      required: true
+    - key: living_area
+      label: Living area
+      type: area
+      basis: net_internal
+      required: true
+    - key: plot_area
+      label: Plot area
+      type: area
+      basis: registered_plot
+    - key: rooms
+      label: Rooms
+      type: integer
+      min: 1
+      max: 100
+      required: true
+    - key: bedrooms
+      label: Bedrooms
+      type: integer
+      min: 0
+      max: 50
+    - key: bathrooms
+      label: Bathrooms
+      type: integer
+      min: 0
+      max: 50
+    - key: floors
+      label: Floors in the property
+      type: integer
+      min: 1
+      max: 20
+    - key: build_year
+      label: Build year
+      type: integer
+      min: 1000
+      max: 2100
+    - key: outdoor_space
+      label: Private outdoor space (garden, balcony, or terrace)
+      type: boolean
+    - key: parking
+      label: Private parking
+      type: boolean
+
+  publication_checklist:
+    - id: staging_disclosed
+      label: Every virtually staged image is labeled as such
+      rule: staged_images_labeled
+    - id: no_exclusionary_language
+      label: No exclusionary phrasing remains
+      rule: no_flagged_phrasing
+      category: exclusionary
+    - id: no_investment_promises
+      label: No price-appreciation or investment promises remain
+      rule: no_flagged_phrasing
+      category: investment_promise
+
+  flagged_phrasing: [exclusionary, investment_promise, unverifiable_superlative]

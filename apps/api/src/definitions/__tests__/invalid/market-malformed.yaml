@@ -1,0 +1,7 @@
+# Test fixture: a flow sequence that is never closed.
+market:
+  id: broken
+  version: 1
+  name: Broken fixture
+  source_languages: [en, nl
+  output_languages: [en]

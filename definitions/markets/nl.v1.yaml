@@ -1,0 +1,79 @@
+# Netherlands market profile, version 1.
+#
+# Core (survives roadmap cut level 1): energy_label and living_area, both required. The other
+# facts are optional and still to be confirmed with a practicing Dutch agent (docs/product.md
+# §7). Published versions are immutable: a change goes into nl.v2.yaml.
+market:
+  id: nl
+  version: 1
+  name: Netherlands
+
+  source_languages: [nl, en]
+  output_languages: [en, nl]
+  default_output_language: en
+
+  units:
+    area: m2
+    volume: m3
+
+  currency: EUR
+
+  area_bases:
+    - id: NEN2580
+      label: NEN 2580 usable area (gebruiksoppervlakte wonen), per the BBMI measurement instruction
+    - id: cadastral
+      label: Plot size as registered by the Kadaster
+
+  facts:
+    # Label classes for homes, best to worst. RVO names the ends of the scale ("A++++ het beste
+    # en G het slechtste energielabel") and requires the label class in sale and rental
+    # advertisements:
+    #   https://www.rvo.nl/onderwerpen/wetten-en-regels-gebouwen/energielabel-woningen
+    # The full class list is the conversion table for homes (Regeling energieprestatie gebouwen,
+    # Bijlage I, Tabel 1; since 2024 Omgevingsregeling Bijlage IX, per IPLO):
+    #   https://wetten.overheid.nl/BWBR0020921
+    #   https://iplo.nl/regelgeving/regels-voor-activiteiten/gebruiken-bouwwerk/rijksregels/energielabel-gebouwen/
+    # A0 (zero-emission homes built from 2026) is an indicator shown on the label, not a class:
+    #   https://www.rvo.nl/onderwerpen/wetten-en-regels-gebouwen/energielabel-woningen/energielabel-woningbouw-uitgelegd
+    - key: energy_label
+      label: Energy label (energielabel)
+      type: enum
+      values: [A++++, A+++, A++, A+, A, B, C, D, E, F, G]
+      required: true
+    - key: living_area
+      label: Living area (woonoppervlakte)
+      type: area
+      basis: NEN2580
+      required: true
+    - key: volume
+      label: Volume (inhoud)
+      type: volume
+    - key: plot_area
+      label: Plot area (perceeloppervlakte)
+      type: area
+      basis: cadastral
+    - key: build_year
+      label: Build year (bouwjaar)
+      type: integer
+      min: 1000
+      max: 2100
+    - key: vve_monthly_contribution
+      label: Owners' association (VvE) monthly contribution
+      type: money
+    - key: ground_lease
+      label: Land under ground lease (erfpacht)
+      type: boolean
+    - key: ground_lease_annual_fee
+      label: Ground lease annual fee (canon)
+      type: money
+
+  publication_checklist:
+    - id: energy_label_shown
+      label: The energy label class is shown in the listing
+      rule: fact_present
+      fact: energy_label
+    - id: staging_disclosed
+      label: Every virtually staged image is labeled as such
+      rule: staged_images_labeled
+
+  flagged_phrasing: [exclusionary, investment_promise, unverifiable_superlative]

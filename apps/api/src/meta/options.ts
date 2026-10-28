@@ -1,17 +1,13 @@
 import type { OpenAILanguageModelResponsesOptions } from '@ai-sdk/openai';
-import { z } from 'zod';
+import type { MetaReasoningEffort } from '@evidomo/shared';
 
-/**
- * Reasoning efforts Meta accepts, as listed by the API's own 400 messages for `muse-spark-1.3`
- * (P1-02) and `muse-wonder-1.0` (P1-03): the same set for both, `none` is rejected
- * (docs/model-notes.md).
- */
-export const META_REASONING_EFFORTS = ['minimal', 'low', 'medium', 'high', 'xhigh', 'max'] as const;
-
-export type MetaReasoningEffort = (typeof META_REASONING_EFFORTS)[number];
-
-/** For the definition loader: effort values in service definitions are validated against this. */
-export const metaReasoningEffortSchema = z.enum(META_REASONING_EFFORTS);
+// The effort set is shared with the service definition schema (`packages/shared`), so a
+// definition can only carry efforts this module knows how to send.
+export {
+  META_REASONING_EFFORTS,
+  metaReasoningEffortSchema,
+  type MetaReasoningEffort,
+} from '@evidomo/shared';
 
 /** Per-call model settings; the effort comes from the service definition, never a literal. */
 export interface MetaCallSettings {

@@ -1,0 +1,16 @@
+# Test fixture: the same key twice in one mapping (a YAML 1.2 error, not "last one wins").
+market:
+  id: broken
+  version: 1
+  name: Broken fixture
+  source_languages: [en]
+  output_languages: [en]
+  default_output_language: en
+  units: { area: m2 }
+  area_bases:
+    - { id: net_internal, label: Net internal floor area }
+  facts:
+    - { key: living_area, label: Living area, type: area, basis: net_internal, required: true }
+  publication_checklist: []
+  flagged_phrasing: [exclusionary]
+  default_output_language: nl

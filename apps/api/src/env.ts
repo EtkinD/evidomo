@@ -26,6 +26,12 @@ const envSchema = z
       (value) => (value === '' ? undefined : value),
       usdAmountSchema.optional(),
     ),
+    // Directory with `services/` and `markets/` definition files. Defaults to the repository's
+    // `definitions/` (resolved from the source location, so it also works in the image).
+    DEFINITIONS_DIR: z.preprocess(
+      (value) => (value === '' ? undefined : value),
+      z.string().min(1).optional(),
+    ),
   })
   .superRefine((env, ctx) => {
     if (env.NODE_ENV === 'production' && env.MODEL_API_KEY === undefined) {
