@@ -103,7 +103,7 @@ The orchestrator (main session) delegates each task to its owner — see `.claud
 - [x] **P2-04 — Usage ledger and budget caps**
   - Depends on: P1-01, P2-01
   - Done when: each model call records units and estimated cost from the shared price table; per-run and global daily caps stop work with an explicit error (tested with fake prices).
-- [ ] **P2-05 — Upload processing**
+- [x] **P2-05 — Upload processing**
   - Depends on: P2-01
   - Done when: images are validated, downscaled, re-encoded with all metadata removed (test asserts no GPS EXIF); audio is validated and converted to WAV; files are stored through the storage interface.
 - [ ] **P2-06 — Step: intake**

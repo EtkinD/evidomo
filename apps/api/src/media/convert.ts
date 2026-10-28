@@ -24,6 +24,12 @@ export interface ConvertToWavOptions {
   /** 16 kHz (default) or 24 kHz, the two rates the transcription endpoint accepts. */
   readonly sampleRate?: TranscriptionSampleRate;
   readonly timeoutMs?: number;
+  /**
+   * Hard cap on the decoded output (`-t`). Header durations can be missing (browser-recorded
+   * WebM) or forged, so callers enforcing a length limit set this slightly above the limit and
+   * check the returned `info.durationMs`: conversion work and output size stay bounded either way.
+   */
+  readonly maxDurationMs?: number;
   /** Defaults to `ffmpeg` on `PATH` (installed in the API image). */
   readonly ffmpegPath?: string;
   readonly signal?: AbortSignal;
@@ -42,13 +48,20 @@ export function ffmpegWavArgs(
   inputPath: string,
   outputPath: string,
   sampleRate: TranscriptionSampleRate,
+  maxDurationMs?: number,
 ): string[] {
+  if (maxDurationMs !== undefined && !(Number.isInteger(maxDurationMs) && maxDurationMs > 0)) {
+    throw new RangeError(`maxDurationMs must be a positive integer, got ${maxDurationMs}`);
+  }
   return [
     '-nostdin',
     '-hide_banner',
     '-loglevel',
     'error',
     '-y',
+    // Demuxers that reference other resources (playlists, drefs) may only open local files.
+    '-protocol_whitelist',
+    'file',
     '-i',
     fileUrl(inputPath),
     // Audio only; drop video/cover-art streams and all metadata (tags can carry personal data).
@@ -63,6 +76,7 @@ export function ffmpegWavArgs(
     'pcm_s16le',
     // No encoder tag (LIST chunk): the output is a canonical 44-byte-header WAV.
     '-bitexact',
+    ...(maxDurationMs === undefined ? [] : ['-t', (maxDurationMs / 1000).toFixed(3)]),
     '-f',
     'wav',
     fileUrl(outputPath),
@@ -147,7 +161,7 @@ export async function convertToTranscriptionWav(
   const sampleRate = options.sampleRate ?? 16_000;
   await runFfmpeg(
     options.ffmpegPath ?? 'ffmpeg',
-    ffmpegWavArgs(inputPath, outputPath, sampleRate),
+    ffmpegWavArgs(inputPath, outputPath, sampleRate, options.maxDurationMs),
     options.timeoutMs ?? DEFAULT_FFMPEG_TIMEOUT_MS,
     options.signal,
   );

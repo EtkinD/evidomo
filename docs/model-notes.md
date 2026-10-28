@@ -561,12 +561,12 @@ and the cookbook recipe `06_muse_voice/01_voice_api_fundamentals` (`utils.py`).
 
 ### Code
 
-| File                            | Purpose                                                                                   |
-| ------------------------------- | ----------------------------------------------------------------------------------------- |
-| `media/convert.ts`              | `convertToTranscriptionWav(input, output, { sampleRate?, timeoutMs?, signal? })` (ffmpeg) |
-| `media/wav.ts`                  | WAV header parser, `assertTranscriptionWav`, `encodePcm16Wav` (silent WAVs for replay)    |
-| `meta/transcribe.ts`            | `transcribeAudio(deps, request)`, `parseTranscribeResponse`, typed `TranscriptTurn`       |
-| `meta/voice-transcribe.test.ts` | Record/replay test, cassette `fixtures/meta/p1-04/voice-transcribe.json`                  |
+| File                            | Purpose                                                                                                   |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `media/convert.ts`              | `convertToTranscriptionWav(input, output, { sampleRate?, timeoutMs?, maxDurationMs?, signal? })` (ffmpeg) |
+| `media/wav.ts`                  | WAV header parser, `assertTranscriptionWav`, `encodePcm16Wav` (silent WAVs for replay)                    |
+| `meta/transcribe.ts`            | `transcribeAudio(deps, request)`, `parseTranscribeResponse`, typed `TranscriptTurn`                       |
+| `meta/voice-transcribe.test.ts` | Record/replay test, cassette `fixtures/meta/p1-04/voice-transcribe.json`                                  |
 
 `transcribeAudio({ openai, usage, estimateCost? }, { model, mode, audio, fileName?, keywords?,
 languageBias?, sessionId?, timeoutMs?, signal? })` returns `{ sessionId, text, audioDurationMs,
@@ -677,6 +677,12 @@ so a name can never be read as an option or a `concat:`/network protocol. Output
 -map_metadata -1 -ac 1 -ar 16000 -c:a pcm_s16le -bitexact -f wav` (metadata dropped, canonical
 44-byte header). The written file is then parsed and checked (PCM, mono, 16-bit, requested rate,
 non-empty) instead of trusting the exit code.
+
+P2-05 added two options for untrusted uploads: `-protocol_whitelist file` on the input, and
+`maxDurationMs` (ffmpeg `-t`), which caps decoding so a long file without a declared duration
+(browser-recorded WebM) or with a forged one cannot be converted in full before the 10-minute
+check. Upload processing probes with `ffprobe` first (`media/probe.ts`, docs/architecture.md
+section 8).
 
 - Verified on the TTS audio: m4a (AAC, 22.05 kHz) and webm (Opus, 48 kHz) both convert to
   16 kHz mono WAVs of the same length (±100 ms); 5.4 MB for 2:49.

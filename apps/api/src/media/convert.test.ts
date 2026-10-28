@@ -21,6 +21,21 @@ describe('ffmpegWavArgs', () => {
     // The hostile name stays a single argv entry behind `file:`; nothing is shell-parsed.
     expect(args[args.indexOf('-i') + 1]).toBe(`file:${path.resolve('in put;$(rm -rf x).m4a')}`);
     expect(args.at(-1)).toBe('file:/tmp/out.wav');
+    // Nested resources (playlists, references) may only be local files.
+    expect(args[args.indexOf('-protocol_whitelist') + 1]).toBe('file');
+    expect(args.indexOf('-protocol_whitelist')).toBeLessThan(args.indexOf('-i'));
+    expect(args).not.toContain('-t');
+  });
+
+  it('adds an output duration cap in seconds when asked', () => {
+    const args = ffmpegWavArgs('in.webm', '/tmp/out.wav', 16_000, 601_000);
+    expect(args[args.indexOf('-t') + 1]).toBe('601.000');
+    expect(args.indexOf('-t')).toBeGreaterThan(args.indexOf('-i'));
+  });
+
+  it('rejects a non-positive or fractional duration cap', () => {
+    expect(() => ffmpegWavArgs('in', 'out', 16_000, 0)).toThrow(RangeError);
+    expect(() => ffmpegWavArgs('in', 'out', 16_000, 1.5)).toThrow(RangeError);
   });
 });
 
@@ -97,6 +112,14 @@ describe.skipIf(!runFfmpegTests)('convertToTranscriptionWav (real ffmpeg)', () =
       sampleRate: 24_000,
     });
     expect(result.info.sampleRate).toBe(24_000);
+  });
+
+  it('stops decoding at maxDurationMs', async () => {
+    const source = tone('capped.m4a', 'aac', 5, 44_100);
+    const result = await convertToTranscriptionWav(source, path.join(dir, 'capped.wav'), {
+      maxDurationMs: 2_000,
+    });
+    expect(result.info.durationMs).toBe(2_000);
   });
 
   it('fails with ffmpeg stderr when the input is not audio', async () => {

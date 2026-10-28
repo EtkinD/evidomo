@@ -1,3 +1,5 @@
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { usdAmountSchema } from '@evidomo/shared';
 import { z } from 'zod';
 
@@ -9,6 +11,11 @@ const optionalSecret = z.preprocess(
 
 // The safety net for unattended development runs; production must set its own value.
 export const DEFAULT_DEV_DAILY_BUDGET_USD = '5.00';
+
+// `<repo>/data/storage`; `data/` is gitignored. Production sets the `/data` volume explicitly.
+export const DEFAULT_DEV_STORAGE_DIR = fileURLToPath(
+  new URL('../../../data/storage', import.meta.url),
+);
 
 const envSchema = z
   .object({
@@ -32,6 +39,16 @@ const envSchema = z
       (value) => (value === '' ? undefined : value),
       z.string().min(1).optional(),
     ),
+    // Root of the local storage interface. Absolute, so api, worker, and scripts started from
+    // different working directories agree on it. Required in production.
+    STORAGE_DIR: z.preprocess(
+      (value) => (value === '' ? undefined : value),
+      z
+        .string()
+        .refine((value) => path.isAbsolute(value), 'STORAGE_DIR must be an absolute path')
+        .transform((value) => path.resolve(value))
+        .optional(),
+    ),
   })
   .superRefine((env, ctx) => {
     if (env.NODE_ENV === 'production' && env.MODEL_API_KEY === undefined) {
@@ -48,10 +65,18 @@ const envSchema = z
         message: 'DAILY_BUDGET_USD is required in production',
       });
     }
+    if (env.NODE_ENV === 'production' && env.STORAGE_DIR === undefined) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['STORAGE_DIR'],
+        message: 'STORAGE_DIR is required in production',
+      });
+    }
   })
   .transform((env) => ({
     ...env,
     DAILY_BUDGET_USD: env.DAILY_BUDGET_USD ?? DEFAULT_DEV_DAILY_BUDGET_USD,
+    STORAGE_DIR: env.STORAGE_DIR ?? DEFAULT_DEV_STORAGE_DIR,
   }));
 
 export type Env = z.infer<typeof envSchema>;
