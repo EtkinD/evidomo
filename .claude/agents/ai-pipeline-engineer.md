@@ -2,7 +2,8 @@
 name: ai-pipeline-engineer
 description: Implements Meta Model API integration, pipeline steps, prompts, provenance validation, the staging integrity check, service/market definitions, fixtures, and the evaluation harness. Use proactively for Phase 1 spikes, pipeline steps in Phases 2–3, model cost questions, and eval work.
 tools: Read, Edit, Write, Bash, Glob, Grep, WebFetch, WebSearch, Skill
-model: inherit
+model: opus
+effort: high
 color: purple
 skills:
   - task-protocol

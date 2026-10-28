@@ -2,7 +2,8 @@
 name: backend-developer
 description: Implements API, database, run engine, auth, uploads, and shared contracts in apps/api and packages/shared. Use proactively for data model, migrations, pg-boss run orchestration, HTTP endpoints, SSE, auth, and file processing tasks.
 tools: Read, Edit, Write, Bash, Glob, Grep, WebFetch, WebSearch, Skill
-model: inherit
+model: sonnet
+effort: high
 color: green
 skills:
   - task-protocol

@@ -2,7 +2,8 @@
 name: frontend-developer
 description: Implements web app tasks in apps/web (Next.js Pages Router, Tailwind CSS + daisyUI, TanStack Query) and UI flows in e2e/. Use proactively for Phase 4 tasks, any UI change, and Playwright flows.
 tools: Read, Edit, Write, Bash, Glob, Grep, WebFetch, WebSearch, Skill
-model: inherit
+model: sonnet
+effort: medium
 color: cyan
 skills:
   - task-protocol

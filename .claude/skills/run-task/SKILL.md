@@ -25,6 +25,15 @@ Brief the owning agent with a self-contained prompt:
 
 Independent tasks owned by different agents may run in parallel.
 
+Each agent's frontmatter sets its default model and effort: `ai-pipeline-engineer` runs on opus/high, and the others on sonnet (backend high; frontend and devops medium). For a task where a subtle mistake is costly, pass `model: opus` when spawning a sonnet agent:
+
+- auth, sessions, or access control;
+- a migration or data deletion;
+- run-engine concurrency or idempotency;
+- a security fix.
+
+Do not raise the default for routine work.
+
 ## 3. Review the result
 
 - Read the agent's report and the actual diff (`git status`, `git diff`). Do not trust the summary alone.

@@ -2,7 +2,8 @@
 name: devops-engineer
 description: Owns containers, Docker Compose, CI workflows, deployment scripts, Caddy, and dependency security automation. Use proactively for Track D (D-01…D-06), CI failures, Dockerfiles, and npm audit or supply-chain issues.
 tools: Read, Edit, Write, Bash, Glob, Grep, WebFetch, WebSearch, Skill
-model: inherit
+model: sonnet
+effort: medium
 color: orange
 skills:
   - task-protocol
