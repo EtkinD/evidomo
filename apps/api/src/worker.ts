@@ -1,35 +1,33 @@
-import { PgBoss } from 'pg-boss';
 import { bootDefinitions } from './definitions/boot.ts';
 import { loadEnv } from './env.ts';
 import { createLogger } from './logger.ts';
+import { createMetaClients } from './meta/clients.ts';
+import { shutdownOnSignals, startWorkerRuntime } from './runs/worker-runtime.ts';
+import { createPriceTableCostEstimator } from './usage/ledger.ts';
 
 const env = loadEnv();
 const logger = createLogger(env);
 // Before pg-boss starts: an invalid definition must stop the process, not a later run.
-// The registry is handed to the run engine once it exists (P2-03).
-await bootDefinitions({ dir: env.DEFINITIONS_DIR, logger });
+const registry = await bootDefinitions({ dir: env.DEFINITIONS_DIR, logger });
+const estimateCost = createPriceTableCostEstimator();
 
-const boss = new PgBoss(env.DATABASE_URL);
-boss.on('error', (error) => {
-  logger.error({ err: error }, 'pg-boss error');
-});
-
-await boss.start();
-// Run-step queues and handlers are registered by the run engine (P2-03).
-logger.info('worker started');
-
-async function shutdown(signal: NodeJS.Signals): Promise<void> {
-  logger.info({ signal }, 'worker shutting down');
-  try {
-    await boss.stop({ graceful: true });
-  } catch (error) {
-    logger.error({ err: error }, 'error while stopping pg-boss');
-    process.exitCode = 1;
-  }
-}
-
-for (const signal of ['SIGINT', 'SIGTERM'] as const) {
-  process.once(signal, (received) => {
-    void shutdown(received);
+let runtime;
+try {
+  runtime = await startWorkerRuntime({
+    env,
+    logger,
+    engine: {
+      registry,
+      // Step implementations register here by agent as they land (P2-06 and later). Until then
+      // a run fails at its first step with "No step handler is registered for agent ...".
+      handlers: {},
+      createMetaClients: (usage) =>
+        createMetaClients({ apiKey: env.MODEL_API_KEY, usage, estimateCost, logger }),
+    },
   });
+} catch (error) {
+  logger.fatal({ err: error }, 'worker failed to start');
+  process.exit(1);
 }
+shutdownOnSignals(runtime, logger);
+logger.info('worker started');

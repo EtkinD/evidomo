@@ -51,6 +51,29 @@ export async function getRun(db: Executor, runId: string): Promise<Run | undefin
   return row;
 }
 
+/**
+ * Reads the run with a row lock held until the transaction ends. Run-engine transactions take
+ * it first, so they serialize per run and always lock run → run_steps in the same order.
+ */
+export async function lockRun(db: Executor, runId: string): Promise<Run | undefined> {
+  const [row] = await db.select().from(runs).where(eq(runs.id, runId)).for('update');
+  return row;
+}
+
+/** Points the run at the step it is executing (no status change, no event). */
+export async function setRunCurrentStep(
+  db: Executor,
+  runId: string,
+  stepId: string,
+): Promise<void> {
+  const rows = await db
+    .update(runs)
+    .set({ currentStepId: stepId, updatedAt: sql`now()` })
+    .where(eq(runs.id, runId))
+    .returning({ id: runs.id });
+  if (rows.length === 0) throw new NotFoundError('run', runId);
+}
+
 export async function listRunsForProject(db: Executor, projectId: string): Promise<Run[]> {
   return db
     .select()

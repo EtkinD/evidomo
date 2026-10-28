@@ -19,6 +19,12 @@ export const RUN_STATUSES = ['queued', 'running', 'awaiting_gate', 'completed', 
 export const runStatusSchema = z.enum(RUN_STATUSES);
 export type RunStatus = z.infer<typeof runStatusSchema>;
 
+// One scheduled execution scope of a step within a run (`run_steps`, docs/architecture.md §9):
+// `queued` (job enqueued, or waiting for its retry), `running`, then `completed` or `failed`.
+export const RUN_STEP_STATUSES = ['queued', 'running', 'completed', 'failed'] as const;
+export const runStepStatusSchema = z.enum(RUN_STEP_STATUSES);
+export type RunStepStatus = z.infer<typeof runStepStatusSchema>;
+
 // Gate IDs match `gate_after` in service definitions.
 export const GATES = ['fact_conflicts', 'claim_audit'] as const;
 export const gateSchema = z.enum(GATES);

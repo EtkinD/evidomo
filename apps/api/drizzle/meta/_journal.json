@@ -15,6 +15,13 @@
       "when": 1793149762485,
       "tag": "0001_run_events_append_only",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793156097931,
+      "tag": "0002_run_steps",
+      "breakpoints": true
     }
   ]
 }

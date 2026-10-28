@@ -79,6 +79,8 @@ services:
     restart: unless-stopped
     init: true
     command: ['node', 'src/worker.ts']
+    # Longer than the worker's 25 s graceful shutdown, so in-flight steps can finish on stop.
+    stop_grace_period: 40s
     depends_on:
       postgres:
         condition: service_healthy

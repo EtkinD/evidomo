@@ -97,7 +97,7 @@ The orchestrator (main session) delegates each task to its owner — see `.claud
 - [x] **P2-02 — Definition and market profile loader**
   - Depends on: P0-01
   - Done when: `listing-launch.v1`, `international.v1`, and `nl.v1` load and validate with zod at startup; an invalid definition fails fast with a clear error (tested).
-- [ ] **P2-03 — Run state machine on pg-boss**
+- [x] **P2-03 — Run state machine on pg-boss**
   - Depends on: P2-01, P2-02
   - Done when: steps run as jobs with idempotency keys; state change and enqueue are transactional; gates pause runs; an integration test kills the worker mid-run, restarts it, and the run completes without re-executing completed steps.
 - [x] **P2-04 — Usage ledger and budget caps**

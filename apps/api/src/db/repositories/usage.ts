@@ -58,6 +58,15 @@ export async function getRunCostUsd(db: Executor, runId: string): Promise<string
   return sumCost(db, eq(usageLedger.runId, runId));
 }
 
+/** Total estimated cost of one step of a run, across all its attempts and executions. */
+export async function getRunStepCostUsd(
+  db: Executor,
+  runId: string,
+  stepId: string,
+): Promise<string> {
+  return sumCost(db, and(eq(usageLedger.runId, runId), eq(usageLedger.stepId, stepId)));
+}
+
 /**
  * Total estimated cost of all calls recorded at or after `since` and, when given, before
  * `until` (exclusive), e.g. one UTC day for the global daily cap.

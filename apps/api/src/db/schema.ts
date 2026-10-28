@@ -15,6 +15,7 @@ import {
   MATERIAL_STATUSES,
   PROJECT_STATUSES,
   RUN_STATUSES,
+  RUN_STEP_STATUSES,
   VALIDATOR_RESULTS,
   VERIFIER_VERDICTS,
 } from '@evidomo/shared';
@@ -39,6 +40,7 @@ export const projectStatus = pgEnum('project_status', PROJECT_STATUSES);
 export const materialKind = pgEnum('material_kind', MATERIAL_KINDS);
 export const materialStatus = pgEnum('material_status', MATERIAL_STATUSES);
 export const runStatus = pgEnum('run_status', RUN_STATUSES);
+export const runStepStatus = pgEnum('run_step_status', RUN_STEP_STATUSES);
 export const gate = pgEnum('gate', GATES);
 export const factStatus = pgEnum('fact_status', FACT_STATUSES);
 export const factSourceKind = pgEnum('fact_source_kind', FACT_SOURCE_KINDS);
@@ -160,6 +162,63 @@ export const runs = pgTable(
     check('runs_versions_positive', sql`${t.serviceVersion} > 0 and ${t.marketProfileVersion} > 0`),
     check('runs_gate_iff_awaiting', sql`(${t.status} = 'awaiting_gate') = (${t.gate} is not null)`),
     check('runs_failed_has_reason', sql`${t.status} <> 'failed' or ${t.failureReason} is not null`),
+  ],
+);
+
+// Step executions of a run: the run engine's idempotency record (docs/architecture.md §9).
+// One row per (run, step, attempt); a new attempt is scheduled only when a failed run resumes.
+// The partial unique indexes make "a completed step is never executed again" and "one open
+// attempt per step" database invariants, not conventions.
+export const runSteps = pgTable(
+  'run_steps',
+  {
+    runId: uuid('run_id')
+      .notNull()
+      .references(() => runs.id, { onDelete: 'cascade' }),
+    stepId: text('step_id').notNull(),
+    attempt: integer('attempt').notNull(),
+    status: runStepStatus('status').notNull().default('queued'),
+    // The pg-boss job created for this attempt in the same transaction. Only that job may
+    // execute the attempt; any other job carrying the same payload is a duplicate.
+    jobId: uuid('job_id').notNull(),
+    // retryCount of the pg-boss delivery holding the claim (null until first claimed). With
+    // job_id it fences a superseded execution out of completing or failing the attempt.
+    jobRetryCount: integer('job_retry_count'),
+    // Handler executions started within this attempt; capped by the engine (one retry).
+    executions: integer('executions').notNull().default(0),
+    // Operator-safe reason of the last failure; never raw error text or customer content.
+    error: text('error'),
+    outputArtifactIds: uuid('output_artifact_ids')
+      .array()
+      .notNull()
+      .default(sql`'{}'::uuid[]`),
+    // Set when the run resumes past this step's `gate_after`; until then the gate stays shut,
+    // also across a failure and resume.
+    gateReleasedAt: timestamp('gate_released_at', { withTimezone: true, mode: 'date' }),
+    createdAt: createdAt(),
+    startedAt: timestamp('started_at', { withTimezone: true, mode: 'date' }),
+    finishedAt: timestamp('finished_at', { withTimezone: true, mode: 'date' }),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    primaryKey({ name: 'run_steps_pkey', columns: [t.runId, t.stepId, t.attempt] }),
+    uniqueIndex('run_steps_one_completion_key')
+      .on(t.runId, t.stepId)
+      .where(sql`${t.status} = 'completed'`),
+    uniqueIndex('run_steps_one_open_attempt_key')
+      .on(t.runId, t.stepId)
+      .where(sql`${t.status} in ('queued', 'running')`),
+    check('run_steps_attempt_positive', sql`${t.attempt} > 0`),
+    check('run_steps_executions_nonnegative', sql`${t.executions} >= 0`),
+    check(
+      'run_steps_finished_iff_closed',
+      sql`(${t.status} in ('completed', 'failed')) = (${t.finishedAt} is not null)`,
+    ),
+    check('run_steps_failed_has_error', sql`${t.status} <> 'failed' or ${t.error} is not null`),
+    check(
+      'run_steps_gate_release_after_completion',
+      sql`${t.gateReleasedAt} is null or ${t.status} = 'completed'`,
+    ),
   ],
 );
 
