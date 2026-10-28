@@ -115,7 +115,7 @@ The orchestrator (main session) delegates each task to its owner — see `.claud
 - [x] **P2-08 — Step: vision inventory**
   - Depends on: P1-02, P1-05, P2-03
   - Done when: each photo has room/subject, quality, and cover rank; privacy masks exist for people and license plates; evidence masks stay within the configured cap.
-- [ ] **P2-09 — Step: reconciliation**
+- [x] **P2-09 — Step: reconciliation**
   - Depends on: P1-03, P2-07, P2-08
   - Done when: a Verified Fact Sheet and conflict list are produced; areas are compared as value + unit + basis (different bases are not reported as contradictions; same basis with different values is); Spark fallback works when Wonder fails.
 - [ ] **P2-10 — Gate 1 API**

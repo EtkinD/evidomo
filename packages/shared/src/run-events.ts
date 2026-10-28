@@ -127,3 +127,29 @@ export const photosInventoriedPayloadSchema = z.strictObject({
   factCount: count,
 });
 export type PhotosInventoriedPayload = z.infer<typeof photosInventoriedPayloadSchema>;
+
+/**
+ * Appended by the reconciliation step together with its `verified_fact_sheet` and
+ * `fact_conflicts` artifacts: counts for the run monitor. A run with conflicts stops at Gate 1;
+ * without conflicts the gate is released and the run continues. Never keys, values, or
+ * explanations.
+ */
+export const factsReconciledPayloadSchema = z.strictObject({
+  stepId: z.string().min(1),
+  /** The step's `verified_fact_sheet` artifact. */
+  artifactId: z.uuid(),
+  /** The step's `fact_conflicts` artifact (empty when there is nothing to decide). */
+  conflictsArtifactId: z.uuid(),
+  candidateCount: count,
+  verifiedCount: count,
+  conflictedCount: count,
+  rejectedCount: count,
+  entryCount: count,
+  conflictCount: count,
+  basisNoteCount: count,
+  /** The model whose judgment was used; null when no call was needed. */
+  model: z.string().min(1).nullable(),
+  /** The primary model failed and the definition's fallback produced the result. */
+  fallbackUsed: z.boolean(),
+});
+export type FactsReconciledPayload = z.infer<typeof factsReconciledPayloadSchema>;

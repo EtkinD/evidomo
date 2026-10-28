@@ -1949,3 +1949,117 @@ would be re-sent and overwrite the recording the other assertions saw.
 Budget 0.15 USD. Costs from the price table ($1.25 / $4.25 per 1M; $0.0025 per SAM image),
 cached input billed at the full rate; Meta's billing dashboard was not checked. No call failed
 or was retried. The probes ran from a scratch script outside the repository (not committed).
+
+## P2-09 — Reconciliation
+
+Status: done (pending review). Recorded 2026-10-28 against `ai@7.0.155`, `@ai-sdk/openai@4.0.104`.
+Code: `apps/api/src/pipeline/reconciliation/`; design in
+[architecture.md §5 Reconciliation](./architecture.md#5-run-pipeline).
+
+### Request
+
+- Wonder through the AI SDK, `generateText` + `Output.object` (name `reconciliation`, strict
+  `json_schema`), `metaProviderOptions({ reasoningEffort })`, model, effort, and
+  `max_output_tokens` from the step (`muse-wonder-1.0`, `low`, 12,000); fallback from the step
+  (`muse-spark-1.3`, `medium`). Meta echoed `effort: low`, `store: false`, `strict: true`.
+- Input: the step prompt (`step-prompt.ts`, 10 rules) and the compact catalog of the recorded
+  P2-07 candidates (7 form fields, 15 turns, 67 stated transcript candidates; the 6 opinions are
+  not sent) and the P2-08 photo facts (6 photos, 26 regions with key and per-photo count): 21.2k
+  characters of JSON. Market facts are listed with type, unit, and basis and are compared in
+  code, so the model only judges `other:` facts, photo support, and cross-key contradictions.
+- Output, smaller than P1-03's: `verifiedFacts { key, value, evidenceIds }`,
+  `conflicts { key, kind, evidenceIds, explanation }`, `rejected { evidenceId, reason,
+explanation }`. No units, bases, or side values are echoed (code reads them from the facts):
+  the answer, not reasoning, dominated Wonder's cost at `low` in P1-03.
+
+### Measurements (one call per model)
+
+| Call                                   | Input tok (cached) | Output tok | Reasoning tok | Answer tok | Est. USD |
+| -------------------------------------- | ------------------ | ---------- | ------------- | ---------- | -------- |
+| Wonder `low` (primary, the fixture)    | 7,066 (0)          | 3,405      | 1,740         | 1,665      | 0.0964   |
+| Spark `medium` (fallback, the fixture) | 7,390 (0)          | 8,096      | 6,466         | 1,630      | 0.0436   |
+
+- Latency was not measured separately: the Wonder recording run took ~21 s of test wall time
+  including the replayed earlier steps (milliseconds), so the call took roughly 15–20 s.
+- Spark reasons 3.7× as much as Wonder on the same catalog (as in P1-03) and costs 45% of it.
+- **Per-run cost of this step: ~$0.10** for a 3-minute walkthrough with 6 photos. Input grows
+  with candidates and photos (a 10-minute memo with 30 photos could reach ~20k input tokens,
+  ~$0.08 of input alone); the answer grows with the number of `other:` facts. Worst case at the
+  12,000 cap: Wonder $0.03 + $0.24, plus a fallback after a billed truncation ($0.06 at Spark's
+  cap): **~$0.33**, which the $1.00 run cap absorbs. Typical with fallback after an
+  unbilled HTTP error: ~$0.05.
+
+### Quality on the recorded candidates
+
+Both models produced the same structure and passed every code check:
+
+| Check                                                    | Wonder `low`                                                | Spark `medium` |
+| -------------------------------------------------------- | ----------------------------------------------------------- | -------------- |
+| Verified groups proposed / accepted / escalated          | 61 / 61 / 0                                                 | 61 / 61 / 0    |
+| Unknown IDs, values not cited, market facts cited        | 0 / 0 / 0                                                   | 0 / 0 / 0      |
+| Citations stripped                                       | 2 (`value_differs`)                                         | 0              |
+| Conflicts proposed / accepted                            | 1 / 1                                                       | 1 / 1          |
+| Rejections proposed                                      | 0                                                           | 0              |
+| `other:` candidates not accounted for (`not_reconciled`) | 0                                                           | 0              |
+| Outcome: 106 candidates                                  | 98 verified, 2 conflicted, 6 rejected (5 opinions + the 95) | same           |
+
+- **The planted living area** follows the basis rule, decided in code whatever the model says:
+  form 92 NEN 2580 and turn 2's "92 vierkante meter" (NEN 2580) agree (`agreement`); turn 14's
+  "zo'n 95 vierkante meter woonoppervlak" was extracted with basis `unspecified`, which is a
+  different measure: rejected as `different_basis` with a basis note, **not a conflict**. This
+  supersedes the P1-04 note's expectation ("same basis ⇒ conflict"): the speaker named no basis
+  in that turn, and an unstated basis cannot contradict NEN 2580. The value stays visible on the
+  sheet as a basis note (P4-06 can show it at Gate 1 as information). If the eval wants the
+  planted value to be a conflict, the script must state "95 m² NEN 2580".
+- **The one conflict** (both models): the walkthrough says the bedrooms have laminate flooring
+  (`C43`), the bedroom photo shows carpet (`P04.R4`, `other:carpet_floor`). Correct for these
+  inputs: the synthetic interiors were generated independently of the walkthrough, so photo and
+  transcript disagree. Wonder labelled it `value_mismatch`, Spark `presence_mismatch`. It stops
+  the recorded run at Gate 1, which the integration test asserts.
+- **Wonder grouped the street and place form fields with the spoken full address**
+  ("Kwartelhoflaan 27 in Zandmeer"). The values differ (street vs full address), so a strict
+  "different value on one measure ⇒ conflict" rule would have raised a false conflict. Decision:
+  for text facts under different keys, a different value is neither support nor contradiction
+  (`value_differs`, the citation is dropped and the form fields stand on their own). Measurements
+  and same-key text facts still escalate.
+- Photo support Wonder chose: coat rack → cloakroom, herringbone floor → oak parquet, built-in
+  wardrobe → fitted wardrobe. All presences, no measurement cited a photo.
+- Both models verified every market-fact-free `other:` candidate as its own group (61 groups,
+  one candidate each, plus the address group). The recording does not exercise grouping of the
+  same fact stated twice, model rejections, or escalation; those paths are covered by the unit
+  tests (`resolve.test.ts`).
+
+### Replay and record
+
+- `reconciliation-wonder.test.ts` (`api`) rebuilds the candidates by replaying the P2-06, P2-07,
+  P2-08, and P1-05 cassettes (`createMetaReplay({ include })`), builds the catalog through the
+  step's code, and replays `p2-09/reconciliation-wonder`. Assertions are structural plus the
+  deterministic outcomes (living area, opinions, provenance); the model's judgment is not
+  asserted.
+- `reconciliation-fallback.test.ts` stubs Wonder with a truncated, billed answer (fetch wrapper
+  in front of MSW; MSW's own `fetch(bypass(request))` passes through, so recording works) and
+  replays `p2-09/reconciliation-spark-fallback`. It asserts the fallback, the recorded
+  `modelRun`, and that the usage recorder saw both calls.
+- `reconciliation.integration.test.ts` runs the step through the engine on the recorded answer
+  (stops at Gate 1, then resumes), plus stubbed cases: no conflicts (gate released, run
+  continues), a Wonder failure with a code conflict (two ledger rows, gate opened), and a
+  superseded execution (one sheet, two billed calls).
+- The catalog order is content-derived, so the request hash is the same from the replay test
+  and from database rows. Changing the prompt, schema, catalog serialization, nl v1 facts, or
+  the earlier steps' fixtures changes the hash; re-record (~$0.10 + ~$0.05):
+
+```sh
+RECORD=1 node --env-file=.env node_modules/vitest/vitest.mjs run --project api reconciliation-wonder
+RECORD=1 node --env-file=.env node_modules/vitest/vitest.mjs run --project api reconciliation-fallback
+```
+
+### Live calls and cost (P2-09)
+
+| #   | Call                                   | Input tok | Output tok (reasoning) | Est. USD   |
+| --- | -------------------------------------- | --------- | ---------------------- | ---------- |
+| 1   | Wonder `low`, reconciliation (fixture) | 7,066     | 3,405 (1,740)          | 0.0964     |
+| 2   | Spark `medium`, fallback (fixture)     | 7,390     | 8,096 (6,466)          | 0.0436     |
+|     | **Total (2 calls)**                    | 14,456    | 11,501 (8,206)         | **0.1400** |
+
+Budget 0.25 USD (stop at 0.20). Costs from the price table ($4 / $20 per 1M on Wonder, $1.25 /
+$4.25 on Spark); Meta's billing dashboard was not checked. No call failed or was retried.

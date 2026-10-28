@@ -52,6 +52,12 @@ export interface StepContext<A extends StepAgent = StepAgent> {
 export interface StepCommitResult {
   /** Artifacts written by `commit`; recorded on the step and in `step_completed`. */
   readonly artifactIds?: readonly string[];
+  /**
+   * The step's `gate_after` has nothing for a human to decide (e.g. reconciliation found no
+   * conflicts): the engine releases the gate in the completion transaction and the run goes on.
+   * Ignored for steps without `gate_after`.
+   */
+  readonly releaseGate?: boolean;
 }
 
 export interface StepResult {

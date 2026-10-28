@@ -76,6 +76,7 @@ export const RUN_EVENT_TYPES = [
   'transcript_stored',
   'facts_extracted',
   'photos_inventoried',
+  'facts_reconciled',
 ] as const;
 export const runEventTypeSchema = z.enum(RUN_EVENT_TYPES);
 export type RunEventType = z.infer<typeof runEventTypeSchema>;

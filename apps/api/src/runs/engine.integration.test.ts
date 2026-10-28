@@ -252,6 +252,35 @@ describe('run engine', () => {
     await expect(engine.resumeAfterGate(run.id)).rejects.toBeInstanceOf(InvalidRunTransitionError);
   });
 
+  it('continues past the gate when the gated step reports nothing to decide', async () => {
+    const run = await seedServiceRun(GATED);
+    behaviors.set(run.id, async (context) => {
+      await fakeModelCall(context);
+      // Only the gated step may release its gate; on the others the flag is ignored.
+      if (context.step.id === 'reconcile' || context.step.id === 'extract') {
+        return { commit: () => Promise.resolve({ releaseGate: true }) };
+      }
+      return undefined;
+    });
+
+    await engine.startRun(run.id);
+    await waitForStatus(run.id, 'completed');
+    expect(callsOf(run.id)).toEqual(['intake#1', 'extract#1', 'reconcile#1', 'export#1']);
+    const steps = await listRunSteps(testDb.db, run.id);
+    expect(steps.map((s) => [s.stepId, s.gateReleasedAt instanceof Date])).toEqual([
+      ['intake', false],
+      ['extract', false],
+      ['reconcile', true],
+      ['export', false],
+    ]);
+    const events = await listRunEvents(testDb.db, run.id);
+    expect(events.some((e) => e.type === 'gate_opened')).toBe(false);
+    expect(events.filter((e) => e.type === 'run_status_changed').map((e) => e.payload)).toEqual([
+      expect.objectContaining({ to: 'running' }),
+      expect.objectContaining({ to: 'completed' }),
+    ]);
+  });
+
   it('enqueues inside the caller transaction: a rollback leaves neither state nor job', async () => {
     const run = await seedServiceRun(LINEAR);
     class Rollback extends Error {}

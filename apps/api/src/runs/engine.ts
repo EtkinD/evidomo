@@ -532,6 +532,12 @@ export function createRunEngine(options: RunEngineOptions): RunEngine {
       const committed = result?.commit === undefined ? undefined : await result.commit(tx);
       const artifactIds = committed?.artifactIds ?? [];
       await completeRunStep(tx, data, artifactIds);
+      const step = claimed.service.steps.find((candidate) => candidate.id === data.stepId);
+      if (committed?.releaseGate === true && step?.gate_after !== undefined) {
+        // Released before `advance`, which therefore treats the gate as passed. The release is
+        // stored on the step, so a resumed run does not stop at this gate either.
+        await releaseRunStepGate(tx, data.runId, data.stepId);
+      }
       await appendRunEvent(tx, data.runId, {
         type: 'step_completed',
         payload: stepCompletedPayloadSchema.parse({

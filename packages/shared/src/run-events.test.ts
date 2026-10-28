@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   factsExtractedPayloadSchema,
+  factsReconciledPayloadSchema,
   photosInventoriedPayloadSchema,
   stepCompletedPayloadSchema,
   stepFailedPayloadSchema,
@@ -115,5 +116,30 @@ describe('photos_inventoried payload', () => {
     expect(photosInventoriedPayloadSchema.safeParse({ ...summary, factCount: -1 }).success).toBe(
       false,
     );
+  });
+});
+
+describe('facts_reconciled payload', () => {
+  const summary = {
+    stepId: 'reconciliation',
+    artifactId: '3bfcf0bb-5581-4e10-8691-6cc7a8e66dcf',
+    conflictsArtifactId: '4bfcf0bb-5581-4e10-8691-6cc7a8e66dcf',
+    candidateCount: 106,
+    verifiedCount: 98,
+    conflictedCount: 2,
+    rejectedCount: 6,
+    entryCount: 90,
+    conflictCount: 1,
+    basisNoteCount: 1,
+    model: 'muse-spark-1.3',
+    fallbackUsed: true,
+  };
+
+  it('carries counts and the model only, never keys or values', () => {
+    expect(factsReconciledPayloadSchema.parse(summary)).toEqual(summary);
+    expect(factsReconciledPayloadSchema.parse({ ...summary, model: null }).model).toBeNull();
+    expect(
+      factsReconciledPayloadSchema.safeParse({ ...summary, keys: ['living_area'] }).success,
+    ).toBe(false);
   });
 });

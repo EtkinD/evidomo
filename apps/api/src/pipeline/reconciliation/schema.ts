@@ -67,8 +67,12 @@ const candidateFactSchema = z.object({
 
 const photoObservationSchema = z.object({
   id: z.string().regex(PHOTO_REGION_ID_PATTERN),
+  /** The `photo_region` fact's key (`other:<object>`, P2-09); absent in the P1-03 prototype. */
+  key: z.string().min(1).optional(),
   label: z.string().min(1),
   detail: z.string().min(1),
+  /** Instances of the object in this photo (the fact's value, P2-09); not a property total. */
+  count: z.int().positive().optional(),
 });
 
 const photoSchema = z.object({
@@ -86,15 +90,29 @@ const inventoryAggregateSchema = z.object({
   detail: z.string().min(1),
 });
 
+const marketFactSchema = z.object({
+  key: z.string().min(1),
+  type: z.string().min(1),
+  unit: z.string().nullable(),
+  basis: z.string().nullable(),
+});
+
 export const reconciliationInputSchema = z
   .object({
+    // The step (P2-09) sends no label, property type, or output language: it has none it could
+    // state truthfully, and values are not translated at reconciliation.
     property: z.object({
-      label: z.string().min(1),
+      label: z.string().min(1).optional(),
       market: z.string().min(1),
-      propertyType: z.string().min(1),
+      propertyType: z.string().min(1).optional(),
       sourceLanguage: z.string().min(2),
-      outputLanguage: z.string().min(2),
+      outputLanguage: z.string().min(2).optional(),
     }),
+    /**
+     * The market's typed facts (P2-09). Candidates with these keys are compared by code on
+     * value + unit + basis; the model only uses them as context and in cross-key conflicts.
+     */
+    marketFacts: z.array(marketFactSchema).optional(),
     form: z.array(formFieldSchema).min(1),
     transcript: z.array(transcriptTurnSchema),
     candidates: z.array(candidateFactSchema),
@@ -230,3 +248,41 @@ export const reconciliationOutputSchema = z.object({
 });
 
 export type ReconciliationOutput = z.infer<typeof reconciliationOutputSchema>;
+
+// Step output (P2-09), strict json_schema. Smaller than the P1-03 prototype's: the model cites
+// IDs and asserts a key and value, and code takes units, bases, and side values from the stored
+// facts. Answer tokens dominate Wonder's cost at `low` (P1-03), so nothing is echoed that code
+// already knows. Every invariant is checked in `resolve.ts`, never trusted.
+
+export const REJECTION_REASONS = ['opinion', 'out_of_scope', 'ambiguous'] as const;
+
+const stepVerifiedFactSchema = z.object({
+  key: z
+    .string()
+    .describe('the key of one cited candidate, copied exactly (e.g. other:storage_area)'),
+  value: evidenceValueSchema.describe(
+    'the value of that candidate, copied exactly: never translated, rounded, or computed',
+  ),
+  evidenceIds: z.array(z.string()).describe('every catalog ID that states or shows this fact'),
+});
+
+const stepConflictSchema = z.object({
+  key: z.string(),
+  kind: z.enum(['value_mismatch', 'count_mismatch', 'presence_mismatch', 'other']),
+  evidenceIds: z.array(z.string()).describe('every catalog ID involved, at least two'),
+  explanation: z.string().describe('one short English sentence'),
+});
+
+const stepRejectionSchema = z.object({
+  evidenceId: z.string(),
+  reason: z.enum(REJECTION_REASONS),
+  explanation: z.string().describe('one short English sentence'),
+});
+
+export const reconciliationStepOutputSchema = z.object({
+  verifiedFacts: z.array(stepVerifiedFactSchema),
+  conflicts: z.array(stepConflictSchema),
+  rejected: z.array(stepRejectionSchema),
+});
+
+export type ReconciliationStepOutput = z.infer<typeof reconciliationStepOutputSchema>;
