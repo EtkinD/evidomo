@@ -1,13 +1,99 @@
 @import 'tailwindcss';
+
+/* Built-in themes are off: the app uses only the Evidomo themes below. Their tokens are the
+   single source of colour, radius, and size (see the evidomo-theme skill). */
 @plugin "daisyui" {
-  themes:
-    light --default,
-    dark --prefersdark;
+  themes: false;
 }
 
-/* daisyUI's error colour is a background tone: as small text on base-100 it reaches only about
-   2.9:1 in the light theme. Mixing it toward the content colour keeps the hue and gives about
-   6:1 (light) and 8.5:1 (dark), above WCAG AA. */
-@utility text-error-strong {
-  color: color-mix(in oklab, var(--color-error) 60%, var(--color-base-content));
+/* Tailwind's `dark:` follows the active daisyUI theme: an explicit data-theme="evidomo-dark",
+   or the system dark preference when no data-theme is set (evidomo-dark is --prefersdark).
+   Theme tokens already switch by themselves, so `dark:` is a rare escape hatch. */
+@custom-variant dark {
+  &:where([data-theme='evidomo-dark'], [data-theme='evidomo-dark'] *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-theme]), :root:not([data-theme]) *) {
+      @slot;
+    }
+  }
+}
+
+@plugin "daisyui/theme" {
+  name: 'evidomo-light';
+  default: true;
+  prefersdark: false;
+  color-scheme: light;
+
+  --color-base-100: oklch(99% 0.003 240);
+  --color-base-200: oklch(96.5% 0.006 240);
+  --color-base-300: oklch(92.5% 0.009 240);
+  --color-base-content: oklch(24% 0.02 250);
+
+  --color-primary: oklch(45% 0.09 200);
+  --color-primary-content: oklch(98% 0.01 200);
+  --color-secondary: oklch(42% 0.06 260);
+  --color-secondary-content: oklch(98% 0.008 260);
+  --color-accent: oklch(78% 0.13 75);
+  --color-accent-content: oklch(28% 0.05 70);
+  --color-neutral: oklch(30% 0.02 250);
+  --color-neutral-content: oklch(97% 0.005 250);
+
+  --color-info: oklch(48% 0.12 240);
+  --color-info-content: oklch(98% 0.01 240);
+  --color-success: oklch(47% 0.1 155);
+  --color-success-content: oklch(98% 0.01 155);
+  --color-warning: oklch(80% 0.14 80);
+  --color-warning-content: oklch(30% 0.06 60);
+  --color-error: oklch(50% 0.17 25);
+  --color-error-content: oklch(98% 0.01 25);
+
+  --radius-selector: 0.5rem;
+  --radius-field: 0.5rem;
+  --radius-box: 0.75rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}
+
+@plugin "daisyui/theme" {
+  name: 'evidomo-dark';
+  default: false;
+  prefersdark: true;
+  color-scheme: dark;
+
+  --color-base-100: oklch(21% 0.015 250);
+  --color-base-200: oklch(18.5% 0.014 250);
+  --color-base-300: oklch(16% 0.012 250);
+  --color-base-content: oklch(93% 0.01 250);
+
+  --color-primary: oklch(74% 0.1 195);
+  --color-primary-content: oklch(20% 0.03 200);
+  --color-secondary: oklch(76% 0.06 260);
+  --color-secondary-content: oklch(20% 0.02 260);
+  --color-accent: oklch(80% 0.12 75);
+  --color-accent-content: oklch(24% 0.05 70);
+  --color-neutral: oklch(32% 0.02 250);
+  --color-neutral-content: oklch(93% 0.01 250);
+
+  --color-info: oklch(74% 0.11 240);
+  --color-info-content: oklch(20% 0.03 240);
+  --color-success: oklch(74% 0.12 155);
+  --color-success-content: oklch(20% 0.03 155);
+  --color-warning: oklch(82% 0.13 80);
+  --color-warning-content: oklch(24% 0.05 60);
+  --color-error: oklch(72% 0.15 25);
+  --color-error-content: oklch(20% 0.04 25);
+
+  --radius-selector: 0.5rem;
+  --radius-field: 0.5rem;
+  --radius-box: 0.75rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
 }

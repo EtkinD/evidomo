@@ -127,12 +127,12 @@ export function AuthForm({ mode, mutation, loginHref }: AuthFormProps) {
           className={`input w-full ${emailInvalid ? 'input-error' : ''}`}
         />
         {fieldErrors.email !== undefined && (
-          <p id={ids.emailError} className="text-sm text-error-strong">
+          <p id={ids.emailError} className="text-sm text-error">
             {fieldErrors.email}
           </p>
         )}
         {fieldErrors.email === undefined && emailTaken && (
-          <p id={ids.emailError} className="text-sm text-error-strong">
+          <p id={ids.emailError} className="text-sm text-error">
             An account with this email already exists.{' '}
             <Link href={loginHref} className="link font-medium">
               Log in instead
@@ -164,7 +164,7 @@ export function AuthForm({ mode, mutation, loginHref }: AuthFormProps) {
           </p>
         )}
         {fieldErrors.password !== undefined && (
-          <p id={ids.passwordError} className="text-sm text-error-strong">
+          <p id={ids.passwordError} className="text-sm text-error">
             {fieldErrors.password}
           </p>
         )}

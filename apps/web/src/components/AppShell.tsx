@@ -28,7 +28,7 @@ function AccountControls() {
           Log out
         </button>
         {logout.isError && (
-          <span role="alert" className="text-sm text-error-strong">
+          <span role="alert" className="text-sm text-error">
             Could not log out. Try again.
           </span>
         )}

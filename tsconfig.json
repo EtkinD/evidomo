@@ -8,5 +8,5 @@
     "erasableSyntaxOnly": true,
     "types": ["node"]
   },
-  "include": ["vitest.config.ts", "playwright.config.ts", "e2e", ".claude/hooks"]
+  "include": ["vitest.config.ts", "playwright.config.ts", "e2e", ".claude/hooks", ".claude/skills"]
 }
