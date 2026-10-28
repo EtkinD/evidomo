@@ -52,13 +52,13 @@ The orchestrator (main session) delegates each task to its owner — see `.claud
 - [x] **P0-07 — E2E setup**
   - Depends on: P0-03
   - Done when: Playwright installed with one smoke test (home page loads); `npm run test:e2e` passes locally.
-- [ ] **P0-08 — CI**
+- [x] **P0-08 — CI**
   - Depends on: P0-02, P0-06
   - Done when: a GitHub Actions workflow runs lint, format, typecheck, unit and integration tests on push and PR, plus a dependency audit job (also scheduled daily), and is green.
-- [ ] **P0-09 — Repository hygiene**
+- [x] **P0-09 — Repository hygiene**
   - Depends on: P0-01
   - Done when: `.gitignore` covers env files, uploads, and local data; `.env.example` lists every variable; project `CLAUDE.md` documents commands, conventions, and branch/version strategy; README skeleton states the hackathon build window; `docs/` contains the public docs; Apache-2.0 `LICENSE` at the root.
-- [ ] **P0-10 — Public repository**
+- [x] **P0-10 — Public repository**
   - Depends on: P0-09
   - Done when: the GitHub repository is public, contains the pushed history, GitHub detects the Apache-2.0 license, and CI runs on the default branch.
 
