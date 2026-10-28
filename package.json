@@ -25,10 +25,12 @@
     "test:unit": "vitest run --project shared --project api --project web",
     "test:integration": "vitest run --project api-integration",
     "test:e2e": "playwright test",
+    "audit:deps": "env -u npm_config_allow_scripts npm audit --audit-level=moderate && env -u npm_config_allow_scripts npm audit signatures",
     "db:up": "docker compose up -d --wait postgres",
     "db:down": "docker compose down",
     "db:generate": "npm run db:generate -w @evidomo/api",
-    "db:migrate": "npm run db:migrate -w @evidomo/api"
+    "db:migrate": "npm run db:migrate -w @evidomo/api",
+    "preversion": "npm run lint && npm run typecheck && npm test && npm run audit:deps"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
