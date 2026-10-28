@@ -5,7 +5,7 @@ import { NotFoundError } from '../errors.ts';
 import { seedRunWithParents, startTestDatabase, type TestDatabase } from '../testing.ts';
 import { getArtifact, insertArtifact, listArtifacts } from './artifacts.ts';
 import { insertClaims, listClaims, recordVerifierVerdict } from './claims.ts';
-import { insertFacts, listFacts, setFactStatus } from './facts.ts';
+import { getFactsByIds, insertFacts, listFacts, setFactStatus } from './facts.ts';
 
 let testDb: TestDatabase;
 
@@ -155,6 +155,38 @@ describe('facts repository', () => {
     ).rejects.toMatchObject({ cause: { constraint: 'facts_opinion_never_verified' } });
     expect(await setFactStatus(testDb.db, run.id, [opinion?.id ?? never()], 'rejected')).toBe(1);
     expect(await setFactStatus(testDb.db, run.id, [stated?.id ?? never()], 'verified')).toBe(1);
+  });
+
+  it('stores a verified fact from a Gate 1 decision (source kind gate_decision, migration 0005)', async () => {
+    const { run } = await seedRunWithParents(testDb.db);
+    const conflicts = await insertArtifact(testDb.db, {
+      runId: run.id,
+      stepId: 'reconciliation',
+      kind: 'fact_conflicts',
+      content: { conflicts: [] },
+    });
+    const source: FactSource = {
+      kind: 'gate_decision',
+      gate: 'fact_conflicts',
+      conflictsArtifactId: conflicts.id,
+      conflictId: 'K02',
+    };
+    const [edited] = await insertFacts(testDb.db, run.id, [
+      {
+        stepId: 'gate:fact_conflicts',
+        key: 'living_area',
+        value: 92.5,
+        unit: 'm2',
+        basis: 'NEN2580',
+        status: 'verified',
+        source,
+      },
+    ]);
+    expect(edited).toMatchObject({ status: 'verified', assertion: 'stated', source });
+
+    const other = await seedRunWithParents(testDb.db);
+    expect(await getFactsByIds(testDb.db, run.id, [edited?.id ?? never()])).toEqual([edited]);
+    expect(await getFactsByIds(testDb.db, other.run.id, [edited?.id ?? never()])).toEqual([]);
   });
 });
 

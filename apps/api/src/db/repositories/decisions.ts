@@ -5,7 +5,7 @@ import {
   type Gate,
   type JsonValue,
 } from '@evidomo/shared';
-import { and, asc, eq } from 'drizzle-orm';
+import { and, asc, eq, sql } from 'drizzle-orm';
 import type { Executor } from '../client.ts';
 import {
   DecisionAlreadyRecordedError,
@@ -136,5 +136,46 @@ export async function listDecisions(
       ),
     )
     .orderBy(asc(decisions.decidedAt), asc(decisions.id));
+  return rows.map(toDecision);
+}
+
+/**
+ * Writes one decision per target, replacing any earlier decision for the same target (one row
+ * per run, gate, and target by `decisions_one_per_target_key`); a replaced row gets the new
+ * choice, value, decider, and time.
+ *
+ * Unlike `recordDecision` it does not check the gate: the caller holds the run row lock
+ * (`lockRun`) and has checked that the run awaits `gate` and that the targets belong to the run,
+ * in the same transaction. That lets a gate decide several targets, and resume the run, in one
+ * transaction.
+ */
+export async function upsertDecisions(
+  tx: Executor,
+  inputs: readonly NewDecision[],
+): Promise<Decision[]> {
+  if (inputs.length === 0) return [];
+  const rows = await tx
+    .insert(decisions)
+    .values(
+      inputs.map((input) => ({
+        runId: input.runId,
+        gate: input.gate,
+        targetKind: input.targetKind,
+        targetId: input.targetId,
+        choice: input.choice,
+        editedValue: input.choice === 'edit' ? jsonValueSchema.parse(input.editedValue) : null,
+        decidedBy: input.decidedBy,
+      })),
+    )
+    .onConflictDoUpdate({
+      target: [decisions.runId, decisions.gate, decisions.targetKind, decisions.targetId],
+      set: {
+        choice: sql`excluded.choice`,
+        editedValue: sql`excluded.edited_value`,
+        decidedBy: sql`excluded.decided_by`,
+        decidedAt: sql`now()`,
+      },
+    })
+    .returning();
   return rows.map(toDecision);
 }

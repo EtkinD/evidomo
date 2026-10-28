@@ -43,7 +43,16 @@ export const FACT_ASSERTIONS = ['stated', 'opinion'] as const;
 export const factAssertionSchema = z.enum(FACT_ASSERTIONS);
 export type FactAssertion = z.infer<typeof factAssertionSchema>;
 
-export const FACT_SOURCE_KINDS = ['form', 'transcript_turn', 'photo_region'] as const;
+/**
+ * `gate_decision`: a value the operator entered at a gate (Gate 1 `edit`, P2-10). It cites the
+ * decision, not a material, so it is shown as the operator's statement, never as evidence.
+ */
+export const FACT_SOURCE_KINDS = [
+  'form',
+  'transcript_turn',
+  'photo_region',
+  'gate_decision',
+] as const;
 export const factSourceKindSchema = z.enum(FACT_SOURCE_KINDS);
 export type FactSourceKind = z.infer<typeof factSourceKindSchema>;
 
@@ -127,6 +136,14 @@ export const factSourceSchema = z.discriminatedUnion('kind', [
     materialId: z.uuid(),
     region: imageRegionSchema,
     maskArtifactId: z.uuid().optional(),
+  }),
+  z.object({
+    kind: z.literal('gate_decision'),
+    /** Only Gate 1 creates facts; Gate 2 decides claims. */
+    gate: z.literal('fact_conflicts'),
+    /** The `fact_conflicts` artifact and the conflict the decision resolved. */
+    conflictsArtifactId: z.uuid(),
+    conflictId: z.string().regex(/^K\d{2,}$/),
   }),
 ]);
 export type FactSource = z.infer<typeof factSourceSchema>;

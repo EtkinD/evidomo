@@ -4,10 +4,14 @@ import { authConfigFromEnv, type AuthConfig, type AuthRateLimits } from './auth/
 import { createAuthRouter } from './auth/routes.ts';
 import { createSessionMiddleware } from './auth/session.ts';
 import type { DbClient } from './db/client.ts';
+import type { DefinitionRegistry } from './definitions/loader.ts';
 import type { Env } from './env.ts';
+import { createFactConflictsGate } from './gates/fact-conflicts.ts';
+import { createGateRouter } from './gates/routes.ts';
 import { createErrorHandler } from './http/errors.ts';
 import { rejectCrossOrigin } from './http/guards.ts';
 import type { Logger } from './logger.ts';
+import type { RunEngine } from './runs/engine.ts';
 
 export interface AppConfig {
   auth: AuthConfig;
@@ -25,13 +29,21 @@ export function appConfigFromEnv(
   };
 }
 
+/** What the run routes need from the run engine and the definitions loaded at boot. */
+export interface AppRunDeps {
+  /** Gate decisions resume the run in their own transaction (no workers in the API process). */
+  engine: Pick<RunEngine, 'resumeAfterGate'>;
+  markets: Pick<DefinitionRegistry, 'getMarket'>;
+}
+
 export interface AppDeps {
   db: Pick<DbClient, 'ping' | 'db'>;
   logger: Logger;
   config: AppConfig;
+  runs: AppRunDeps;
 }
 
-export function createApp({ db, logger, config }: AppDeps): Express {
+export function createApp({ db, logger, config, runs }: AppDeps): Express {
   const app = express();
   app.disable('x-powered-by');
   // A hop count, not `true`: only the entry Caddy appends is believed, so a client cannot
@@ -62,6 +74,8 @@ export function createApp({ db, logger, config }: AppDeps): Express {
   // the user through `currentUser(req)`.
   const session = createSessionMiddleware({ db: db.db, config: config.auth });
   app.use('/api/auth', createAuthRouter({ db: db.db, config: config.auth, logger, session }));
+  const gate = createFactConflictsGate({ db: db.db, engine: runs.engine, markets: runs.markets });
+  app.use('/api/runs', createGateRouter({ gate, session, logger }));
 
   app.use(createErrorHandler(logger));
 

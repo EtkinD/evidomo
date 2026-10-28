@@ -103,3 +103,18 @@ export async function setFactStatus(
     .returning({ id: facts.id });
   return updated.length;
 }
+
+/** The run's facts with the given IDs (IDs of other runs are not returned), in key order. */
+export async function getFactsByIds(
+  db: Executor,
+  runId: string,
+  factIds: readonly string[],
+): Promise<Fact[]> {
+  if (factIds.length === 0) return [];
+  const rows = await db
+    .select()
+    .from(facts)
+    .where(and(eq(facts.runId, runId), inArray(facts.id, [...factIds])))
+    .orderBy(asc(facts.key), asc(facts.createdAt), asc(facts.id));
+  return rows.map(toFact);
+}

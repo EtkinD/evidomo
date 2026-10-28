@@ -118,7 +118,7 @@ The orchestrator (main session) delegates each task to its owner — see `.claud
 - [x] **P2-09 — Step: reconciliation**
   - Depends on: P1-03, P2-07, P2-08
   - Done when: a Verified Fact Sheet and conflict list are produced; areas are compared as value + unit + basis (different bases are not reported as contradictions; same basis with different values is); Spark fallback works when Wonder fails.
-- [ ] **P2-10 — Gate 1 API**
+- [x] **P2-10 — Gate 1 API**
   - Depends on: P2-09
   - Done when: conflicts can be listed and resolved through the API; the run resumes after all are decided; covered by a fixture-based integration test.
 

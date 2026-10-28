@@ -132,6 +132,9 @@ export function buildCatalog(sources: CatalogSources): Catalog {
       case 'photo_region':
         photoFacts.push(fact);
         break;
+      case 'gate_decision':
+        // Created when Gate 1 is released, after this step; never a candidate.
+        throw new CatalogError('A gate decision cannot be a reconciliation candidate');
       default: {
         const unreachable: never = fact.source;
         throw new CatalogError(`Unknown fact source ${JSON.stringify(unreachable)}`);

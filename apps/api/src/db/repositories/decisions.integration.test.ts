@@ -4,7 +4,7 @@ import { DecisionAlreadyRecordedError, GateNotOpenError, NotFoundError } from '.
 import { seedRunWithParents, startTestDatabase, type TestDatabase } from '../testing.ts';
 import { insertArtifact } from './artifacts.ts';
 import { insertClaims } from './claims.ts';
-import { listDecisions, recordDecision } from './decisions.ts';
+import { listDecisions, recordDecision, upsertDecisions } from './decisions.ts';
 import { insertFacts, type Fact } from './facts.ts';
 import { transitionRun, type Run } from './runs.ts';
 
@@ -77,6 +77,38 @@ describe('decisions repository', () => {
       edited.id,
     ]);
     expect(await listDecisions(testDb.db, run.id, { gate: 'claim_audit' })).toEqual([]);
+  });
+
+  it('upserts one decision per target, replacing the earlier choice and value', async () => {
+    const { run, userId, facts } = await runAtGate1();
+    const [area, year] = facts;
+    if (!area || !year) throw new Error('fixture facts missing');
+    const base = {
+      runId: run.id,
+      gate: 'fact_conflicts',
+      targetKind: 'fact',
+      decidedBy: userId,
+    } as const;
+
+    const first = await upsertDecisions(testDb.db, [
+      { ...base, targetId: area.id, choice: 'accept' },
+      { ...base, targetId: year.id, choice: 'reject' },
+    ]);
+    const second = await upsertDecisions(testDb.db, [
+      { ...base, targetId: area.id, choice: 'edit', editedValue: { value: 85 } },
+      { ...base, targetId: year.id, choice: 'edit', editedValue: { value: 85 } },
+    ]);
+
+    // Same rows (same IDs), new choice and value.
+    expect(second.map((d) => d.id).sort()).toEqual(first.map((d) => d.id).sort());
+    const stored = await listDecisions(testDb.db, run.id, { gate: 'fact_conflicts' });
+    expect(stored.map((d) => [d.targetId, d.choice, d.editedValue]).sort()).toEqual(
+      [
+        [area.id, 'edit', { value: 85 }],
+        [year.id, 'edit', { value: 85 }],
+      ].sort(),
+    );
+    expect(await upsertDecisions(testDb.db, [])).toEqual([]);
   });
 
   it('refuses decisions when the run is not paused at that gate', async () => {

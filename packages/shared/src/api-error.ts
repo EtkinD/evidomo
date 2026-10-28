@@ -14,6 +14,11 @@ export const apiErrorCodeSchema = z.enum([
   'invalid_credentials',
   'email_taken',
   'rate_limited',
+  // Missing, or owned by another user: the API never confirms that someone else's ID exists.
+  'not_found',
+  // The run is not paused at the gate the request decides (not reached yet, released, or failed).
+  'gate_not_open',
+  'fact_not_in_conflict',
   'internal_error',
 ]);
 

@@ -9,6 +9,7 @@ import { sessions, users } from '../db/schema.ts';
 import { startTestDatabase, type TestDatabase } from '../db/testing.ts';
 import { loadEnv } from '../env.ts';
 import { createErrorHandler } from '../http/errors.ts';
+import { unusedRunDeps } from '../http/testing.ts';
 import { authConfigFromEnv, DEFAULT_AUTH_RATE_LIMITS, type AuthRateLimits } from './config.ts';
 import { createSessionMiddleware, currentUser, optionalUser } from './session.ts';
 import { hashSessionToken } from './tokens.ts';
@@ -51,7 +52,12 @@ describe('auth API against a real PostgreSQL', () => {
   let app: Express;
 
   function appWith(env = devEnv, rateLimits: AuthRateLimits = DEFAULT_AUTH_RATE_LIMITS): Express {
-    return createApp({ db: testDb.client, logger, config: appConfigFromEnv(env, rateLimits) });
+    return createApp({
+      db: testDb.client,
+      logger,
+      config: appConfigFromEnv(env, rateLimits),
+      runs: unusedRunDeps(),
+    });
   }
 
   async function register(target: Express, email = uniqueEmail()): Promise<request.Response> {

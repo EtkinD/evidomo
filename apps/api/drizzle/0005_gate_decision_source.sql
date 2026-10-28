@@ -1,0 +1,1 @@
+ALTER TYPE "public"."fact_source_kind" ADD VALUE 'gate_decision';

@@ -51,6 +51,25 @@ export const gateOpenedPayloadSchema = z.strictObject({
 });
 export type GateOpenedPayload = z.infer<typeof gateOpenedPayloadSchema>;
 
+/**
+ * Appended once, when the last open item of a gate is decided, in the transaction that applies
+ * the decisions and resumes the run. Counts only: never keys, values, or edited text.
+ */
+export const gateDecidedPayloadSchema = z.strictObject({
+  gate: gateSchema,
+  /** The completed step whose `gate_after` is released. */
+  stepId: z.string().min(1),
+  /** Gate 1: conflicts resolved by accepting a side, by an edited value, or by rejecting all. */
+  acceptedCount: z.int().nonnegative(),
+  editedCount: z.int().nonnegative(),
+  rejectedCount: z.int().nonnegative(),
+  /** Facts set to `verified` / `rejected`, and facts created from edited values. */
+  verifiedFactCount: z.int().nonnegative(),
+  rejectedFactCount: z.int().nonnegative(),
+  createdFactCount: z.int().nonnegative(),
+});
+export type GateDecidedPayload = z.infer<typeof gateDecidedPayloadSchema>;
+
 /** Appended after every metered model call, so the run monitor shows spend while a step runs. */
 export const usageRecordedPayloadSchema = z.strictObject({
   stepId: z.string().min(1),

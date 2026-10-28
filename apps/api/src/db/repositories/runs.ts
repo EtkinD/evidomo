@@ -1,9 +1,9 @@
 import type { Gate, RunStatus } from '@evidomo/shared';
-import { asc, eq, sql } from 'drizzle-orm';
+import { and, asc, eq, sql } from 'drizzle-orm';
 import type { PgUpdateSetSource } from 'drizzle-orm/pg-core';
 import type { Executor } from '../client.ts';
 import { InvalidRunTransitionError, NotFoundError } from '../errors.ts';
-import { runs } from '../schema.ts';
+import { projects, runs } from '../schema.ts';
 import { appendRunEvent } from './run-events.ts';
 import { returnedRow } from './rows.ts';
 
@@ -49,6 +49,23 @@ export async function createRun(db: Executor, input: NewRun): Promise<Run> {
 export async function getRun(db: Executor, runId: string): Promise<Run | undefined> {
   const [row] = await db.select().from(runs).where(eq(runs.id, runId));
   return row;
+}
+
+/**
+ * Ownership-checked lookup for HTTP routes: undefined both when the run does not exist and when
+ * its project belongs to someone else, so a response never confirms another user's run ID.
+ */
+export async function getRunForOwner(
+  db: Executor,
+  runId: string,
+  ownerId: string,
+): Promise<Run | undefined> {
+  const [row] = await db
+    .select({ run: runs })
+    .from(runs)
+    .innerJoin(projects, eq(projects.id, runs.projectId))
+    .where(and(eq(runs.id, runId), eq(projects.ownerId, ownerId)));
+  return row?.run;
 }
 
 /**

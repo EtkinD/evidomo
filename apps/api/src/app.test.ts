@@ -7,6 +7,7 @@ import { appConfigFromEnv, createApp, type AppConfig } from './app.ts';
 import { DEFAULT_AUTH_RATE_LIMITS, type AuthRateLimits } from './auth/config.ts';
 import { createDbClient } from './db/client.ts';
 import { loadEnv } from './env.ts';
+import { unusedRunDeps } from './http/testing.ts';
 
 const silentLogger = pino({ enabled: false });
 
@@ -35,6 +36,7 @@ function appWith(
     db: { ping: () => Promise.resolve(), db: unusedDb.db },
     logger: options.logger ?? silentLogger,
     config: config(options),
+    runs: unusedRunDeps(),
   });
 }
 
@@ -70,6 +72,7 @@ describe('GET /api/healthz', () => {
       db: { ping: () => Promise.reject(new Error('connection refused')), db: unusedDb.db },
       logger: silentLogger,
       config: config(),
+      runs: unusedRunDeps(),
     });
 
     const response = await request(app).get('/api/healthz');
