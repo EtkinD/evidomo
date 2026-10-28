@@ -3,6 +3,11 @@ import { compareDecimalStrings } from './decimal.ts';
 import { gateSchema, usdAmountSchema } from './domain.ts';
 import { findModelPrice, PRICE_TABLE } from './prices.ts';
 import { metaReasoningEffortSchema } from './reasoning.ts';
+import {
+  TRANSCRIPTION_KEYWORD_LIMITS,
+  transcriptionKeywordSchema,
+  turnTranscriptionModeSchema,
+} from './transcription.ts';
 
 // Schemas for the declarative definition files in `definitions/` (docs/architecture.md §7):
 // service definitions (`definitions/services/<id>.v<version>.yaml`) and market profiles
@@ -90,6 +95,9 @@ export const STEP_AGENTS = [
 export const stepAgentSchema = z.enum(STEP_AGENTS);
 export type StepAgent = z.infer<typeof stepAgentSchema>;
 
+// Muse Voice Transcribe accepts at most 10 minutes of audio (docs/architecture.md §4).
+const MAX_VOICE_SECONDS = 600;
+
 const stepCommon = {
   id: keySchema,
   /** The run pauses at this human gate after the step completes. */
@@ -117,7 +125,22 @@ const reasoningModelFields = {
 };
 
 export const serviceStepSchema = z.discriminatedUnion('agent', [
-  z.strictObject({ ...stepCommon, agent: z.literal('intake'), model: modelIdSchema }),
+  z.strictObject({
+    ...stepCommon,
+    agent: z.literal('intake'),
+    model: modelIdSchema,
+    /**
+     * Required, like reasoning efforts: the API default (`PUSH_TO_TALK`) returns no turns, and
+     * turns are the evidence anchors of transcript claims.
+     */
+    transcription_mode: turnTranscriptionModeSchema,
+    /**
+     * API turns longer than this are split into chunks with interpolated (`approximate`)
+     * timestamps, so evidence playback can start near the cited sentence. Omit to store turns
+     * exactly as the API returned them.
+     */
+    max_turn_seconds: z.int().min(5).max(MAX_VOICE_SECONDS).optional(),
+  }),
   z.strictObject({ ...stepCommon, agent: z.literal('extractor'), ...reasoningModelFields }),
   z.strictObject({
     ...stepCommon,
@@ -161,9 +184,6 @@ export function stepModelIds(step: ServiceStep): { field: string; modelId: strin
   ];
   return fields.flatMap(([field, modelId]) => (modelId === undefined ? [] : [{ field, modelId }]));
 }
-
-// Muse Voice Transcribe accepts at most 10 minutes of audio (docs/architecture.md §4).
-const MAX_VOICE_SECONDS = 600;
 
 export const serviceInputSchema = z.discriminatedUnion('type', [
   z.strictObject({
@@ -395,6 +415,14 @@ export const marketProfileSchema = z
     facts: z.array(marketFactSchema).min(1),
     publication_checklist: z.array(publicationChecklistItemSchema),
     flagged_phrasing: z.array(phrasingCategorySchema).min(1),
+    /**
+     * Domain and room terms in the source languages that bias Voice Transcribe (intake), e.g.
+     * `meterkast`, `vlizotrap`. Fact labels contribute their parenthesised local terms too.
+     */
+    transcription_keywords: z
+      .array(transcriptionKeywordSchema)
+      .max(TRANSCRIPTION_KEYWORD_LIMITS.maxKeywords)
+      .default([]),
   })
   .superRefine((market, ctx) => {
     checkUnique(ctx, market.source_languages, (i) => ['source_languages', i], 'language');
@@ -483,6 +511,12 @@ export const marketProfileSchema = z
     });
 
     checkUnique(ctx, market.flagged_phrasing, (i) => ['flagged_phrasing', i], 'phrasing category');
+    checkUnique(
+      ctx,
+      market.transcription_keywords.map((term) => term.normalize('NFC').toLowerCase()),
+      (i) => ['transcription_keywords', i],
+      'transcription keyword',
+    );
   });
 export type MarketProfile = z.infer<typeof marketProfileSchema>;
 

@@ -29,9 +29,15 @@ service:
       required: true
 
   steps:
+    # DIARIZATION, not ENDPOINTING: on the same 2:49 walkthrough ENDPOINTING returned one turn,
+    # DIARIZATION 15 turns of 2-16 s (docs/model-notes.md, P2-06). Turns are the evidence anchors
+    # of transcript claims; PUSH_TO_TALK is rejected by the schema (it returns no turns). Turns
+    # longer than max_turn_seconds are split with approximate, interpolated timestamps.
     - id: intake
       agent: intake
       model: muse-voice-transcribe-1.0
+      transcription_mode: DIARIZATION
+      max_turn_seconds: 30
 
     - id: fact_extraction
       agent: extractor

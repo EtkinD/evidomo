@@ -77,3 +77,25 @@ market:
       rule: staged_images_labeled
 
   flagged_phrasing: [exclusionary, investment_promise, unverifiable_superlative]
+
+  # Keyword biasing for Voice Transcribe (intake): room and building terms an agent says during
+  # a walkthrough that a general model may split or misspell. The parenthesised local terms of
+  # the fact labels above (woonoppervlakte, energielabel, VvE, erfpacht, ...) are added in code,
+  # so they are not repeated here. Total keywords per request are capped (docs/model-notes.md,
+  # P2-06); form values come first, then label terms, then this list.
+  transcription_keywords:
+    - NEN 2580
+    - gebruiksoppervlakte
+    - woonkamer
+    - slaapkamer
+    - badkamer
+    - keuken
+    - berging
+    - zolder
+    - vlizotrap
+    - meterkast
+    - HR-ketel
+    - servicekosten
+    - meerjarenonderhoudsplan
+    - opstalverzekering
+    - reservefonds

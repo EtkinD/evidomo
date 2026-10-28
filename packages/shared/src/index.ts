@@ -6,3 +6,4 @@ export * from './reasoning.ts';
 export * from './definitions.ts';
 export * from './materials.ts';
 export * from './run-events.ts';
+export * from './transcription.ts';

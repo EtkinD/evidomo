@@ -106,7 +106,7 @@ The orchestrator (main session) delegates each task to its owner — see `.claud
 - [x] **P2-05 — Upload processing**
   - Depends on: P2-01
   - Done when: images are validated, downscaled, re-encoded with all metadata removed (test asserts no GPS EXIF); audio is validated and converted to WAV; files are stored through the storage interface.
-- [ ] **P2-06 — Step: intake**
+- [x] **P2-06 — Step: intake**
   - Depends on: P1-04, P2-03, P2-05
   - Done when: the transcript is stored as turns with timestamps; keyword list is built from the fact form and market profile.
 - [ ] **P2-07 — Step: fact extraction**

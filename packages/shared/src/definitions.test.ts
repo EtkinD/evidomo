@@ -22,10 +22,12 @@ function validService() {
       },
     ],
     steps: [
-      { id: 'intake', agent: 'intake', model: 'muse-voice-transcribe-1.0' } as Record<
-        string,
-        unknown
-      >,
+      {
+        id: 'intake',
+        agent: 'intake',
+        model: 'muse-voice-transcribe-1.0',
+        transcription_mode: 'DIARIZATION',
+      } as Record<string, unknown>,
       {
         id: 'reconciliation',
         agent: 'reconciler',
@@ -200,6 +202,32 @@ describe('serviceDefinitionSchema', () => {
     expect(result[1]).toBe('inputs.1.key: Duplicate input key "photos"');
   });
 
+  it('requires a turn-producing transcription mode on the intake step and bounds max_turn_seconds', () => {
+    const missing = validService();
+    if (missing.steps[0]) delete missing.steps[0].transcription_mode;
+    expect(messages(serviceDefinitionSchema.safeParse(missing))).toEqual([
+      'steps.0.transcription_mode: Invalid option: expected one of "ENDPOINTING"|"DIARIZATION"',
+    ]);
+
+    const pushToTalk = validService();
+    if (pushToTalk.steps[0]) pushToTalk.steps[0].transcription_mode = 'PUSH_TO_TALK';
+    expect(serviceDefinitionSchema.safeParse(pushToTalk).success).toBe(false);
+
+    const split = validService();
+    if (split.steps[0]) split.steps[0].max_turn_seconds = 30;
+    const parsed = serviceDefinitionSchema.parse(split);
+    expect(parsed.steps[0]).toMatchObject({
+      transcription_mode: 'DIARIZATION',
+      max_turn_seconds: 30,
+    });
+
+    const tooShort = validService();
+    if (tooShort.steps[0]) tooShort.steps[0].max_turn_seconds = 2;
+    expect(messages(serviceDefinitionSchema.safeParse(tooShort))[0]).toMatch(
+      /^steps\.0\.max_turn_seconds: Too small/,
+    );
+  });
+
   it('lists every model a step names', () => {
     const parsed = serviceDefinitionSchema.parse(validService());
     expect(parsed.steps.map(stepModelIds)).toEqual([
@@ -284,5 +312,30 @@ describe('marketProfileSchema', () => {
     expect(messages(marketProfileSchema.safeParse(market))).toEqual([
       'facts.0.values.2: Duplicate enum value "A"',
     ]);
+  });
+});
+
+describe('marketProfileSchema transcription keywords', () => {
+  it('defaults to an empty list', () => {
+    expect(marketProfileSchema.parse(validMarket()).transcription_keywords).toEqual([]);
+  });
+
+  it('trims terms and rejects empty, over-long, and case-insensitive duplicate terms', () => {
+    const ok = marketProfileSchema.parse({
+      ...validMarket(),
+      transcription_keywords: [' meterkast '],
+    });
+    expect(ok.transcription_keywords).toEqual(['meterkast']);
+
+    const bad = messages(
+      marketProfileSchema.safeParse({
+        ...validMarket(),
+        transcription_keywords: ['VvE', ' ', 'x'.repeat(65), 'vve'],
+      }),
+    );
+    expect(bad).toHaveLength(3);
+    expect(bad[0]).toMatch(/^transcription_keywords\.1: Too small/);
+    expect(bad[1]).toMatch(/^transcription_keywords\.2: Too big/);
+    expect(bad[2]).toBe('transcription_keywords.3: Duplicate transcription keyword "vve"');
   });
 });

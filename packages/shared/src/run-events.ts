@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { gateSchema, usdAmountSchema } from './domain.ts';
+import { turnTranscriptionModeSchema } from './transcription.ts';
 
 // Payloads of the run events the run engine appends (docs/architecture.md §9). They feed the
 // run monitor over SSE and demo replay, so they carry IDs, counters, costs, and operator-safe
@@ -56,3 +57,25 @@ export const usageRecordedPayloadSchema = z.strictObject({
   ...costs,
 });
 export type UsageRecordedPayload = z.infer<typeof usageRecordedPayloadSchema>;
+
+const count = z.int().nonnegative();
+
+/**
+ * Appended by the intake step together with its transcript artifact: a summary for the run
+ * monitor. Counts only: transcript text and keywords are personal data and never go into events.
+ */
+export const transcriptStoredPayloadSchema = z.strictObject({
+  stepId: z.string().min(1),
+  artifactId: z.uuid(),
+  mode: turnTranscriptionModeSchema,
+  audioDurationMs: count,
+  /** Turns as returned by the API (non-empty ones). */
+  sourceTurnCount: count,
+  /** Stored turns, after long turns were split. */
+  turnCount: count,
+  /** Stored turns whose timestamps were interpolated. */
+  approximateTurnCount: count,
+  speakerCount: count,
+  keywordCount: count,
+});
+export type TranscriptStoredPayload = z.infer<typeof transcriptStoredPayloadSchema>;

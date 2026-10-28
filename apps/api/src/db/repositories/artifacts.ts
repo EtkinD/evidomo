@@ -1,5 +1,5 @@
 import { jsonValueSchema, type JsonValue } from '@evidomo/shared';
-import { and, asc, eq } from 'drizzle-orm';
+import { and, asc, eq, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import type { Executor } from '../client.ts';
 import { artifacts } from '../schema.ts';
@@ -45,6 +45,56 @@ export async function insertArtifact(db: Executor, input: NewArtifact): Promise<
     })
     .returning();
   return toArtifact(returnedRow(rows, 'artifact'));
+}
+
+/**
+ * Kinds covered by the `artifacts_singleton_kind_key` partial unique index: at most one per run,
+ * step, and kind. Keep in sync with the index predicate in `schema.ts`.
+ */
+export const SINGLETON_ARTIFACT_KINDS = ['transcript'] as const;
+export type SingletonArtifactKind = (typeof SINGLETON_ARTIFACT_KINDS)[number];
+
+/**
+ * Inserts a singleton-kind artifact unless the run's step already has one of that kind, in
+ * which case the existing artifact is returned unchanged (`created: false`). The first stored
+ * version stays authoritative because later rows (facts) cite it by ID.
+ */
+export async function insertSingletonArtifact(
+  db: Executor,
+  input: NewArtifact & { kind: SingletonArtifactKind },
+): Promise<{ artifact: Artifact; created: boolean }> {
+  const rows = await db
+    .insert(artifacts)
+    .values({
+      runId: input.runId,
+      stepId: input.stepId,
+      kind: input.kind,
+      content: input.content === undefined ? null : jsonValueSchema.parse(input.content),
+      storageKey: input.file?.storageKey ?? null,
+      mimeType: input.file?.mimeType ?? null,
+      usageIds: [...(input.usageIds ?? [])],
+    })
+    .onConflictDoNothing({
+      target: [artifacts.runId, artifacts.stepId, artifacts.kind],
+      where: sql`${artifacts.kind} in ('transcript')`,
+    })
+    .returning();
+  const [inserted] = rows;
+  if (inserted !== undefined) return { artifact: toArtifact(inserted), created: true };
+  const [existing] = await db
+    .select()
+    .from(artifacts)
+    .where(
+      and(
+        eq(artifacts.runId, input.runId),
+        eq(artifacts.stepId, input.stepId),
+        eq(artifacts.kind, input.kind),
+      ),
+    );
+  if (existing === undefined) {
+    throw new Error(`Singleton artifact ${input.kind} conflicted but could not be read`);
+  }
+  return { artifact: toArtifact(existing), created: false };
 }
 
 export async function getArtifact(db: Executor, artifactId: string): Promise<Artifact | undefined> {

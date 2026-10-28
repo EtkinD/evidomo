@@ -64,6 +64,7 @@ export const RUN_EVENT_TYPES = [
   'gate_opened',
   'gate_decided',
   'usage_recorded',
+  'transcript_stored',
 ] as const;
 export const runEventTypeSchema = z.enum(RUN_EVENT_TYPES);
 export type RunEventType = z.infer<typeof runEventTypeSchema>;

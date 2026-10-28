@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { stepCompletedPayloadSchema, stepFailedPayloadSchema } from './run-events.ts';
+import {
+  stepCompletedPayloadSchema,
+  stepFailedPayloadSchema,
+  transcriptStoredPayloadSchema,
+} from './run-events.ts';
 
 const completed = {
   stepId: 'intake',
@@ -33,5 +37,29 @@ describe('run event payloads', () => {
     expect(stepCompletedPayloadSchema.safeParse({ ...completed, output: 'text' }).success).toBe(
       false,
     );
+  });
+});
+
+describe('transcript_stored payload', () => {
+  const summary = {
+    stepId: 'intake',
+    artifactId: '3bfcf0bb-5581-4e10-8691-6cc7a8e66dcf',
+    mode: 'DIARIZATION',
+    audioDurationMs: 168_800,
+    sourceTurnCount: 15,
+    turnCount: 15,
+    approximateTurnCount: 0,
+    speakerCount: 1,
+    keywordCount: 25,
+  };
+
+  it('carries counts only and rejects transcript text or keywords', () => {
+    expect(transcriptStoredPayloadSchema.parse(summary)).toEqual(summary);
+    expect(
+      transcriptStoredPayloadSchema.safeParse({ ...summary, text: 'Goedemiddag' }).success,
+    ).toBe(false);
+    expect(
+      transcriptStoredPayloadSchema.safeParse({ ...summary, keywords: ['Zandmeer'] }).success,
+    ).toBe(false);
   });
 });

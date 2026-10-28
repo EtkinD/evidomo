@@ -1,5 +1,6 @@
 import type OpenAI from 'openai';
 import { toFile } from 'openai/uploads';
+import type { TranscriptionMode } from '@evidomo/shared';
 import { z } from 'zod';
 import { assertTranscriptionWav } from '../media/wav.ts';
 import { assertStandardModelId } from './clients.ts';
@@ -12,13 +13,9 @@ export const TRANSCRIBE_PATH = '/asr/transcribe';
 export const TRANSCRIBE_MAX_BYTES = 32 * 1024 * 1024;
 export const TRANSCRIBE_MAX_DURATION_MS = 10 * 60 * 1000;
 
-/**
- * `PUSH_TO_TALK` returns the transcript with an empty `turns` array; `ENDPOINTING` splits it into
- * timed turns; `DIARIZATION` adds a speaker label per turn. The server silently ignores an
- * unknown mode, so the value is constrained here.
- */
-export const TRANSCRIPTION_MODES = ['PUSH_TO_TALK', 'ENDPOINTING', 'DIARIZATION'] as const;
-export type TranscriptionMode = (typeof TRANSCRIPTION_MODES)[number];
+// The mode set moved to `@evidomo/shared` (the intake step's `transcription_mode` is validated
+// there); re-exported so existing imports keep working.
+export { TRANSCRIPTION_MODES, type TranscriptionMode } from '@evidomo/shared';
 
 export interface TranscribeRequest {
   /** From the service definition, e.g. `muse-voice-transcribe-1.0`. */

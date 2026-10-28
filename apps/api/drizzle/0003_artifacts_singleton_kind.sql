@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "artifacts_singleton_kind_key" ON "artifacts" USING btree ("run_id","step_id","kind") WHERE "artifacts"."kind" in ('transcript');

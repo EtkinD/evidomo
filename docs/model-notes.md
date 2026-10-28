@@ -637,6 +637,8 @@ P2-04 ledger; the test uses an inline $0.18/hour estimator.
   unverified: a single turn makes transcript provenance coarse (one evidence anchor for every
   fact). P2-06/P2-07 should not assume short turns; a follow-up recording with `DIARIZATION`, or
   with real agent audio, must confirm segmentation before P2-07 relies on turn-level anchors.
+  **Resolved in P2-06:** `DIARIZATION` on the same audio returned 15 turns of 2–16 s, so intake
+  uses it (see [P2-06](#p2-06--intake-step)).
 - **Word repetition artifacts.** Both transcripts repeat words that are spoken once: "met in
   totaal 12 12 woningen", "165 euro euro", "zit de zit de". Unbiased: 12 adjacent repeats;
   biased: 5. Numbers can therefore appear twice in a row — fact extraction must not read
@@ -920,3 +922,82 @@ Per-step model settings are enforced when definitions load at boot (`packages/sh
 - Every language-model step must state `reasoning_effort` and `max_output_tokens`. Spark's API default effort is `high` (P1-02), and reasoning tokens bill at output rates, so neither the effort nor the worst-case output may be left to the API default. The schema caps `max_output_tokens` at 128,000 as a typo guard; that is not a documented API limit.
 - A fallback model carries its own `fallback_reasoning_effort` (Wonder at `low` falls back to Spark at `medium` in `listing-launch.v1`).
 - Every model ID in a definition must be in `PRICE_TABLE`, and an effort is rejected on a model that is not billed per token (Voice, SAM, Muse Image). `-contributor` IDs are rejected at load time as well as in the fetch wrapper.
+
+## P2-06 — Intake step
+
+Status: done (pending review). Recorded 2026-10-28 against `openai@7.45.1`, `msw@3.0.3`. Code:
+`apps/api/src/pipeline/intake/`; design in [architecture.md §5 Intake](./architecture.md#5-run-pipeline).
+
+### Segmentation: `DIARIZATION` vs `ENDPOINTING` (one live call)
+
+Same P1-04 TTS walkthrough (2:49, one synthetic voice), sent exactly as the intake step sends it:
+`DIARIZATION`, `languageBias: ["Dutch", "English"]` (from `nl` v1 source languages), and the 25
+keywords built from a synthetic fact form (`street_name: Kwartelhoflaan`, `place_name: Zandmeer`,
+both fictional) plus `nl` v1 labels and `transcription_keywords`. Cassette:
+`fixtures/meta/p2-06/intake-transcribe.json`.
+
+| Measure                 | P1-04 `ENDPOINTING` (keywords) | P2-06 `DIARIZATION`                        |
+| ----------------------- | ------------------------------ | ------------------------------------------ |
+| Turns                   | 1 (0–168,300 ms)               | **15**, 1.8–15.9 s each (median ~11 s)     |
+| Gaps between turns      | —                              | 0–320 ms; first turn starts at 60 ms       |
+| Speaker labels          | none                           | `A` on every turn (one TTS voice)          |
+| Turn boundaries         | —                              | at sentence ends, 1–4 sentences per turn   |
+| `transcript` vs turns   | equal                          | `transcript` = turn texts joined by spaces |
+| Adjacent repeated words | 5                              | 10                                         |
+| Billed audio            | 168.8 s                        | 168.8 s                                    |
+| Latency                 | 33.4 s                         | < 34 s (test wall time)                    |
+
+- **Decision: `DIARIZATION`** (`listing-launch` v1, `transcription_mode`). Its turns are short
+  enough to anchor a fact to a sentence or two and to start playback there; `ENDPOINTING` gave one
+  anchor for the whole memo. Same price and latency. The speaker label is a bonus (agent vs. a
+  seller present at the viewing) that one TTS voice cannot test.
+- Response shape unchanged from P1-04 apart from `turns[].speaker`; no new fields.
+- Keyword spellings held: `VvE` (2x), `meerjarenonderhoudsplan`, `Kwartelhoflaan`, `Zandmeer`,
+  `NEN 2580`, `vlizotrap`, `meterkast`, `opstalverzekering`, `reservefonds`. `HR-ketel` again came
+  back as `HRketel` (as in P1-04 with keywords), and "rustige" as "rustigeige". Both seeded
+  living-area values (92 and "zo'n 95" m²) survived. Repetitions (10) sit between P1-04's biased
+  (5) and unbiased (12) runs; one sample per setting, so this is noise-level, not a trend.
+- **Fallback kept as a safety net:** real phone audio may still produce long turns (unverified),
+  so turns over `max_turn_seconds` (30 s) are split at sentence ends with timestamps interpolated
+  from the character offset and stored as `timing: 'approximate'`. The TTS sample has no turn over
+  16 s, so nothing was split. Interpolation assumes a constant speaking rate within the turn; a
+  chunk can be off by a few seconds, so playback of approximate turns should start a little early.
+- Unverified until real agent recordings exist: segmentation on noisy audio with hesitations,
+  speaker separation with two people, and whether `languageBias` with two languages changes
+  accuracy compared with `["Dutch"]` alone (this call changed mode, bias, and keywords at once; the
+  segmentation difference is far beyond what bias or keywords explain).
+
+### Keyword limits
+
+Meta's Voice schema documents no maximum number or length for `keywords` ("Biasing does not
+guarantee an exact spelling"). We cap at 50 terms of up to 64 characters
+(`TRANSCRIPTION_KEYWORD_LIMITS` in `packages/shared`): biasing is a hint whose effect thins as the
+list grows, and part of the list is user input. `nl` v1 currently yields 23 terms plus the form
+values. Raise the cap only with a measurement.
+
+### Replay
+
+`intake-transcribe.test.ts` (`api` project) builds the request through
+`buildIntakeTranscribeRequest` and the shared synthetic inputs in `pipeline/intake/testing.ts`; the
+integration test replays the same cassette through the real handler and engine. Both match the
+`audio` part by filename (`voice-memo.wav`, the fixed name the handler always sends) and type only,
+like P1-04, and send a 1-second silent WAV; the `request` JSON part (mode, keywords, language bias)
+is matched exactly, so a change to the keyword builder, `nl` v1, or the mode shows up as an
+unmatched request. The tests pin the cassette's mode (`DIARIZATION`) instead of reading it from
+the definition, so changing the definition's mode does not break replay.
+
+Re-record (macOS, needs the P1-04 TTS audio in `data/p1-04/`, spends ~$0.0085):
+
+```sh
+RECORD=1 node --env-file=.env node_modules/vitest/vitest.mjs run --project api intake-transcribe
+```
+
+### Live calls and cost (P2-06)
+
+| Call                                                     | Audio (billed) | Latency | Est. cost (USD) |
+| -------------------------------------------------------- | -------------- | ------- | --------------- |
+| DIARIZATION, `languageBias: ["Dutch", "English"]`, 25 kw | 168.8 s        | < 34 s  | 0.00844         |
+| **Total (1 call)**                                       | 168.8 s        |         | **0.00844**     |
+
+Budget 0.05 USD. Estimated at $0.00005 per audio second from `audioDurationMs`; the API returns no
+cost field, and Meta's billing dashboard was not checked.

@@ -287,6 +287,11 @@ export const artifacts = pgTable(
   },
   (t) => [
     index('artifacts_run_id_idx').on(t.runId),
+    // Kinds a step produces exactly once per run (the intake transcript): a re-executed or
+    // duplicated commit cannot store a second one, and facts keep citing the first (P2-06).
+    uniqueIndex('artifacts_singleton_kind_key')
+      .on(t.runId, t.stepId, t.kind)
+      .where(sql`${t.kind} in ('transcript')`),
     check('artifacts_has_payload', sql`${t.content} is not null or ${t.storageKey} is not null`),
     check('artifacts_file_has_mime', sql`${t.storageKey} is null or ${t.mimeType} is not null`),
   ],

@@ -1,0 +1,135 @@
+{
+  "formatVersion": 1,
+  "cassette": "p2-06/intake-transcribe",
+  "recordedAt": "2026-10-28T07:50:52.055Z",
+  "interactions": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/asr/transcribe",
+        "bodySha256": "64e13843f5648e106224c5acf2d9c006b82e0c751b55a032db5a3a90a6c3baeb"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "sessionId": "voyager/transcribe/937D3E5E2F2342ECB753A97C8C7ADE5F",
+            "transcript": "Goedemiddag, we beginnen met de rondgang door het appartement aan de Kwartelhoflaan 27 in Zandmeer. Het is een drie kamer appartement op de tweede verdieping van een klein complex met in totaal twaalf woningen. Het gebouw is in 1987 gebouwd en het appartement is in 2021 grotendeels gerenoveerd. Eerst de algemene gegevens. De gebruiksoppervlakte wonen is gemeten volgens NEN 2580 en komt uit op 92 vierkante meter. Daarnaast is er een externe berging in de onderbouw van zes vierkante meter, en een balkon van ongeveer zeven vierkante meter. Het energielabel is B, afgegeven in in 2023. De woning wordt wordt verwarmd met een HRketel uit 2019, en er is overal dubbel glas. In de woonkamer zelfs HR++ glas. We staan nu in de hal. Hier zit de meterkast met zes groepen groepen en een aardlekschakelaar, en de garderobe. Direct links is het toilet, een zwevend toilet met een fonteintje,je, in 2021 vernieuwd. Dan lopen we door naar de woonkamer. Dit is is een L-vormige woonkamer van ongeveer 34 vierkante meter met een een eikenparketvloer. De ramen liggen op het zuidwesten, dus je hebt hier de hele middag zon. Vanuit de woonkamer heb je toegang tot het balkon via een openslaande deur. Aan het balkon zit een zonnescherm met een met een elektrische bediening. De open keuken ligt aan de achterzijde van de woonkamer. Het is een hoekkeuken met een composiet werkblad, een inductiekookplaat, een afzuigkap, een combimagnetron, een vaatwasser en een koelvries combinatie. De keuken is uit 2021, net als de badkamer. Nu de slaapkamers. De eerste slaapkamer ligt aan de voorzijde voorzijde en is ongeveer 14 vierkante meter, met een vaste kast over de volle breedte. De tweede slaapkamer is kleiner, ongeveer 9 vierkante meter, en is nu ingericht als werkkamer. Beide kamers hebben een laminaatvloer. De badkamer ligt tussen de twee slaapkamers in. Er is een inloopdouche met een regendouche, een wastafelmeubel met twee kranen, een tweede toilet en een design radiator. Ook de aansluiting voor de wasmachine en de droger zit zit in de badkamer, in een aparte aparte nis, via een vlizotrap in de hal kom je op een kleine bergzolder boven het appartement. Die is niet geïsoleerd en telt niet mee in de woonoppervlakte. Dan de vereniging van eigenaren. De VvE is actief en goed georganiseerd, er is een meerjarenonderhoudsplan en een reservefonds. De servicekosten zijn 165 euro per maand, inclusief de opstalverzekering en het onderhoud van de gemeenschappelijke ruimten. Het dak van het complex is in 2020 vernieuwd, tot slot de ligging. De De Kwartelhoflaan is een rustigeige straat met parkeren voor de deur, er is geen betaald parkeren. De supermarkt en de basisschool liggen op loopafstand, en het station van Zandmeer is in 10 minuten met de fiets bereikbaar. Samengevat, een licht en instapklaar appartement van van zo'n 95 vierkante meter woonoppervlak, met energielabel B, een balkon op het zuidwesten en een gezonde VvE dat was de rondgang, dankjewel.",
+            "audioDurationMs": 168800,
+            "turns": [
+              {
+                "turnId": 0,
+                "startMs": 60,
+                "endMs": 10940,
+                "transcript": "Goedemiddag, we beginnen met de rondgang door het appartement aan de Kwartelhoflaan 27 in Zandmeer. Het is een drie kamer appartement op de tweede verdieping van een klein complex met in totaal twaalf woningen.",
+                "speaker": "A"
+              },
+              {
+                "turnId": 1,
+                "startMs": 11100,
+                "endMs": 19180,
+                "transcript": "Het gebouw is in 1987 gebouwd en het appartement is in 2021 grotendeels gerenoveerd. Eerst de algemene gegevens.",
+                "speaker": "A"
+              },
+              {
+                "turnId": 2,
+                "startMs": 19340,
+                "endMs": 32780,
+                "transcript": "De gebruiksoppervlakte wonen is gemeten volgens NEN 2580 en komt uit op 92 vierkante meter. Daarnaast is er een externe berging in de onderbouw van zes vierkante meter, en een balkon van ongeveer zeven vierkante meter.",
+                "speaker": "A"
+              },
+              {
+                "turnId": 3,
+                "startMs": 33100,
+                "endMs": 42460,
+                "transcript": "Het energielabel is B, afgegeven in in 2023. De woning wordt wordt verwarmd met een HRketel uit 2019, en er is overal dubbel glas.",
+                "speaker": "A"
+              },
+              {
+                "turnId": 4,
+                "startMs": 42460,
+                "endMs": 55980,
+                "transcript": "In de woonkamer zelfs HR++ glas. We staan nu in de hal. Hier zit de meterkast met zes groepen groepen en een aardlekschakelaar, en de garderobe. Direct links is het toilet, een zwevend toilet met een fonteintje,je, in 2021 vernieuwd.",
+                "speaker": "A"
+              },
+              {
+                "turnId": 5,
+                "startMs": 55980,
+                "endMs": 57820,
+                "transcript": "Dan lopen we door naar de woonkamer.",
+                "speaker": "A"
+              },
+              {
+                "turnId": 6,
+                "startMs": 57820,
+                "endMs": 70380,
+                "transcript": "Dit is is een L-vormige woonkamer van ongeveer 34 vierkante meter met een een eikenparketvloer. De ramen liggen op het zuidwesten, dus je hebt hier de hele middag zon. Vanuit de woonkamer heb je toegang tot het balkon via een openslaande deur.",
+                "speaker": "A"
+              },
+              {
+                "turnId": 7,
+                "startMs": 70380,
+                "endMs": 85100,
+                "transcript": "Aan het balkon zit een zonnescherm met een met een elektrische bediening. De open keuken ligt aan de achterzijde van de woonkamer. Het is een hoekkeuken met een composiet werkblad, een inductiekookplaat, een afzuigkap, een combimagnetron, een vaatwasser en een koelvries combinatie.",
+                "speaker": "A"
+              },
+              {
+                "turnId": 8,
+                "startMs": 85100,
+                "endMs": 96220,
+                "transcript": "De keuken is uit 2021, net als de badkamer. Nu de slaapkamers. De eerste slaapkamer ligt aan de voorzijde voorzijde en is ongeveer 14 vierkante meter, met een vaste kast over de volle breedte.",
+                "speaker": "A"
+              },
+              {
+                "turnId": 9,
+                "startMs": 96540,
+                "endMs": 107100,
+                "transcript": "De tweede slaapkamer is kleiner, ongeveer 9 vierkante meter, en is nu ingericht als werkkamer. Beide kamers hebben een laminaatvloer. De badkamer ligt tussen de twee slaapkamers in.",
+                "speaker": "A"
+              },
+              {
+                "turnId": 10,
+                "startMs": 107100,
+                "endMs": 123020,
+                "transcript": "Er is een inloopdouche met een regendouche, een wastafelmeubel met twee kranen, een tweede toilet en een design radiator. Ook de aansluiting voor de wasmachine en de droger zit zit in de badkamer, in een aparte aparte nis, via een vlizotrap in de hal kom je op een kleine bergzolder boven het appartement.",
+                "speaker": "A"
+              },
+              {
+                "turnId": 11,
+                "startMs": 123260,
+                "endMs": 133900,
+                "transcript": "Die is niet geïsoleerd en telt niet mee in de woonoppervlakte. Dan de vereniging van eigenaren. De VvE is actief en goed georganiseerd, er is een meerjarenonderhoudsplan en een reservefonds.",
+                "speaker": "A"
+              },
+              {
+                "turnId": 12,
+                "startMs": 134060,
+                "endMs": 145260,
+                "transcript": "De servicekosten zijn 165 euro per maand, inclusief de opstalverzekering en het onderhoud van de gemeenschappelijke ruimten. Het dak van het complex is in 2020 vernieuwd, tot slot de ligging.",
+                "speaker": "A"
+              },
+              {
+                "turnId": 13,
+                "startMs": 145340,
+                "endMs": 157340,
+                "transcript": "De De Kwartelhoflaan is een rustigeige straat met parkeren voor de deur, er is geen betaald parkeren. De supermarkt en de basisschool liggen op loopafstand, en het station van Zandmeer is in 10 minuten met de fiets bereikbaar.",
+                "speaker": "A"
+              },
+              {
+                "turnId": 14,
+                "startMs": 157340,
+                "endMs": 168300,
+                "transcript": "Samengevat, een licht en instapklaar appartement van van zo'n 95 vierkante meter woonoppervlak, met energielabel B, een balkon op het zuidwesten en een gezonde VvE dat was de rondgang, dankjewel.",
+                "speaker": "A"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

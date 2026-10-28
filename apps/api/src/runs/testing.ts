@@ -24,7 +24,13 @@ function stepFrom(spec: StepSpec): unknown {
   const gate = spec.gate_after === undefined ? {} : { gate_after: spec.gate_after };
   switch (spec.agent) {
     case 'intake':
-      return { id: spec.id, agent: spec.agent, model: 'muse-voice-transcribe-1.0', ...gate };
+      return {
+        id: spec.id,
+        agent: spec.agent,
+        model: 'muse-voice-transcribe-1.0',
+        transcription_mode: 'ENDPOINTING',
+        ...gate,
+      };
     case 'exporter':
       return { id: spec.id, agent: spec.agent, ...gate };
     default:
