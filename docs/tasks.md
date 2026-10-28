@@ -5,6 +5,30 @@ Companions: [roadmap.md](./roadmap.md), [architecture.md](./architecture.md), [p
 
 Format: `ID — title`, with **Depends on** and **Done when** as sub-items. Every task also meets the definition of done in roadmap.md §5. Check a box when its "Done when" is demonstrably true.
 
+## Owners
+
+The orchestrator (main session) delegates each task to its owner — see `.claude/agents/`. Tasks marked "user" need the founder (accounts, servers, recording).
+
+| Tasks                             | Owner                                                                 |
+| --------------------------------- | --------------------------------------------------------------------- |
+| P0-01 … P0-10                     | orchestrator                                                          |
+| P1-01 … P1-08                     | ai-pipeline-engineer                                                  |
+| P2-01, P2-03, P2-04, P2-05, P2-10 | backend-developer                                                     |
+| P2-02, P2-06 … P2-09              | ai-pipeline-engineer                                                  |
+| P3-01 … P3-07, P3-10              | ai-pipeline-engineer                                                  |
+| P3-08, P3-09                      | backend-developer                                                     |
+| P4-01                             | backend-developer (API), then frontend-developer (UI)                 |
+| P4-02 … P4-09                     | frontend-developer — any new endpoint goes to backend-developer first |
+| P4-10                             | backend-developer                                                     |
+| D-01, D-05, D-06                  | devops-engineer                                                       |
+| D-02 … D-04                       | devops-engineer prepares, user executes (VPS, DNS, secrets)           |
+| P5-01                             | ai-pipeline-engineer                                                  |
+| P5-02, P5-06                      | orchestrator with the user                                            |
+| P5-03, P5-05                      | frontend-developer                                                    |
+| P5-04                             | backend-developer                                                     |
+| P6-01                             | orchestrator                                                          |
+| P6-02, P6-03                      | user (orchestrator prepares)                                          |
+
 ## Phase 0 — Foundation
 
 - [x] **P0-01 — Monorepo scaffold**
@@ -30,7 +54,7 @@ Format: `ID — title`, with **Depends on** and **Done when** as sub-items. Ever
   - Done when: Playwright installed with one smoke test (home page loads); `npm run test:e2e` passes locally.
 - [ ] **P0-08 — CI**
   - Depends on: P0-02, P0-06
-  - Done when: a GitHub Actions workflow runs lint, typecheck, unit and integration tests on push and PR, and is green.
+  - Done when: a GitHub Actions workflow runs lint, format, typecheck, unit and integration tests on push and PR, plus a dependency audit job (also scheduled daily), and is green.
 - [ ] **P0-09 — Repository hygiene**
   - Depends on: P0-01
   - Done when: `.gitignore` covers env files, uploads, and local data; `.env.example` lists every variable; project `CLAUDE.md` documents commands, conventions, and branch/version strategy; README skeleton states the hackathon build window; `docs/` contains the public docs; Apache-2.0 `LICENSE` at the root.

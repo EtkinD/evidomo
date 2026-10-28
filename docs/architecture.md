@@ -29,7 +29,7 @@ Companion: [product.md](./product.md)
 | Auth             | Email + password (argon2), httpOnly cookie sessions stored in Postgres                                                                                                                                                                                                                                                     |
 | Testing          | Vitest (unit + integration, web and api), React Testing Library + happy-dom, Supertest, Testcontainers (PostgreSQL), MSW (Meta API record/replay), Playwright (e2e)                                                                                                                                                        |
 | Code quality     | ESLint + Prettier, `tsc --noEmit`                                                                                                                                                                                                                                                                                          |
-| CI               | GitHub Actions: lint, typecheck, unit and integration tests on push/PR. No CD.                                                                                                                                                                                                                                             |
+| CI               | GitHub Actions: lint, format, typecheck, unit and integration tests on push/PR; a security job (`npm audit`, moderate and above fail, plus registry signatures) on every push/PR and daily. Installs use `npm ci --ignore-scripts`. No CD.                                                                                 |
 | Deployment       | One Linode VPS in an EU region, Docker Compose (caddy, web, api, worker, postgres), Caddy automatic HTTPS, domain DNS at Squarespace                                                                                                                                                                                       |
 | License          | Apache-2.0                                                                                                                                                                                                                                                                                                                 |
 
@@ -48,6 +48,7 @@ fixtures/meta/    recorded Meta API responses (no personal data)
 e2e/              Playwright tests
 infra/            production compose file, Caddyfile, deploy script
 docs/
+.claude/           Claude Code agents, skills, path-scoped rules, hooks
 docker-compose.yml  local development services (PostgreSQL)
 ```
 

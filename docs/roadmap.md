@@ -52,4 +52,5 @@ Applied in order, one level at a time:
 - Typecheck, lint, and relevant tests pass.
 - New behavior has tests at the narrowest useful level (unit before integration before e2e).
 - No secrets, personal data, or third-party content committed.
+- Dependency changes pass `npm run audit:deps` (zero known vulnerabilities).
 - Docs updated when a decision or interface changes.
