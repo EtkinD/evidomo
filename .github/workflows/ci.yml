@@ -4,14 +4,19 @@ on:
   push:
     branches: [main]
   pull_request:
+  schedule:
+    # Daily dependency audit, so new advisories surface even without code changes.
+    - cron: '0 5 * * *'
+  workflow_dispatch:
 
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.ref }}-${{ github.event_name }}
   cancel-in-progress: true
 
 jobs:
   checks:
     name: Lint, typecheck, test
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -22,7 +27,7 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
 
-      - run: npm ci
+      - run: npm ci --ignore-scripts
 
       - name: Lint
         run: npm run lint
@@ -36,3 +41,23 @@ jobs:
       # Integration tests start PostgreSQL through Testcontainers (Docker is available on ubuntu runners).
       - name: Unit and integration tests
         run: npm test
+
+  security:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci --ignore-scripts
+
+      - name: npm audit (moderate and above fail)
+        run: npm audit --audit-level=moderate
+
+      - name: Registry signatures and attestations
+        run: npm audit signatures
