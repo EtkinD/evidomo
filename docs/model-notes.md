@@ -4,6 +4,223 @@ Findings from the Phase 1 model spikes: request/response shapes, API constraints
 and the decisions they drive. Each task owns its section; keep the headings stable so spikes can
 fill them in parallel. Prices come from [architecture.md §10](./architecture.md#10-cost-controls).
 
+## Summary
+
+Consolidated in P1-08 (2026-10-28) from the task sections below, which hold the evidence. When a
+later task overturned an earlier finding, the earlier section says so where it stands. Every cost
+is list price × the units the API reported (estimates; Meta's billing dashboard was never
+checked), with cached input tokens billed at the full rate. Pinned versions: `ai@7.0.155`,
+`@ai-sdk/openai@4.0.104`, `openai@7.45.1`, `@meta-sam/parser@0.1.0`. Base URL
+`https://api.meta.ai/v1`, Standard-mode IDs only. The per-run cost estimate lives in
+[architecture.md §10](./architecture.md#10-cost-controls).
+
+### Spark 1.3 (`muse-spark-1.3`)
+
+- **Endpoint and client:** `POST /v1/responses` through the AI SDK
+  (`generateText({ model: clients.languageModel(id) })`). `openai.responses.create` works too
+  and sends the same settings with `metaResponsesParams()`.
+- **Request:** `providerOptions: metaProviderOptions({ reasoningEffort })` becomes
+  `reasoning: { effort }`, `store: false`, and no reasoning summary. Structured output uses
+  `Output.object({ schema, name })`, sent as strict `text.format: json_schema`. Images go as
+  `file` parts, sent as `input_image` data URLs.
+- **Response:** `output[]` holds a `reasoning` item (empty `summary`) and a `message` with
+  `output_text`. `usage` has `input_tokens`, `input_tokens_details.cached_tokens`,
+  `output_tokens` (reasoning included), and `output_tokens_details.reasoning_tokens`. JSON keys
+  come back in alphabetical order.
+- **Efforts:** `minimal`, `low`, `medium`, `high`, `xhigh`, `max`. `none` and unknown values get
+  a free 400. **The API default is `high`**: 95% of a one-sentence answer was reasoning.
+- **Measured:**
+
+  | Call                                                          | Cost                         | Latency |
+  | ------------------------------------------------------------- | ---------------------------- | ------- |
+  | Trivial prompt, `minimal` / `high`                            | $0.00036 / $0.0032           | –       |
+  | Fact extraction, `low`: 2.1k in, 8.4k out (4.0k reasoning)    | $0.038                       | ~25 s   |
+  | Photo classification, `low`, per photo: 2.0k in, 0.7–1.1k out | $0.0056–0.0073, mean $0.0064 | ~4 s    |
+  | Reconciliation fallback, `medium`: 4.8k in, 6.8k out          | $0.035                       | 22 s    |
+
+  A 1024×682 image costs about 870 input tokens, and a 2048×1364 image about 3,600.
+
+- **Decision:** `low` for extraction (cap 14,000), classification (cap 4,000 per photo, on a
+  1024-px copy), and Q&A. `medium` for creative copy and as the fallback for both judgment steps.
+- **Details:** [P1-01](#p1-01--meta-client-module),
+  [P1-02](#p1-02--spark-13-text-vision-structured-output),
+  [P1-03](#p1-03--wonder-10-cost-and-latency), [P2-07](#p2-07--fact-extraction),
+  [P2-08](#p2-08--vision-inventory).
+
+### Wonder 1.0 (`muse-wonder-1.0`)
+
+- **Endpoint, client, request, and response:** the same as Spark, including the efforts (`none`
+  is rejected) and `metaProviderOptions()`. Its tokenizer counts about 11% fewer input tokens
+  than Spark's on the same prompt.
+- **Measured** on a reconciliation input of 4.3k tokens (24 candidates, 12 photos):
+
+  | Effort   | Cost         | Reasoning tokens | Latency |
+  | -------- | ------------ | ---------------- | ------- |
+  | `low`    | $0.076       | 0.9k             | 13.7 s  |
+  | `medium` | $0.095–0.098 | ~2k              | 20–23 s |
+  | `high`   | $0.129       | 3.7k             | 23 s    |
+
+  The ~2k-token answer, not the reasoning, dominates the cost at `low`. Verification at `low`
+  (2k in, 26 segments) cost $0.050 and took 12.5 s.
+
+- **Quality:** every effort, and Spark too, caught all four planted defects. More effort bought
+  only messier output (sentences in `basis`, duplicate keys).
+- **Decision:** `low` for reconciliation and verification (cap 12,000), with Spark `medium` as
+  the fallback.
+- **Open:** the input was smaller than a real catalog. P2-07 alone yields ~70 transcript
+  candidates where the spike had 24, so the per-call cost at production size is not measured
+  yet (P2-09). Scaling the input to ~8.5k tokens and the output to ~5k (a ~4k answer, one
+  verified entry per candidate, plus ~1k reasoning) gives about $0.13 per call (extrapolated; architecture §10 uses it as the worst case).
+- **Details:** [P1-03](#p1-03--wonder-10-cost-and-latency).
+
+### Voice Transcribe (`muse-voice-transcribe-1.0`)
+
+- **Endpoint and client:** `POST /v1/asr/transcribe` through the `openai` SDK's custom request
+  (`openai.post`). The AI SDK has no such endpoint.
+- **Request:** a multipart body with two parts:
+  - `request`: a JSON file part
+    `{ model, audioEncoding: "WAV", mode, keywords?, languageBias? }`;
+  - `audio`: mono 16-bit PCM WAV at 16 or 24 kHz, at most 32 MiB and 10 minutes.
+- **Response:** `{ sessionId, transcript, audioDurationMs, turns[{ turnId, startMs, endMs,
+transcript, speaker? }] }`. There is no `model` and no `usage`: the billed unit is
+  `audioDurationMs`. `turns` is empty in `PUSH_TO_TALK`.
+- **Measured:**
+  - 168.8 s of audio billed (rounded up to 100 ms): $0.0084, ~33 s latency (~0.2× real time);
+  - `ENDPOINTING` returned 1 turn for the whole clip, `DIARIZATION` 15 turns of 2–16 s;
+  - ASR repeats words ("12 12", "euro euro");
+  - keyword biasing cut the WER from 6.5% to 5.0% and fixed `VvE`, but `HR-ketel` came back as
+    `HRketel`.
+- **Decision:** `DIARIZATION`, with `languageBias` from the market profile and keywords from the
+  form and the profile (cap 50). Turns over 30 s are split, with approximate timestamps.
+- **Details:** [P1-04](#p1-04--voice-transcribe), [P2-06](#p2-06--intake-step).
+
+### Muse Image (`muse-image-1.0`)
+
+- **Endpoints:**
+  - `POST /v1/images/generations` (JSON);
+  - `POST /v1/images/edits`, as multipart (`image`) or as Meta's JSON body
+    (`images: [{ image_url }]`);
+  - the Responses API also renders images; not used.
+- **Client:**
+  - AI SDK `generateImage` (`meta/images.ts`) for generations and plain edits.
+  - **Staging customer photos must use the `openai` SDK JSON edit body with every tool off**
+    (P1-08). The AI SDK cannot send `tool_enablement`, and the multipart form does not validate
+    it.
+- **Request:** `model`, `prompt`, `n`, `size` (aspect ratio only), `output_format`
+  (`webp` by default), `response_format: b64_json`. Meta-only fields:
+  - `reasoning_strength`: `low` or `high`, default `high`;
+  - `tool_enablement`: image search, web search, and shell, **all on by default**;
+  - `temperature`.
+
+  `mask` and `input_fidelity` return 400.
+
+- **Response:** `{ created, data[{ b64_json }], output_format, background, usage{ input_tokens,
+output_tokens, total_tokens } }`. There is no `id`, `model`, or `size`, and no field that
+  reports tool use.
+- **Measured:**
+  - flat $0.01 per returned image (the tokens are informational);
+  - edits take 8.4–15.9 s, generations 9.3–29.4 s;
+  - output is 1920×1280 for `size` 1536x1024, never the input size; without `size` the aspect
+    drifts by 1.5%;
+  - the whole frame is re-rendered (no pixel preservation);
+  - a "remove the window" edit was obeyed;
+  - outputs carry an XMP `trainedAlgorithmicMedia` marker.
+- **Decision:**
+  - staging is GO (scoped, P1-07);
+  - send `size` from the input's aspect ratio;
+  - P3-04 edits customer photos through the JSON body with
+    `tool_enablement: { enable_image_search: false, enable_web_search: false, enable_shell: false }`.
+- **Details:** [P1-06](#p1-06--muse-image-edits),
+  [P1-08](#p1-08--muse-image-with-tools-disabled).
+
+### SAM 3.1 (`sam-3.1`)
+
+- **Endpoint and client:** `POST /v1/responses`, non-streaming, through the AI SDK. It returns
+  the special-token text byte for byte.
+- **Request:**
+  - one noun phrase and one image per call (lists return nothing);
+  - `metaProviderOptions({ reasoningEffort: 'minimal' })` (echoed, no effect) plus
+    `metadata: { mask_encoding: "one_bit", include_confidence: "true" }` (string values).
+- **Response:**
+  - `output_text` is one line `<0f>id<|box;x1;y1;x2;y2;w;h;c|><|mask;…|>,…\n`, or `""` when
+    nothing matches;
+  - boxes are in source pixels, with inclusive `x2`/`y2`;
+  - masks are box-local;
+  - `usage` reports 0 tokens and `images_processed: 1`.
+- **Measured:**
+  - $0.0025 per call, empty results included;
+  - 0.6–1.7 s per call;
+  - window and radiator counts were exact on all 12 synthetic images;
+  - `door` also matches cabinet and wardrobe doors;
+  - occlusion reshapes boxes (IoU down to 0.52).
+- **Decision:**
+  - SAM serves privacy phrases on every stored photo, evidence (at most 12 per run), and the
+    integrity check;
+  - our parser handles the token grammar strictly;
+  - mask payloads are decoded only by `@meta-sam/parser`;
+  - the integrity check compares boxes, not masks or SSIM.
+- **Open:** positive privacy recall (faces, plates) is unverified.
+- **Details:** [P1-05](#p1-05--sam-31-and-output-parser),
+  [P1-07](#p1-07--integrity-check-feasibility), [P2-08](#p2-08--vision-inventory).
+
+### Cross-cutting gotchas
+
+- **The options key is `providerOptions.openai`, never `meta`.** `@ai-sdk/openai` drops other
+  keys silently, whatever the provider's `name`. This holds for Responses and image models
+  ([P1-02](#reasoning-effort-and-store-through-the-ai-sdk)).
+- **Effort needs `forceReasoning: true`.** Without it, the AI SDK drops `reasoningEffort` for
+  non-OpenAI IDs with only a warning. `forceReasoning` also:
+  - sends `system` as `developer`;
+  - strips `temperature`/`topP`;
+  - adds `reasoning.summary` unless it is `null`.
+
+  The helper `metaProviderOptions()` sets all of this.
+
+- **`store` defaults to `true` on the server.** Send `store: false` (the helper's default). The
+  AI SDK then adds `include: ["reasoning.encrypted_content"]`, an opaque blob that ends up in
+  fixtures.
+- **No client-side effort check:** any string reaches Meta. `metaReasoningEffortSchema`
+  validates definitions at load.
+- **Strict `json_schema` is enforced server-side.** `additionalProperties: false` is required,
+  and so is every property. Use `.nullable()`, never `.optional()`. Bounds like `min`/`max` are
+  checked in code, not trusted to strict mode. Unions and `anyOf` enums are accepted.
+- **Reasoning tokens are inside `output_tokens`.** Cost is input × in-price + output × out-price;
+  never add reasoning again. The AI SDK maps a missing `reasoning_tokens` to `0`.
+- **Reasoning varies ±30% between identical requests** (extraction: 5.5k vs 4.0k), and effort is
+  a ceiling. Size `max_output_tokens` from the answer length plus that variance: 8,000 truncated
+  extraction.
+- **Cached tokens are reported, not discounted** (`cached_tokens`, up to 97% of a repeated
+  prefix). No cached rate is documented, so every estimate is an upper bound for repeated
+  prefixes.
+- **`onLanguageModelCallEnd` errors are swallowed by the AI SDK.** That is why
+  `UsageRecorder.record` is synchronous and the ledger flushes after the call.
+- **Non-token units:**
+  - Voice is billed by `audioDurationMs`;
+  - SAM by `usage.images_processed`, read through the AI SDK's `usage.raw`; its tokens are 0;
+  - Muse Image by the number of returned images; its tokens are informational.
+
+  A missing unit fails the call. It is never recorded as $0.
+
+- **SAM output is special-token text.** Our parser rejects every grammar deviation. Of the mask
+  payload, the docs specify only the marker and base85; the codec is Meta's.
+- **The `@meta-sam/parser` mask-marker quirk:** its type comment says `payload` excludes the
+  `!`/`~` marker, but `decodeMaskToRaster` requires the marker, so we keep it
+  ([P1-05](#mask-decoding-meta-samparser-decision)).
+- **Muse Image `tool_enablement` defaults to all tools on** (image search, web search, shell).
+  - It is reachable only through the JSON edit body, which validates it strictly.
+  - The multipart form accepted a non-boolean value and billed the edit.
+  - Meta documents nothing about what the tools do with input images.
+
+  ([P1-08](#p1-08--muse-image-with-tools-disabled))
+
+- **Muse Image does no pixel preservation and has no mask.** Output dimensions are the model's
+  own. `generateImage` has no `timeout` and no usage hook (the helper adds both), and it retries a
+  2xx response that carries zero images.
+- **The `openai` SDK captures `fetch` at construction.** `metaFetch` binds late so that MSW sees
+  every request. The standard-mode guard checks JSON bodies and the multipart `request` part.
+- **Timestamps:** Meta's `created_at` equals `completed_at`, so latency is client-measured only.
+  Cassettes store no timing.
+
 ## P1-01 — Meta client module
 
 Status: done (pending review). Recorded 2026-10-28 against `ai@7.0.155`, `@ai-sdk/openai@4.0.104`,
@@ -124,8 +341,9 @@ Findings:
   an empty `catch`). `UsageRecorder.record()` is therefore synchronous; the P2-04 ledger must
   buffer entries in memory and persist them after the SDK call returns, or entries will be lost
   silently.
-- `createTokenPriceEstimator(prices)` is the cost hook used in tests. The real price table and the
-  ledger arrive with P2-04.
+- `createTokenPriceEstimator(prices)` is the cost hook used in tests. The real price table
+  (`PRICE_TABLE`, `createPriceTableCostEstimator`) and the ledger landed in P2-04
+  ([architecture.md §10](./architecture.md#10-cost-controls)).
 
 ### Fixture format
 
@@ -215,8 +433,8 @@ captures (`options.test.ts`) and live calls:
 - **The provider-options key is `openai`, not `meta`.** The Responses model resolves its options
   key as `config.provider.includes('azure') ? 'azure' : 'openai'`, whatever `name` the provider was
   created with. Options under `providerOptions.meta` are **dropped silently** (no warning, neither
-  `reasoning` nor `store` reaches the request). This corrects the P1-01 assumption above that
-  `meta` is read first.
+  `reasoning` nor `store` reaches the request). P1-01 had assumed `meta` was read first; its
+  text above has been corrected.
 - **`forceReasoning: true` is required.** The SDK only treats `o*` and `gpt-5+` IDs as reasoning
   models. For `muse-spark-1.3` it drops `reasoningEffort` with the warning "reasoningEffort is not
   supported for non-reasoning models". With `forceReasoning: true` the effort is sent verbatim.
@@ -294,8 +512,8 @@ data: { type: 'data', data: Uint8Array } }`. It is serialized as `input_image` w
   $0.00157. Answer `rooms=2; windows=3; red=1` — correct; the test asserts the exact counts.
 - The fixture matches on the request-body hash, which includes the base64 image: changing the PNG
   invalidates the fixture.
-- Real-photo behaviour (interior photos, counts of windows/doors/radiators) is checked in P1-05 and
-  P1-06.
+- Interior-photo behaviour was later checked on the synthetic interiors: SAM counts in P1-05,
+  Spark classification and counts in P2-08. Real listing photos remain untested.
 
 ### Structured output
 
@@ -487,14 +705,20 @@ invented feature (`S05`, underfloor heating), a superlative (`S08`), an investme
 
 Written into [architecture.md](./architecture.md) §5, §7, and §10.
 
-| Step                      | Model  | Effort   | Fallback       | `max_output_tokens` | Est. USD per run          | Basis                     |
-| ------------------------- | ------ | -------- | -------------- | ------------------- | ------------------------- | ------------------------- |
-| Fact extraction           | Spark  | `low`    | –              | 8,000               | ~0.02                     | P1-02 `low`, extrapolated |
-| Vision inventory (class.) | Spark  | `low`    | –              | 4,000 per photo     | ~0.03–0.06 (10–20 photos) | P1-02 `low`, extrapolated |
-| Reconciliation            | Wonder | `low`    | Spark `medium` | 12,000              | 0.076 (fallback 0.035)    | measured                  |
-| Creative copy             | Spark  | `medium` | –              | 16,000              | ~0.03                     | extrapolated              |
-| Buyer Q&A                 | Spark  | `low`    | –              | 8,000               | ~0.01                     | extrapolated              |
-| Verification (per pass)   | Wonder | `low`    | Spark `medium` | 12,000              | 0.05; ≤ 0.15 with 2 loops | measured                  |
+| Step                      | Model  | Effort   | Fallback       | `max_output_tokens` | Est. USD per run                           | Basis             |
+| ------------------------- | ------ | -------- | -------------- | ------------------- | ------------------------------------------ | ----------------- |
+| Fact extraction           | Spark  | `low`    | –              | ~~8,000~~ 14,000 ¹  | ~~0.02 est.~~ 0.038 ¹                      | measured in P2-07 |
+| Vision inventory (class.) | Spark  | `low`    | –              | 4,000 per photo     | ~~0.03–0.06~~ 0.064–0.128 (10–20 photos) ² | measured in P2-08 |
+| Reconciliation            | Wonder | `low`    | Spark `medium` | 12,000              | 0.076 (fallback 0.035)                     | measured          |
+| Creative copy             | Spark  | `medium` | –              | 16,000              | ~0.03                                      | extrapolated      |
+| Buyer Q&A                 | Spark  | `low`    | –              | 8,000               | ~0.01                                      | extrapolated      |
+| Verification (per pass)   | Wonder | `low`    | Spark `medium` | 12,000              | 0.05; ≤ 0.15 with 2 loops                  | measured          |
+
+¹ Superseded by P2-07: 8,000 truncated the answer on a 2:49 walkthrough, so the cap is 14,000;
+the measured call cost $0.038 (worst case at the cap: $0.062).
+
+² Superseded by P2-08: $0.0064 per photo for Spark alone, measured; SAM privacy and evidence calls
+add $0.005 per photo plus at most $0.03 per run.
 
 Rationale:
 
@@ -513,12 +737,12 @@ Rationale:
   (worst case reconciliation 8 k × $4 + 12 k × $20 per 1M = $0.27; it never fires at the measured
   ~3–4 k). It is a proposed service-definition field for P2-02.
 
-Per-run estimate for the language-model steps: **~$0.22–0.25** in a typical run (one
-verification pass, 10–20 photos), **~$0.44** worst case (30 photos, two full revision loops
-re-running creative and verification). With the non-LM steps from §10 ($0.09–0.24) a typical run
-is ~$0.31–0.49, under the $0.50 cap, but a worst-case run can exceed it and would then stop at the
-cap. To keep loops cheap, P3-06 should re-verify and regenerate only the revised segments (about
-$0.01–0.02 per loop instead of $0.08).
+Per-run estimate, **superseded**: P1-03 estimated ~$0.22–0.25 per typical run for the
+language-model steps and ~$0.31–0.49 overall, under the $0.50 cap. Both figures rested on the
+extrapolated extraction and classification costs above, which measured about twice as high. The
+current estimate is in [architecture.md §10](./architecture.md#10-cost-controls). The
+recommendation stands: to keep loops cheap, P3-06 should re-verify and regenerate only the revised
+segments (about $0.01–0.02 per loop instead of $0.08).
 
 ### Live calls and cost (P1-03)
 
@@ -1002,11 +1226,13 @@ tests in `images.test.ts` and the recorded calls):
   edits `inputFidelity`. Per Meta's docs `mask` and `input_fidelity` return 400; the helper sends neither.
 - **Gap:** Meta-specific fields (`reasoning_strength`, default `high`; `tool_enablement`, default
   all on: image search, web search, shell; `temperature`) cannot be sent through the AI SDK image
-  model. All P1-06 calls ran with Meta's defaults. If P3-04 wants built-in search off for
-  customer photos, or `low` strength for speed, it needs the `openai` SDK (`images.edit` with
-  extra fields; how its multipart encoder flattens the nested `tool_enablement` object is
-  untested) or the documented JSON edit body (`images: [{ image_url: <data URL> }]`) via
-  `openai.post`. Price does not change with either setting.
+  model. All P1-06 calls ran with Meta's defaults. Price does not change with either setting.
+  **Resolved in [P1-08](#p1-08--muse-image-with-tools-disabled):**
+  - the documented JSON edit body (`images: [{ image_url: <data URL> }]`) sent with
+    `openai.post` accepts `tool_enablement` and validates it strictly;
+  - `images.edit` sends the field as multipart `tool_enablement[enable_web_search]`, which the
+    server does not validate;
+  - P3-04 uses the JSON body.
 - `generateImage` has no `timeout` option and no usage callback. The helper bounds the whole call
   (retries included) with `AbortSignal.timeout(timeoutMs)`, matching the AI SDK's own `timeout`
   semantics, measures latency around the call, and records usage via `clients.recordUsage`. Its
@@ -1307,6 +1533,119 @@ tolerant rule is symmetric (intersection over the smaller box), not "edit inside
 | `pipeline/integrity/compare.ts`             | `compareFixedElements`, defaults, verdict types, `IntegrityInputError`                                                                                                                                 |
 | `pipeline/integrity/compare.test.ts`        | 16 hand-built cases: resolution and aspect changes, moves, occlusion, resizes, counts, empty classes, ordering, invalid input                                                                          |
 | `pipeline/integrity/recorded-pairs.test.ts` | 13 cases on the replayed P1-05 output: the six verdicts, the IoU table, margins, threshold sweep, perturbed shifts. Forces `mode: 'replay'`, so `RECORD=1` never rewrites the P1-05 cassette from here |
+
+## P1-08 — Muse Image with tools disabled
+
+Status: done (pending review), 2026-10-28, against `openai@7.45.1`. Sources: Meta's
+[Images API schemas](https://dev.meta.ai/docs/api-reference/images/schemas) and the
+[image generation guide](https://dev.meta.ai/docs/image-generation).
+
+### Why
+
+Muse Image's built-in tools (image search, web search, and shell) are on unless the request turns
+them off. Meta documents nothing about what the tools receive or where a search goes. P3-04 sends
+customer photos to edits, so the tools must be off. The AI SDK image model cannot send the field
+(P1-06).
+
+### What the docs say
+
+- `tool_enablement` is an `ImageToolEnablement` object with three optional booleans:
+  `enable_image_search`, `enable_web_search` (`false` also drops the browser tools), and
+  `enable_shell`. "Omit `tool_enablement` to keep every tool available, or set a field to `false`
+  to turn that tool off." It is listed on both the multipart edit schema and the JSON edit body.
+- The guide says "With the OpenAI SDK, pass them through `extra_body`". The guide's only images
+  example uses JSON. "Disabling tools trades some grounding accuracy for speed".
+- The `Images Response` has no field that reports tool use. Its `usage` is token counts only.
+
+### Probes and the recording
+
+All three calls used the same synthetic input (`living-empty.jpg`, 1024×682) and a sofa edit with
+`maxRetries: 0`:
+
+| #   | Transport                                        | `tool_enablement`                     | Result                                                                                                          | Cost  |
+| --- | ------------------------------------------------ | ------------------------------------- | --------------------------------------------------------------------------------------------------------------- | ----- |
+| 1   | JSON body, `openai.post('/images/edits')`        | `enable_web_search: "nope"` (invalid) | **400** in 0.9 s: `` `tool_enablement.enable_web_search`: invalid type: string "nope", expected a boolean ``    | $0    |
+| 2   | JSON body, `openai.post` (the fixture)           | all three `false`                     | 200 in 8.5 s, 1920×1280 JPEG, usage 11,769 in / 687 out                                                         | $0.01 |
+| 3   | multipart, `openai.images.edit` (`extra` fields) | `enable_web_search: "nope"` (invalid) | **200** in 13.0 s, WebP, usage 11,842 in / 838 out: the invalid value was not rejected, and the edit was billed | $0.01 |
+
+Total: 3 requests, 2 billed images, **$0.02** of the $0.03 authorized.
+
+Findings:
+
+- **The JSON edit body parses `tool_enablement` strictly.** Probe 1 shows that the server
+  deserializes the nested object with typed booleans. Probe 2 then sent valid booleans and was
+  accepted. That is the strongest evidence the API offers that the setting is applied.
+- **The multipart form does not validate it.** The `openai` SDK flattens nested objects into
+  bracketed form fields (`tool_enablement[enable_web_search]=nope`), and the server accepted a
+  non-boolean there. It either ignores those fields or treats the strings loosely; we cannot tell
+  which. `openai.images.edit` therefore cannot be trusted to turn the tools off.
+- **No direct proof that the tools stayed idle.** The response carries no tool trace. The
+  recorded edit looks like the P1-06 tools-on recording of the same operation:
+  - P1-06, multipart, tools on: 11,867 in / 787 out, 10.0 s;
+  - P1-08, JSON, tools off: 11,769 in / 687 out, 8.5 s.
+
+  Both sit in P1-06's fast group, so neither call appears to have used a tool. The comparison
+  cannot prove anything at n = 1 per arm, and P1-06's slower ~20k-token edits remain
+  unexplained.
+
+- The output geometry matches P1-06: `size` 1536x1024 gives 1920×1280, and the response fields
+  are the documented `created`, `data`, `output_format`, `background`, and `usage`. Visual check:
+  the window, radiator, door, floor, and framing were kept, the sofa was added, and no people
+  appeared.
+
+### Request shape for P3-04 (decision)
+
+**Use the `openai` path with every tool off**, as the JSON edit body:
+
+```ts
+await clients.openai.post<unknown>('/images/edits', {
+  body: {
+    model, // from the service definition (creative.image_model)
+    prompt, // the declared operation
+    images: [{ image_url: `data:image/jpeg;base64,${photo.toString('base64')}` }],
+    n: 1,
+    size, // derived from the input's aspect ratio (P1-06)
+    output_format: 'jpeg',
+    response_format: 'b64_json',
+    tool_enablement: { enable_image_search: false, enable_web_search: false, enable_shell: false },
+  },
+});
+```
+
+- Validate the response with zod and read the size from the image header (as `editMetaImage`
+  does). Record usage with `clients.recordUsage({ sdk: 'openai', images: data.length, … })`.
+  `captureOpenAIUsage` does not fit this endpoint: it requires a `model` field, which the images
+  response lacks, so it would throw `UsageCaptureError`. Route the call through
+  `ledger.meter` like every model call.
+- Retries and the per-attempt timeout come from the `openai` client, so there is no second retry
+  layer. Unlike `generateImage`, the `openai` SDK does not retry a 2xx response that carries zero
+  images; the caller must treat that case as a failure (unbilled per Meta).
+- The base64 image makes the JSON body ~1.37× the photo size. A 2048-px stored photo (P2-05)
+  stays well under any limit we know of, but Meta documents no request size limit for this
+  endpoint.
+- Keep `editMetaImage` (AI SDK) for synthetic inputs only, such as tests and sample generation,
+  or remove it for edits when P3-04 adds the JSON helper. **No customer photo may go through
+  the AI SDK or the multipart path**, because both leave the tools on (or unverifiably off).
+- `reasoning_strength` stays at the default `high`: `low` was not measured, and the price is the
+  same either way.
+
+### Fixture and test
+
+`apps/api/src/meta/muse-image-tools-off.test.ts` replays `fixtures/meta/p1-08/muse-image-tools-off.json`.
+The image is in `muse-image-tools-off.files/`. The test asserts:
+
+- the response carries only the documented fields, so a new field (such as a tool trace) fails
+  on re-recording;
+- one 1920×1280 JPEG is returned;
+- `output_format` is echoed;
+- one usage entry is recorded, with `images: 1` and $0.01.
+
+The request hash includes `tool_enablement`, so a request without it cannot replay this fixture.
+The probes ran from a scratch script outside the repository (400 responses are never stored).
+
+```sh
+RECORD=1 node --env-file=.env node_modules/vitest/vitest.mjs run --project api muse-image-tools-off
+```
 
 ## P2-02 — Model settings in the service definition
 

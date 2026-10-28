@@ -85,7 +85,7 @@ The orchestrator (main session) delegates each task to its owner — see `.claud
 - [x] **P1-07 — Integrity check feasibility**
   - Depends on: P1-05, P1-06
   - Done when: for the five edits plus one deliberately structure-altering edit, window/door/radiator counts and bounding-box IoU are compared after resizing; a decision is recorded — GO (threshold chosen), FALLBACK (declutter/object removal only), or DROP.
-- [ ] **P1-08 — Model notes**
+- [x] **P1-08 — Model notes**
   - Depends on: P1-02 … P1-07
   - Done when: `docs/model-notes.md` records request/response shapes, constraints found, measured costs, and decisions; the cost table in architecture.md is updated with measured values.
 

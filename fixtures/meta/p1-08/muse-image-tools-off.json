@@ -1,0 +1,44 @@
+{
+  "formatVersion": 1,
+  "cassette": "p1-08/muse-image-tools-off",
+  "recordedAt": "2026-10-28T12:40:09.222Z",
+  "interactions": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/images/edits",
+        "bodySha256": "5dfe1aa1811d4081f64c8458c21889f9cc532d1c97f504ef99c3dfff48bd29a6"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "created": 1793191208,
+            "data": [
+              {
+                "b64_json": "197cfea5713385aec54215d398fcfff22ac0f73c68cddb85b474019a3d30cb6d.jpg"
+              }
+            ],
+            "output_format": "jpeg",
+            "background": "opaque",
+            "usage": {
+              "input_tokens": 11769,
+              "output_tokens": 687,
+              "total_tokens": 12456
+            }
+          },
+          "externals": [
+            {
+              "pointer": "/data/0/b64_json",
+              "file": "197cfea5713385aec54215d398fcfff22ac0f73c68cddb85b474019a3d30cb6d.jpg"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
