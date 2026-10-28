@@ -20,4 +20,31 @@ describe('loadEnv', () => {
   it('rejects a non-postgres DATABASE_URL', () => {
     expect(() => loadEnv({ DATABASE_URL: 'mysql://u:p@localhost/db' })).toThrow(EnvError);
   });
+
+  describe('MODEL_API_KEY', () => {
+    const DATABASE_URL = 'postgres://u:p@localhost:5432/db';
+
+    it('is optional outside production', () => {
+      expect(loadEnv({ DATABASE_URL, NODE_ENV: 'test' }).MODEL_API_KEY).toBeUndefined();
+      expect(loadEnv({ DATABASE_URL, NODE_ENV: 'development' }).MODEL_API_KEY).toBeUndefined();
+    });
+
+    it('treats an empty value as unset', () => {
+      expect(loadEnv({ DATABASE_URL, MODEL_API_KEY: '' }).MODEL_API_KEY).toBeUndefined();
+    });
+
+    it('passes a provided key through', () => {
+      expect(loadEnv({ DATABASE_URL, MODEL_API_KEY: 'test-key' }).MODEL_API_KEY).toBe('test-key');
+    });
+
+    it('is required in production', () => {
+      expect(() => loadEnv({ DATABASE_URL, NODE_ENV: 'production' })).toThrow(/MODEL_API_KEY/);
+      expect(() => loadEnv({ DATABASE_URL, NODE_ENV: 'production', MODEL_API_KEY: '' })).toThrow(
+        EnvError,
+      );
+      expect(
+        loadEnv({ DATABASE_URL, NODE_ENV: 'production', MODEL_API_KEY: 'test-key' }).MODEL_API_KEY,
+      ).toBe('test-key');
+    });
+  });
 });

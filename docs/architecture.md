@@ -60,7 +60,15 @@ Caddy routes `/api/*` to the API and everything else to the web app on the same 
 
 ## 4. Meta Model API integration
 
-All model access goes through one `meta` module in `apps/api`: client configuration, timeouts, usage capture into the ledger, and the record/replay switch used by tests. Retries (exponential backoff on 429/5xx, honoring `Retry-After`) use the SDKs' built-in retry settings; the module does not add a second retry layer on top. Both SDKs call the API over `fetch`, so MSW record/replay works the same for either.
+All model access goes through one `meta` module in `apps/api/src/meta`: client configuration, timeouts, usage capture into the ledger, and the record/replay switch used by tests. Retries (exponential backoff on 429/5xx, honoring `Retry-After`) use the SDKs' built-in retry settings; the module does not add a second retry layer on top. Both SDKs call the API over `fetch`, so MSW record/replay works the same for either.
+
+Module interface (P1-01; details and measured shapes in [model-notes.md](./model-notes.md#p1-01--meta-client-module)):
+
+- `createMetaClients({ apiKey, usage, estimateCost?, logger?, maxRetries?, timeoutMs? })` returns the AI SDK provider (`createOpenAI({ name: 'meta' })`, Responses models via `languageModel(id)`), the `openai` client, `aiSdkCallOptions()`, and `captureOpenAIUsage(call)`. The AI SDK has no provider-level retry/timeout settings, so every AI SDK call spreads `...aiSdkCallOptions()` (`maxRetries`, `timeout`, and the `onLanguageModelCallEnd` usage hook). The `openai` timeout is per attempt; the AI SDK timeout covers the whole call including retries.
+- A shared fetch wrapper rejects any request whose `model` ends in `-contributor` (principle 6, enforced in code for both SDKs).
+- Usage capture: `UsageRecorder.record(entry)` receives model ID, input/cached/output/reasoning tokens, latency, response ID, and `estimatedCostUsd` from a pluggable `CostEstimator`. `record` is synchronous because the AI SDK silently swallows errors thrown by its callbacks; the ledger (P2-04) buffers and persists after the call returns.
+- Record/replay (`replay.ts`, test-only): fixtures in `fixtures/meta/<task>/<name>.json`, matched by method, path, and a hash of the normalized body; replay never touches the network and fails loudly on an unmatched request; `RECORD=1` records 2xx responses only and never stores request headers.
+- `MODEL_API_KEY` is required at boot in production and optional in development/test (replay tests use a placeholder).
 
 The Vercel AI SDK is the primary client. The official `openai` package fills the gaps where the AI SDK does not reach an endpoint or changes its output. Native `fetch` is a last resort, used only if neither SDK can express a request.
 
@@ -175,13 +183,13 @@ market:
 
 ## 10. Cost controls
 
-| Item             | List price (Standard mode)                                       | Per-run expectation                                 |
-| ---------------- | ---------------------------------------------------------------- | --------------------------------------------------- |
-| Spark 1.3        | $1.25 in / $4.25 out per 1M tokens                               | Bulk of steps                                       |
-| Wonder 1.0       | $4.00 in / $20.00 out per 1M tokens (reasoning billed as output) | 2 judgment steps; measured in Phase 1               |
-| Voice Transcribe | $0.18 per audio hour                                             | ~$0.01–0.03                                         |
-| Muse Image       | $0.01 per image                                                  | ~$0.03–0.06                                         |
-| SAM 3.1          | $2.50 per 1,000 images                                           | ~$0.05–0.15 (one request per image per noun phrase) |
+| Item             | List price (Standard mode)                                       | Per-run expectation                                                                                                                                                                |
+| ---------------- | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Spark 1.3        | $1.25 in / $4.25 out per 1M tokens                               | Bulk of steps. Measured (P1-01): a 20-token prompt with a one-sentence answer cost ~$0.0024 at the default effort `high` (~95% of output was reasoning), so effort is set per step |
+| Wonder 1.0       | $4.00 in / $20.00 out per 1M tokens (reasoning billed as output) | 2 judgment steps; measured in Phase 1                                                                                                                                              |
+| Voice Transcribe | $0.18 per audio hour                                             | ~$0.01–0.03                                                                                                                                                                        |
+| Muse Image       | $0.01 per image                                                  | ~$0.03–0.06                                                                                                                                                                        |
+| SAM 3.1          | $2.50 per 1,000 images                                           | ~$0.05–0.15 (one request per image per noun phrase)                                                                                                                                |
 
 Controls: per-run budget cap (fails the run loudly), global daily budget cap, per-IP and per-account rate limits, an access code for live runs on the public deployment, and a zero-cost demo replay mode. Web search grounding ($2.50 per 1,000 queries) is off by default.
 

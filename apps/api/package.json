@@ -13,9 +13,12 @@
     "db:migrate": "drizzle-kit migrate"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^4.0.104",
     "@evidomo/shared": "0.0.0",
+    "ai": "^7.0.155",
     "drizzle-orm": "^0.45.4",
     "express": "^5.3.0",
+    "openai": "^7.45.1",
     "pg": "^8.23.1",
     "pg-boss": "^12.38.0",
     "pino": "^10.4.0",
@@ -27,6 +30,7 @@
     "@types/pg": "^8.23.1",
     "@types/supertest": "^7.2.1",
     "drizzle-kit": "^0.31.11",
+    "msw": "^3.0.3",
     "supertest": "^7.3.1"
   }
 }

@@ -64,7 +64,7 @@ The orchestrator (main session) delegates each task to its owner — see `.claud
 
 ## Phase 1 — Model spikes
 
-- [ ] **P1-01 — Meta client module**
+- [x] **P1-01 — Meta client module**
   - Depends on: P0-04, P0-06
   - Done when: AI SDK provider and `openai` client are configured for `https://api.meta.ai/v1` with SDK-level retries and timeouts (no duplicate retry layer); usage capture interface; MSW-based record/replay switch (`RECORD=1`) works for both SDKs; one Spark call recorded and replayed in a test.
 - [ ] **P1-02 — Spark 1.3: text, vision, structured output**

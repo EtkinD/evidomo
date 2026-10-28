@@ -1,0 +1,155 @@
+{
+  "formatVersion": 1,
+  "cassette": "p1-01/spark-text",
+  "recordedAt": "2026-10-28T01:13:03.418Z",
+  "interactions": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "0094c0c0fae2ddfbac53b2e9cb41c0a64cd8351d815ead527d416b20fa3e15dd"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "muse-spark-1.3",
+            "reasoning": {
+              "effort": "high"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae14c1b296db7c8f0514af0",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793149979,
+            "completed_at": 1793149979,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "reasoning",
+                "id": "rs_6ae14c1b296db7c8f0514af0:rs_2c2028f5-aa36-43a8-a9a0-d249ceb1c69a",
+                "summary": [],
+                "status": "completed"
+              },
+              {
+                "type": "message",
+                "id": "msg_af81ebbf-ac42-4fdc-8048-3d1faed5f58b",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "A floor plan shows the layout of rooms and spaces in a building from above.",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 20,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 540,
+              "output_tokens_details": {
+                "reasoning_tokens": 515
+              },
+              "total_tokens": 560
+            },
+            "parallel_tool_calls": true,
+            "store": true,
+            "max_output_tokens": 2048
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "041f58a711b37a44065c5f8cb9b67a3ecc18550e79892820d31ca462657e2f1c"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "muse-spark-1.3",
+            "reasoning": {
+              "effort": "high"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae14c1f7b20d3ebcbe24720",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793149983,
+            "completed_at": 1793149983,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "reasoning",
+                "id": "rs_6ae14c1f7b20d3ebcbe24720:rs_77089715-e1d2-4ba8-be16-14ec28e9d7eb",
+                "summary": [],
+                "status": "completed"
+              },
+              {
+                "type": "message",
+                "id": "msg_15a7afc9-40e8-447f-b589-f837059b198e",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "A floor plan shows the layout of a building's rooms as seen from above.",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 20,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 596,
+              "output_tokens_details": {
+                "reasoning_tokens": 571
+              },
+              "total_tokens": 616
+            },
+            "parallel_tool_calls": true,
+            "store": true,
+            "max_output_tokens": 2048
+          }
+        }
+      }
+    }
+  ]
+}
