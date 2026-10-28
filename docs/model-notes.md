@@ -345,6 +345,214 @@ RECORD=1 node --env-file=.env node_modules/vitest/vitest.mjs run --project api s
 
 ## P1-03 — Wonder 1.0: cost and latency
 
+Status: done (pending review). Recorded 2026-10-28 against the same pinned versions as P1-01
+(`ai@7.0.155`, `@ai-sdk/openai@4.0.104`, `openai@7.45.1`). All calls: AI SDK, Responses API,
+strict `json_schema` output, `store: false`, `maxRetries: 0` (one attempt per measurement).
+
+### Wonder accepts the same efforts as Spark
+
+Probed with two rejected (free) `openai` SDK requests:
+
+- `none` → `reasoning_effort 'none' is not supported for model 'muse-wonder-1.0'. Supported
+values: [minimal, low, medium, high, xhigh, max]`
+- `bogus` → the same generic ``unknown variant `bogus`, expected one of `none`, `minimal`, …``
+  message as Spark.
+
+`META_REASONING_EFFORTS` / `metaReasoningEffortSchema` therefore hold for both models; Wonder
+needs the same `metaProviderOptions()` (`openai` key, `forceReasoning: true`) and echoes the
+effort, `store: false`, and `text.format.strict: true`.
+
+### Reconciliation input and prompt
+
+Code in `apps/api/src/pipeline/reconciliation/` (the starting point for P2-09 and the eval):
+
+| File                            | Purpose                                                                                |
+| ------------------------------- | -------------------------------------------------------------------------------------- |
+| `schema.ts`                     | Input catalog schema (with ID/quote/timestamp invariants) and the strict output schema |
+| `prompt.ts`                     | System prompt (12 rules) and the user message (compact JSON catalog)                   |
+| `synthetic-nl-apartment.ts`     | Fictional Dutch apartment: input plus `…_EXPECTATIONS` (planted defects)               |
+| `score.ts`                      | Deterministic score of an output against the expectations (used here and by the eval)  |
+| `reconciliation-models.test.ts` | The model/effort matrix (record/replay, one cassette per call)                         |
+
+- **Evidence IDs, not provenance, go to the model.** The catalog has form fields (`F.living_area`),
+  transcript turns (`T03`, with `startMs`/`endMs`), candidate facts (`C05`, each with its turn ID,
+  timestamps, and a verbatim quote), photo observations (`P05.R1`), and inventory aggregates
+  (`INV1`). The output cites catalog IDs only; code maps them to stored provenance, so the model
+  never echoes timestamps or coordinates. The input schema rejects a candidate whose quote is not
+  verbatim from its turn or whose timestamps differ from the turn's.
+- **Synthetic apartment** (no real address or names; postcode `0000 XX` is invalid by design):
+  11 form fields (92 m² NEN 2580 living area, label A, 1996, VvE EUR 185, volume 298 m³,
+  `plot_area: null`), 22 Dutch transcript turns (4 min 15 s), 24 candidate facts, 12 photos with
+  regions, 3 inventory aggregates. Planted defects:
+  - `C05` 95 m² NEN 2580 vs `F.living_area` 92 m² NEN 2580 (same basis, different value: conflict);
+  - `C06` "bruto zo'n 104 m², incl. berging en muren", no basis (different measure: not a conflict);
+  - `C12` "twee slaapkamers" vs `INV1` three distinct bedrooms in `P05`–`P07` (conflict);
+  - `C21` "de mooiste straat van de wijk … wordt alleen maar meer waard" (opinion: never verified);
+  - and three agreeing values without a stated basis (`C11` 7 m², `C17` 6 m², `C22` 298 m³) that
+    must not be flagged either.
+- **Output** (`reconciliationOutputSchema`): `verifiedFacts[]` (`key`, `value: number | string`,
+  `unit`, `basis`, `evidenceIds[]`), `conflicts[]` (`key`, `kind`, `sides[]` each with
+  `evidenceId`, value, unit, basis, statement), `distinctBasisNotes[]`, `rejected[]` (`reason`:
+  `opinion | unsupported | duplicate | out_of_scope`). All fields required, `.nullable()` where
+  absent, no `min`/`max` constraints; known IDs, exact numbers, and "conflicted facts are not
+  verified" are checked in code (`score.ts`), not by the schema.
+- **Prompt size:** 4,318 input tokens on Wonder and 4,796 on Spark for the same request (system
+  prompt + 12.6 k-character catalog + the JSON schema). The tokenizers differ by ~11%.
+
+### Measurements (reconciliation, one call each)
+
+`maxOutputTokens` 16,000 (Wonder `high`: 24,000). Cost = input × in-price + output × out-price
+(reasoning is inside output). Latency is the AI SDK's `performance.responseTimeMs` measured on the
+client: Meta's `created_at` and `completed_at` were equal in every response, so the body gives no
+server-side duration.
+
+| Call               | Input tok | Output tok | Reasoning tok | Answer tok | Latency | Est. USD |
+| ------------------ | --------- | ---------- | ------------- | ---------- | ------- | -------- |
+| Wonder `low`       | 4,318     | 2,924      | 876           | 2,048      | 13.7 s  | 0.0758   |
+| Wonder `medium`    | 4,318     | 3,876      | 1,898         | 1,978      | 19.5 s  | 0.0948   |
+| Wonder `medium` #2 | 4,318 ¹   | 4,045      | 2,125         | 1,920      | 23.0 s  | 0.0982 ¹ |
+| Wonder `high`      | 4,318     | 5,575      | 3,707         | 1,868      | 23.4 s  | 0.1288   |
+| Spark `medium`     | 4,796     | 6,828      | 5,524         | 1,304      | 22.1 s  | 0.0350   |
+| Spark `high`       | 4,796     | 9,780      | 8,430         | 1,350      | 31.4 s  | 0.0476   |
+
+¹ 4,212 of the 4,318 input tokens were reported as `cached_tokens` (identical prefix sent ~3 min
+earlier). Our price table has no cached-input rate, so the estimator bills them at the full input
+price: every estimate here is an upper bound for repeated prefixes.
+
+- **Wonder reasons far less than Spark** on the same prompt: 876–3,707 reasoning tokens vs
+  5,524–8,430. Reasoning grows roughly 2× per effort step on Wonder (low → medium → high:
+  876 → ~2,000 → 3,707). The answer is ~2,000 tokens at every effort, so at `low` the answer, not
+  the reasoning, dominates Wonder's cost (input $0.017 + answer $0.041 + reasoning $0.018).
+- **Wonder is faster than Spark at comparable quality** (13.7 s at `low` vs 22.1 s for Spark
+  `medium`). Spark generates faster (~310 output tok/s vs ~180–240) but writes 2–3× more tokens.
+- **Variance:** the two `medium` samples differed by 12% in reasoning tokens and 18% in latency.
+- **Spark is 2–3× cheaper per call** ($0.035 at `medium`) despite the longer output.
+
+### Quality against the planted defects
+
+Scored with `scoreReconciliation` (deterministic). All six outputs got the same, clean score:
+
+| Check                                                         | W low | W med | W med #2 | W high | S med | S high |
+| ------------------------------------------------------------- | ----- | ----- | -------- | ------ | ----- | ------ |
+| Living area 95 vs 92 m² (same basis) reported as a conflict   | yes   | yes   | yes      | yes    | yes   | yes    |
+| Bedrooms 2 (transcript) vs 3 (photos) reported as a conflict  | yes   | yes   | yes      | yes    | yes   | yes    |
+| Gross 104 m² (different basis) not a conflict                 | yes   | yes   | yes      | yes    | yes   | yes    |
+| Agreeing values without basis (`C11`/`C17`/`C22`) not flagged | yes   | yes   | yes      | yes    | yes   | yes    |
+| Opinion `C21` not verified, rejected as `opinion`             | yes   | yes   | yes      | yes    | yes   | yes    |
+| Conflicted evidence kept out of `verifiedFacts`               | yes   | yes   | yes      | yes    | yes   | yes    |
+| Provenance: unknown IDs / numeric mismatches / one-sided      | 0/0/0 | 0/0/0 | 0/0/0    | 0/0/0  | 0/0/0 | 0/0/0  |
+| Every candidate accounted for                                 | yes   | yes   | yes      | yes    | yes   | yes    |
+| Expected verified evidence covered                            | 16/16 | 16/16 | 16/16    | 16/16  | 16/16 | 16/16  |
+| Extra (false) conflicts                                       | 0     | 0     | 0        | 0      | 0     | 0      |
+
+Differences are in output hygiene only:
+
+- Wonder `medium` #1 put a sentence into the `basis` of the gross-area fact ("gross, including
+  external storage area and walls (basis as stated in C06 quote; …)") and used the key
+  `gross_area_c06`. Wonder `high` added duplicate facts (`balcony_area` next to `outdoor_area`,
+  `external_storage_room` next to `external_storage_area`). Wonder `low` and both Spark runs were
+  clean. More effort did not buy better output on this input.
+- **Every run verified the 104 m² gross area as a fact with `basis: null`**, under a different key
+  each time (`gross_floor_area`, `floor_area`, `gross_area_including_storage_and_walls`, …). It is
+  correctly not a conflict, but a free-text key and basis let a later step cite it as living area.
+  P2-09 should constrain `basis` to the market profile's bases plus an explicit "other/unspecified"
+  value, normalize keys against the profile's fact list, and mark non-standard-basis areas as not
+  publishable as living area. (Verification caught exactly this misuse, see below.)
+- The set saturates: four planted defects do not separate the efforts or the models. A harder
+  seeded-defect set (near-duplicate keys, unit mismatches, a conflict between two transcript
+  turns, a photo that contradicts the form) belongs in the eval (`npm run eval`) before these
+  defaults are revisited.
+
+### Verification sizing (one call)
+
+`apps/api/src/pipeline/verification/`: Verified Fact Sheet after Gate 1 (23 facts), 5 NL market
+rules, 26 copy segments (14 portal, 4 social, 8 Q&A) that all pass the code-level validator.
+Six planted defects need semantic judgment: a gross area sold as "living space" (`S03`), an
+invented feature (`S05`, underfloor heating), a superlative (`S08`), an investment promise
+(`S12`), exclusionary phrasing (`S17`), and an added servicing claim (`S24`).
+
+| Call                      | Input tok | Output tok | Reasoning tok | Latency | Est. USD |
+| ------------------------- | --------- | ---------- | ------------- | ------- | -------- |
+| Wonder `low`, claim audit | 1,992     | 2,119      | 1,269         | 12.5 s  | 0.0503   |
+
+- All six planted defects were caught with usable rewrites, and no clean segment was flagged
+  except `S06` ("From the kitchen you step onto a 7 m² … balcony"). The fact sheet has no
+  kitchen-access fact, so that flag is correct: an unplanted defect in the fixture, kept as is.
+- Categories were coarse: superlative, investment promise, and exclusionary phrasing all came
+  back as `market_rule`. P3-06 should have the verifier return the violated rule ID.
+- Finding for the claim validator (P3-02): copy naturally contains "NEN 2580"; the exact-number
+  check must not treat a basis name as a number claim.
+
+### Decision: per-step model and effort defaults
+
+Written into [architecture.md](./architecture.md) §5, §7, and §10.
+
+| Step                      | Model  | Effort   | Fallback       | `max_output_tokens` | Est. USD per run          | Basis                     |
+| ------------------------- | ------ | -------- | -------------- | ------------------- | ------------------------- | ------------------------- |
+| Fact extraction           | Spark  | `low`    | –              | 8,000               | ~0.02                     | P1-02 `low`, extrapolated |
+| Vision inventory (class.) | Spark  | `low`    | –              | 4,000 per photo     | ~0.03–0.06 (10–20 photos) | P1-02 `low`, extrapolated |
+| Reconciliation            | Wonder | `low`    | Spark `medium` | 12,000              | 0.076 (fallback 0.035)    | measured                  |
+| Creative copy             | Spark  | `medium` | –              | 16,000              | ~0.03                     | extrapolated              |
+| Buyer Q&A                 | Spark  | `low`    | –              | 8,000               | ~0.01                     | extrapolated              |
+| Verification (per pass)   | Wonder | `low`    | Spark `medium` | 12,000              | 0.05; ≤ 0.15 with 2 loops | measured                  |
+
+Rationale:
+
+- **Reconciliation: Wonder `low`.** It scored clean, it is the fastest configuration measured
+  (13.7 s), and its output was the cleanest Wonder output. `medium` (+25% cost, +6–9 s) and `high`
+  (+70%) bought nothing on this input. Spark `medium` matched it at 46% of the cost but took 60%
+  longer with 6× the reasoning; it is the fallback (labeled as such, §9), and switching the
+  primary to it is a definition change if the budget tightens.
+- **Verification: Wonder `low`.** One call caught all planted defects at $0.05. Verification is
+  the only step that can run three times (two revision loops), so its effort sets the worst case.
+- **Spark steps:** extraction, classification, and Q&A are constrained transformations where
+  P1-02 showed `low` is accurate; creative copy gets `medium` because copy that fails the
+  validator or verifier costs a revision loop (~$0.08), more than the extra reasoning. P3-01
+  confirms or lowers it using the validator pass rate.
+- **`max_output_tokens` per step** caps a runaway reasoning call at about 4× the measured output
+  (worst case reconciliation 8 k × $4 + 12 k × $20 per 1M = $0.27; it never fires at the measured
+  ~3–4 k). It is a proposed service-definition field for P2-02.
+
+Per-run estimate for the language-model steps: **~$0.22–0.25** in a typical run (one
+verification pass, 10–20 photos), **~$0.44** worst case (30 photos, two full revision loops
+re-running creative and verification). With the non-LM steps from §10 ($0.09–0.24) a typical run
+is ~$0.31–0.49, under the $0.50 cap, but a worst-case run can exceed it and would then stop at the
+cap. To keep loops cheap, P3-06 should re-verify and regenerate only the revised segments (about
+$0.01–0.02 per loop instead of $0.08).
+
+### Live calls and cost (P1-03)
+
+| #   | Call                                        | Input tok | Output tok (reasoning) | Latency | Est. USD         |
+| --- | ------------------------------------------- | --------- | ---------------------- | ------- | ---------------- |
+| 1–2 | Probes: Wonder effort `none`, `bogus` (400) | –         | –                      | –       | 0 (rejected)     |
+| 3   | Wonder `low`, reconciliation                | 4,318     | 2,924 (876)            | 13.7 s  | 0.0758           |
+| 4   | Wonder `medium`, reconciliation             | 4,318     | 3,876 (1,898)          | 19.5 s  | 0.0948           |
+| 5   | Spark `medium`, reconciliation              | 4,796     | 6,828 (5,524)          | 22.1 s  | 0.0350           |
+| 6   | Spark `high`, reconciliation (failed)       | –         | –                      | ~36 s   | unknown, ≤ 0.078 |
+| 7   | Spark `high`, reconciliation (retry)        | 4,796     | 9,780 (8,430)          | 31.4 s  | 0.0476           |
+| 8   | Wonder `high`, reconciliation               | 4,318     | 5,575 (3,707)          | 23.4 s  | 0.1288           |
+| 9   | Wonder `medium` #2, reconciliation          | 4,318     | 4,045 (2,125)          | 23.0 s  | 0.0982           |
+| 10  | Wonder `low`, verification                  | 1,992     | 2,119 (1,269)          | 12.5 s  | 0.0503           |
+|     | **Total (7 recorded calls)**                | 28,856    | 35,147 (23,829)        |         | **0.5304**       |
+
+Call 6 was cut off mid-response (`TypeError: terminated`, TLS `ASN1_get_object:too long` from
+undici) about 36 s in. No usage came back and nothing was recorded; whether it was billed is
+unknown, so the worst case for the session is $0.608 (its `maxOutputTokens` bound).
+
+Fixtures: `fixtures/meta/p1-03/{wonder-low,wonder-medium,wonder-medium-2,wonder-high,spark-medium,
+spark-high,wonder-verification-low}.json`, one cassette per call. Record one call at a time (from
+the repo root):
+
+```sh
+RECORD=1 node --env-file=.env node_modules/vitest/vitest.mjs run --project api reconciliation-models -t "wonder low"
+RECORD=1 node --env-file=.env node_modules/vitest/vitest.mjs run --project api verification-model
+```
+
+Record mode logs each call's usage and score (pino, `p1-03-measurement`); latency is not stored
+in cassettes. The replay tests assert schema validity, echoed settings, and captured usage, never
+one recording's quality. Changing either prompt, the synthetic inputs, or the schemas changes the
+request hash and requires re-recording.
+
 ## P1-04 — Voice Transcribe
 
 Status: done (pending review). Recorded 2026-10-28 against `openai@7.45.1`, `msw@3.0.3`, ffmpeg

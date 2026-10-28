@@ -70,7 +70,7 @@ The orchestrator (main session) delegates each task to its owner — see `.claud
 - [x] **P1-02 — Spark 1.3: text, vision, structured output**
   - Depends on: P1-01
   - Done when: fixtures exist for a text call, a single-photo vision call, and a zod-schema structured-output call; notes confirm which reasoning-effort values pass through AI SDK provider options and where reasoning tokens appear in usage.
-- [ ] **P1-03 — Wonder 1.0: cost and latency**
+- [x] **P1-03 — Wonder 1.0: cost and latency**
   - Depends on: P1-02
   - Done when: a reconciliation-sized prompt is run at low/medium/high effort; latency, reasoning tokens, and cost are recorded; per-step model and effort defaults are decided and written to architecture.md.
 - [x] **P1-04 — Voice Transcribe**

@@ -2,8 +2,9 @@ import type { OpenAILanguageModelResponsesOptions } from '@ai-sdk/openai';
 import { z } from 'zod';
 
 /**
- * Reasoning efforts Meta accepts, as listed by the API's own 400 message for `muse-spark-1.3`
- * (`none` is rejected; see docs/model-notes.md, P1-02). Wonder is checked in P1-03.
+ * Reasoning efforts Meta accepts, as listed by the API's own 400 messages for `muse-spark-1.3`
+ * (P1-02) and `muse-wonder-1.0` (P1-03): the same set for both, `none` is rejected
+ * (docs/model-notes.md).
  */
 export const META_REASONING_EFFORTS = ['minimal', 'low', 'medium', 'high', 'xhigh', 'max'] as const;
 
