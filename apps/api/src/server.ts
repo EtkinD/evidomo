@@ -1,4 +1,4 @@
-import { createApp } from './app.ts';
+import { appConfigFromEnv, createApp } from './app.ts';
 import { createDbClient } from './db/client.ts';
 import { bootDefinitions } from './definitions/boot.ts';
 import { loadEnv } from './env.ts';
@@ -10,7 +10,7 @@ const logger = createLogger(env);
 // The registry is handed to the run engine and routes once they exist (P2-03, P4).
 await bootDefinitions({ dir: env.DEFINITIONS_DIR, logger });
 const dbClient = createDbClient(env.DATABASE_URL);
-const app = createApp({ db: dbClient, logger });
+const app = createApp({ db: dbClient, logger, config: appConfigFromEnv(env) });
 
 const server = app.listen(env.PORT, (error) => {
   if (error) {

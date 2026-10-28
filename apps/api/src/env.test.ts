@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { DEFAULT_DEV_STORAGE_DIR, EnvError, loadEnv } from './env.ts';
+import {
+  DEFAULT_DEV_APP_ORIGIN,
+  DEFAULT_DEV_STORAGE_DIR,
+  DEFAULT_SESSION_TTL_DAYS,
+  EnvError,
+  loadEnv,
+} from './env.ts';
 
 describe('loadEnv', () => {
   it('applies defaults and coerces the port', () => {
@@ -14,6 +20,9 @@ describe('loadEnv', () => {
       DATABASE_URL: 'postgres://u:p@localhost:5432/db',
       DAILY_BUDGET_USD: '5.00',
       STORAGE_DIR: DEFAULT_DEV_STORAGE_DIR,
+      APP_ORIGIN: DEFAULT_DEV_APP_ORIGIN,
+      SESSION_TTL_DAYS: DEFAULT_SESSION_TTL_DAYS,
+      TRUST_PROXY_HOPS: 0,
     });
   });
 
@@ -48,6 +57,7 @@ describe('loadEnv', () => {
         NODE_ENV: 'production',
         DAILY_BUDGET_USD: '20',
         STORAGE_DIR: '/data',
+        APP_ORIGIN: 'https://evidomo.example',
       };
       expect(() => loadEnv(production)).toThrow(/MODEL_API_KEY/);
       expect(() => loadEnv({ ...production, MODEL_API_KEY: '' })).toThrow(/MODEL_API_KEY/);
@@ -62,6 +72,7 @@ describe('loadEnv', () => {
       NODE_ENV: 'production',
       MODEL_API_KEY: 'test-key',
       STORAGE_DIR: '/data',
+      APP_ORIGIN: 'https://evidomo.example',
     };
 
     it('defaults to 5.00 outside production, also for an empty value', () => {
@@ -111,6 +122,7 @@ describe('loadEnv', () => {
       NODE_ENV: 'production',
       MODEL_API_KEY: 'test-key',
       DAILY_BUDGET_USD: '20',
+      APP_ORIGIN: 'https://evidomo.example',
     };
 
     it('defaults to data/storage at the repository root, also for an empty value', () => {
@@ -135,6 +147,63 @@ describe('loadEnv', () => {
     it('is required in production', () => {
       expect(() => loadEnv(production)).toThrow(/STORAGE_DIR/);
       expect(loadEnv({ ...production, STORAGE_DIR: '/data' }).STORAGE_DIR).toBe('/data');
+    });
+  });
+
+  describe('auth settings', () => {
+    const DATABASE_URL = 'postgres://u:p@localhost:5432/db';
+    const production = {
+      DATABASE_URL,
+      NODE_ENV: 'production',
+      MODEL_API_KEY: 'test-key',
+      DAILY_BUDGET_USD: '20',
+      STORAGE_DIR: '/data',
+    };
+
+    it('defaults APP_ORIGIN to the web dev server outside production, also for an empty value', () => {
+      expect(loadEnv({ DATABASE_URL }).APP_ORIGIN).toBe('http://localhost:3000');
+      expect(loadEnv({ DATABASE_URL, APP_ORIGIN: '' }).APP_ORIGIN).toBe('http://localhost:3000');
+    });
+
+    it('normalizes APP_ORIGIN to a bare origin and rejects paths and other schemes', () => {
+      expect(loadEnv({ DATABASE_URL, APP_ORIGIN: 'https://Evidomo.Example/' }).APP_ORIGIN).toBe(
+        'https://evidomo.example',
+      );
+      for (const value of ['https://evidomo.example/app', 'ftp://evidomo.example', 'evidomo']) {
+        expect(() => loadEnv({ DATABASE_URL, APP_ORIGIN: value })).toThrow(/APP_ORIGIN/);
+      }
+    });
+
+    it('requires an https APP_ORIGIN in production, except on localhost', () => {
+      expect(() => loadEnv(production)).toThrow(/APP_ORIGIN is required/);
+      expect(() => loadEnv({ ...production, APP_ORIGIN: 'http://evidomo.example' })).toThrow(
+        /https/,
+      );
+      expect(loadEnv({ ...production, APP_ORIGIN: 'http://localhost' }).APP_ORIGIN).toBe(
+        'http://localhost',
+      );
+      expect(loadEnv({ ...production, APP_ORIGIN: 'https://evidomo.example' }).APP_ORIGIN).toBe(
+        'https://evidomo.example',
+      );
+    });
+
+    it('defaults TRUST_PROXY_HOPS to 1 behind Caddy in production and 0 elsewhere', () => {
+      expect(loadEnv({ DATABASE_URL }).TRUST_PROXY_HOPS).toBe(0);
+      expect(
+        loadEnv({ ...production, APP_ORIGIN: 'https://evidomo.example' }).TRUST_PROXY_HOPS,
+      ).toBe(1);
+      expect(loadEnv({ DATABASE_URL, TRUST_PROXY_HOPS: '2' }).TRUST_PROXY_HOPS).toBe(2);
+      expect(() => loadEnv({ DATABASE_URL, TRUST_PROXY_HOPS: '-1' })).toThrow(/TRUST_PROXY_HOPS/);
+    });
+
+    it('coerces SESSION_TTL_DAYS and bounds it', () => {
+      expect(loadEnv({ DATABASE_URL, SESSION_TTL_DAYS: '7' }).SESSION_TTL_DAYS).toBe(7);
+      expect(loadEnv({ DATABASE_URL, SESSION_TTL_DAYS: '' }).SESSION_TTL_DAYS).toBe(30);
+      for (const value of ['0', '366', '1.5', 'week']) {
+        expect(() => loadEnv({ DATABASE_URL, SESSION_TTL_DAYS: value })).toThrow(
+          /SESSION_TTL_DAYS/,
+        );
+      }
     });
   });
 });

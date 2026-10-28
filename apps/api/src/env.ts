@@ -17,6 +17,31 @@ export const DEFAULT_DEV_STORAGE_DIR = fileURLToPath(
   new URL('../../../data/storage', import.meta.url),
 );
 
+// The Next.js dev server; it proxies `/api/*` to the API so the browser stays same-origin.
+export const DEFAULT_DEV_APP_ORIGIN = 'http://localhost:3000';
+export const DEFAULT_SESSION_TTL_DAYS = 30;
+
+const LOCAL_HOSTNAMES = new Set(['localhost', '127.0.0.1', '[::1]']);
+
+const emptyAsUnset = (value: unknown): unknown => (value === '' ? undefined : value);
+
+// A bare origin (`https://evidomo.example`); a trailing slash is accepted and dropped. Anything
+// with a path, query, or fragment is a misconfiguration, not an origin.
+const originSchema = z
+  .url({ protocol: /^https?$/ })
+  .refine((value) => {
+    // Refinements still run after a failed format check, so the value may not parse.
+    const url = URL.parse(value);
+    return (
+      url !== null &&
+      url.pathname === '/' &&
+      url.search === '' &&
+      url.hash === '' &&
+      url.username === ''
+    );
+  }, 'APP_ORIGIN must be a bare origin such as https://evidomo.example')
+  .transform((value) => new URL(value).origin);
+
 const envSchema = z
   .object({
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
@@ -49,6 +74,19 @@ const envSchema = z
         .transform((value) => path.resolve(value))
         .optional(),
     ),
+    // The browser-facing origin of the web app (Caddy serves web and API on it). State-changing
+    // requests from any other Origin are rejected, and an https origin turns on Secure,
+    // `__Host-` session cookies. Required in production.
+    APP_ORIGIN: z.preprocess(emptyAsUnset, originSchema.optional()),
+    // Absolute session lifetime; there is no sliding renewal.
+    SESSION_TTL_DAYS: z.preprocess(
+      emptyAsUnset,
+      z.coerce.number().int().min(1).max(365).default(DEFAULT_SESSION_TTL_DAYS),
+    ),
+    // Reverse proxies in front of the API whose X-Forwarded-For entry is trusted for the client
+    // IP (rate limits). Production has exactly one (Caddy, which discards client-supplied
+    // X-Forwarded-For); development has none, so a direct client cannot spoof its IP.
+    TRUST_PROXY_HOPS: z.preprocess(emptyAsUnset, z.coerce.number().int().min(0).max(5).optional()),
   })
   .superRefine((env, ctx) => {
     if (env.NODE_ENV === 'production' && env.MODEL_API_KEY === undefined) {
@@ -72,11 +110,32 @@ const envSchema = z
         message: 'STORAGE_DIR is required in production',
       });
     }
+    if (env.NODE_ENV === 'production') {
+      if (env.APP_ORIGIN === undefined) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['APP_ORIGIN'],
+          message: 'APP_ORIGIN is required in production',
+        });
+      } else {
+        const url = new URL(env.APP_ORIGIN);
+        // Plain http is tolerated only for a local run of the production stack.
+        if (url.protocol !== 'https:' && !LOCAL_HOSTNAMES.has(url.hostname)) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['APP_ORIGIN'],
+            message: 'APP_ORIGIN must use https in production (except on localhost)',
+          });
+        }
+      }
+    }
   })
   .transform((env) => ({
     ...env,
     DAILY_BUDGET_USD: env.DAILY_BUDGET_USD ?? DEFAULT_DEV_DAILY_BUDGET_USD,
     STORAGE_DIR: env.STORAGE_DIR ?? DEFAULT_DEV_STORAGE_DIR,
+    APP_ORIGIN: env.APP_ORIGIN ?? DEFAULT_DEV_APP_ORIGIN,
+    TRUST_PROXY_HOPS: env.TRUST_PROXY_HOPS ?? (env.NODE_ENV === 'production' ? 1 : 0),
   }));
 
 export type Env = z.infer<typeof envSchema>;

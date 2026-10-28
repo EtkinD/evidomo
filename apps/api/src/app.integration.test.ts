@@ -2,8 +2,9 @@ import { PostgreSqlContainer, type StartedPostgreSqlContainer } from '@testconta
 import { pino } from 'pino';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { createApp } from './app.ts';
+import { appConfigFromEnv, createApp } from './app.ts';
 import { createDbClient, type DbClient } from './db/client.ts';
+import { loadEnv } from './env.ts';
 
 describe('GET /api/healthz against a real PostgreSQL', () => {
   let container: StartedPostgreSqlContainer;
@@ -20,7 +21,12 @@ describe('GET /api/healthz against a real PostgreSQL', () => {
   });
 
   it('reports the database as ok', async () => {
-    const app = createApp({ db: dbClient, logger: pino({ enabled: false }) });
+    const env = loadEnv({ DATABASE_URL: container.getConnectionUri(), NODE_ENV: 'test' });
+    const app = createApp({
+      db: dbClient,
+      logger: pino({ enabled: false }),
+      config: appConfigFromEnv(env),
+    });
 
     const response = await request(app).get('/api/healthz');
 

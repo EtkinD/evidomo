@@ -7,3 +7,5 @@ export * from './definitions.ts';
 export * from './materials.ts';
 export * from './run-events.ts';
 export * from './transcription.ts';
+export * from './api-error.ts';
+export * from './auth.ts';

@@ -19,6 +19,9 @@ x-app-env: &app-env
   DAILY_BUDGET_USD: ${DAILY_BUDGET_USD:-}
   # Storage volume mount point for uploaded materials and generated artifacts.
   STORAGE_DIR: /data
+  # Public origin of the site, e.g. https://evidomo.example (CSRF Origin check, Secure
+  # __Host- session cookie). Required by api and worker in production.
+  APP_ORIGIN: ${APP_ORIGIN:-}
 
 services:
   caddy:
