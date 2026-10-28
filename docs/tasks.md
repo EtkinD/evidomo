@@ -136,7 +136,7 @@ The orchestrator (main session) delegates each task to its owner — see `.claud
 - [x] **P3-04 — Staging variants**
   - Depends on: P1-07, P2-08
   - Done when: declared-operation edits are produced per the P1-07 decision; every staged image is labeled and linked to its original.
-- [ ] **P3-05 — Step: integrity check**
+- [x] **P3-05 — Step: integrity check**
   - Depends on: P1-07, P3-04
   - Done when: the check passes valid edits and rejects the structure-altering test edit; one retry then fallback to the original.
 - [ ] **P3-06 — Step: verification**

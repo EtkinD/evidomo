@@ -227,3 +227,23 @@ export const imagesStagedPayloadSchema = z.strictObject({
   privacySkippedCount: count,
 });
 export type ImagesStagedPayload = z.infer<typeof imagesStagedPayloadSchema>;
+
+/**
+ * Appended by the integrity step together with its `integrity_checks` artifact: counts for the
+ * run monitor. Never verdict details, phrases, or operations.
+ */
+export const integrityCheckedPayloadSchema = z.strictObject({
+  stepId: z.string().min(1),
+  /** The step's `integrity_checks` artifact. */
+  artifactId: z.uuid(),
+  /** Staged photos checked (one per `staged` entry of the staging manifest). */
+  photoCount: count,
+  passedCount: count,
+  passedOnRetryCount: count,
+  fallbackCount: count,
+  /** Retry edits sent to the image model. */
+  retryCount: count,
+  /** Photos whose check could not run (they fall back to the original). */
+  uncheckedCount: count,
+});
+export type IntegrityCheckedPayload = z.infer<typeof integrityCheckedPayloadSchema>;

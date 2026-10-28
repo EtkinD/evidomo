@@ -195,10 +195,37 @@ export const serviceStepSchema = z.discriminatedUnion('agent', [
       .min(1)
       .refine((kinds) => new Set(kinds).size === kinds.length, 'operation kinds must be unique'),
   }),
+  /**
+   * Structural check of each staged image against its original (docs/architecture.md §5,
+   * thresholds measured in P1-07). One SAM call per phrase per image: the original's fixed
+   * elements once, the edit's fixed elements plus `edit_privacy_phrases` per checked edit.
+   */
   z.strictObject({
     ...stepCommon,
     agent: z.literal('integrity_checker'),
     segmentation_model: modelIdSchema,
+    /**
+     * Fixed-element classes whose count and positions must survive the edit. Occlusion-tolerant
+     * classes (low elements that staged furniture may partly hide) also match by containment.
+     */
+    fixed_elements: z
+      .array(z.strictObject({ phrase: samPhraseSchema, occlusion_tolerant: z.boolean() }))
+      .min(1)
+      .max(6),
+    /** A pair whose box IoU (both images mapped to the unit square) reaches this matches. */
+    min_iou: z.number().gt(0).max(1),
+    /** Occlusion path: intersection over the smaller box's area. */
+    min_containment: z.number().gt(0).max(1),
+    /** Occlusion path: smaller box area over larger box area. */
+    min_area_ratio: z.number().gt(0).max(1),
+    /** Largest accepted relative change of width/height; positions are not comparable beyond. */
+    max_aspect_ratio_change: z.number().min(0).max(0.5),
+    /**
+     * Segmented on every checked edit; any instance fails it. Only privacy-`clear` originals are
+     * staged, and a staged image has no privacy masks, so a person the model drew could be
+     * neither blurred nor justified. Empty turns the check off.
+     */
+    edit_privacy_phrases: z.array(samPhraseSchema).max(5),
   }),
   z.strictObject({
     ...stepCommon,
@@ -318,6 +345,24 @@ export const serviceDefinitionSchema = z
           step.privacy_phrases.map((phrase) => phrase.toLowerCase()),
           (n) => ['steps', i, 'privacy_phrases', n],
           'privacy phrase',
+        );
+      }
+      if (step.agent === 'integrity_checker') {
+        // One segmentation per phrase and image, keyed by phrase: a phrase listed twice (or as
+        // both a fixed element and a privacy phrase) would make the comparison ambiguous.
+        const phrases = [
+          ...step.fixed_elements.map((element) => element.phrase),
+          ...step.edit_privacy_phrases,
+        ];
+        const fixedCount = step.fixed_elements.length;
+        checkUnique(
+          ctx,
+          phrases.map((phrase) => phrase.toLowerCase()),
+          (n) =>
+            n < fixedCount
+              ? ['steps', i, 'fixed_elements', n, 'phrase']
+              : ['steps', i, 'edit_privacy_phrases', n - fixedCount],
+          'integrity phrase',
         );
       }
       if (!('reasoning_effort' in step)) return;

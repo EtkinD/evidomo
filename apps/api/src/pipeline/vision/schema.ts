@@ -15,13 +15,6 @@ export const PHOTO_CLASSIFICATION_OUTPUT_NAME = 'photo_inventory';
 /** Bumped whenever the prompt or output schema changes meaning; stored in the artifact. */
 export const VISION_PROMPT_VERSION = 1;
 
-/**
- * SAM accepts and echoes a reasoning effort but it has no documented or observed effect and no
- * tokens are billed (docs/model-notes.md, P1-05); the service definition therefore rejects an
- * effort on SAM. The lowest value is sent, as in the P1-05 recordings, so their cassettes match.
- */
-export const SAM_REASONING_EFFORT = 'minimal';
-
 /** The model's object ID for anything outside the market's evidence objects. */
 export const OTHER_OBJECT = 'other';
 

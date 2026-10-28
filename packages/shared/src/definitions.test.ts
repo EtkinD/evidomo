@@ -521,3 +521,87 @@ describe('marketProfileSchema evidence objects', () => {
     ]);
   });
 });
+
+describe('serviceDefinitionSchema integrity step', () => {
+  function withSteps(...steps: Record<string, unknown>[]) {
+    const service = validService();
+    service.steps.splice(1, 0, ...steps);
+    return service;
+  }
+  const integrity = {
+    id: 'integrity',
+    agent: 'integrity_checker',
+    segmentation_model: 'sam-3.1',
+    fixed_elements: [
+      { phrase: 'window', occlusion_tolerant: false },
+      { phrase: 'door', occlusion_tolerant: true },
+    ],
+    min_iou: 0.75,
+    min_containment: 0.85,
+    min_area_ratio: 0.4,
+    max_aspect_ratio_change: 0.03,
+    edit_privacy_phrases: ['person'],
+  };
+
+  it('accepts the P1-07 settings and prices the segmentation model', () => {
+    const parsed = serviceDefinitionSchema.parse(withSteps(integrity));
+    expect(parsed.steps[1]).toEqual(integrity);
+    const step = parsed.steps[1];
+    if (step === undefined) throw new Error('missing step');
+    expect(stepModelIds(step)).toEqual([{ field: 'segmentation_model', modelId: 'sam-3.1' }]);
+    expect(
+      serviceDefinitionSchema.safeParse(withSteps({ ...integrity, edit_privacy_phrases: [] }))
+        .success,
+    ).toBe(true);
+  });
+
+  it('requires every threshold and keeps ratios in (0, 1]', () => {
+    const fields = ['min_iou', 'min_containment', 'min_area_ratio', 'fixed_elements'] as const;
+    for (const field of fields) {
+      const { [field]: _omitted, ...without } = integrity;
+      expect(messages(serviceDefinitionSchema.safeParse(withSteps(without)))[0]).toMatch(
+        new RegExp(`^steps\\.1\\.${field}: `),
+      );
+    }
+    for (const value of [0, 1.2]) {
+      expect(
+        serviceDefinitionSchema.safeParse(withSteps({ ...integrity, min_iou: value })).success,
+      ).toBe(false);
+    }
+    expect(
+      serviceDefinitionSchema.safeParse(withSteps({ ...integrity, max_aspect_ratio_change: 0.6 }))
+        .success,
+    ).toBe(false);
+    expect(
+      serviceDefinitionSchema.safeParse(withSteps({ ...integrity, fixed_elements: [] })).success,
+    ).toBe(false);
+  });
+
+  it('rejects a phrase used twice across fixed elements and privacy phrases', () => {
+    expect(
+      messages(
+        serviceDefinitionSchema.safeParse(
+          withSteps({ ...integrity, edit_privacy_phrases: ['Window'] }),
+        ),
+      ),
+    ).toEqual(['steps.1.edit_privacy_phrases.0: Duplicate integrity phrase "window"']);
+    expect(
+      messages(
+        serviceDefinitionSchema.safeParse(
+          withSteps({
+            ...integrity,
+            fixed_elements: [
+              ...integrity.fixed_elements,
+              { phrase: 'door', occlusion_tolerant: false },
+            ],
+          }),
+        ),
+      ),
+    ).toEqual(['steps.1.fixed_elements.2.phrase: Duplicate integrity phrase "door"']);
+    expect(
+      serviceDefinitionSchema.safeParse(
+        withSteps({ ...integrity, edit_privacy_phrases: ['person, face'] }),
+      ).success,
+    ).toBe(false);
+  });
+});

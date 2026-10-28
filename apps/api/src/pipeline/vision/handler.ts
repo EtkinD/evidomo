@@ -72,7 +72,7 @@ export function selectPhotos(
   return ready;
 }
 
-async function readAll(stream: Readable, limitBytes: number): Promise<Uint8Array> {
+export async function readAll(stream: Readable, limitBytes: number): Promise<Uint8Array> {
   const chunks: Buffer[] = [];
   let total = 0;
   for await (const chunk of stream) {

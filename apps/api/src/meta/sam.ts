@@ -49,6 +49,14 @@ export interface SamSegmentResult {
   readonly usage: UsageEntry;
 }
 
+/**
+ * The effort every pipeline SAM call sends. SAM accepts and echoes a reasoning effort, but it has
+ * no documented or observed effect and no tokens are billed (docs/model-notes.md, P1-05), so the
+ * service definition has no effort field for SAM. The lowest value is sent, as in the P1-05
+ * recordings, so their cassettes keep matching.
+ */
+export const SAM_REASONING_EFFORT = 'minimal' satisfies MetaReasoningEffort;
+
 export class SamRequestError extends Error {
   override name = 'SamRequestError';
 }

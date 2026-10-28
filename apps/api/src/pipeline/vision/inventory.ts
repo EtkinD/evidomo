@@ -12,7 +12,7 @@ import {
 import { generateText, Output } from 'ai';
 import type { MetaClients } from '../../meta/clients.ts';
 import { metaProviderOptions } from '../../meta/options.ts';
-import { segmentImage, type SamSegment } from '../../meta/sam.ts';
+import { SAM_REASONING_EFFORT, segmentImage, type SamSegment } from '../../meta/sam.ts';
 import { NonRetryableStepError, type StepConfig } from '../../runs/steps.ts';
 import { mapLimited } from './concurrency.ts';
 import { imageForClassification } from './downscale.ts';
@@ -22,7 +22,6 @@ import { buildPhotoSystemPrompt, PHOTO_USER_TEXT } from './prompt.ts';
 import { toRegion, toStoredRegion, unionBox, WHOLE_IMAGE } from './regions.ts';
 import {
   PHOTO_CLASSIFICATION_OUTPUT_NAME,
-  SAM_REASONING_EFFORT,
   VISION_LIMITS,
   VISION_PROMPT_VERSION,
   buildPhotoOutputSchema,

@@ -164,7 +164,8 @@ output_tokens, total_tokens } }`. There is no `id`, `model`, or `size`, and no f
   - the integrity check compares boxes, not masks or SSIM.
 - **Open:** positive privacy recall (faces, plates) is unverified.
 - **Details:** [P1-05](#p1-05--sam-31-and-output-parser),
-  [P1-07](#p1-07--integrity-check-feasibility), [P2-08](#p2-08--vision-inventory).
+  [P1-07](#p1-07--integrity-check-feasibility), [P2-08](#p2-08--vision-inventory),
+  [P3-05](#p3-05--integrity-check).
 
 ### Cross-cutting gotchas
 
@@ -221,6 +222,12 @@ output_tokens, total_tokens } }`. There is no `id`, `model`, or `size`, and no f
   2xx response that carries zero images.
 - **The `openai` SDK captures `fetch` at construction.** `metaFetch` binds late so that MSW sees
   every request. The standard-mode guard checks JSON bodies and the multipart `request` part.
+- **Never key a cassette on our own re-encode.** Requests match by the SHA-256 of the body,
+  which includes the image. `encodeStagedImage` (sharp/libvips, mozjpeg) is not guaranteed to
+  emit identical bytes on arm64 (development) and x86-64 (CI): mozjpeg's trellis quantization
+  uses floating point, which compilers may fuse differently per architecture. A SAM request on
+  a re-encoded staged image could therefore replay locally and miss in CI. Tests feed committed
+  files (or the model's replayed bytes) to any recorded request ([P3-05](#p3-05--integrity-check)).
 - **Timestamps:** Meta's `created_at` equals `completed_at`, so latency is client-measured only.
   Cassettes store no timing.
 
@@ -2317,3 +2324,127 @@ RECORD=1 node --env-file=.env node_modules/vitest/vitest.mjs run --project api s
 
 Budget 0.30 USD (stop at 0.25). Cost from the price table ($0.01 per returned image); Meta's
 billing dashboard was not checked, so whether call 5 reached the API and was billed is unknown.
+
+## P3-05 — Integrity check
+
+Status: done (pending review). Recorded 2026-10-29. Code: `apps/api/src/pipeline/integrity/`
+(`check.ts`, `handler.ts`, `compare.ts`); contracts in `packages/shared/src/integrity.ts`; design
+in [architecture.md §5 Integrity check](./architecture.md#5-run-pipeline).
+
+### Request
+
+Unchanged `segmentImage` (P1-05): one phrase per call, `include_confidence: "true"`, effort
+`minimal`. The effort constant moved from `pipeline/vision/schema.ts` to `meta/sam.ts`
+(`SAM_REASONING_EFFORT`), shared by vision and integrity, so every pipeline SAM request stays
+byte-identical to the P1-05 recordings. Per staged photo: the original's `window`, `door`,
+`radiator` (3 calls, reused for the retry) and the edit's three plus `person` (4 calls). The
+original and the first edit are segmented concurrently.
+
+### Decisions
+
+- **Thresholds and element rules in the definition** (`integrity_checker`: `fixed_elements`,
+  `min_iou`, `min_containment`, `min_area_ratio`, `max_aspect_ratio_change`), v1 at the P1-07
+  values; `compare.ts` keeps them as the documented defaults and a unit test pins the YAML to
+  them.
+- **`person` on every checked edit (`edit_privacy_phrases: [person]`, +$0.0025 per checked
+  image).** Staging only sends privacy-`clear` originals, and the staged image has no masks, so
+  a person the model drew could be neither blurred at export nor justified in a listing. Any
+  instance fails the attempt (retry, then original). `license plate` is not added: staging is
+  interiors only. Measured: 0 people on all 11 edits checked (6 synthetic, 5 P3-04).
+- **Fail-closed when the check cannot run.** A photo-level SAM failure (400/413/415/422,
+  malformed or incomplete output) or a box outside its own image marks the attempt
+  `unchecked`; the photo keeps its original and is **not** retried (the retry costs $0.01 and
+  the same SAM failure is likely). Transient errors fail the step execution, as everywhere.
+- **Retry images are stored whatever their verdict**, under the integrity step, so Gate 2 can
+  show every verdict with its image. Only `finalStagedArtifactId` may be offered or exported.
+- **Retry model** from the service's `stager` step (`stagingSettings`), not from the stored
+  record.
+- **No reuse of vision's segmentation.** The inventory stores privacy and market evidence
+  phrases only; none of `window`, `door`, `radiator` is an evidence object, so originals are
+  segmented fresh (3 calls each).
+
+### Measured: verdicts with the v1 settings
+
+P1-07's six synthetic pairs reproduce P1-07 exactly (same recordings): 5/5 harmless edits pass
+(worst slack: the chairs radiator, area ratio 0.52, containment path), and
+`living-empty.edit-remove-window` fails on `window` (1 → 0, `count_changed`,
+`unmatched_original`). The five P3-04 edits (the model's replayed output at 960×640, which
+P3-04 downscaled, against the 1024×682 originals; aspect change 0.10%):
+
+| Photo                     | Operation             | Counts (window, door, radiator) | Worst matched IoU | Verdict |
+| ------------------------- | --------------------- | ------------------------------- | ----------------- | ------- |
+| `living-empty`            | `furnish_living_room` | 1→1, 1→1, 1→1                   | 0.92, 0.95, 0.96  | pass    |
+| `dining-chairs`           | `furnish_dining_room` | 1→1, 1→1, 1→1                   | 0.98, 0.97, 0.95  | pass    |
+| `bedroom-empty`           | `furnish_bedroom`     | 1→1, 4→4, 1→1                   | 0.98, 0.83, 0.94  | pass    |
+| `living-dining-cluttered` | `declutter`           | 2→2, 1→1, 2→2                   | 0.95, 0.99, 0.90  | pass    |
+| `kitchen-cluttered`       | `declutter`           | 1→1, 9→9, 1→1                   | 0.92, 0.85, 0.98  | pass    |
+
+- **The kitchen declutter passes**, as predicted in P3-04: its redrawn worktop and base cabinets
+  are not a fixed-element class, and `door` (which counts cabinet doors) stays at 9 with
+  worst IoU 0.85. The same holds for the enlarged dining table. With `declutter` off in v1
+  (`operation_kinds: [furnish]`, d5cac87) neither edit can be produced.
+- The P3-04 furnish edits show less margin than the P1-06 ones in two places: the bedroom's
+  wardrobe/door at 0.83 and the living-room window at 0.92 (P1-06: 0.96 both); still ≥ 0.08
+  above `minIoU`.
+
+### Measured: phrases for surfaces declutter redraws (not in the defaults)
+
+One recording each, on the P3-04 declutter edits; compared as one non-occlusion-tolerant class.
+
+| Pair                      | Phrase            | Counts | Result                                                        |
+| ------------------------- | ----------------- | ------ | ------------------------------------------------------------- |
+| `kitchen-cluttered`       | `countertop`      | 1 → 1  | **fails**: IoU 0.56 < 0.75 (longer, deeper counter)           |
+| `kitchen-cluttered`       | `kitchen cabinet` | 11 → 9 | **fails** on count; the 9 matched cabinets have IoU 0.88–0.99 |
+| `living-dining-cluttered` | `dining table`    | 0 → 0  | passes vacuously: SAM finds no `dining table` in either image |
+
+- `countertop` would catch the kitchen case cheaply (+2 calls per kitchen photo) and looks
+  stable in principle (one large instance), but this is a single sample with no measurement of
+  false failures on harmless kitchen edits. `kitchen cabinet` caught it through two lost
+  instances, but per-cabinet counts are the kind of low-score flicker P1-07 warned about.
+  `dining table` is useless as a phrase (SAM returned nothing). Nothing was added to the
+  defaults: declutter is off in v1, and turning it on should come with these phrases measured on
+  more pairs, including harmless declutters.
+
+### Replay and record
+
+`integrity.test.ts` (`api`) runs the core on the synthetic pairs and the P3-04 edits, the phrase
+measurements, and the default retry (one replayed P3-04 edit, no SAM on its re-encode). Fixed
+elements on the synthetic images replay from `p1-05/sam-integrity`, the edits from
+`p3-04/staging` (both `include`, never re-sent); `fixtures/meta/p3-05/integrity.json` holds the
+32 new SAM answers (`person` on 6 synthetic edits; 4 phrases on 5 P3-04 edits; 6 measurement
+calls). `check.test.ts` drives the failure paths through a stubbed `fetch` that serves those
+recordings and swaps single answers for errors or for another phrase's answer (a stand-in
+`person`). The integration test runs a stand-in staging step that stores committed synthetic
+edits, then the real integrity handler through the engine (pass, fail → retry pass, fail → retry
+fail → original, nothing staged); its retry seam (`IntegrityHandlerDeps.restage`) returns
+committed images, because the real retry's re-encode cannot key a SAM fixture on every platform
+(see the cross-cutting gotcha). Re-record ($0.08 for 32 distinct calls; identical requests are
+sent again in record mode, ~36 calls):
+
+```sh
+RECORD=1 node --env-file=.env node_modules/vitest/vitest.mjs run --project api \
+  src/pipeline/integrity/integrity.test.ts
+```
+
+`P3_05_OUT_DIR=<dir>` writes the measured verdicts and phrase numbers there as JSON.
+
+### Cost per run (measured unit costs)
+
+Per staged image: 3 (original) + 4 (edit) SAM calls = $0.0175; a failed check adds one edit and
+4 calls = $0.02 more. With v1's `max_staged_images: 3`: $0.0525 when everything passes, $0.1125
+worst case (all three retried). No retry was triggered by a real edit in any measurement.
+
+### Live calls and cost (P3-05)
+
+| #     | Call                                                            | Images  | Est. USD  |
+| ----- | --------------------------------------------------------------- | ------- | --------- |
+| 1–6   | SAM `person` on the 6 synthetic edits                           | 6       | 0.015     |
+| 7–26  | SAM `window`, `door`, `radiator`, `person` on the 5 P3-04 edits | 20      | 0.05      |
+| 27–32 | SAM measurement phrases (2 images × 3 phrases)                  | 6       | 0.015     |
+| 33–36 | Record-mode repeats of identical `person` requests (not stored) | ~4      | ~0.01     |
+|       | Replayed: P1-05 fixed elements, P3-04 edits                     | –       | 0         |
+|       | **Total**                                                       | **~36** | **~0.09** |
+
+Budget 0.30 USD (stop at 0.25). One record run; no failed requests. Cost from the price table
+($0.0025 per SAM image); the repeats are inferred from the test's request pattern, since record
+mode stores one interaction per distinct request.

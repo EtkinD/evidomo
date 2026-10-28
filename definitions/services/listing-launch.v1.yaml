@@ -99,9 +99,27 @@ service:
       # (worktops, cabinets), which the integrity check does not cover (P3-04).
       operation_kinds: [furnish]
 
+    # Structural check of each staged image (docs/architecture.md §5, P1-07, P3-05). Thresholds
+    # and element rules are the P1-07 measurements: on six synthetic pairs every harmless edit
+    # cleared its rule by >= 0.12 and the window removal failed on its count. Windows sit above
+    # furniture height, so only doors and radiators may be partly hidden (containment path).
+    # Per staged image: 3 SAM calls on the original (once), 4 on each checked edit ($0.0025
+    # each); a failed check re-runs the same edit once ($0.01) and checks it again, and a second
+    # failure keeps the original only. `person` on the edit: staged originals are privacy-clear
+    # and a staged image has no privacy masks, so a person the model drew fails the check.
+    # Fields added in place in P3-05, before any run existed.
     - id: integrity
       agent: integrity_checker
       segmentation_model: sam-3.1
+      fixed_elements:
+        - { phrase: window, occlusion_tolerant: false }
+        - { phrase: door, occlusion_tolerant: true }
+        - { phrase: radiator, occlusion_tolerant: true }
+      min_iou: 0.75
+      min_containment: 0.85
+      min_area_ratio: 0.4
+      max_aspect_ratio_change: 0.03
+      edit_privacy_phrases: [person]
 
     - id: verification
       agent: verifier

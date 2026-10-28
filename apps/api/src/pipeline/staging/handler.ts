@@ -72,11 +72,11 @@ export async function readInventory(
  * Reads the selected originals and checks that each is still exactly the inventoried photo, so a
  * staged image is always linked to the bytes the privacy check and selection saw.
  */
-async function readOriginals(
+export async function readOriginals(
   deps: StagingHandlerDeps,
   db: Executor,
   projectId: string,
-  requests: readonly StagingRequestPlan[],
+  requests: readonly Pick<StagingRequestPlan, 'materialId' | 'sha256' | 'width' | 'height'>[],
 ): Promise<StagingPhoto[]> {
   if (requests.length === 0) return [];
   const materials = await listMaterials(db, projectId, { kind: 'photo' });
@@ -99,13 +99,13 @@ async function readOriginals(
   return photos;
 }
 
-interface StoredStagedImage {
+export interface StoredStagedImage {
   readonly draft: StagedImageDraft;
   readonly stored: StoredObject;
 }
 
 /** Deletes files no artifact will reference. Failures are logged: the step's outcome stands. */
-async function deleteFiles(
+export async function deleteFiles(
   storage: Storage,
   logger: Logger,
   objects: readonly StoredObject[],
@@ -120,7 +120,7 @@ async function deleteFiles(
 }
 
 export function stagedImageContent(
-  request: StagingRequestPlan,
+  request: Pick<StagingRequestPlan, 'materialId' | 'sha256' | 'width' | 'height'>,
   item: StoredStagedImage,
   model: string,
 ): StagedImageContent {

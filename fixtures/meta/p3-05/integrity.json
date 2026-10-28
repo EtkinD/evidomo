@@ -1,0 +1,2311 @@
+{
+  "formatVersion": 1,
+  "cassette": "p3-05/integrity",
+  "recordedAt": "2026-10-28T22:22:23.568Z",
+  "interactions": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "05550b3ddea19b72a3026486793ef5aa876c3c301a0afd1333684fe133ba3afb"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "metadata": {
+              "include_confidence": "true",
+              "mask_encoding": "one_bit"
+            },
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "sam-3.1",
+            "reasoning": {
+              "effort": "minimal"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae27589bf0bde44a4904356",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793226121,
+            "completed_at": 1793226121,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "message",
+                "id": "msg_4f392d24-3734-42d4-9e29-e2715efdb060",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 0,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 0,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 0,
+              "images_processed": 1
+            },
+            "parallel_tool_calls": true,
+            "store": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "07f312d2d56b12aa4edefa50eb2c20890d75e8a7b63c222d2452b0ec6a79c1d9"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "metadata": {
+              "include_confidence": "true",
+              "mask_encoding": "one_bit"
+            },
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "sam-3.1",
+            "reasoning": {
+              "effort": "minimal"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae27595b572ff5de49d4dcf",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793226133,
+            "completed_at": 1793226133,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "message",
+                "id": "msg_008280ef-c582-413c-8b22-06f73e12ebf7",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "<0f>0<|box;x1=531;y1=59;x2=671;y2=362;w=960;h=640;c=0.8518518805503845|><|mask;x=0;y=0;c=0.8518518805503845;data=304,141,!!!!#'K)68Cs1/I9sy$'QamrhLA2&Wl0WrO+Ty2jAF=..?G@^j38b_$amvJe[f_ja6q627`Q8'RoQodxo'EQsyW^5p&!uw]'iPY3qF3XzK[CN%=q?/p9w{D|>,1<|box;x1=294;y1=59;x2=433;y2=361;w=960;h=640;c=0.8476190567016602|><|mask;x=0;y=0;c=0.8476190567016602;data=303,140,!!!!#3Dv7%.gF^/r_@S#y37I)2L9SVy3UagnCE4G&DiZfGhkp)P()d4fNn^0{QnA[)V-_?6DnSLGO9lvwFz$gyoR/UFPE5z*a2Tp6^^skvD?3!NXV6u-^%r)%3kB3:%G5&g/5|>\n",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 0,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 0,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 0,
+              "images_processed": 1
+            },
+            "parallel_tool_calls": true,
+            "store": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "0d35f9b94d3d6bdfb14d800624c5bb1ba8f1734b5c5906d5d5cb1eabcdc07d80"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "metadata": {
+              "mask_encoding": "one_bit",
+              "include_confidence": "true"
+            },
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "sam-3.1",
+            "reasoning": {
+              "effort": "minimal"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae275933d85d23b22444f2a",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793226131,
+            "completed_at": 1793226131,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "message",
+                "id": "msg_f0c457a1-7025-46c4-b95e-d7520cd0f007",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 0,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 0,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 0,
+              "images_processed": 1
+            },
+            "parallel_tool_calls": true,
+            "store": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "0da9906f1d435f59e09be32525c5ff9fb7b4f37801f0186dacf1861cc1cf6a3b"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "metadata": {
+              "include_confidence": "true",
+              "mask_encoding": "one_bit"
+            },
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "sam-3.1",
+            "reasoning": {
+              "effort": "minimal"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae275968033c8ac19294b26",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793226134,
+            "completed_at": 1793226134,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "message",
+                "id": "msg_614017e5-86f8-4967-a447-2ea8ef01ed21",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 0,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 0,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 0,
+              "images_processed": 1
+            },
+            "parallel_tool_calls": true,
+            "store": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "187789ddffea7f71a7da0019fad893f545b7090c4c09d05f78808fa7d1011c69"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "metadata": {
+              "include_confidence": "true",
+              "mask_encoding": "one_bit"
+            },
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "sam-3.1",
+            "reasoning": {
+              "effort": "minimal"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae27596acf9122a8cc14676",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793226134,
+            "completed_at": 1793226134,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "message",
+                "id": "msg_f705d70c-bba3-437c-8d46-162545c543d7",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "<0f>0<|box;x1=397;y1=107;x2=539;y2=352;w=960;h=640;c=0.8632478713989258|><|mask;x=0;y=0;c=0.8632478713989258;data=246,143,!!!!#7CA!/Pl!u/&7EW51RS{KAF`l5[Qr#ruU{(F%:7Vmaj{(?nUZTHJWU)st1yrFeU_{[SBUy.^m7vH39nNu0U'Mq(T{tz6EYFjfB8&Ma_aBp[@OXP-%aYqfm4$D[tD:7+3/PzU!!|>\n",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 0,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 0,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 0,
+              "images_processed": 1
+            },
+            "parallel_tool_calls": true,
+            "store": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "18e14b7dbde923ef7746907b327905d7486097a72473dd5d025dc13b6c5e9c3c"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "metadata": {
+              "include_confidence": "true",
+              "mask_encoding": "one_bit"
+            },
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "sam-3.1",
+            "reasoning": {
+              "effort": "minimal"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae2759d03adc9a1ef74407a",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793226141,
+            "completed_at": 1793226141,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "message",
+                "id": "msg_edb91978-e605-4005-9ccd-5e84b1dea49f",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 0,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 0,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 0,
+              "images_processed": 1
+            },
+            "parallel_tool_calls": true,
+            "store": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "1b05bb98b535781564786e283885bef77f0065eea6d21491ed1e8eb7de5d6295"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "metadata": {
+              "include_confidence": "true",
+              "mask_encoding": "one_bit"
+            },
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "sam-3.1",
+            "reasoning": {
+              "effort": "minimal"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae275971144fdcd110745e8",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793226135,
+            "completed_at": 1793226135,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "message",
+                "id": "msg_84caecae-51ee-48eb-aed0-c56c5e151c28",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "<0f>0<|box;x1=794;y1=122;x2=815;y2=620;w=960;h=640;c=0.7419355511665344|><|mask;x=0;y=0;c=0.7419355511665344;data=499,22,!!!!#0FUZe7PVtjmZp@yRUS2bKk/VuVSbD]d2yi4DG2)bWa*9Vk4XeiE+n?%?kA)+W]E4lktanRrp_SdIn#[kPViIB59Ob_7:!9HO95L0'O@OQ^E6=daFH3TBdw4&^)4y|>,1<|box;x1=263;y1=0;x2=330;y2=278;w=960;h=640;c=0.6640419960021973|><|mask;x=0;y=0;c=0.6640419960021973;data=279,68,!!!!!EN`Hg%%myur8Wb!=n-iF[wx{/W5@AhzhFjlG9L0_|>,2<|box;x1=0;y1=0;x2=42;y2=226;w=960;h=640;c=0.5540069937705994|><|mask;x=0;y=0;c=0.5540069937705994;data=227,43,!!!!!SqT(2{G465AdTN:cje'PfNSIep%V2q%]#k&Z6JrM`xbb-Qf(L1a&#WX(qU|>,3<|box;x1=367;y1=37;x2=389;y2=295;w=960;h=640;c=0.5586206912994385|><|mask;x=0;y=0;c=0.5586206912994385;data=259,23,!!!!!NIlJVBNbl6uU`)(o_q/]0qvU[{u2ZcvF%{0Zq+x$9S0x{d=72Nl|>,4<|box;x1=43;y1=0;x2=261;y2=261;w=960;h=640;c=0.6521739363670349|><|mask;x=0;y=0;c=0.6521739363670349;data=262,219,!!!!!nIdV3uR3l1M8QIEfy1r7!vUhil`fg*WCoKF^m]cu:=[Tirw7F)(:3%!+YQNf(5B?i4@(Yhp[3.y7mU![6bV-zJIAQy|>,5<|box;x1=330;y1=0;x2=369;y2=289;w=960;h=640;c=0.6363636255264282|><|mask;x=0;y=0;c=0.6363636255264282;data=290,40,!!!!!WL@sT.J/)`fmuyw+1^U`_9NztN#W(Qm+VbyiilVtNSxMlY`Yu_)n7!6WEcis:!!|>,6<|box;x1=444;y1=424;x2=579;y2=604;w=960;h=640;c=0.7419355511665344|><|mask;x=0;y=0;c=0.7419355511665344;data=181,136,!!!!!NB9'/]G[uGM[lyjuiu[H:aM@&!Cfdw.H_5o'q)5T[y82&]HMCc$|>,7<|box;x1=565;y1=41;x2=666;y2=298;w=960;h=640;c=0.5276752710342407|><|mask;x=0;y=0;c=0.5276752710342407;data=258,102,!!!!#4Enw=Lu&#HGLK=S8Of:KP-r6r*rAZw2P)mBuQyRa&NSAS-%oja*lJ6ce5SoYoA)Tdn6(D70qzz@'7hK(?fiFR%xX4a^0WtTH1?GU5ng0='8kJzk#HMf*=otLvJ$@IlvfG|>,8<|box;x1=665;y1=41;x2=753;y2=298;w=960;h=640;c=0.5586206912994385|><|mask;x=0;y=0;c=0.5586206912994385;data=258,89,!!!!!gIbXVGjtDnFqp#*gO@BXxKCXR_p`RKMBH3Gxc1n4f.p7^lu)#'A@@71uvq-JTMFDj[y8[)xh+nonrHb-]|>\n",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 0,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 0,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 0,
+              "images_processed": 1
+            },
+            "parallel_tool_calls": true,
+            "store": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "2b8c18986ec64e60067d0837137397f7dc6487b04eedb160acbc67eef0c5dc85"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "metadata": {
+              "include_confidence": "true",
+              "mask_encoding": "one_bit"
+            },
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "sam-3.1",
+            "reasoning": {
+              "effort": "minimal"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae2759252f0f0f9ba7a43b1",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793226130,
+            "completed_at": 1793226130,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "message",
+                "id": "msg_7f37c0f0-1784-4528-aa20-f4e1a79b2045",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "<0f>0<|box;x1=369;y1=337;x2=567;y2=407;w=960;h=640;c=0.8202247023582458|><|mask;x=0;y=0;c=0.8202247023582458;data=71,199,!!!!!ULAn1.'t-%56ah%D40]hs@eo:{!MJq[@%qk1iXKz#/PScpev9(-7U`9:Y7^i|>\n",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 0,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 0,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 0,
+              "images_processed": 1
+            },
+            "parallel_tool_calls": true,
+            "store": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "32d8ef7171313d48ebcfb74b5d225fd513eefcdc2e76db63e15a44e2b081490e"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "metadata": {
+              "include_confidence": "true",
+              "mask_encoding": "one_bit"
+            },
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "sam-3.1",
+            "reasoning": {
+              "effort": "minimal"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae275967b15de9d385f41b3",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793226134,
+            "completed_at": 1793226134,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "message",
+                "id": "msg_639d50e9-5fa1-4dd8-9988-c9860f64d15d",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 0,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 0,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 0,
+              "images_processed": 1
+            },
+            "parallel_tool_calls": true,
+            "store": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "3eafd2f51c945835c9c6378371d52b49ba5f19773b62746f7d177e63d8f8c975"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "metadata": {
+              "include_confidence": "true",
+              "mask_encoding": "one_bit"
+            },
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "sam-3.1",
+            "reasoning": {
+              "effort": "minimal"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae2758d353470ac23234727",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793226125,
+            "completed_at": 1793226125,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "message",
+                "id": "msg_a3a682b5-b0b9-47a3-8de4-1dedcc62bd71",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 0,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 0,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 0,
+              "images_processed": 1
+            },
+            "parallel_tool_calls": true,
+            "store": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "45a07b3a83cc3f54d22b94fb58042856c0d36d4ab87ca2d0c43537e24a217c27"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "metadata": {
+              "mask_encoding": "one_bit",
+              "include_confidence": "true"
+            },
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "sam-3.1",
+            "reasoning": {
+              "effort": "minimal"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae2758bce90eafb57a44aff",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793226123,
+            "completed_at": 1793226123,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "message",
+                "id": "msg_250ec34c-e8c3-4d97-bfc6-6eb9429965ae",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 0,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 0,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 0,
+              "images_processed": 1
+            },
+            "parallel_tool_calls": true,
+            "store": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "4e0c90af5a162e558024aa5066a3f2829f6aa2c37ae9490fea8cf48ed8e08fbc"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "metadata": {
+              "include_confidence": "true",
+              "mask_encoding": "one_bit"
+            },
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "sam-3.1",
+            "reasoning": {
+              "effort": "minimal"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae275955f00d8b0e522459f",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793226133,
+            "completed_at": 1793226133,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "message",
+                "id": "msg_abd4aee2-57c4-439e-b22e-d3dc5c68ddfb",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "<0f>0<|box;x1=542;y1=377;x2=668;y2=448;w=960;h=640;c=0.9336099624633789|><|mask;x=0;y=0;c=0.9336099624633789;data=72,127,!!!!!JJqtL_MJ#x(F2]^(Wh`R&JmqsD]G2-Eck2(8xCcFGgarN6|>,1<|box;x1=299;y1=377;x2=419;y2=457;w=960;h=640;c=0.9179486632347107|><|mask;x=0;y=0;c=0.9179486632347107;data=81,121,!!!!!EI6:0b*iijYHYUS/DT{a)HY=QJc]a@].6E:H%F&#|>\n",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 0,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 0,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 0,
+              "images_processed": 1
+            },
+            "parallel_tool_calls": true,
+            "store": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "5a0012109192037f0d7738bba23fa4665e7399ec022c4a5f03ec8e951d50ae9a"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "metadata": {
+              "include_confidence": "true",
+              "mask_encoding": "one_bit"
+            },
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "sam-3.1",
+            "reasoning": {
+              "effort": "minimal"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae27593f981a844c9a8480e",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793226131,
+            "completed_at": 1793226131,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "message",
+                "id": "msg_4a3134b1-cd5e-4f0a-acc4-9bd65b40fb38",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "<0f>0<|box;x1=370;y1=116;x2=571;y2=327;w=960;h=640;c=0.9139785170555115|><|mask;x=0;y=0;c=0.9139785170555115;data=212,202,!!!!#6A?=^p8g)K{J5+qf&7E:WbQKyN/fZj]W['GaLX=:_Oyl01BHhV_gMe#^Qg)4ofdlB*%`r@BQ2vw83)xH+ivc]d[99{.`1qrrI9..#D/JS9cY)2H)]3FyMC8KRBg&%J3(aj`|>\n",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 0,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 0,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 0,
+              "images_processed": 1
+            },
+            "parallel_tool_calls": true,
+            "store": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "62fc8c64a51a8ca647feaffa3b6f628feca1e905ffc7ed6baea36c1091eeb470"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "metadata": {
+              "include_confidence": "true",
+              "mask_encoding": "one_bit"
+            },
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "sam-3.1",
+            "reasoning": {
+              "effort": "minimal"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae27588124210166a9f4e0c",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793226120,
+            "completed_at": 1793226120,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "message",
+                "id": "msg_48bd23f7-d494-4a08-867d-0ba7ec4333a6",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 0,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 0,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 0,
+              "images_processed": 1
+            },
+            "parallel_tool_calls": true,
+            "store": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "6e5dc913112659fff554792ae5724aa7bca57b7d66f677af1128c05f4f910d1b"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "metadata": {
+              "include_confidence": "true",
+              "mask_encoding": "one_bit"
+            },
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "sam-3.1",
+            "reasoning": {
+              "effort": "minimal"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae275913afe9f1887524eb1",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793226129,
+            "completed_at": 1793226129,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "message",
+                "id": "msg_4796a4ad-3851-4c7b-933d-965784e5c525",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "<0f>0<|box;x1=201;y1=361;x2=430;y2=454;w=960;h=640;c=0.9532163739204407|><|mask;x=0;y=0;c=0.9532163739204407;data=94,230,!!!!#!A8?{]p3J?VW1C7TVd@47x!yYxQ&(!%xk#ZD2PlF1CW_naptC{8wjr{gM^Bz!kwk1e8eft?F@LnD'%.-i-uCwwW4wn$_SOC[kXb%Zs*0CK$r|>\n",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 0,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 0,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 0,
+              "images_processed": 1
+            },
+            "parallel_tool_calls": true,
+            "store": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "74736ad8c8b133b26f3fd7015227dfadc6a62390130f799f21f42ba500ec8555"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "metadata": {
+              "mask_encoding": "one_bit",
+              "include_confidence": "true"
+            },
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "sam-3.1",
+            "reasoning": {
+              "effort": "minimal"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae275910423dac6a6434cbe",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793226129,
+            "completed_at": 1793226129,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "message",
+                "id": "msg_1f3fc75c-b833-4005-8c03-002c0bfcdaa2",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "<0f>0<|box;x1=719;y1=111;x2=876;y2=513;w=960;h=640;c=0.8987342119216919|><|mask;x=0;y=0;c=0.8987342119216919;data=403,158,!!!!#ZAwrlZ*HTKg2$O61Y`i[1($BXKLEfKZ#Wb&2GohyZy(R.[DF16gr6{6^pwsbw7e_I430eA7tix(KD@P&JZi$KxnLQt6aw6[E=K:4hum]ey`f^T)rc!oIIm:B-4UkDK47elfG0DYB?sSf6Ies[b-nGH0=:Kjo?dxfU@pyOL]J4fKRD|>\n",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 0,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 0,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 0,
+              "images_processed": 1
+            },
+            "parallel_tool_calls": true,
+            "store": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "75c2527851608a608a013e02a96cb049e14e81a4ba78a645a9dbda9932070d35"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "metadata": {
+              "include_confidence": "true",
+              "mask_encoding": "one_bit"
+            },
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "sam-3.1",
+            "reasoning": {
+              "effort": "minimal"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae27593fe2aba3d20a74c32",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793226130,
+            "completed_at": 1793226131,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "message",
+                "id": "msg_17a2881f-aeff-4ff0-baf9-e52af7b40244",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 0,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 0,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 0,
+              "images_processed": 1
+            },
+            "parallel_tool_calls": true,
+            "store": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "79d9f31f9489b1584ffc0b275662932f3b2e857daadcbd537f3bc3d204864042"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "metadata": {
+              "include_confidence": "true",
+              "mask_encoding": "one_bit"
+            },
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "sam-3.1",
+            "reasoning": {
+              "effort": "minimal"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae275986e0b7d97d9ec4ddf",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793226136,
+            "completed_at": 1793226136,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "message",
+                "id": "msg_df57bc95-8121-4de5-a059-7664efb1f7e9",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "<0f>0<|box;x1=291;y1=420;x2=670;y2=681;w=1024;h=682;c=0.6831682920455933|><|mask;x=0;y=0;c=0.6831682920455933;data=262,380,!!!!$e@/URO*JB.)xd93Hb`djOY'nysZ57wq@3V.9xM/{P8w{mBWGEhuo2:'n2r[.*O4j/zZL)nP9.kGM[yY-zb[c1OIJqcIjo$EJO!a]TT!eYidPGsoT3@5qi=V=y-Fh3'f71U$3If!el4Rqei#O0LZL`&H:6]rF`wu)[5V-Moh)sgv*v)RD`%-E{ncupGn#xz6o]lA.Xe[V*Gn`wWUkrF-RCFC3RnO_!mka%)aQVE6dK1b9K'[J5uopx1T:iJA9QB]v80oDtK:]`3y-87tYP!sR`ucDTu0@0JiAP`=|>\n",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 0,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 0,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 0,
+              "images_processed": 1
+            },
+            "parallel_tool_calls": true,
+            "store": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "7a1ebab41f49ab1b6b3ab84aea111c431a7578947b071c163e499d87989f2cf1"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "metadata": {
+              "include_confidence": "true",
+              "mask_encoding": "one_bit"
+            },
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "sam-3.1",
+            "reasoning": {
+              "effort": "minimal"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae27594978c0ebabbde4072",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793226132,
+            "completed_at": 1793226132,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "message",
+                "id": "msg_c338f0d3-b2de-42b0-90f2-1d118c4a041e",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "<0f>0<|box;x1=724;y1=0;x2=787;y2=441;w=960;h=640;c=0.6012461185455322|><|mask;x=0;y=0;c=0.6012461185455322;data=442,64,!!!!!vE9cno5euSI2G:61iE-3Fqak=*E(QTQQZscYPqd3l]wt6w_dS03Ui{Q%@ybn2NV?1kWS19BF/S8dlBxJzb8M_-?wdV8Rhmu770vv|>,1<|box;x1=160;y1=80;x2=242;y2=494;w=960;h=640;c=0.8476190567016602|><|mask;x=0;y=0;c=0.8476190567016602;data=415,83,!!!!#!HNbbSQHIG8hbb.tt=9A2Nl^J^_-r`D:g$.TF*kUibC/Knl$Cd-El*:#jMQx&U*KvV6%s?niu^cMZy7D5lQm/a1vPGA9IMK8'1HdHZF+#9!!|>,2<|box;x1=677;y1=41;x2=720;y2=414;w=960;h=640;c=0.6831682920455933|><|mask;x=0;y=0;c=0.6831682920455933;data=374,44,!!!!!pDpx_yi6!23U7:lfXyJ0ZNTc7d4I{y:$Zoj8T**whdR&@Qo58uvp^s(=0v`Sb3c=C#MK#Ep:E+'l+P/n]fc)VR]TTQ'_V|>,3<|box;x1=647;y1=84;x2=676;y2=385;w=960;h=640;c=0.6444444060325623|><|mask;x=0;y=0;c=0.6444444060325623;data=302,30,!!!!!UE]eYdw_?Y@Y:TC&vYo(_/oWx5$DtOg/FGD:xvAw{9Itr3GU=]7arZ0pkAQ#|>\n",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 0,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 0,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 0,
+              "images_processed": 1
+            },
+            "parallel_tool_calls": true,
+            "store": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "86469cac88c9590d90d229cc9038f7d21617c770c5d15842ef755a7f87b1a3ba"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "metadata": {
+              "include_confidence": "true",
+              "mask_encoding": "one_bit"
+            },
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "sam-3.1",
+            "reasoning": {
+              "effort": "minimal"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae27593222ae412925246bb",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793226131,
+            "completed_at": 1793226131,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "message",
+                "id": "msg_9e15afa5-fa70-403a-8853-7a22c9bee6ba",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "<0f>0<|box;x1=384;y1=338;x2=559;y2=405;w=960;h=640;c=0.859649121761322|><|mask;x=0;y=0;c=0.859649121761322;data=68,176,!!!!!mJ?5ne$Lf]4ukH9eRUu]2o0wgWH0hxu4I&vLBh3B7-p!sc-l5&zpq+)-#6gV*NQNWQW6Wek^%x^MID6LrgA4!qoX-|>\n",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 0,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 0,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 0,
+              "images_processed": 1
+            },
+            "parallel_tool_calls": true,
+            "store": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "9a878bbbbebb31688b4e233a322ff2cdbd2cb21a3ad5c5856b9334ffb2028f37"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "metadata": {
+              "include_confidence": "true",
+              "mask_encoding": "one_bit"
+            },
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "sam-3.1",
+            "reasoning": {
+              "effort": "minimal"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae27592406983bf9f2f4adb",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793226130,
+            "completed_at": 1793226130,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "message",
+                "id": "msg_5506ba50-a466-48f0-9ad6-3a64d7af52d6",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "<0f>0<|box;x1=355;y1=47;x2=659;y2=320;w=960;h=640;c=0.8827838897705078|><|mask;x=0;y=0;c=0.8827838897705078;data=274,305,!!!!$@Ffk#-#*m011l9AbF?@3%TP-Bv3l5y7x4yFr_I&N1@8VH#&G8)-EXMTID#aig+!T?%nGjpr3K%=5a!EJI^55?Cm=q`f!:UEOZqaMCk9siSr:r[r0&iHu@-MM]Zb9g2eSa%36hE?DD`KK&@1h%jbmr:Fi&grZPniel's^7vUWxT'y+-N:UQ0ZZHlSvThPbj&%Y{_K$Tosi+CCP.oJJD7LJ(j2-x/*L`iY=zlPbS9/6A-hCdw!B@6-ot|>\n",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 0,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 0,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 0,
+              "images_processed": 1
+            },
+            "parallel_tool_calls": true,
+            "store": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "9d3855fb19823b5e1701ed2c9bed7c8756be1ab75b9c7a71392e668a4e9ad269"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "metadata": {
+              "include_confidence": "true",
+              "mask_encoding": "one_bit"
+            },
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "sam-3.1",
+            "reasoning": {
+              "effort": "minimal"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae275910a83a6ad49ac4349",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793226129,
+            "completed_at": 1793226129,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "message",
+                "id": "msg_85d83ba1-b010-47c3-b3f2-5cba2ea0a531",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 0,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 0,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 0,
+              "images_processed": 1
+            },
+            "parallel_tool_calls": true,
+            "store": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "a5ff85f73330d85cc01ed536eed6611078300757f7a757ddfb868a4d421cad6c"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "metadata": {
+              "include_confidence": "true",
+              "mask_encoding": "one_bit"
+            },
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "sam-3.1",
+            "reasoning": {
+              "effort": "minimal"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae27590dd2b0b55fce441bf",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793226128,
+            "completed_at": 1793226128,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "message",
+                "id": "msg_d906d06a-0a25-4047-adb3-2c290086e16e",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 0,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 0,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 0,
+              "images_processed": 1
+            },
+            "parallel_tool_calls": true,
+            "store": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "a66c4502b79c560e052799b4c6dac1c6d0845a2ede1620a9914dcd9ea9dcaeae"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "metadata": {
+              "mask_encoding": "one_bit",
+              "include_confidence": "true"
+            },
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "sam-3.1",
+            "reasoning": {
+              "effort": "minimal"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae2759509bb300ac59444f1",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793226133,
+            "completed_at": 1793226133,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "message",
+                "id": "msg_f41cf60a-2ebb-4a7e-a519-c1f55d101ffa",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "<0f>0<|box;x1=80;y1=96;x2=179;y2=576;w=960;h=640;c=0.9139785170555115|><|mask;x=0;y=0;c=0.9139785170555115;data=481,100,!!!!#DI4X/Y:-7k][&Rz#1@Q[jn_{nY5izOza%pzZ2a94U%`#inpHdh^4Ys2IH'jh]wox0z/ZbpL-xIyjPImConn#+5ai'@6O_A+i]{0%#G)enBN{.KNrp=pzZ?jxJDy38&pL6^y8u.4.q2!psr&sv|>\n",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 0,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 0,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 0,
+              "images_processed": 1
+            },
+            "parallel_tool_calls": true,
+            "store": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "a75836eb3d12e47a388eca42a6b37bdbb7de5ad3e5634585c45c77e94eb391c4"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "metadata": {
+              "include_confidence": "true",
+              "mask_encoding": "one_bit"
+            },
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "sam-3.1",
+            "reasoning": {
+              "effort": "minimal"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae275963bc187c0bd5f497a",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793226134,
+            "completed_at": 1793226134,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "message",
+                "id": "msg_c30fad40-aa6c-46b1-a8e2-279fcde58dfe",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "<0f>0<|box;x1=627;y1=343;x2=730;y2=533;w=960;h=640;c=0.9024390578269958|><|mask;x=0;y=0;c=0.9024390578269958;data=191,104,!!!!!QIc2?zXI2_2szX%zpcnXcsAW$?RsAEP^e@qW`Xm:UseK`S0{p2dA]J-|>\n",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 0,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 0,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 0,
+              "images_processed": 1
+            },
+            "parallel_tool_calls": true,
+            "store": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "b46bedda2b137db7df426b29d6b7b5f0a3c41714abfc3bd8cfcdfc0154c4bf3d"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "metadata": {
+              "include_confidence": "true",
+              "mask_encoding": "one_bit"
+            },
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "sam-3.1",
+            "reasoning": {
+              "effort": "minimal"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae2759010ecf2d2b1cf433a",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793226128,
+            "completed_at": 1793226128,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "message",
+                "id": "msg_58e7ba9c-08a1-45d1-8217-b0a967b35a36",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "<0f>0<|box;x1=170;y1=75;x2=439;y2=354;w=960;h=640;c=0.859649121761322|><|mask;x=0;y=0;c=0.859649121761322;data=280,270,!!!!#nI6%:SRCk=tD%xweMTV!)]nT&s[nZe1I1MU:OFI!z+@c/f9Q0?CHUilcdmdXL0TW(4*mLdzXQX$kF'X5$/X7tRS[[(@@Hg2L)-uO0_Y`HfIuS)LT!2Zf=0P':3S)fieDr0rbpdHrU{g^lYf-R*C#c/5h]GQ{u[01NU`*0L2'Ue'cIX^DO-vJ&w]asJ(]$S4+rrX.|>\n",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 0,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 0,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 0,
+              "images_processed": 1
+            },
+            "parallel_tool_calls": true,
+            "store": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "bd84886cf6a0bc70b719fa95cc3ceb211f4e50cf5f2b5223fc84091835229f99"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "metadata": {
+              "include_confidence": "true",
+              "mask_encoding": "one_bit"
+            },
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "sam-3.1",
+            "reasoning": {
+              "effort": "minimal"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae27599ce0a2a12b4404ef3",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793226137,
+            "completed_at": 1793226137,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "message",
+                "id": "msg_6b4aab52-9cbc-4e87-8723-0d1a85e6fe34",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "<0f>0<|box;x1=0;y1=393;x2=626;y2=639;w=960;h=640;c=0.8552036285400391|><|mask;x=0;y=0;c=0.8552036285400391;data=247,627,!!!!$c@7KbXt!cT^aHe^8gr@Cmx{%vY_K&UpiHgQACnVeWGVX:G*25ak@useL!fAWSO7rN%8mOcx/b[B777vY_+[*RU3MJIoZ!kSUJ?cA36%*swuu`!-o6F4MkJ/ybYA2MB0edKlGbvjMoa)[sp=hoHY.+yh2R-pxCp_?Q(WuH!]n'u9aQ].V7Fetph{YmI79KU&xBLn8CXB*OgLazt0pn)9:?d=ww+fqP3jm1my/S0#v8(#U[lRfX.(%?eWzB%Zm3X1iFir1WIs%^rk+'g#M$8PV&Yj*qot)qX!!!|>\n",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 0,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 0,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 0,
+              "images_processed": 1
+            },
+            "parallel_tool_calls": true,
+            "store": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "be674f18790f7a830a440025c1c798854a521a5546d2610dee0ee5fd64ce1cb0"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "metadata": {
+              "mask_encoding": "one_bit",
+              "include_confidence": "true"
+            },
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "sam-3.1",
+            "reasoning": {
+              "effort": "minimal"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae2758bb1dbb4606d694abb",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793226123,
+            "completed_at": 1793226123,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "message",
+                "id": "msg_939f1496-3941-4cf4-a547-30f984c2db15",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 0,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 0,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 0,
+              "images_processed": 1
+            },
+            "parallel_tool_calls": true,
+            "store": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "eba509ab566b72301543f0c96801eb69faa9d4f42e489606874a99c49dc7da3c"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "metadata": {
+              "include_confidence": "true",
+              "mask_encoding": "one_bit"
+            },
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "sam-3.1",
+            "reasoning": {
+              "effort": "minimal"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae27592c936c8af102a4b48",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793226130,
+            "completed_at": 1793226130,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "message",
+                "id": "msg_63ed60a2-9823-43c3-a58e-a71e02e8f8fe",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "<0f>0<|box;x1=794;y1=65;x2=891;y2=521;w=960;h=640;c=0.8987342119216919|><|mask;x=0;y=0;c=0.8987342119216919;data=457,98,!!!!#FC#U.sdv:{ONEF!=fGP@7pPT3Ux3('48W`HO_sVE5:yvK%y69Fyjn$8NipRNWNE/F`C?N[J#Hkuok8zk?B[@NO5H($s`0:$-`+B._$ala%]Db-V#D.9vWdTV?)og4QW0(dD4i$M.K$T[*o0@NC!!|>\n",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 0,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 0,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 0,
+              "images_processed": 1
+            },
+            "parallel_tool_calls": true,
+            "store": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "ecad5ddc4cb4b1fcd69bd924cba5a696620a0a435c7d5226d5cf41cbc5aad297"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "metadata": {
+              "include_confidence": "true",
+              "mask_encoding": "one_bit"
+            },
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "sam-3.1",
+            "reasoning": {
+              "effort": "minimal"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae2759b076c41dfda5f4d02",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793226139,
+            "completed_at": 1793226139,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "message",
+                "id": "msg_7f1b6695-95a2-44f8-ba81-726910762519",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "<0f>0<|box;x1=279;y1=0;x2=351;y2=298;w=1024;h=682;c=0.8750000596046448|><|mask;x=0;y=0;c=0.8750000596046448;data=299,73,!!!!!NH3p/5]pT:7gIjE:sJKI__AE[NTwcn6kY8vJo8]^iJ@q[KP9I1M|>,1<|box;x1=0;y1=0;x2=43;y2=221;w=1024;h=682;c=0.8518518805503845|><|mask;x=0;y=0;c=0.8518518805503845;data=222,44,!!!!!=qV]I(KbtJpAJ{zQFhEjKEO@pbuSzi&|>,2<|box;x1=441;y1=458;x2=474;y2=681;w=1024;h=682;c=0.6521739363670349|><|mask;x=0;y=0;c=0.6521739363670349;data=224,34,!!!!!iEOxTPkBlV(8#_vy)v${T%^-`$e3I*XE?0%=G8jfyalCTj)KR7oA@z7]BoxDy=!pXx)JnWTe4Ubg[BT9D@-?|>,3<|box;x1=391;y1=41;x2=415;y2=316;w=1024;h=682;c=0.8202247023582458|><|mask;x=0;y=0;c=0.8202247023582458;data=276,25,!!!!!]K=6dh5]xp6c20$9:d)L_Yz[V9DIR*xOk=Smfg%)`$KgvA/j$Ya6CX93$84JSb6Eh1-=4|>,4<|box;x1=45;y1=0;x2=279;y2=280;w=1024;h=682;c=0.8750000596046448|><|mask;x=0;y=0;c=0.8750000596046448;data=281,235,!!!!!nIdYB4Z#]j{&3gp`/a(A@?$1yt$y&p]ICZC{4DAE1d:!vlW^U5ied$7rGTHEUjC4V2VGb@s=7npr&w''VSXfVkiS!w|>,5<|box;x1=601;y1=47;x2=803;y2=320;w=1024;h=682;c=0.8324607610702515|><|mask;x=0;y=0;c=0.8324607610702515;data=274,203,!!!!!gF:*7Dahkl'3ttyogMt(X^9GcL?iSLG7uSh9#8Z:.Un8MEtG2w-flUZ26_B10[^JSKjs($n7U'kw!!!!!|>,6<|box;x1=352;y1=0;x2=393;y2=310;w=1024;h=682;c=0.8324607610702515|><|mask;x=0;y=0;c=0.8324607610702515;data=311,42,!!!!!aq=F1lhr3ERJl[:wiFMRABX.9MFcxU/B{H^&1nypSHv$A:pe{+t4H9q8$d^E?^XN`'?Jaz+iS!|>,7<|box;x1=618;y1=452;x2=669;y2=641;w=1024;h=682;c=0.6878048777580261|><|mask;x=0;y=0;c=0.6878048777580261;data=190,52,!!!!!QJ=_3$=YozWwKnr)O+4w_mb+w+/-=%#/{Igvac4%6={X!Hxn/]8xmOf|>,8<|box;x1=474;y1=453;x2=618;y2=641;w=1024;h=682;c=0.8439024686813354|><|mask;x=0;y=0;c=0.8439024686813354;data=189,145,!!!!!dG=ii[&d(&h-J!I'Ie3o94s1[3$-nc$K=qJME5dxgGTa:'shz5rYB.oxq6X/)WFa!A&+)Cx=kUx=!!|>,9<|box;x1=402;y1=562;x2=447;y2=681;w=1024;h=682;c=0.5661016702651978|><|mask;x=0;y=0;c=0.5661016702651978;data=120,46,!!!!!OD]YLf97Yy@8XEpg(b69[m$%6GI1UnnfhUP=1'%=Mv?q*]__@pv!!|>,10<|box;x1=368;y1=620;x2=403;y2=681;w=1024;h=682;c=0.5816993117332458|><|mask;x=0;y=0;c=0.5816993117332458;data=62,36,!!!!!CENBBMryvQ+3?U{)Cx6'vQlj49#OL#c+5?4J!!|>\n",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 0,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 0,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 0,
+              "images_processed": 1
+            },
+            "parallel_tool_calls": true,
+            "store": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "f1873e12812ad4a1c5c06aad689e4758f10c4c75d388c6de3f005d12a73ccc2c"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "metadata": {
+              "mask_encoding": "one_bit",
+              "include_confidence": "true"
+            },
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "sam-3.1",
+            "reasoning": {
+              "effort": "minimal"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae2759c00e64fb8164b4b7b",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793226140,
+            "completed_at": 1793226140,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "message",
+                "id": "msg_73a8bb14-47cc-4ab4-bf8a-1ab0def37a2e",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "<0f>0<|box;x1=413;y1=429;x2=443;y2=639;w=960;h=640;c=0.6683937907218933|><|mask;x=0;y=0;c=0.6683937907218933;data=211,31,!!!!!WEKYT4RkK9`wxqjZ13*XaS?V?ZOh'mQVNPGcfDukR`@`Ujn^4.uAk=6w%D+C&!!|>,1<|box;x1=263;y1=0;x2=330;y2=278;w=960;h=640;c=0.8400000333786011|><|mask;x=0;y=0;c=0.8400000333786011;data=279,68,!!!!!Gqq.a*]1G7j[X]3v5oQ'^pIf{{&=dkX.!2k4Y`KAL!!|>,2<|box;x1=0;y1=0;x2=42;y2=226;w=960;h=640;c=0.7928802371025085|><|mask;x=0;y=0;c=0.7928802371025085;data=227,43,!!!!!kqRe)Pv_x^{iG.FetC15#dQb1aTS_+JN:B42lnU(rGZ?`s4MhSA#_3W*5nrFX1tyU!Q:dRE=n]:1vmwhPUzbQg|>,3<|box;x1=367;y1=38;x2=389;y2=295;w=960;h=640;c=0.7655677795410156|><|mask;x=0;y=0;c=0.7655677795410156;data=258,23,!!!!!UIlI*!7UJ:OitytF*Qd]mmtRtKN[1S.@ecrxVxotXQ5?VWh0NZ%?XnkohiD2|>,4<|box;x1=43;y1=0;x2=261;y2=261;w=960;h=640;c=0.827957034111023|><|mask;x=0;y=0;c=0.827957034111023;data=262,219,!!!!!jIdVHO`&)8(rMs4PEIr8oo[PtupZBE(Pub[/*J1.iNzDUB2OfgbhRAZdT)wYQ6gZ=p(yLlc@i#&k7oH?aCUkH|>,5<|box;x1=563;y1=41;x2=752;y2=299;w=960;h=640;c=0.7968254089355469|><|mask;x=0;y=0;c=0.7968254089355469;data=259,190,!!!!!kF&$#8lr5{]8I!G]!hvfT8Rh5Q.36PtD5jz*-nJ/K*Wff.VE.fdTfSx#6rgO4_nZlvB*`HYkPf{)pzFws%.&bj|>,6<|box;x1=330;y1=0;x2=369;y2=289;w=960;h=640;c=0.7928802371025085|><|mask;x=0;y=0;c=0.7928802371025085;data=290,40,!!!!!aL@sT.J.[b+G'EX5*GhnLu?vEtaawQO#Ttv6iBuZen%=#8uXB:MuM!c[xe`J9h1[VOLkU{i!!!|>,7<|box;x1=580;y1=425;x2=627;y2=604;w=960;h=640;c=0.7104072570800781|><|mask;x=0;y=0;c=0.7104072570800781;data=180,48,!!!!!EN_2QoIxXLv5bvNZ9oqAK+G^&K%:APl$+v'[mmZ8|>,8<|box;x1=443;y1=424;x2=579;y2=605;w=960;h=640;c=0.8048780560493469|><|mask;x=0;y=0;c=0.8048780560493469;data=182,137,!!!!!SB6Ds{'WORr=rfQD7cgn/gt+0JtI:T2F7zPRoiT1SK&_k9%j!!Z[p]':!!|>\n",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 0,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 0,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 0,
+              "images_processed": 1
+            },
+            "parallel_tool_calls": true,
+            "store": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "f4917472954c96655d32c011b39ff4869ea6d693dbe42f2e4552c177bdeb6ecc"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "metadata": {
+              "mask_encoding": "one_bit",
+              "include_confidence": "true"
+            },
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "sam-3.1",
+            "reasoning": {
+              "effort": "minimal"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae2759f15f347aa50e74911",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793226143,
+            "completed_at": 1793226143,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "message",
+                "id": "msg_c955385e-4ba3-41f7-ba38-102551152276",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 0,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 0,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 0,
+              "images_processed": 1
+            },
+            "parallel_tool_calls": true,
+            "store": false
+          }
+        }
+      }
+    }
+  ]
+}

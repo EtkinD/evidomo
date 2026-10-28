@@ -7,11 +7,11 @@ import { cassettePath, readCassette } from './fixtures.ts';
 import { decodeSamMask, maskArea, type SamEncodedMask } from './sam-mask.ts';
 import { parseSamImageOutput } from './sam-output.ts';
 import type { Rgb } from './sam-overlay.ts';
-import type { SamSegmentResult } from './sam.ts';
+import { SAM_REASONING_EFFORT, type SamSegmentResult } from './sam.ts';
 
 export const SAM = 'sam-3.1';
 /** SAM accepts and echoes an effort; the lowest one is sent (docs/model-notes.md, P1-05). */
-export const SAM_EFFORT = 'minimal';
+export const SAM_EFFORT = SAM_REASONING_EFFORT;
 export const SAMPLES_DIR = path.resolve(
   import.meta.dirname,
   '../../../../fixtures/samples/synthetic-interiors',

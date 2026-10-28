@@ -3,6 +3,7 @@ import {
   factsExtractedPayloadSchema,
   factsReconciledPayloadSchema,
   imagesStagedPayloadSchema,
+  integrityCheckedPayloadSchema,
   photosInventoriedPayloadSchema,
   stepCompletedPayloadSchema,
   stepFailedPayloadSchema,
@@ -165,6 +166,29 @@ describe('images_staged payload', () => {
       imagesStagedPayloadSchema.safeParse({ ...summary, operations: ['declutter'] }).success,
     ).toBe(false);
     expect(imagesStagedPayloadSchema.safeParse({ ...summary, stagedCount: -1 }).success).toBe(
+      false,
+    );
+  });
+});
+
+describe('integrity_checked payload', () => {
+  const summary = {
+    stepId: 'integrity',
+    artifactId: '3bfcf0bb-5581-4e10-8691-6cc7a8e66dcf',
+    photoCount: 3,
+    passedCount: 1,
+    passedOnRetryCount: 1,
+    fallbackCount: 1,
+    retryCount: 2,
+    uncheckedCount: 0,
+  };
+
+  it('carries counts only, never verdicts or phrases', () => {
+    expect(integrityCheckedPayloadSchema.parse(summary)).toEqual(summary);
+    expect(
+      integrityCheckedPayloadSchema.safeParse({ ...summary, failedClasses: ['window'] }).success,
+    ).toBe(false);
+    expect(integrityCheckedPayloadSchema.safeParse({ ...summary, retryCount: -1 }).success).toBe(
       false,
     );
   });

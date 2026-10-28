@@ -5,6 +5,7 @@ import { createMetaClients } from './meta/clients.ts';
 import { createCreativeHandler } from './pipeline/creative/handler.ts';
 import { createFactExtractionHandler } from './pipeline/extraction/handler.ts';
 import { createIntakeHandler } from './pipeline/intake/handler.ts';
+import { createIntegrityHandler } from './pipeline/integrity/handler.ts';
 import { createReconciliationHandler } from './pipeline/reconciliation/handler.ts';
 import { createStagingHandler } from './pipeline/staging/handler.ts';
 import { createVisionInventoryHandler } from './pipeline/vision/handler.ts';
@@ -35,6 +36,7 @@ try {
         reconciler: createReconciliationHandler({ markets: registry }),
         creative: createCreativeHandler({ markets: registry }),
         stager: createStagingHandler({ storage }),
+        integrity_checker: createIntegrityHandler({ storage }),
       },
       createMetaClients: (usage) =>
         createMetaClients({ apiKey: env.MODEL_API_KEY, usage, estimateCost, logger }),
