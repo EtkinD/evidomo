@@ -66,7 +66,7 @@ beforeAll(async () => {
   usage.clear();
 
   const settings = stagingSettings(sampleStagingStep(registry, RECORD_CAP));
-  plan = planStaging(inventory, settings.maxStagedImages);
+  plan = planStaging(inventory, settings.maxStagedImages, settings.operationKinds);
   const jobs = plan.requests.map((request) => {
     const photo = photos.find((p) => p.materialId === request.materialId);
     if (photo === undefined) throw new Error('selected photo not loaded');

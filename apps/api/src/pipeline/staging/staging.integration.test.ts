@@ -192,6 +192,7 @@ describe('staging step', () => {
     expect(manifest).toMatchObject({
       model: 'muse-image-1.0',
       maxStagedImages: 3,
+      operationKinds: ['furnish', 'declutter'],
       inventoryArtifactId: inventory?.id,
       counts: { photos: 6, eligible: 5, requested: 3, staged: 3, failed: 0, skipped: 3 },
     });

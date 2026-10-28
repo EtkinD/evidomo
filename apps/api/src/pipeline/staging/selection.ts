@@ -3,6 +3,7 @@ import type {
   PhotoInventoryContent,
   PhotoSubject,
   StagingOperation,
+  StagingOperationKind,
   StagingSkipReason,
 } from '@evidomo/shared';
 import {
@@ -22,6 +23,9 @@ import {
 // 2. The classification must exist and the quality must not be `poor`.
 // 3. Operation: a `cluttered` or `personal_items` interior is decluttered; otherwise a living
 //    room, dining room, bedroom, or study is furnished; anything else is not stageable.
+// 4. The operation's kind must be in the step's `operation_kinds`. A photo whose fitting
+//    operation is disabled is skipped, never given another operation: furnishing a cluttered
+//    room would stage around the clutter.
 // Then across photos, best cover rank first: at most one furnished photo per subject (two
 // independently furnished views of one room would show different furniture), and at most
 // `maxStagedImages` edits.
@@ -74,7 +78,10 @@ type Assessment =
       readonly request: StagingRequestPlan;
     };
 
-function assess(photo: InventoryPhoto): Assessment {
+function assess(
+  photo: InventoryPhoto,
+  operationKinds: ReadonlySet<StagingOperationKind>,
+): Assessment {
   switch (photo.privacy.status) {
     case 'failed':
       return { ok: false, reason: 'privacy_failed' };
@@ -94,6 +101,7 @@ function assess(photo: InventoryPhoto): Assessment {
   if (classification.quality === 'poor') return { ok: false, reason: 'poor_quality' };
   const operation = operationFor(classification.subject, classification.qualityIssues);
   if (operation === undefined) return { ok: false, reason: 'not_stageable' };
+  if (!operationKinds.has(operation.kind)) return { ok: false, reason: 'operation_not_enabled' };
   return {
     ok: true,
     subject: classification.subject,
@@ -111,11 +119,12 @@ function assess(photo: InventoryPhoto): Assessment {
 export function planStaging(
   inventory: Pick<PhotoInventoryContent, 'photos'>,
   maxStagedImages: number,
+  operationKinds: ReadonlySet<StagingOperationKind>,
 ): StagingPlan {
   const outcomes = new Map<string, PlannedPhoto>();
   const eligible: { subject: PhotoSubject; request: StagingRequestPlan }[] = [];
   for (const photo of inventory.photos) {
-    const assessment = assess(photo);
+    const assessment = assess(photo, operationKinds);
     if (assessment.ok) {
       eligible.push(assessment);
     } else {

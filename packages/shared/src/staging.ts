@@ -50,6 +50,8 @@ export type StagingOperation = z.infer<typeof stagingOperationSchema>;
  *   image, so it is not staged (v1);
  * - `poor_quality`: staging would not rescue the photo;
  * - `not_stageable`: no declared operation fits its subject (exteriors, plans, hallways, ...);
+ * - `operation_not_enabled`: the fitting operation's kind is not in the step's `operation_kinds`
+ *   (v1 enables `furnish` only, so cluttered rooms are not staged at all);
  * - `subject_already_furnished`: a better-ranked photo of the same subject is furnished already
  *   (two independently furnished views of one room would contradict each other);
  * - `cap_reached`: eligible, but `max_staged_images` was reached.
@@ -61,6 +63,7 @@ export const STAGING_SKIP_REASONS = [
   'privacy_masked',
   'poor_quality',
   'not_stageable',
+  'operation_not_enabled',
   'subject_already_furnished',
   'cap_reached',
 ] as const;
@@ -162,6 +165,8 @@ export const stagedImagesContentSchema = z.strictObject({
   promptVersion: z.int().positive(),
   model: z.string().min(1),
   maxStagedImages: count,
+  /** The operation kinds the step allowed (`operation_kinds`). */
+  operationKinds: z.array(stagingOperationKindSchema).min(1),
   /** The `photo_inventory` artifact the selection read. */
   inventoryArtifactId: z.uuid(),
   counts: z.strictObject({

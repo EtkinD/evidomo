@@ -1,4 +1,4 @@
-import type { StagingFailureReason, StagingOperation } from '@evidomo/shared';
+import type { StagingFailureReason, StagingOperation, StagingOperationKind } from '@evidomo/shared';
 import { APIError } from 'openai';
 import type { MetaClients } from '../../meta/clients.ts';
 import {
@@ -26,10 +26,16 @@ export const STAGING_CONCURRENCY = 3;
 export interface StagingSettings {
   readonly imageModel: string;
   readonly maxStagedImages: number;
+  /** Operation kinds the step may use (`operation_kinds`). */
+  readonly operationKinds: ReadonlySet<StagingOperationKind>;
 }
 
 export function stagingSettings(step: StepConfig<'stager'>): StagingSettings {
-  return { imageModel: step.image_model, maxStagedImages: step.max_staged_images };
+  return {
+    imageModel: step.image_model,
+    maxStagedImages: step.max_staged_images,
+    operationKinds: new Set(step.operation_kinds),
+  };
 }
 
 /** One stored original, read and checked by the caller. */

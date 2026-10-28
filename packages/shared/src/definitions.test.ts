@@ -408,6 +408,7 @@ describe('serviceDefinitionSchema staging step', () => {
     agent: 'stager',
     image_model: 'muse-image-1.0',
     max_staged_images: 3,
+    operation_kinds: ['furnish'],
   };
 
   it('accepts a stager with an image model and a cap, and prices its model', () => {
@@ -434,6 +435,32 @@ describe('serviceDefinitionSchema staging step', () => {
         serviceDefinitionSchema.safeParse(withSteps({ ...staging, image_model: 'muse-image-9' })),
       ),
     ).toEqual([expect.stringMatching(/^steps\.1\.image_model: Model "muse-image-9" has no entry/)]);
+  });
+
+  it('requires a non-empty, unique set of known operation kinds', () => {
+    const { operation_kinds: _omitted, ...withoutKinds } = staging;
+    expect(messages(serviceDefinitionSchema.safeParse(withSteps(withoutKinds)))[0]).toMatch(
+      /^steps\.1\.operation_kinds: /,
+    );
+    expect(
+      serviceDefinitionSchema.safeParse(withSteps({ ...staging, operation_kinds: [] })).success,
+    ).toBe(false);
+    expect(
+      messages(
+        serviceDefinitionSchema.safeParse(
+          withSteps({ ...staging, operation_kinds: ['furnish', 'furnish'] }),
+        ),
+      ),
+    ).toEqual(['steps.1.operation_kinds: operation kinds must be unique']);
+    expect(
+      serviceDefinitionSchema.safeParse(withSteps({ ...staging, operation_kinds: ['repaint'] }))
+        .success,
+    ).toBe(false);
+    expect(
+      serviceDefinitionSchema.safeParse(
+        withSteps({ ...staging, operation_kinds: ['furnish', 'declutter'] }),
+      ).success,
+    ).toBe(true);
   });
 
   it('no longer lets the creative step carry an image model (staging is its own step)', () => {

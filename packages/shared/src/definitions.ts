@@ -8,6 +8,7 @@ import {
   transcriptionKeywordSchema,
   turnTranscriptionModeSchema,
 } from './transcription.ts';
+import { stagingOperationKindSchema } from './staging.ts';
 import { samPhraseSchema } from './vision.ts';
 
 // Schemas for the declarative definition files in `definitions/` (docs/architecture.md §7):
@@ -183,6 +184,16 @@ export const serviceStepSchema = z.discriminatedUnion('agent', [
      * 0 turns staging off. The bound limits spend and the number of images Gate 2 must review.
      */
     max_staged_images: z.int().min(0).max(10),
+    /**
+     * Declared-operation kinds the step may use. A photo whose fitting operation is of another
+     * kind is skipped, not given a different operation. v1 allows `furnish` only: a live
+     * `declutter` edit redrew the hidden worktop and cabinets (P3-04), which the integrity check
+     * cannot see.
+     */
+    operation_kinds: z
+      .array(stagingOperationKindSchema)
+      .min(1)
+      .refine((kinds) => new Set(kinds).size === kinds.length, 'operation kinds must be unique'),
   }),
   z.strictObject({
     ...stepCommon,

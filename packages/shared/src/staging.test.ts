@@ -67,6 +67,7 @@ describe('stagedImagesContentSchema', () => {
       promptVersion: 1,
       model: 'muse-image-1.0',
       maxStagedImages: 3,
+      operationKinds: ['furnish'],
       inventoryArtifactId: ARTIFACT,
       counts: { photos: 3, eligible: 2, requested: 2, staged: 1, failed: 1, skipped: 1 },
       photos: [

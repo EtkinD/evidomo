@@ -2178,6 +2178,8 @@ billing dashboard was not checked. No call failed or was retried.
 
 ## P3-04 — Staging variants
 
+**Decision (2026-10-29): `declutter` is off in v1** (`operation_kinds: [furnish]`). On `kitchen-cluttered` the edit removed the clutter but also redrew the worktop (longer and deeper) and the base cabinets under it. Worktops and cabinets are not fixed-element classes, so the integrity check passes the edit, and a buyer would be misled about the kitchen. Furnishing empty rooms keeps the original surfaces visible.
+
 Status: done (pending review). Recorded 2026-10-28 against `openai@7.45.1`. Code:
 `apps/api/src/pipeline/staging/`, `meta/images.ts` (`editMetaImageToolsOff`); design in
 [architecture.md §5 Staging](./architecture.md#5-run-pipeline).

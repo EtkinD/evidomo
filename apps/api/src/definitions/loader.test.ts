@@ -41,6 +41,9 @@ describe('the repository definitions', () => {
     const service = (await loadDefinitions()).getService('listing-launch', 1);
 
     expect(service.budget.max_cost_usd_per_run).toBe('1.00');
+    // v1 stages by furnishing empty rooms only; decluttering redraws hidden surfaces (P3-04).
+    const staging = service.steps.find((step) => step.agent === 'stager');
+    expect(staging?.agent === 'stager' ? staging.operation_kinds : undefined).toEqual(['furnish']);
     expect(service.steps.map((step) => step.id)).toEqual([
       'intake',
       'fact_extraction',

@@ -95,6 +95,9 @@ service:
       agent: stager
       image_model: muse-image-1.0
       max_staged_images: 3
+      # Furnishing empty rooms only. Decluttering is off: it redraws what the clutter hid
+      # (worktops, cabinets), which the integrity check does not cover (P3-04).
+      operation_kinds: [furnish]
 
     - id: integrity
       agent: integrity_checker

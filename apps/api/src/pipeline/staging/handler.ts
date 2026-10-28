@@ -5,11 +5,13 @@ import {
   STAGED_IMAGE_ARTIFACT_KIND,
   STAGED_IMAGE_LABEL,
   STAGED_IMAGES_ARTIFACT_KIND,
+  STAGING_OPERATION_KINDS,
   stagedImageContentSchema,
   stagedImagesContentSchema,
   type PhotoInventoryContent,
   type StagedImageContent,
   type StagedImagesContent,
+  type StagingOperationKind,
   type StagingPhotoOutcome,
 } from '@evidomo/shared';
 import type { Executor } from '../../db/client.ts';
@@ -155,7 +157,12 @@ export function stagingManifest(
   plan: StagingPlan,
   outcomes: ReadonlyMap<string, StageOutcome>,
   stagedArtifactIds: ReadonlyMap<string, string>,
-  settings: { model: string; maxStagedImages: number; inventoryArtifactId: string },
+  settings: {
+    model: string;
+    maxStagedImages: number;
+    operationKinds: ReadonlySet<StagingOperationKind>;
+    inventoryArtifactId: string;
+  },
 ): StagedImagesContent {
   const photos = plan.photos.map((planned): StagingPhotoOutcome => {
     if (planned.status === 'skipped') {
@@ -183,6 +190,8 @@ export function stagingManifest(
     promptVersion: STAGING_PROMPT_VERSION,
     model: settings.model,
     maxStagedImages: settings.maxStagedImages,
+    // Catalog order, so the manifest does not depend on the definition's list order.
+    operationKinds: STAGING_OPERATION_KINDS.filter((kind) => settings.operationKinds.has(kind)),
     inventoryArtifactId: settings.inventoryArtifactId,
     counts: {
       photos: photos.length,
@@ -203,7 +212,7 @@ export function createStagingHandler(deps: StagingHandlerDeps): StepHandler<'sta
     if (project === undefined) throw new NonRetryableStepError('The run has no project');
     const settings = stagingSettings(step);
     const inventory = await readInventory(ctx.db, run.id);
-    const plan = planStaging(inventory.content, settings.maxStagedImages);
+    const plan = planStaging(inventory.content, settings.maxStagedImages, settings.operationKinds);
 
     const originals = await readOriginals(deps, ctx.db, project.id, plan.requests);
     const jobs: StagingJob[] = plan.requests.map((request, i) => {
@@ -312,6 +321,7 @@ export function createStagingHandler(deps: StagingHandlerDeps): StepHandler<'sta
             content: stagingManifest(plan, outcomes, stagedArtifactIds, {
               model: settings.imageModel,
               maxStagedImages: settings.maxStagedImages,
+              operationKinds: settings.operationKinds,
               inventoryArtifactId: inventory.artifactId,
             }),
           });

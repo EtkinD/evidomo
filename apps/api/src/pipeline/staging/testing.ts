@@ -12,8 +12,10 @@ export const STAGING_CASSETTE = 'p3-04/staging';
 export const STAGING_INCLUDED_CASSETTES = [VISION_CASSETTE, ...VISION_INCLUDED_CASSETTES] as const;
 
 /**
- * The staging step of `listing-launch` v1 with the settings the cassette was recorded with.
- * The replay test raises the cap to cover both operation kinds; the integration test keeps 3.
+ * The staging step of `listing-launch` v1 with the settings the cassette was recorded with:
+ * both operation kinds (v1 now allows `furnish` only, but the recorded edits include
+ * `declutter`, so the mechanism stays covered). The replay test raises the cap to cover both
+ * kinds; the integration test keeps 3.
  */
 export function sampleStagingStep(
   registry: Pick<DefinitionRegistry, 'getService'>,
@@ -22,7 +24,12 @@ export function sampleStagingStep(
   const service = registry.getService('listing-launch', 1);
   const step = service.steps.find((candidate) => candidate.agent === 'stager');
   if (step?.agent !== 'stager') throw new Error('listing-launch v1 has no staging step');
-  return { ...step, image_model: 'muse-image-1.0', max_staged_images: maxStagedImages };
+  return {
+    ...step,
+    image_model: 'muse-image-1.0',
+    max_staged_images: maxStagedImages,
+    operation_kinds: ['furnish', 'declutter'],
+  };
 }
 
 /** A copy of `listing-launch` v1 that runs the vision inventory, then staging. */

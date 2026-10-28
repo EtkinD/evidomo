@@ -5,6 +5,9 @@ import { inventoryPhoto } from './testing.ts';
 
 // Photo selection and operation choice of the staging step (pure; no model, no storage).
 
+const BOTH_KINDS = new Set(['furnish', 'declutter'] as const);
+const FURNISH_ONLY = new Set(['furnish'] as const);
+
 describe('operationFor', () => {
   it('declutters cluttered or personal interiors and furnishes the four furnishable rooms', () => {
     expect(operationFor('kitchen', ['cluttered'])?.id).toBe('declutter');
@@ -50,7 +53,7 @@ describe('planStaging', () => {
     const study = inventoryPhoto({ subject: 'study', coverRank: 4 });
     const hallway = inventoryPhoto({ subject: 'hallway', coverRank: 5 });
 
-    const plan = planStaging({ photos: [living, bedroom, kitchen, study, hallway] }, 3);
+    const plan = planStaging({ photos: [living, bedroom, kitchen, study, hallway] }, 3, BOTH_KINDS);
 
     expect(plan.requests.map((r) => [r.materialId, r.operation.id])).toEqual([
       [bedroom.materialId, 'furnish_bedroom'],
@@ -81,6 +84,7 @@ describe('planStaging', () => {
         ],
       },
       10,
+      BOTH_KINDS,
     );
     expect(plan.requests).toEqual([]);
     expect(plan.eligibleCount).toBe(0);
@@ -101,6 +105,7 @@ describe('planStaging', () => {
         ],
       },
       10,
+      BOTH_KINDS,
     );
     expect(plan.photos.map((p) => (p.status === 'skipped' ? p.reason : p.status))).toEqual([
       'privacy_failed',
@@ -122,7 +127,7 @@ describe('planStaging', () => {
       qualityIssues: ['cluttered'],
       coverRank: 4,
     });
-    const plan = planStaging({ photos: [second, first, cluttered, clutteredToo] }, 10);
+    const plan = planStaging({ photos: [second, first, cluttered, clutteredToo] }, 10, BOTH_KINDS);
     expect(plan.requests.map((r) => r.materialId)).toEqual([
       first.materialId,
       cluttered.materialId,
@@ -135,8 +140,38 @@ describe('planStaging', () => {
     });
   });
 
+  it('skips a photo whose fitting operation kind is not enabled, without falling back', () => {
+    const living = inventoryPhoto({ subject: 'living_room', coverRank: 1 });
+    const clutteredKitchen = inventoryPhoto({
+      subject: 'kitchen',
+      qualityIssues: ['cluttered'],
+      coverRank: 2,
+    });
+    // A cluttered living room would fit `declutter`; with furnish only it must not be furnished
+    // around the clutter.
+    const clutteredLiving = inventoryPhoto({
+      subject: 'living_room',
+      qualityIssues: ['personal_items'],
+      coverRank: 3,
+    });
+    const plan = planStaging(
+      { photos: [living, clutteredKitchen, clutteredLiving] },
+      10,
+      FURNISH_ONLY,
+    );
+    expect(plan.requests.map((r) => [r.materialId, r.operation.id])).toEqual([
+      [living.materialId, 'furnish_living_room'],
+    ]);
+    expect(plan.eligibleCount).toBe(1);
+    expect(plan.photos.map((p) => (p.status === 'skipped' ? p.reason : p.status))).toEqual([
+      'selected',
+      'operation_not_enabled',
+      'operation_not_enabled',
+    ]);
+  });
+
   it('plans nothing when the cap is 0', () => {
-    const plan = planStaging({ photos: [inventoryPhoto(), inventoryPhoto()] }, 0);
+    const plan = planStaging({ photos: [inventoryPhoto(), inventoryPhoto()] }, 0, BOTH_KINDS);
     expect(plan.requests).toEqual([]);
     expect(plan.eligibleCount).toBe(2);
     expect(plan.photos.every((p) => p.status === 'skipped' && p.reason === 'cap_reached')).toBe(

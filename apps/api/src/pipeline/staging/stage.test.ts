@@ -31,7 +31,11 @@ const deps = {
     return call();
   },
 };
-const settings = { imageModel: MODEL, maxStagedImages: 3 };
+const settings = {
+  imageModel: MODEL,
+  maxStagedImages: 3,
+  operationKinds: new Set(['furnish', 'declutter'] as const),
+};
 const operation = stagingOperation('furnish_living_room');
 
 let photo: StagingPhoto;
