@@ -215,6 +215,11 @@ Fixtures are recorded from real calls in Phase 1 (`RECORD=1`) and must not conta
 - Firewall allows only 22, 80, 443; deploys run as a non-root user.
 - Secrets live in a server-side `.env` (mode 600), never in the repository. `MODEL_API_KEY` is available only to `api` and `worker`, never to the browser.
 - Deploy script: pull, build, migrate, restart, smoke test. Daily `pg_dump` to the volume.
+- Images are built on the server from the repository (no registry). `apps/api/Dockerfile` builds one image for api and worker (production dependencies, sources run through type stripping, ffmpeg); its `migrate` target adds drizzle-kit for one-off migrations. `apps/web/Dockerfile` builds Next.js and runs `next start`. `infra/caddy/Dockerfile` bakes in the Caddyfile. All run as non-root users.
+- `infra/compose.yaml` (project `evidomo-prod`) reads variables from `infra/.env` (template: `infra/.env.example`) and passes each service only what it needs. Caddy's site address comes from `SITE_ADDRESS` (`:80` for local HTTP). PostgreSQL is not published to the host; it sits on a `backend` network with api and worker, while caddy, web, and api share an `edge` network.
+- Volumes: `postgres-data`, `storage` (mounted at `/data` in api and worker, exposed as `STORAGE_DIR` for the storage interface), `caddy-data`, `caddy-config`.
+- Healthchecks: postgres `pg_isready`, api `GET /api/healthz`, web `GET /`, caddy admin API. The worker has no endpoint; a fatal error exits the process and the restart policy brings it back.
+- Migrations: `docker compose -f infra/compose.yaml --env-file infra/.env --profile tools run --rm migrate`.
 
 ## 14. Security and privacy
 

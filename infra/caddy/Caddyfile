@@ -1,0 +1,28 @@
+# One site: /api/* goes to the API, everything else to the web app, so cookies stay
+# same-site and no CORS is needed (docs/architecture.md section 3).
+#
+# SITE_ADDRESS comes from compose. ":80" (the default) serves plain HTTP on any host name,
+# which is what a local run needs. A bare domain (e.g. "evidomo.example") turns on automatic
+# HTTPS via ACME; that is configured with D-03.
+
+{$SITE_ADDRESS} {
+	encode zstd gzip
+
+	handle /api/* {
+		reverse_proxy api:4000 {
+			# Below Node's 5 s keep-alive timeout, so Caddy never reuses a connection
+			# the upstream is about to close.
+			transport http {
+				keepalive 4s
+			}
+		}
+	}
+
+	handle {
+		reverse_proxy web:3000 {
+			transport http {
+				keepalive 4s
+			}
+		}
+	}
+}

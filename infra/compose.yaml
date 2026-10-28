@@ -1,0 +1,137 @@
+# Production stack: caddy, web, api, worker, postgres.
+# Run from the repository root (see infra/.env.example for variables):
+#   docker compose -f infra/compose.yaml --env-file infra/.env up -d --build --wait
+#   docker compose -f infra/compose.yaml --env-file infra/.env --profile tools run --rm migrate
+#
+# Variables are interpolated from the env file into each service's `environment` explicitly
+# (no `env_file:`), so every service sees only what it needs. MODEL_API_KEY reaches api and
+# worker only, never web or caddy.
+
+# Distinct from the local dev project (docker-compose.yml at the root), so volumes never collide.
+name: evidomo-prod
+
+x-app-env: &app-env
+  NODE_ENV: production
+  LOG_LEVEL: ${LOG_LEVEL:-info}
+  DATABASE_URL: postgres://${POSTGRES_USER:-evidomo}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in the env file}@postgres:5432/${POSTGRES_DB:-evidomo}
+  MODEL_API_KEY: ${MODEL_API_KEY:-}
+  # Storage volume mount point for uploaded materials and generated artifacts.
+  STORAGE_DIR: /data
+
+services:
+  caddy:
+    build:
+      context: ./caddy
+    image: evidomo-caddy:latest
+    restart: unless-stopped
+    depends_on:
+      web:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-:80}
+    ports:
+      - '${HTTP_PORT:-80}:80'
+      - '${HTTPS_PORT:-443}:443'
+      - '${HTTPS_PORT:-443}:443/udp'
+    volumes:
+      - caddy-data:/data
+      - caddy-config:/config
+    networks: [edge]
+    # Healthcheck comes from the image (Caddy admin API on localhost).
+
+  web:
+    build:
+      context: ..
+      dockerfile: apps/web/Dockerfile
+    image: evidomo-web:latest
+    restart: unless-stopped
+    init: true
+    networks: [edge]
+    # Healthcheck comes from the image (GET / on port 3000).
+
+  api:
+    build:
+      context: ..
+      dockerfile: apps/api/Dockerfile
+      target: runtime
+    image: evidomo-api:latest
+    restart: unless-stopped
+    init: true
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      <<: *app-env
+      PORT: 4000
+    volumes:
+      - storage:/data
+    networks: [edge, backend]
+    # Healthcheck comes from the image (GET /api/healthz, which also pings the database).
+
+  worker:
+    # Same image as api (built by the api service; compose builds before it starts anything).
+    image: evidomo-api:latest
+    pull_policy: never
+    restart: unless-stopped
+    init: true
+    command: ['node', 'src/worker.ts']
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment: *app-env
+    volumes:
+      - storage:/data
+    networks: [backend]
+    # The worker has no HTTP endpoint. Liveness is process-based: a fatal error (for example
+    # pg-boss failing to start) exits the process and `restart: unless-stopped` brings it back.
+    # The image's API healthcheck does not apply here, so it is disabled.
+    healthcheck:
+      disable: true
+
+  postgres:
+    image: postgres:18.6-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-evidomo}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in the env file}
+      POSTGRES_DB: ${POSTGRES_DB:-evidomo}
+    # Not published to the host; reachable only on the backend network.
+    volumes:
+      # PostgreSQL 18+ images keep data under a version subdirectory of this path.
+      - postgres-data:/var/lib/postgresql
+    networks: [backend]
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 5s
+      timeout: 3s
+      start_period: 10s
+      retries: 10
+
+  # One-off: docker compose -f infra/compose.yaml --env-file infra/.env --profile tools run --rm migrate
+  migrate:
+    profiles: [tools]
+    build:
+      context: ..
+      dockerfile: apps/api/Dockerfile
+      target: migrate
+    image: evidomo-migrate:latest
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-evidomo}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in the env file}@postgres:5432/${POSTGRES_DB:-evidomo}
+    networks: [backend]
+
+networks:
+  # caddy, web, api. The database is not reachable from here.
+  edge:
+  # api, worker, postgres.
+  backend:
+
+volumes:
+  postgres-data:
+  storage:
+  caddy-data:
+  caddy-config:

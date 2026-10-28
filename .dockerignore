@@ -1,0 +1,48 @@
+# Build context is the repository root. Keep it to sources and manifests: no secrets,
+# no host-built artifacts, no local data.
+
+# Secrets and environment files (including examples; images never read them)
+**/.env
+**/.env.*
+
+# VCS and tooling
+.git
+.github
+.claude
+.vscode
+.idea
+**/.DS_Store
+**/*.log
+
+# Dependencies and build output (rebuilt inside the image for the target platform)
+**/node_modules
+**/.next
+**/out
+**/dist
+**/*.tsbuildinfo
+apps/web/next-env.d.ts
+
+# Tests and test output
+**/*.test.ts
+**/*.test.tsx
+**/__tests__
+e2e
+coverage
+playwright-report
+test-results
+blob-report
+playwright.config.ts
+vitest.config.ts
+
+# Local data
+**/uploads
+**/data
+
+# Not needed in any image
+docs
+infra
+docker-compose.yml
+**/Dockerfile
+README.md
+CLAUDE.md
+**/AGENTS.md

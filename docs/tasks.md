@@ -190,7 +190,7 @@ The orchestrator (main session) delegates each task to its owner — see `.claud
 
 ## Track D — Deployment
 
-- [ ] **D-01 — Production images and compose**
+- [x] **D-01 — Production images and compose**
   - Depends on: P0-04, P0-03
   - Done when: production Dockerfiles (API/worker image includes ffmpeg) and a compose file with caddy, web, api, worker, postgres, healthchecks, and volumes run locally.
 - [ ] **D-02 — VPS provisioning**
