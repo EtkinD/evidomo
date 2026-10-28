@@ -33,6 +33,11 @@ import {
 
 const fixture = fileURLToPath(new URL('./crash-worker.fixture.ts', import.meta.url));
 
+// Every wait is a condition, never a sleep. The bound only decides how long a broken run takes
+// to fail; it is generous because this file runs next to other Testcontainers suites, where
+// spawning a worker and pg-boss's crash recovery are several times slower than alone.
+const WAIT_TIMEOUT_MS = 60_000;
+
 interface WorkerProcess {
   readonly child: ChildProcess;
   readonly pid: number;
@@ -91,7 +96,12 @@ async function seedCrashRun(): Promise<string> {
   return run.id;
 }
 
-async function waitForInvocation(runId: string, stepId: string, n: number, timeoutMs = 20_000) {
+async function waitForInvocation(
+  runId: string,
+  stepId: string,
+  n: number,
+  timeoutMs = WAIT_TIMEOUT_MS,
+) {
   return waitFor(
     `invocation ${n} of step ${stepId}`,
     async () =>
@@ -100,7 +110,7 @@ async function waitForInvocation(runId: string, stepId: string, n: number, timeo
   );
 }
 
-async function waitForRunStatus(runId: string, status: string, timeoutMs = 20_000) {
+async function waitForRunStatus(runId: string, status: string, timeoutMs = WAIT_TIMEOUT_MS) {
   return waitFor(
     `run ${runId} to be ${status}`,
     async () => {
@@ -110,6 +120,26 @@ async function waitForRunStatus(runId: string, status: string, timeoutMs = 20_00
     },
     { timeoutMs },
   );
+}
+
+/**
+ * The handler logs its invocation before it bills its model call. A kill between the two would
+ * lose the bill this test wants to see survive the crash, so the kill waits for the ledger row.
+ */
+async function waitForUsageRows(runId: string, stepId: string, count: number) {
+  return waitFor(
+    `${count} usage row(s) of step ${stepId}`,
+    async () => {
+      const rows = (await listUsageForRun(testDb.db, runId)).filter((u) => u.stepId === stepId);
+      return rows.length >= count ? rows : undefined;
+    },
+    { timeoutMs: WAIT_TIMEOUT_MS },
+  );
+}
+
+async function stopWorker({ child, exited }: WorkerProcess): Promise<void> {
+  if (child.exitCode === null && child.signalCode === null) child.kill('SIGKILL');
+  await exited;
 }
 
 function countBy<T>(items: readonly T[], key: (item: T) => string): Record<string, number> {
@@ -142,19 +172,20 @@ beforeAll(async () => {
   await engine.ensureQueues();
 });
 
-afterEach((context) => {
+afterEach(async (context) => {
   if (context.task.result?.state === 'fail') {
     for (const error of bossErrors) console.error('test-process pg-boss error', error);
     for (const worker of workers) {
       console.error(`--- worker ${worker.pid} output ---\n${worker.output()}`);
     }
   }
+  // A test that stops midway (a failed assertion) must not leave its workers polling the queue:
+  // they would take the next test's jobs, which that test expects its own workers to run.
+  await Promise.all(workers.splice(0).map(stopWorker));
 });
 
 afterAll(async () => {
-  for (const { child } of workers) {
-    if (child.exitCode === null && child.signalCode === null) child.kill('SIGKILL');
-  }
+  await Promise.all(workers.splice(0).map(stopWorker));
   await boss?.stop({ graceful: false });
   await testDb?.stop();
 });
@@ -171,13 +202,14 @@ describe('worker crash and restart', () => {
     const before = await listRunSteps(testDb.db, runId);
     expect(before.find((s) => s.stepId === 'intake')?.status).toBe('completed');
     expect(before.find((s) => s.stepId === CRASH_SLOW_STEP)?.status).toBe('running');
+    await waitForUsageRows(runId, CRASH_SLOW_STEP, 1);
 
     first.child.kill('SIGKILL');
     expect(await first.exited).toEqual({ code: null, signal: 'SIGKILL' });
 
     // pg-boss fails the orphaned job once its heartbeat is stale; the new worker retries it.
     const second = await spawnWorker();
-    const rerun = await waitForInvocation(runId, CRASH_SLOW_STEP, 2, 60_000);
+    const rerun = await waitForInvocation(runId, CRASH_SLOW_STEP, 2);
     expect(rerun.pid).toBe(second.pid);
     await releaseInvocation(testDb.db, runId, CRASH_SLOW_STEP, 2);
     await waitForRunStatus(runId, 'completed');
@@ -223,7 +255,7 @@ describe('worker crash and restart', () => {
 
     second.child.kill('SIGTERM');
     expect(await second.exited).toEqual({ code: 0, signal: null });
-  }, 120_000);
+  }, 180_000);
 
   it('lets an in-flight step finish on SIGTERM and stops fetching new steps', async () => {
     const runId = await seedCrashRun();
@@ -232,8 +264,10 @@ describe('worker crash and restart', () => {
     await waitForInvocation(runId, CRASH_SLOW_STEP, 1);
 
     first.child.kill('SIGTERM');
-    await waitFor('the worker to begin shutting down', () =>
-      Promise.resolve(first.output().includes('worker shutting down') ? true : undefined),
+    await waitFor(
+      'the worker to begin shutting down',
+      () => Promise.resolve(first.output().includes('worker shutting down') ? true : undefined),
+      { timeoutMs: WAIT_TIMEOUT_MS },
     );
     // Released only after shutdown began: the step finishes inside the grace period.
     await releaseInvocation(testDb.db, runId, CRASH_SLOW_STEP, 1);
@@ -254,5 +288,5 @@ describe('worker crash and restart', () => {
 
     second.child.kill('SIGTERM');
     expect(await second.exited).toEqual({ code: 0, signal: null });
-  }, 120_000);
+  }, 180_000);
 });
