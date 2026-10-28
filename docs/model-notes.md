@@ -1151,6 +1151,163 @@ backoff (a failed attempt would not be billed anyway). Budget 0.40 USD; spent
 
 ## P1-07 — Integrity check feasibility
 
+Status: done (pending review), 2026-10-28. Offline: no live calls, $0 spent. Input: the recorded
+SAM 3.1 output from P1-05 (`fixtures/meta/p1-05/sam-integrity.json`, phrases `window`, `door`,
+`radiator`) for the six original/edit pairs in `fixtures/samples/synthetic-interiors/` (five
+harmless edits and `living-empty.edit-remove-window`).
+
+### Decision: GO (scoped), with fail-closed fallback per image
+
+Staging stays in scope with the comparison below as the automated gate, and Gate 2 human approval
+(original shown next to the staged image) as the backstop. The rule catches removed, added, and
+moved fixed elements; the measured structure-altering edit fails on its count whatever the
+thresholds. A failed check means one retry, then the original only (architecture §5, step 6), so
+a false rejection costs a staged image, never correctness.
+
+**How thin the evidence is:** six synthetic pairs, one image model, one SAM recording each, one
+negative (a removal). Muse Image edits are not mask-constrained, so any edit can redraw anything.
+No negative tested a moved, resized, or reshaped element; those cases rest on hand-built tests and
+geometry, not on observed edits. **What would invalidate the GO** (then switch to FALLBACK,
+declutter/object removal only, which is the roadmap cut): on real listing photos (P3-05 or the
+seeded-defect eval), (a) SAM counts flicker between an original and a harmless edit often enough
+that more than about a third of staged images end up rejected after the retry, or (b) Muse makes
+structural changes that keep counts and boxes (a window resized or reshaped in place, a wall
+moved) often enough that Gate 2 reviewers find them regularly.
+
+### Rules (`apps/api/src/pipeline/integrity/compare.ts`)
+
+`compareFixedElements(original, edit, { thresholds?, elements? }) → IntegrityVerdict`. Input per
+image: `{ width, height, segments: Record<label, { box }[]> }` (`SamSegment[]` from `segmentImage`
+fits as is). Pure: no I/O, no model calls; invalid input (bad dimensions or boxes, a compared label
+missing on either side, duplicate labels, thresholds out of range) throws `IntegrityInputError`.
+
+1. **Common frame:** boxes are divided by their image's width and height (the unit square), which
+   equals resizing both images to one frame. The image fails with `aspect_ratio_changed` when
+   `|aspect(edit) / aspect(original) − 1| > maxAspectRatioChange`: after a crop or large stretch,
+   positions are not comparable.
+2. **Count (primary signal):** any `editCount ≠ originalCount` for a class fails it
+   (`count_changed`).
+3. **One-to-one matching:** every instance on both sides must be matched
+   (`unmatched_original` / `unmatched_edit` otherwise). A pair qualifies when
+   - box IoU ≥ `minIoU` (rule `iou`), or
+   - for **occlusion-tolerant** classes only: intersection over the smaller box ≥
+     `minContainment` **and** smaller/larger box area ≥ `minAreaRatio` (rule `containment`): one
+     box lies inside the other and is not a sliver of it.
+     Qualifying pairs are assigned greedily by IoU (ties: containment, then index). Greedy can only
+     miss a valid assignment, so its failure mode is a false rejection, never a false pass.
+4. The verdict passes only with no image failure and no failed class. Per class it reports counts,
+   `countDelta`, every match with IoU/containment/area ratio and the accepting rule,
+   `worstMatchedIoU`, and unmatched instances with their best IoU against the other side.
+
+| Parameter              | Default                                      | Why                                                                                                                                                                                    |
+| ---------------------- | -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `minIoU`               | 0.75                                         | Benign worst on non-tolerant classes 0.909 (hallway window). Rejects an equal-size box shifted by more than 1/7 (14%) of its width                                                     |
+| `minContainment`       | 0.85                                         | Benign containment ≥ 0.962 on every pair; 0.85 rejects an equal-size shift above 15%, consistent with `minIoU`                                                                         |
+| `minAreaRatio`         | 0.4                                          | Benign worst 0.52 (dining-chairs radiator, accepted only by containment). Rejects a tolerant element shrunk to under 40% of its box                                                    |
+| `maxAspectRatioChange` | 0.03                                         | Measured 1.49% when the edit was sent without `size` (hallway, 1024×672 vs 1024×682); 0% with `size`. 3% is twice the worst seen                                                       |
+| `occlusionTolerant`    | window `false`, door `true`, radiator `true` | Windows sit above furniture height and were never occluded (IoU ≥ 0.91). Without the containment path a window resized in place fails on IoU (below 0.75 at less than 75% of the area) |
+
+These are code defaults (`DEFAULT_INTEGRITY_THRESHOLDS`, `DEFAULT_FIXED_ELEMENTS`). They belong in
+the `integrity_checker` step of the service definition when P3-05 wires the step (`fixed_elements`
+with `occlusion_tolerant`, and the four thresholds), next to `segmentation_model`; that is a
+schema change, so it was not made here.
+
+### Measured on the six recorded pairs
+
+All images 1024×682 except the hallway edit (1024×672; aspect change 1.49%, compared in the common
+frame). Cells: original → edit count; matched-pair IoU (rule). `c` = containment, `a` = area ratio,
+shown where the containment path matters.
+
+| Edit pair                                   | Window                            | Door                              | Radiator                                                   | Verdict                    |
+| ------------------------------------------- | --------------------------------- | --------------------------------- | ---------------------------------------------------------- | -------------------------- |
+| `living-empty` + add sofa                   | 1 → 1; 0.961                      | 1 → 1; 0.968                      | 1 → 1; 0.937                                               | pass                       |
+| `living-dining-cluttered` + declutter table | 2 → 2; 0.957, 0.981               | 1 → 1; 0.968                      | 2 → 2; 0.880, 0.919                                        | pass                       |
+| `bedroom-empty` + add bed                   | 1 → 1; 0.965                      | 4 → 4; 0.973, 0.966, 0.969, 0.961 | 1 → 1; 0.810 (iou; c 0.989, a 0.826), bed hides lower half | pass                       |
+| `hallway` + rug and plant (no `size`)       | 1 → 1; 0.909                      | 3 → 3; 0.945, 0.963, 0.955        | 1 → 1; 0.983                                               | pass                       |
+| `dining-chairs` + replace chairs            | 1 → 1; 0.991                      | 1 → 1; 0.971                      | 1 → 1; **0.516 (containment; c 0.995, a 0.520)**           | pass                       |
+| `living-empty` + **remove window**          | **1 → 0**; unmatched (best IoU 0) | 1 → 1; 0.977                      | 1 → 1; 0.937                                               | **fail: `window`** (count) |
+
+5/5 harmless edits pass, the structural edit fails on `window` only. The dining-chairs radiator is
+the one pair IoU alone would reject: its box _grew_ (0.52 of the area becomes visible slats
+between the new chairs, to the right of and below the old box), and the original box lies inside
+it (containment 0.995). Occlusion therefore changes boxes in both directions, which is why the
+tolerant rule is symmetric (intersection over the smaller box), not "edit inside original".
+
+### Margin analysis (`recorded-pairs.test.ts`, "sensitivity")
+
+- **Slack per benign matched pair** (22 pairs), measured against the rule that accepts it (for
+  tolerant classes the better of the two paths): the minimum is **0.12** (dining-chairs radiator,
+  area ratio 0.520 vs 0.4). Next: bedroom radiator 0.139 (containment 0.989 vs 0.85; its IoU path
+  has only 0.06), hallway window 0.159 (IoU 0.909 vs 0.75).
+- **Where the first benign pair fails** when one threshold is raised (others at default):
+  `minIoU` > 0.90 (hallway window), `minContainment` > 0.99 (dining-chairs radiator),
+  `minAreaRatio` > 0.51 (same radiator). The defaults sit 0.15, 0.14, and 0.11 below those break
+  points.
+- **The negative does not constrain the thresholds:** it fails for every setting from 0.05 to 1.0
+  because the count changes. The thresholds are set by the benign floor and by geometry, and their
+  rejecting power is shown on hand-built and perturbed cases only: shifting a recorded window,
+  door, or radiator sideways by 20% of its width fails, by 5% passes; a moved element with
+  unchanged count, an element removed while another appears, a radiator reduced to a 31% sliver,
+  and a window shrunk to 54% of its area all fail (`compare.test.ts`).
+
+### Alternatives measured and rejected
+
+- **Single global IoU threshold:** the benign range includes 0.516 (occluded radiator). A
+  threshold low enough to pass it (≤ 0.5) accepts a box shifted by a third of its width.
+- **Mask-based overlap** (masks rasterized into a common 512×512 grid): mask IoU is _lower_ than
+  box IoU where visibility changes (declutter radiators 0.67 and 0.73 vs box 0.88 and 0.92;
+  bedroom radiator 0.70), and mask intersection-over-smaller (0.954–1.000 on all benign pairs)
+  carries the same information as box containment while needing every mask decoded. Boxes only.
+- **Global similarity** (SSIM/PSNR) was already ruled out in P1-06 (the structural edit sits
+  inside the benign SSIM range).
+
+### Blind spots (what the check cannot see)
+
+- **A window, door, or radiator resized or reshaped in place** within the tolerances: windows down
+  to about 75% of the box area, doors and radiators down to 40% (containment path); a window turned
+  into a door-height window may still pass if the box grows less than that.
+- **Element type changes that keep the box:** a panelled door replaced by a glass door, a window
+  replaced by a French door (SAM may still call it `window` and/or `door`), a radiator restyled.
+- **Anything that is not a fixed-element class:** walls moved or removed, ceiling height, floor
+  material, room proportions, fireplaces, stairs, built-in kitchens, view through the window. Add
+  phrases (each costs one SAM call per image) only with measurements.
+- **`door` noise:** SAM also counts cabinet and wardrobe doors (kitchen 9, bedroom 4). This is
+  consistent between an original and its edit, so it caused no false failure here, but an edit
+  that adds furniture with doors (a wardrobe, a sideboard) fails `door` (fail-closed). A real door
+  removed while a cabinet door appears keeps the count; matching still rejects it unless the two
+  boxes coincide.
+- **Lookalikes:** a staged mirror, framed artwork, or a TV can be segmented as `window`, failing an
+  otherwise valid edit (fail-closed).
+- **Full occlusion:** a fixed element completely hidden by new furniture is indistinguishable
+  from a removal and fails (fail-closed; legitimate staging can do this, e.g. a wardrobe in front
+  of a radiator).
+- **SAM variance:** counts were stable across these pairs from one recording each; Meta documents
+  slight run-to-run variation. Low-score instances (cabinet doors at 0.53–0.66) are the most
+  likely to flicker. No score filter is applied, because filtering would itself make counts depend
+  on scores near a cut-off.
+
+### For P2-08 and P3
+
+- **P3-04 (staging):** send `size` derived from the input's aspect ratio (P1-06), so the aspect
+  check sees ~0%. Declared operations that place tall furniture against a window wall, or add
+  wardrobes and cabinets, are the likeliest false rejections.
+- **P3-05 (integrity step):** segment `window`, `door`, `radiator` on the original **once** and
+  reuse it for every variant and retry; each edit then costs 3 SAM calls ($0.0075), not 6. Store
+  the whole `IntegrityVerdict` (it is JSON-safe) with the staged-image artifact so Gate 2 can show
+  why an image was rejected. Move thresholds and element rules into the definition (above). Re-run
+  `recorded-pairs.test.ts` style numbers on the seeded-defect eval; add at least one moved and one
+  resized negative there.
+- **P2-08 (vision inventory):** nothing required; the comparison is independent of the vision
+  step. If vision already segments the original's fixed elements, P3-05 can reuse those results.
+
+### Code and tests
+
+| File                                        | Purpose                                                                                                                                                                                                |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `pipeline/integrity/compare.ts`             | `compareFixedElements`, defaults, verdict types, `IntegrityInputError`                                                                                                                                 |
+| `pipeline/integrity/compare.test.ts`        | 16 hand-built cases: resolution and aspect changes, moves, occlusion, resizes, counts, empty classes, ordering, invalid input                                                                          |
+| `pipeline/integrity/recorded-pairs.test.ts` | 13 cases on the replayed P1-05 output: the six verdicts, the IoU table, margins, threshold sweep, perturbed shifts. Forces `mode: 'replay'`, so `RECORD=1` never rewrites the P1-05 cassette from here |
+
 ## P2-02 — Model settings in the service definition
 
 Per-step model settings are enforced when definitions load at boot (`packages/shared/src/definitions.ts`, format in [architecture.md §7](./architecture.md#7-definition-formats)), not when a step first calls a model:

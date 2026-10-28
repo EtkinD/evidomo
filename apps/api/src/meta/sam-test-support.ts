@@ -1,4 +1,4 @@
-// Test support for the P1-05 SAM fixtures (imported only by `sam-*.test.ts`).
+// Test support for the P1-05 SAM fixtures (imported only by tests: `sam-*.test.ts`, P1-07 integrity).
 import { appendFile, mkdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { z } from 'zod';
