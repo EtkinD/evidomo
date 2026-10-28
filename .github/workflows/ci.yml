@@ -38,6 +38,10 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      # Media conversion tests need ffmpeg, which the ubuntu runner image does not ship.
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
+
       # Integration tests start PostgreSQL through Testcontainers (Docker is available on ubuntu runners).
       - name: Unit and integration tests
         run: npm test
