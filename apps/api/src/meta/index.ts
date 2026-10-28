@@ -13,6 +13,15 @@ export {
   type MetaClients,
 } from './clients.ts';
 export {
+  META_REASONING_EFFORTS,
+  metaProviderOptions,
+  metaReasoningEffortSchema,
+  metaResponsesParams,
+  type MetaAiSdkResponsesOptions,
+  type MetaCallSettings,
+  type MetaReasoningEffort,
+} from './options.ts';
+export {
   createInMemoryUsageRecorder,
   createTokenPriceEstimator,
   UsageCaptureError,

@@ -67,7 +67,7 @@ The orchestrator (main session) delegates each task to its owner — see `.claud
 - [x] **P1-01 — Meta client module**
   - Depends on: P0-04, P0-06
   - Done when: AI SDK provider and `openai` client are configured for `https://api.meta.ai/v1` with SDK-level retries and timeouts (no duplicate retry layer); usage capture interface; MSW-based record/replay switch (`RECORD=1`) works for both SDKs; one Spark call recorded and replayed in a test.
-- [ ] **P1-02 — Spark 1.3: text, vision, structured output**
+- [x] **P1-02 — Spark 1.3: text, vision, structured output**
   - Depends on: P1-01
   - Done when: fixtures exist for a text call, a single-photo vision call, and a zod-schema structured-output call; notes confirm which reasoning-effort values pass through AI SDK provider options and where reasoning tokens appear in usage.
 - [ ] **P1-03 — Wonder 1.0: cost and latency**
