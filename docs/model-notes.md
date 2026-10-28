@@ -1493,3 +1493,120 @@ RECORD=1 node --env-file=.env node_modules/vitest/vitest.mjs run --project api f
 
 Budget 0.10 USD. Costs from the price table ($1.25 / $4.25 per 1M), cached input billed at the
 full rate; Meta's billing dashboard was not checked.
+
+## P2-08 — Vision inventory
+
+Status: done (pending review). Recorded 2026-10-28 against `ai@7.0.155`, `@ai-sdk/openai@4.0.104`.
+Code: `apps/api/src/pipeline/vision/`; design in
+[architecture.md §5 Vision inventory](./architecture.md#5-run-pipeline).
+
+### Requests
+
+- **Spark, one call per photo:** `generateText` + `Output.object` (name `photo_inventory`, strict
+  `json_schema`), `metaProviderOptions({ reasoningEffort })`, effort and `max_output_tokens` from
+  the step. System prompt (6 rules + the market's evidence objects + the privacy phrases) is the
+  same for every photo of a run; the user message is one fixed sentence plus the image. Meta
+  echoed `effort: low`, `store: false`, `strict: true`. Output: `subject` (enum of 23),
+  `otherSubject`, `summary`, `quality`, `qualityIssues` (enum array), `coverScore` (number,
+  integrality and range checked in code), `observations[]` (`object` enum of the evidence object
+  IDs + `other`, `otherObject`, `count`, `detail`), `privacySubjects` (enum of the privacy
+  phrases). Meta accepted the nested arrays of enums.
+- **SAM:** unchanged `segmentImage` (P1-05) with effort `minimal` (`SAM_REASONING_EFFORT`; the
+  definition rejects an effort on SAM, and `minimal` keeps the requests identical to the P1-05
+  recordings), privacy phrases on the stored photo, evidence phrases from the market profile.
+
+### Measured: Spark input resolution (probe, `kitchen-cluttered`)
+
+| Image sent                     | Input tok (cached) | Output tok (reasoning) | Est. USD | Latency |
+| ------------------------------ | ------------------ | ---------------------- | -------- | ------- |
+| 1024×682 sample, as stored     | 2,011 (0)          | 705 (509)              | 0.00551  | 3.9 s   |
+| 2048×1364 (sharp upscale, q85) | 4,773 (1,137)      | 1,388 (1,125)          | 0.01187  | 7.5 s   |
+
+- The 1,137 cached tokens equal the shared prefix (system prompt and schema), so a 1024×682
+  image is ≈ 870 input tokens and a 2048×1364 image ≈ 3,600 (4×, roughly linear in pixels). The
+  bigger image also drew twice the reasoning (n = 1, same answer apart from two extra `other`
+  observations).
+- **Decision: Spark classifies a copy downscaled to 1024 px on the long edge**
+  (`classification_long_edge_px: 1024` in `listing-launch` v1; photos already within it are sent
+  byte for byte). Production photos are stored at 2048 px (P2-05), which would have doubled the
+  step's Spark cost for no classification benefit. SAM keeps the stored photo: it bills per image
+  regardless of size, and small faces or plates need the resolution.
+
+### Measured: the six synthetic originals (the recording)
+
+| Photo                     | Subject     | Quality    | Cover score → rank | Window / radiator (Spark = SAM = truth) | Other observations                         |
+| ------------------------- | ----------- | ---------- | ------------------ | --------------------------------------- | ------------------------------------------ |
+| `living-empty`            | living_room | good       | 8 → 1              | 1 / 1                                   | wooden_floor, interior_door                |
+| `dining-chairs`           | dining_room | good       | 7 → 2              | 1 / 1                                   | wooden_floor, interior_door                |
+| `bedroom-empty`           | bedroom     | good       | 6 → 3              | 1 / 1                                   | built_in_wardrobe, carpet_floor            |
+| `living-dining-cluttered` | living_room | acceptable | 6 → 4              | 2 / 2                                   | herringbone_wooden_floor, interior_door    |
+| `kitchen-cluttered`       | kitchen     | acceptable | 4 → 5              | 1 / 1                                   | kitchen_sink, kitchen_cabinets, countertop |
+| `hallway`                 | hallway     | good       | 3 → 6              | 1 / 1                                   | coat_rack, wooden_floor, interior_door ×3  |
+
+- Every photo classified; subjects are right (the living-and-dining scene is called a living
+  room, which the tests accept); cover ranks put the empty living room first and the hallway
+  last, as the prompt intends. Spark's window and radiator counts match the samples' ground truth
+  on all six, and so does SAM's segmentation of them.
+- Spark's per-photo answer: 2,011 input tokens (the first calls cached the 1,137-token prefix only
+  on half of the concurrent requests), 728–1,137 output tokens of which 507–928 reasoning;
+  **$0.0056–0.0073 per photo, mean $0.0064**. That is about twice the ~$0.003/photo the cost table
+  extrapolated earlier; reasoning (≈ $0.003) is half of it.
+- **Evidence:** the nl v1 objects visible in these empty interiors are only `window` and
+  `radiator`, giving 12 candidates for a cap of 12: all 12 requests were selected, and all 12 were
+  byte-identical to P1-05 recordings, so they replay from `p1-05/sam-integrity` (no new spend).
+  The breadth-first selection, the mask cap, `not_found`, and `not_requested` are therefore
+  proven by the stubbed tests (`inventory.test.ts`), not by this recording.
+- **Privacy:** both phrases on all six photos: 12/12 empty (6 replayed from `p1-05/sam-privacy`,
+  6 new), and Spark listed no privacy subject: every photo is `clear`. **Positive privacy recall
+  remains unverified**: there is still no consented photo with a person, a reflection, a framed
+  portrait, or a plate. The `review` status (Spark sees a person that SAM misses) is the only
+  safety net built for that case, and it is tested only with stubs.
+
+### Cost per run (measured unit costs)
+
+| Photos         | Spark ($0.0064) | SAM privacy ($0.005) | SAM evidence (≤ 12) | Step total |
+| -------------- | --------------- | -------------------- | ------------------- | ---------- |
+| 10             | $0.064          | $0.050               | ≤ $0.030            | **~$0.14** |
+| 20             | $0.128          | $0.100               | ≤ $0.030            | **~$0.26** |
+| 30 (input max) | $0.192          | $0.150               | ≤ $0.030            | **~$0.37** |
+
+- Spark's worst case at the 4,000-token cap is $0.0195 per photo (30 photos: $0.59 for Spark
+  alone; the run cap stops it first). The measured maximum is 1,137 output tokens.
+- Against the $0.50 run cap, vision inventory is now the largest step for runs of 20+ photos.
+  Levers, none applied (each needs a definition change and a re-recording): Spark effort
+  `minimal` (saves roughly the $0.003 reasoning per photo, quality unmeasured), a lower
+  `max_output_tokens` (2,000 still leaves 1.8× headroom and halves the worst case), and scoping
+  `license plate` to exterior subjects (saves $0.0025 per interior photo, but weakens the rule
+  that every photo is privacy-checked for every phrase).
+
+### Replay and record
+
+`vision-inventory.test.ts` (`api`) runs the inventory core on the six originals with
+`createMetaReplay({ include: ['p1-05/sam-privacy', 'p1-05/sam-integrity'] })`, so SAM requests
+already recorded in P1-05 are served from there in both modes and never re-sent.
+`vision-inventory.integration.test.ts` runs the step through the engine with the samples in
+local storage. The tests pin the step settings the cassette was recorded with
+(`sampleVisionStep`). Changing the prompt, schema, nl v1 evidence objects, privacy phrases, or
+the samples changes the request hashes and needs a re-record (~$0.05):
+
+```sh
+RECORD=1 node --env-file=.env node_modules/vitest/vitest.mjs run --project api vision-inventory.test
+```
+
+The echo assertion (one repeated Spark request) runs in replay only: in record mode the repeat
+would be re-sent and overwrite the recording the other assertions saw.
+
+### Live calls and cost (P2-08)
+
+| #   | Call                                                   | Input tok | Output tok (reasoning) | Images | Est. USD   |
+| --- | ------------------------------------------------------ | --------- | ---------------------- | ------ | ---------- |
+| 1   | Probe: Spark `low`, `kitchen-cluttered` 1024 px        | 2,011     | 705 (509)              | –      | 0.00551    |
+| 2   | Probe: Spark `low`, same image upscaled to 2048 px     | 4,773     | 1,388 (1,125)          | –      | 0.01187    |
+| 3   | Recording: Spark `low`, 6 photos                       | 12,066    | 5,414 (4,172)          | –      | 0.03809    |
+| 4   | Recording: SAM `person` + `license plate`, 3 photos    | 0         | 0                      | 6      | 0.01500    |
+|     | Replayed from P1-05 (6 privacy + 12 evidence requests) |           |                        | (18)   | 0          |
+|     | **Total (14 billed calls)**                            | 18,850    | 7,507 (5,806)          | 6      | **0.0705** |
+
+Budget 0.15 USD. Costs from the price table ($1.25 / $4.25 per 1M; $0.0025 per SAM image),
+cached input billed at the full rate; Meta's billing dashboard was not checked. No call failed
+or was retried. The probes ran from a scratch script outside the repository (not committed).

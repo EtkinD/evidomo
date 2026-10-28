@@ -339,3 +339,100 @@ describe('marketProfileSchema transcription keywords', () => {
     expect(bad[2]).toBe('transcription_keywords.3: Duplicate transcription keyword "vve"');
   });
 });
+
+describe('serviceDefinitionSchema vision step', () => {
+  function withVision(overrides: Record<string, unknown> = {}) {
+    const service = validService();
+    service.steps.splice(1, 0, {
+      id: 'vision_inventory',
+      agent: 'vision',
+      model: 'muse-spark-1.3',
+      reasoning_effort: 'low',
+      max_output_tokens: 4000,
+      segmentation_model: 'sam-3.1',
+      max_evidence_masks: 12,
+      privacy_phrases: ['person', 'license plate'],
+      classification_long_edge_px: 1024,
+      ...overrides,
+    });
+    return service;
+  }
+
+  it('accepts privacy phrases and the classification resolution', () => {
+    const parsed = serviceDefinitionSchema.parse(withVision({ privacy_phrases: [' person '] }));
+    expect(parsed.steps[1]).toMatchObject({
+      agent: 'vision',
+      privacy_phrases: ['person'],
+      classification_long_edge_px: 1024,
+    });
+  });
+
+  it('requires at least one privacy phrase, each one SAM noun phrase, without duplicates', () => {
+    expect(
+      messages(serviceDefinitionSchema.safeParse(withVision({ privacy_phrases: [] })))[0],
+    ).toMatch(/^steps\.1\.privacy_phrases: Too small/);
+    expect(
+      messages(
+        serviceDefinitionSchema.safeParse(
+          withVision({ privacy_phrases: ['person, face', 'Person', 'person'] }),
+        ),
+      ),
+    ).toEqual([
+      'steps.1.privacy_phrases.0: Expected one noun phrase without list or token characters',
+      'steps.1.privacy_phrases.2: Duplicate privacy phrase "person"',
+    ]);
+    const missing = withVision();
+    delete missing.steps[1]?.privacy_phrases;
+    expect(messages(serviceDefinitionSchema.safeParse(missing))[0]).toMatch(
+      /^steps\.1\.privacy_phrases: /,
+    );
+  });
+
+  it('bounds the classification resolution', () => {
+    expect(
+      messages(
+        serviceDefinitionSchema.safeParse(withVision({ classification_long_edge_px: 100 })),
+      )[0],
+    ).toMatch(/^steps\.1\.classification_long_edge_px: Too small/);
+  });
+});
+
+describe('marketProfileSchema evidence objects', () => {
+  const object = (id: string, phrase: string, supports?: string[]) => ({
+    id,
+    label: `Label of ${id}`,
+    phrase,
+    ...(supports === undefined ? {} : { supports }),
+  });
+
+  it('defaults to an empty list and supports to none', () => {
+    expect(marketProfileSchema.parse(validMarket()).evidence_objects).toEqual([]);
+    const parsed = marketProfileSchema.parse({
+      ...validMarket(),
+      evidence_objects: [object('balcony', 'balcony')],
+    });
+    expect(parsed.evidence_objects[0]?.supports).toEqual([]);
+  });
+
+  it('rejects duplicate IDs and phrases, the reserved "other", list phrases, and unknown facts', () => {
+    const bad = messages(
+      marketProfileSchema.safeParse({
+        ...validMarket(),
+        evidence_objects: [
+          object('energy_label', 'energy label', ['energy_label']),
+          object('energy_label', 'Energy Label'),
+          object('other', 'thing'),
+          object('fixtures', 'oven; hob'),
+          object('pool', 'swimming pool', ['pool_size']),
+        ],
+      }),
+    );
+    expect(bad).toEqual([
+      'evidence_objects.2.id: "other" is reserved',
+      'evidence_objects.3.phrase: Expected one noun phrase without list or token characters',
+      'evidence_objects.1.id: Duplicate evidence object "energy_label"',
+      'evidence_objects.1.phrase: Duplicate evidence phrase "energy label"',
+      'evidence_objects.4.supports.0: Evidence object references unknown fact "pool_size"',
+    ]);
+  });
+});

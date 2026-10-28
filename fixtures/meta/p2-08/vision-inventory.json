@@ -1,0 +1,1831 @@
+{
+  "formatVersion": 1,
+  "cassette": "p2-08/vision-inventory",
+  "recordedAt": "2026-10-28T12:21:47.993Z",
+  "interactions": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "1649a4dbffc31233c3f3e482b67577c4cc72561d3051a7371cf81d78b18b1255"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "metadata": {
+              "include_confidence": "true",
+              "mask_encoding": "one_bit"
+            },
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "sam-3.1",
+            "reasoning": {
+              "effort": "minimal"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae1e8d15b51e7ff5fd34b4b",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793190097,
+            "completed_at": 1793190097,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "message",
+                "id": "msg_5db9eaeb-c8f5-40c7-947c-661109ee6240",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 0,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 0,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 0,
+              "images_processed": 1
+            },
+            "parallel_tool_calls": true,
+            "store": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "3d41994390c587fc1335ce5b59e33f4edfdfbbb197ac5e6b510d960502d9b9f5"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "metadata": {
+              "include_confidence": "true",
+              "mask_encoding": "one_bit"
+            },
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "sam-3.1",
+            "reasoning": {
+              "effort": "minimal"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae1e8d78aee9a8e15704d67",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793190103,
+            "completed_at": 1793190103,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "message",
+                "id": "msg_cc53b224-5ee1-4a94-bf3a-62da625d5bcf",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 0,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 0,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 0,
+              "images_processed": 1
+            },
+            "parallel_tool_calls": true,
+            "store": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "4a7b581df17f4ee26699f4c11ce3235eb7f4aeed81eeb7b6e6b460f5f308459d"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "muse-spark-1.3",
+            "reasoning": {
+              "effort": "low"
+            },
+            "background": false,
+            "text": {
+              "format": {
+                "type": "json_schema",
+                "name": "photo_inventory",
+                "schema": {
+                  "properties": {
+                    "coverScore": {
+                      "description": "integer 1-10: suitability as the listing cover photo",
+                      "type": "number"
+                    },
+                    "observations": {
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "count": {
+                            "description": "how many instances are clearly visible in this photo",
+                            "type": "number"
+                          },
+                          "detail": {
+                            "description": "short factual English phrase about what is visible",
+                            "type": "string"
+                          },
+                          "object": {
+                            "enum": [
+                              "energy_label",
+                              "balcony",
+                              "solar_panel",
+                              "heating_boiler",
+                              "heat_pump",
+                              "meter_cupboard",
+                              "attic_ladder",
+                              "fireplace",
+                              "bathtub",
+                              "shower",
+                              "toilet",
+                              "dishwasher",
+                              "oven",
+                              "cooktop",
+                              "washing_machine",
+                              "staircase",
+                              "elevator",
+                              "radiator",
+                              "window",
+                              "other"
+                            ],
+                            "type": "string"
+                          },
+                          "otherObject": {
+                            "description": "snake_case English name when object is \"other\", else null",
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "object",
+                          "otherObject",
+                          "count",
+                          "detail"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "otherSubject": {
+                      "description": "short English name when subject is \"other\", else null",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "privacySubjects": {
+                      "description": "every listed privacy subject visible anywhere in the photo",
+                      "items": {
+                        "enum": [
+                          "person",
+                          "license plate"
+                        ],
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "quality": {
+                      "enum": [
+                        "good",
+                        "acceptable",
+                        "poor"
+                      ],
+                      "type": "string"
+                    },
+                    "qualityIssues": {
+                      "items": {
+                        "enum": [
+                          "blurry",
+                          "too_dark",
+                          "overexposed",
+                          "tilted",
+                          "cluttered",
+                          "obstructed",
+                          "personal_items",
+                          "text_or_watermark"
+                        ],
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "subject": {
+                      "enum": [
+                        "living_room",
+                        "kitchen",
+                        "dining_room",
+                        "bedroom",
+                        "bathroom",
+                        "toilet",
+                        "hallway",
+                        "staircase",
+                        "study",
+                        "laundry_room",
+                        "storage_room",
+                        "attic",
+                        "basement",
+                        "balcony",
+                        "terrace",
+                        "garden",
+                        "garage",
+                        "exterior",
+                        "view",
+                        "floor_plan",
+                        "document",
+                        "common_area",
+                        "other"
+                      ],
+                      "type": "string"
+                    },
+                    "summary": {
+                      "description": "one short factual English sentence",
+                      "type": "string"
+                    }
+                  },
+                  "$schema": "http://json-schema.org/draft-07/schema#",
+                  "additionalProperties": false,
+                  "required": [
+                    "subject",
+                    "otherSubject",
+                    "summary",
+                    "quality",
+                    "qualityIssues",
+                    "coverScore",
+                    "observations",
+                    "privacySubjects"
+                  ],
+                  "type": "object"
+                },
+                "strict": true
+              }
+            },
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae1e8dbbfabb7204cae437c",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793190107,
+            "completed_at": 1793190107,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "reasoning",
+                "id": "rs_6ae1e8dbbfabb7204cae437c:rs_0e88c5a0-3be0-4778-9b06-6a1e414969fd",
+                "encrypted_content": "Q-PaDgGHYv54FR25YHswZ5PciRA05qsQhsGdowayGu3mPQfR1Qpil5LVWqbsWOyJeod2H9MzXoFMz0hI6PL7yuCHrasYLRj7EBnYvr8Sm4SoPC60cHJYRljeE9HU24IDASyQM8lkMeoCu73jzItjLyE5GxGLT0xbmSmDsalzHEFGG_uFUX3lN80u7BrQSHaffScDlBMGmV1yU_0MJMOOQakDPLUhG7zswy-ZiWMEf_v9orvpFtiboE1qda1VBkqppLVnOEVj0gkU-nvK27xowG71opDag4WAXS94qirlc5vxbU003gajISTSCznneaWzW6F2PPgwdhE2LB2FKLNWum3nXytTaJfQijB-f343jW9SLDvFKQ9LRVvaf4Jdxlpeeej0PujNJj0CDzPnpVuHZAhGurb1IfKwqqsCuKcIOnCNmbFqjByHguUa1h1AxhURW81yJLUerVzFh_B067CUG-DJFWGnD2g4fmT59E1gMFja1Vwm5I-9qLxrrB35IsGQit9nJzLe1iUk2_sznUITL6kWpgbIWtSVho8nBhOpdZlpGvDhNpDVoiNCswI2tlToBgOjincjZMtA7zLO-cpSq23oCykMmuL8c-QmOqJnFcEq-B97Mgg4uAbi-1v96s0AaZtu7jw3-RIsn-rrzgh-f02dT4QRSQTFVcaJknpCks6LN_g1lKP4v335NHgD4p0bddc9NCjKsnlYOIYu9Am7kPOaTZ0_xG9L7qVsq-pFCulrokuJdCCdl2G31pplhC5Rg7PsAE6sXOoPpAPcKiqQnU1CZV9ek07tSwkSfxm1timngZ0YNrPii7VtlNTHAUC6jOV29mhaOXjTAaQ9hBofkl1QMmhZzO9QLBD6pnUomPl9_1NsN8gJmuS7ZE81HIav1mWQbBpjJBN2qNeOg4B1_y2TGS8rZTZz7cnx1BKKyDLZWkp5Oz357b6OgdgEIbiNye2pmFRvDhlQo5gkle8P0cQk6l2fTdLZ0sJotsJPKGVtn-lLav4X-0xLqI6bKn5r8ht-L55tIXccLaouUpWK1SbiqCHFDK3phMLvTFwYwBYMhZw_gmMZLqF2-RHvFAC-GGMOjJvqaGTp-y2SMByluRz_JbZgrXbTbdY9ab33rqHu6kZ5XLBiYcNygSpqy3IsJDcQ87OGgU038y5wZOF06B7caFZy0JwIUXivGhJpr2QOBTDTY3fxC2mCWCh7QtczViDoAiSRnwDZZIGZUR1RxRpAL_DSHAovsLxJHNdMjZ6u-ay15kBbRtrxKfkF_R305XkEmFC60Evyc6eKkDMciyqTH7cDdH2Mff-XIbikNeULB3WCl6xlgwu0tBfGBOY8Ikw1yG_R4YLFq9kC65lRQatFTYhHDWy-RXqQTwCrq9b-KwctwclMyvn2evHEMhAvbI4VSdOtRFKme3EbsqklWPLcXH3AVXZyx2rKTyDHlLFBeB7fiKiMJbuFLCNrGG0td1EnViCNw2-tEW9abPTexlTrXNMeOJ8noAivEuZYf2262rgB-HykHCt1CmoW6V6iXIjtCtNVu3UgxLHaHtq3u4y6yjcm0-s4Jj8xXiZEh6C9sRLe2WUddiQHMHIBacbZjPsSIEQrCphH7PUqceGDnOlM0xrnSv6uqZ-CnDiPYydxHDF0H3tUww_wDOszAZugodIQmHSmgIch3VkxrvYLCVAprPrYPPWiZz2Ea7mHozT7QW-c09PLZ4z0xZCz1Xa9flnkJoJ2ei6uR14hRXGG--zvqHEwy9nIqT70_wxU5lrStMba5sWrVTkLQmIYW_ER4JZdjIF8jsCt0SgyOiSqMXnG9RlLbrRQFQ_RmpTi9XlNnP9Bl3g92sxKxYnXwhtXztj5EcbQ_zDY2SJ3BAeKsEBLQHAzPoDRSPOz6GkMdo44W2HELsB2OpQCU8NL4SvBbA2YsK3iSc3oV5Jur0ZfxpKnek6XCDT8YVYYMSLP32OKJ0D0TfHWlRi6UxUtDzRiOxxKTMVR1_4r9e3qZcO8LV__REBuzSW1DfTBlZtdQdO4c5-Rr7bC5TDIGIvS0B37uz4NEyADk4imiSLeHu9_I2B5wFIwsGwVaTrgfTlIqXp3Zjm0zVs6Ter9b7aqjiGZ76myU8Ggch7KcbZOSt9JYHgiftpexnH1KkNgoazMPFAi-YefEc_mLeWKGf7EdQioLKwJr43kD5AA_h5PmhS3IC4Tg2pf17pDspvShQORbivAYZ9u0tfru5czfvlqgmieVBLxMMYz6o_k7NSTfwt8HatCFuW9VoxrU5_ec6U-P48YQScuSLDMV-GxhDaErrlQx3cCAGtx0pkdDDkkScccNHpfxZSUU4LMDeeIEQOIkCHGPSHhz37545b3fhqUMz--TrvXcLvqsj5cXcR4_7bAAErNqXs8zvC7eOYzUKd_OWXKGFz9EaAnZ6apL7AUMTqW8hLvON2SrlCrh8YXmfybvy0gKEoaOM_RpbMAkBUEb3nUI4tUXLd0g4OyE9wCZTGrVcCqU-pCJ-EqbJEp7I1YOSHGFZppWDuCM8imImNubHROpeW-co7DNtZMlC9QgngG8NON0z5ZOKx23cpq5xeI99SpAHvwPQqfrAnWg-O_Y1bfG-S42d-X3BU4dC3keK6iCjJDWP6InQRZjQlfhPP1ejZSg9knMscIR5Pu5te7vpHT5SFlfJ4fno1YKxgDFVL-mEftlcHze08FU0w6P2PeoPJ9Eac62NGQUUM-kJ8enkCpLXWgLMgfTnvB-PqY8wwUgDhJn-ofbcWWyz4p26ypfftMwzaAzu6o_Fv8ZDZKQUh4FoF-MS8DyB68mwWJBDN-exLKqHDMXZbhvjF-OtpLNDATY6mE-20Du4l8PzCJtEeDwWj_SlY1QuVYKSNdv8LG1hlboSGUYqlgsXiHqa7WWwzwH51eVHQFZUOrzy1fFAcmfot6jWMqo4JHllivLCn1XBIIGB0ttCOtGrr30F49egC3Y4P95Kvbj2c7m1VPCwdG1qOc_nuAgVJHgrj_ASkZ2_iqs2sUCJ-IUzZPUquHK-P9Sae7AsIXN9UW6kb_mKPjRCrKsOCQPufn1ccR2re0olneVbd2GEWOOhVfI-cY2d2sKWke0iTwBZL9_brG-8ah8FZUFTdgaEG4FP-64DGErQMUNOFNppw6okIsUVCt-f9AriHrxoHNZBgOMP_BZPWRbug49hV93d19gFTTD2_Br2ZdngDtw8MiTUdGd5mTj2SlU-ghkXAr73swhFExFqAAVm_jPm_ksOIqr716yNYlQCpJ3aDqrptMOKTaQEhYbuS7sPtUJVJM-6m6qAjppAT99Pk3oZVN1OK5nNqkj-eq9HgTwHxzO-Y5W0TBZahHcOs_O6YMzDqbIWAosKmK397usxnSWPh7-O_EZsJqzojT-S8Sv48YTkBz40ZJ3B8DgLCgddhVWyVFhfiMQQLkKqV71mCv0PAuuXnkf-SimJaHuuq8iAohVSBpmi8vALg0D9w2_Jb4T-GEnZh-mMWZiQxZzsCyN9ztUMzbBIz97j9IZUue2nwGoZKkdOYvDNj7PAODEriENmJ52cnixZcbBX5msaM8RTuDI08b2ze7gNScSfoeyEB8lLJd4ALmUADwF9SsPq2qcTQQl8xKAKusd0kBIGa8uFljhHEMFDqnsDjnP_CK3nwz_2qZW5SgQHrPtQhoBSf9YapkekLXUqOtNELsUBQTsM-Mb2OFr5szXdwqF1a1HmYJDt1-a_1IEQ2AwjWubG_LDt0KQpILtf0JE77xc2fuHFpDb8TEo7fYPxdrkTNny3Hdm1L5n-FVR0DSZzoOf7z9MGzhMF9B1dF_gETVaXCMu6wuk0prkVoFmsXmHQwl0TCDh7UKVdkdfKuoRpdBPRhFxJoad-9KzoL297iKxelq7X1SUXwdr9uWQDLhm2BRfNmBMuAEbMLxvzaLd3rKNGk6IWUOOa0WdMZpmSOmX1R709xNEnf8LVyU9hlwqxk-GVgr2JUJ4kQ_deCf_-LEJH7Fn3pP1aMNlfc-IOl31EXcbQXN-OYZuXp8sOaa4041cl81aPDdQMncg-GkR-EyeZJxMCCmFYHhZLPoCCYSG4F50jpN_IHUzVc-c-nQdfHeoQYmdLYotc-95NLwpomlgpmfeAKSykFItSl7hUtOoIB0WKQ8Kv5X4edp0qcWaJ2JGRrDX2fMv0J785n7q8Sd6ur4-ogZdGFqvbq6ynho2dXDw07Ln6o_CT05QPB_bLG1SJvuwk3JzMetKO-sp4npQtpyJLzz_V-8xB3t3IehZWTXLENr1X2FdHmXGv-9cig1ZjXtTZDGr9b7ssQkHXvjZjsbx0x9TK8YZHEqeYPhmMIZQJGn-SnA5TH-eiVfgy2flcZ5oj_U-CVmYUk8gOedhmBUzL7x8CkgGNz3hJmOs0tftZ0Kn89smUfmHsNLodivDZwHxoZmdUOIqzvr4LFiWiITCTXwL1Ivf6hHFbtCD3glG5M2QPq81AY5YzlkO0ks4L7QCVtZptQkcr_HbujqhzsNdFtaSSlcKHD5pBKnlTT-POLJQ2K4pHu4E-30QtlkdHHl2TAgSy0Cbk6vryGzHKU2-ftmkUO4y2-M6dYzap2U8zs7usR8scvXz10SZrcyAm2EQJVBq9oIPOrT95Rj-FBrJMVDZ9NnvdyWqz6b8DQS2vAVrASqD5xNDl0-I2ZuJCBHco2DMseOGAzzWTizMk7-xnbMPXhDC_84cphbSGeU4uTJpZaK_0XNaCQkscd5W8yNMm1Gtai_IIawtX-lUXDLKjAYwemKvuFNakmRmcPeOG-gIT_H_QUXmVJdkFMWl-PFmGDEO0HZdaHdnwI5uqMNDHXMMiJxRL1nmHuhDXL9r0VbIYZ5uN7INs-EC15YIkJTXg5vif2g08lPSR3JKnUCTYPhfdY8JBaQPoKaDX3J5sMM-f621Ad0685MJnzIiQP8DI1v-2U1DIPmr2chL2Kf9P7ha6HVvIlQRa3779AbOO689hwC-SkgfMp4FNuk0rtGmFhJ8Puf65C1po4316Hg7jZK0t2eiEUWL117g4mRT9_Ic2zSd-6yDx0BFX7YNIxr6sGuZsg_z-hZ-ebxZVWvxgfYW9lt3hMb_2vpdIEN2B9w-COughdbuhAeFPiHxkmOVfl4TD11rX3Zv9BtmkinSNaK9v0O2Ikl1Zu_qM6iM8n-oIw9T_nihgcXPmL2LLSiQVUnzLmooGk0R-eCH2-za12bCpr9H1Nafm-3IPgdtuzMAkn9ebqbqcsqP6yUVWIIseyzzwMfMxlnCWAjLpInWPuJgheLHZlxv-1-mO7S2zE11AMxipzKPYJbrXdXpOR7wtN1dWzWAT-s_k7Kksslr87KF24Q8Nvqx3EC5vuFcPLDTJDrtrtHSmgweQUKP31RhdIqyAsfp5Gt7QfKzozOlTpVpkVOpqcMh58vDDtZV3FYrtaqlUyt2ZbLJjtenwPaG5Gbg2IHihDRf2CUSPGJ0-OR5sMRqwH5fngYjJJ4DmLeJAjWJYe2M5DYDI2HFCB8kA95-US5qw",
+                "summary": [],
+                "status": "completed"
+              },
+              {
+                "type": "message",
+                "id": "msg_f57f17d2-c056-48cc-9d17-8d6a1af6a0bf",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "{\"coverScore\": 7, \"observations\": [{\"count\": 1, \"detail\": \"large white-framed window with tree view\", \"object\": \"window\", \"otherObject\": null}, {\"count\": 1, \"detail\": \"white radiator under window\", \"object\": \"radiator\", \"otherObject\": null}, {\"count\": 1, \"detail\": \"light wooden floor\", \"object\": \"other\", \"otherObject\": \"wooden_floor\"}, {\"count\": 1, \"detail\": \"white interior door\", \"object\": \"other\", \"otherObject\": \"interior_door\"}], \"otherSubject\": null, \"privacySubjects\": [], \"quality\": \"good\", \"qualityIssues\": [], \"subject\": \"dining_room\", \"summary\": \"Bright dining room with light wooden floor, large window and white walls.\"}",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 2011,
+              "input_tokens_details": {
+                "cached_tokens": 1137
+              },
+              "output_tokens": 787,
+              "output_tokens_details": {
+                "reasoning_tokens": 600
+              },
+              "total_tokens": 2798
+            },
+            "parallel_tool_calls": true,
+            "store": false,
+            "max_output_tokens": 4000
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "57ddbbcaabde7773cc6e2fb8ff79744d50b2fefb85c36fc41d205f1ce4d9c8c2"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "metadata": {
+              "include_confidence": "true",
+              "mask_encoding": "one_bit"
+            },
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "sam-3.1",
+            "reasoning": {
+              "effort": "minimal"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae1e8d88dd3ce9f95754360",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793190104,
+            "completed_at": 1793190104,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "message",
+                "id": "msg_d7aee9d3-6c60-47e6-a00c-159179bc5bb1",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 0,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 0,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 0,
+              "images_processed": 1
+            },
+            "parallel_tool_calls": true,
+            "store": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "6afe01ea86d180fd78b30e74b375c5524f1a7f65dd22fa489a7ce496d0af9548"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "metadata": {
+              "include_confidence": "true",
+              "mask_encoding": "one_bit"
+            },
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "sam-3.1",
+            "reasoning": {
+              "effort": "minimal"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae1e8d160dc114a50d14aa1",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793190097,
+            "completed_at": 1793190097,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "message",
+                "id": "msg_ec798b9f-1d1c-4adf-919b-a2985fb8a238",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 0,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 0,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 0,
+              "images_processed": 1
+            },
+            "parallel_tool_calls": true,
+            "store": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "75989b2601735600160419f8c8c5d828909e0e27118532392dc4e0018a9b4562"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "muse-spark-1.3",
+            "reasoning": {
+              "effort": "low"
+            },
+            "background": false,
+            "text": {
+              "format": {
+                "type": "json_schema",
+                "name": "photo_inventory",
+                "schema": {
+                  "$schema": "http://json-schema.org/draft-07/schema#",
+                  "required": [
+                    "subject",
+                    "otherSubject",
+                    "summary",
+                    "quality",
+                    "qualityIssues",
+                    "coverScore",
+                    "observations",
+                    "privacySubjects"
+                  ],
+                  "properties": {
+                    "coverScore": {
+                      "description": "integer 1-10: suitability as the listing cover photo",
+                      "type": "number"
+                    },
+                    "observations": {
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "count": {
+                            "description": "how many instances are clearly visible in this photo",
+                            "type": "number"
+                          },
+                          "detail": {
+                            "description": "short factual English phrase about what is visible",
+                            "type": "string"
+                          },
+                          "object": {
+                            "enum": [
+                              "energy_label",
+                              "balcony",
+                              "solar_panel",
+                              "heating_boiler",
+                              "heat_pump",
+                              "meter_cupboard",
+                              "attic_ladder",
+                              "fireplace",
+                              "bathtub",
+                              "shower",
+                              "toilet",
+                              "dishwasher",
+                              "oven",
+                              "cooktop",
+                              "washing_machine",
+                              "staircase",
+                              "elevator",
+                              "radiator",
+                              "window",
+                              "other"
+                            ],
+                            "type": "string"
+                          },
+                          "otherObject": {
+                            "description": "snake_case English name when object is \"other\", else null",
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "object",
+                          "otherObject",
+                          "count",
+                          "detail"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "otherSubject": {
+                      "description": "short English name when subject is \"other\", else null",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "privacySubjects": {
+                      "description": "every listed privacy subject visible anywhere in the photo",
+                      "items": {
+                        "enum": [
+                          "person",
+                          "license plate"
+                        ],
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "quality": {
+                      "enum": [
+                        "good",
+                        "acceptable",
+                        "poor"
+                      ],
+                      "type": "string"
+                    },
+                    "qualityIssues": {
+                      "items": {
+                        "enum": [
+                          "blurry",
+                          "too_dark",
+                          "overexposed",
+                          "tilted",
+                          "cluttered",
+                          "obstructed",
+                          "personal_items",
+                          "text_or_watermark"
+                        ],
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "subject": {
+                      "enum": [
+                        "living_room",
+                        "kitchen",
+                        "dining_room",
+                        "bedroom",
+                        "bathroom",
+                        "toilet",
+                        "hallway",
+                        "staircase",
+                        "study",
+                        "laundry_room",
+                        "storage_room",
+                        "attic",
+                        "basement",
+                        "balcony",
+                        "terrace",
+                        "garden",
+                        "garage",
+                        "exterior",
+                        "view",
+                        "floor_plan",
+                        "document",
+                        "common_area",
+                        "other"
+                      ],
+                      "type": "string"
+                    },
+                    "summary": {
+                      "description": "one short factual English sentence",
+                      "type": "string"
+                    }
+                  },
+                  "type": "object",
+                  "additionalProperties": false
+                },
+                "strict": true
+              }
+            },
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae1e8d701900e740fd64f3e",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793190103,
+            "completed_at": 1793190103,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "reasoning",
+                "id": "rs_6ae1e8d701900e740fd64f3e:rs_42efff77-f1f4-4d57-a8f0-38e202ec03ad",
+                "encrypted_content": "Q-PaDgHSc_HDI9RhAUmBsGhFe7eF9tfKpJMn3nmC3pnbBalb2Bv9ogGhBLtXzJtY22v0UdSsuiWY8JP1DFtaELKt67Rw2A-qQpDV2YoB22_w9OCBxB9RivEHM4afa17xboeTo9YGtd9LMyWTSuzjlRh86uJRlvFzy95cI0VJgn5RNT3oB8mKWs5kXcJlXwuQnwLSXQxoAwlJEl5zQuZgnvQyd5xHMHj2hNvFqTRRXs0h6yHSzPS_o63wMrHanzzAJv8zgf_1oAGX71Rp-mpMzej7uXRL83zsGBX8xKOeb_4osd2l--w8oI3vcQDBV85Ryn8LTl_qsDWIjG4g48iRXTYSZnAyo475z1TwbVfOwIwqp9hBCN5BnWPjdACK9m5aOYtTX9UaNButzFJmwl7M5_ANO89tvfaT77f1jFA0fCKdsn6fCgIwNA0-sWXo3LvuiOdiulFhKktwPfYF1TcdUlmzkHayDybPN3Rjm7RLNmUZHQMFrCme9X02nkxfwQpHb448efA6VyDkaS-WqD3k-ptsT5wQ14eyCto3TSED6ExiAQ-Va7A-uWiea6OW_7nX7XCrTDwwX1sRzFtlgPbU-qge2L6yD1AtSURJamXDKb0kHhiLvJN6YGIgU-_cmLlvOgwQw-ITYNP-09lAeaBQNChLov0jf3z9JOKErjA1n8nHRh8jThpR77DQ5qB5xbeXBM4afgu0za9jxXZ1LWbvaTY22Qe2kYFE289tkVSQMXZdHU6Vg0CX_8JbsXEyaTt3IvJd2I4j3pVdPIyqPSKdh1bzLYELZqTbqsU5UwDpZKL0cWQ4dvQl8n5AvJA8WHqhFghdHI5yQleFRCtZ1MqEaXHpYPhFHjwzLsseKYzJbmj4XAkYghe0FXJkUSNTHz8MQA9eZmptbiPJwmxzUm9jyDvY14i0qz0ufm53-kLAI5VdOYFjj5MA6H5ST7kQSHip-5jHYtsyCOg4-R378bl8oM35XiW08lv63bijYf9WBb_VeBZRJunQYzFFU4UekgUpn3D_xLHRe4NVc45D2vaOB_zk0XKGsGdLK_0JdJfCitqNDiaIoUSDxl35sXCBhtJ6-vWAS9iEsC4ZhnJFI_MJ0tPten8lw7HApP6KDqY4lRzihMF_1kA1v66YKXIrHevH7idhk_zUns1uZU7xyWUAuDAe4bug6Uk8-jYrcbZAYtIX1e6hFfjAYhuUyfc90WBKYq1iQNUSZkoqg46RdXLGGf8umYPRRmm6hhA1EyUlTxSI8I-rLhEweFKjOqLxfbBe2kdSUboaaMwkXwTuX4txgqsrMZTDZ1zH3A1NqtLeWGlB09MK6M1JE1QnlzwEPzl3IAmVde-fM33CNTxh2Enwzc-n5ftSSVJcca1yNEVg-qUluNt-yd4lniTJF66trlMRo4evp5Vy2VRULDIoitCyQEdVYaK1I4x9Uog14sKfyvt2Bd6KgOmnercFy9mXRAGMw3IaASVEzRadPzMy_wSYtqY-wReQ_8cRGFc_DHL1bx-MkyXDBoq_mTzVsR1IJTUgzgzXWZi8krAvqFgrLgfTopT_VuM6sKVcYKN4LO5UohUK5NrpYIRu80raNUyNid5KYyIzhl850Guo6xtSWsBgk-xR5FDBf1CduUVUXoZYyB74SUs_2S38ef3N45hpRThcchSL_FA1YYOFz15CjcWGrJOmBYL7jk5tvpbex3Y73LMEtuLQ2OwjIZ6a5du3nzXltt5jUqchwg4KGhOoxWoAZduBIL3Ht8xch6dXVEU30mbnL2GS-1-H17gdMuW7vLAK2W-hcHQ1CwVoktbOyCr4v5i5u0j2RK3E165HlbjENtD04AZHA2WxuqjHVrPjOo1CEYwqmT4MkLVWpZk4YvXLvXd3CUsqhUQvFZdjrwZmEJXezozWyjLZeix-j3EnVyAapwEYONJIh7QyZCslp2Ox5jZxZ6zppQL02G5-mxF2sHKDCxeVrEAOdpdwmB55riCa6ULqN6AajcBZYx0iCe0bfdP65OSyzVEBp_iGyPgwKCtyFTGID-NlOiYK1yJEky8B1WJZ1uF5coE9Hg6j1Y5d0RGCd8h3nAKmb0UVz6p1gnXS6ZpTONzQoyy_TGoW95VeCiiEPWXnIn0nIrD65S-XoYhHb5DcnsvO4o8liDQkUbrK-gDCHDgB2w30xovzfLT_5f8iZHcdb1pvRtgBPAXZMIF35v6pVbhbmgSAYUGJE0onSKP57WZ8kFOrayqgMR3UHCYntvHLoWO5UH9AVdqSS9pIIjB-u-dfvQi7Kb9WzuzWfpgrJdRltr-l84MC9f7fGmv6Tt0m0xuvEBXxZ3Rqqh0LgJ392oum2fZ_i0s0OEeTdA3oAKKbt5bwar4K_uDIYd4lt1dk9Y7ulU7s2Nad3s5yK6STKyUSAk8Cd_eb5Z7H0fy4NkNwHBCqjgWfr9sLSF-GSm0IuaDMobOkkXCdSNcH1Cttzvcfs4AMwyjKxDDcdfSNCyG5Jj1kdI_j7REtQf4BnbY-LdvEbW3c8g1_yKL0zqSIl_sLAKdzO0f2NjTPa22ljI5BaEAaCzFAroAo_FWh7Upoy_lnqpGcN3G4Pkmpb1ro6ByCcKlMNUEudxVJcwGPF5N5BsO0fnfx2g-vsk-163WpJmTiL4Nap-Xty3JsvCKQW_G7qMtyECpOWtQDVvNmJS3kyJgkDYoD2_XQ6r21bNIGFhYWD2J_u6AhUPi3rBoZSyREuRIO9b-WgqOweZOoMfSVLdhju-SICQFIWlyljG_oG1nZ6qdHG9ners7bCrg4szOGB1Au_tfXvqYZq_IuheWqdBCgZAP8r5Q6FgkImKp1CHmql-H8yCAiIFzb0XKB6NBJPKLLrydbESBfFKuYRZJ_l_f8J23lOBK2rkuk1diW2XnCb1fmzoayPcPKIg-3P4TJaYoNNN_cewo47jW34YiHTWMGuf7wF34K8xigaYvDVJpN61wo4gYLleWc1b_-R-GGaECHGezlubSryvnq1Ogvkr7gMYRSa7PNcb_jg_KnvvnK8urWh0QB_Jr7e7NQjsyyiOcrHne_qnlw2_jiIdqwiml4qLTZt2fFIgvkVHAyVJDgmGx_1uCDmvSUI8rAq0wz2HqhRfjM-37Wawi6e5GGPLCGs1SQavI2P_5NjgS3uYFcZUzdVI4BW1LBvAmWnbIvCfEiSIx7-tOgxhqfRY4Ve-26tCZzPo9m_8AFaTHhJUlc-mP5mdIAvGOStMI3jmWV8P5DyHLgWWfScWWk6X5QwSbePQjSERulUAgJZfSepr9sNxwvirMTB3JeU7ARPCFbdRUC_8iEbVttawdIB1hzNzK7oUvCUVQchjEIFLFI1uhcnrkN9clkS3PEOWWvU4CeDu_fmRp_GIXP0eJcim_6-jsjXzMaWdNT-hnQFG28nPwdTGv3G_kiUrW1uEnhA14P_FB2G6BXcaMCD94iIXK5oi2YI1xri4eWvZnv-GXuG3ZlHI1uSFfKybEjYBOoSfqvidtOiDGV_HYk5tOQfSmOp4TItv-SKVRakJ91CcrQMRrUtGQ8EE5AOwjJxGG1U5rcSsD-BSW0VXi5haHXGh_gnPKscm7hugLuznmpGmYsYXDKxjsOpJDHnE4YEBP37var49VMjRSo1BrZwvfBnx1IOU6ML5cZ90AaF6DEg6am7SXAG62t0_HMy-iyT7-UWzQtqdi3WNycseOq7mvGtK-alz6paql8wVrVZCCBrny3RKOqo9jcsRI4RawUWBuwudaHahoIMLXK0pjRNUJAZll0bqbl-HwvgCChyMDGu64j5jjAT070VRtqOPL15_AW11lntjIaCaRBrH6orr9hNUPOdDrydNciM0FP7605z1W9TvpZ0kOzHjG94BnzN8bqP9dBObr2kxpbalfibuEdF53xiAAOeOkF4Gkj23uhg3hr05Tl7Bae6wVDIYhAmXZBbIUmbgVL-jB7Bkw0i1auuuGE9zU_Tkg8f5K9QUntVlXzo4-WcYctL8gWr3vvoZQmUCazzNt6l1RK_YoTbSPYJQ3pXuIi98Yb0j4yO2DaotTxHqdcSSsg4NgApS_5lz68FGUv9WfxS2NIws0NroeZ9nXVGJIFS3IqHDAhwGZ3iwr7vKhSi1pfaKMQuCk7wg7mTyDaSeserBNkBdgbQo2ulosG2zpUGUUNhz53fTZkO0S4aO7M42iJscKHmMEWxfgMPA5r0rBDzAkQn858rK-mNF1CL1rUWzKG_XfzcKpOAJItdkg3Kb4XcwVvxsY-bjdUNWePlwt8qdfQDLVe5ubBYgLcSOtS88wa7QAHJeo_GaAP-wjxVAufGXr1QNVoUhXiBmOH5GmZU7D-8keyj2USxOnXm-QbtjsUhhy3pcWqQbTGTeR-LjE9elq0tfirACcH1Wnsam0_6woKSxdO-qU-BFfPK_5KPLe6rQzJ5HFwQCD9wfkmfAlFHMn64gSV5VJXzsBB8H4RLo1yEA0ajZjabVI3ENLBerRfS0HhmbJQYufQBQmmQFj3AVsGB4T9vat4KZ7GDa5RigXNrKiwyx4ImX5fk1xqY2RCpl9lqdOI9brF9nkhnNdAQ_DDkeL1tNmJ5_Ots-LfcJO1_w6lj5d5ZMbUrNoP_srgWEsTIgPchEOaYVthlfPmnaXJ5YCtFW2xqBlyo9bKL7bx7drOh3UImnScQY3Odm87gAAvEIkezrh0lxXURAz2kUQbkKeouybfveE872lfWLQDgJabN7b8gA97DTlMQjLp4RLSxZK6VlaENVl_W87tKnhYeyIzZO6cT0O6MWCGKTwJ3UMW1OqjdY7YPwIfzCJrG8J6a71lS1g6tUqomPxYvxNviKM8s7VkiWHQVwgnp5Lx9A5ejaVlShetO_gqhvXz-s7WRaLEqMSLMpX6ttOcNgW8xsKZFj--sJVII2pEF5p7xFOIywR6BzVzs7JSFmPexVaT9M4XbJLp0YSHA8Hsm2yV9N2GEzye01e9-QG3O30rMJKWhOMt3JIRhaSKH5iXPUxEntyRu37edf2Q0gCOr6V1N7jeT1aea2v53oBhxwLQMAjxWw3lvXBHWCJVwjq8-L0v59O9S2thLF-i1rAYzQLGrvdVEWKoPW__jeC8_ucnBNB59pXiF0T_8K1aItigB0Ues6SAySRmcBEZElgYo969Y3tsRI8dEpoFjV_OWgNJTh0DuMg947-B8OVmskZeYYINfQGyKi_BrsfBfEsGPmfK302PxJMze7yj7Pzc7cC6qZJBpwGpj0GgoctUIZr0GEwy8fXdDsj3CxQnlcn8GvR7WjShRFhur1DKMvt3KHrdx_PtYPiJXVzccSuZLCxypmSeSk82SEBiLBfzvs_J796Q-izfADbRtRNkmZvX2mWc_bD-QsvLVC7d9t5VTXkuKPknaA_HljyOZyzX1e-PLaxERVeHYX1UMwWawJ6_wxkIq6HwzfmZzzXyTiLbxbEJP5OTzF0yqlSy9yHRb3JKB3F574L7rU9juyXu1iqyVSvx1NxHMio-mxQ-f3tePJLw_AoTHRYuoihW1yK2VxYpVzNNMqGM4STTjrAkAqMrzTTKIw-icHiTyp1Ym8EfTke7RtPW0rjudt67B6kL-CHwHVcXuRViIcCK47MndhE24GJwH9Mwg2iO_L3SrrOcGE_ipIkWDovX19kGTxS6xMkqRCXcI3vq94UBEciRi7Zt_McrrsGOgqwLH5Y17BcBgaVKUeZ7bCtPF19N3bRWTl24rIm0YOpk08IZNRNoEAKtnFGNocprciJFNIcrFgKcTTlKfB32MLZOek4uOVtyLvLNMiBUQ4WAH3NSd4XvK3ufUrU23afS4Eo32XVzWOz5-GwSbgyyNAZCaXemF51N_LI_HC_WuCOFI6EbH1lTkM27BAOp-zoflLsedB7TdJiJP6p8bZAqkkk55w_0UZB9sC2QjaGQPllP5BUd-uRmb2I1rwGVqZN2KfELVQTD_vjGYqVMw8iRnK-7TTrrNfNVgu3rPEF9fuxuhg03JE_Tp5sa81YIvukEL7gtAQO8l1Bzo0PbCDm0a4BYRDd4W6o0FeqCfSjDlZR-2-0Fo2mLjHD75ztVlyqOzgL6CB5x1GjUqRDapjNlSerxRnwTEfpzX7rvYt4EreQqlRYZzYaSpS2g8kY3hmbT_pYswpAFcuUkOQh4IxsgupygRwujsl8kU36ITtEdCOy80N_-peNa0lfdjw9f6vRygad6ZpJ92SFRMNe-08RCOIop_rnLVXs7mC3U7CpFS23jy4N85BTdxJPDVYBOm0X65lGoZ0_qGUaxM1OgDs4lMYiUIojV2s4nPQR9wkTrxs3EGAfM_QBCPapw7J2VvxzqBjQ5x322MV0fjI1iuoWe5TrRk1OlWdjT7dwPilGljxjZj4mWjAEJ-BSLXwAFcQbUNYNPt3x8_S5cIYL9PKZaYnzrRFgP81TeusBCDr23QZlB9zTQiq0VnFfZ8aNukHdf0iGpBIUcOB6twHIN8EcOsbTOw5jcDP2iI0q_9RD5NkEDYPP3WdcyegJ8S36000KC_K1U5NyhoS_iXyszM3yeh_Be1Tkzr--uUN89uQegq872WrI-BIvMq0NBmkeY13YevMDsKceAtwfxjilfzPIuFL1a1TliQsf9ng4__xrBKAXk1h_BYRvPthMZitS1SeF3iImabJ_nh1JsVDmJGTYsJvrpiU9UPtzLl9nsSpsU7pcSlGP3vrSbAgUOhLq3iTNEAxKGG35-IiUHEjaTsX4usypDMhGtLPyo2qJtKoj5g03_OuD6KpGGUkPjsvx2jEyj5oiY9eiX9r1MwUmJTFKzAmbpJAf5uJYwsisEe7S5u424GDpx0X18ZQWsDgAttUf-wZXzteutbkYYkwj-STn3CZzBaz7R4dkT48KgvZJjEn2ESdtQsekzb6GUhMi_qfUDA9hKxHNe7p418kvHoBJ-YSDXI8xryj1d1MyJ7W3PkZvcG5PeVb0KDIHnuJmt5Tcq3nvb-NoWmQ1keMEeywSJSmMC-JhljiveG9_Td-nsgfur6BXtyt6G2qjOV74u93aF5M6GWaN85gmqBOF7q9LKnpWo19bFRiIS-QoOrj8cZhpfxxKOJWPbfd-Y7M0wqT9J6cHNqS17ne2ww7uzl1u6BzhrRagJvMTxN2XJqVg26XPG5ZuhqJhd9fH-VrW9vo8c2mQBzQPL7yrwF2FFSD3w4cdsDDKVcnVR7J36vWBcMUZgFumsONOQDx1TlPB7w9mxKrH3R5q3n5IstOdIjDOwZUWaCHvPLrJGddb8kS296pD_j-xpoG4ffJkTVbF2rXeDW-64i3BwKKvf4q70861jvV9Q1IJJS0g7cmEUMvo60dv88RZm-rvsCgSHLdC5Z0mHRJVe7VtT5BJcpiC5xJWtZ_I8suUSBnFT7KuCdTEFtN83-qPDbQ1n2DhxoJjIc1nyb98TWC9TZtGFMzlvXYyS0_I4FdDbBY1WYwY6bwLNh8AY282IdK-WCuB6TA74pLbuCZaf4oGLFzaiDfICw49y-S3rpXrLgmR2cLtinAyWj6pfrlxPoHj6kOJaMBNqHQpt5nULZEu9WACu_GzskjT-HLYNkJmLaeCR5zCyFs5qMYvNVnI7tSt8wtW_TH3lB3hBEgdNeWYk3MqBhy7xycezwfdZxT-mbSPJiVqLQQPQqht0f1ks8ShnPly91iRyAaZ1mAbuBWPQ2dppmqRWEokHViDP0_R4ywzt_K8w1XZvoaJFt-lisrEXDqk40TTlijJL4CK9cUxUyir8rUS3ybEnRBlFnjrZwf_TkvVcpuGIujKKZXuUoVJw0FeOovaScZzaK5huVdF3euCJRgrWCOEuroFAAwOFYwHww_HMi1SeQRLz8YCBVmyNmQth6hlpr6JA61EsJS63hVjkHbWFx2KqXfDkF-lNE3zJA1fuj775oIiGMuNklP5EeEFarhSPYe-GST7YQvwmIx7KzmcxbopZPhUpft0Y5ATGi0T6vMPkv0AFQl9KTMPQDz9ooJXVQvB2pZ9axQqC8V6n0m_8FtMuc6lZnVgfRcHYGD6-rW8SAEtOTZnPjWvJrCw96HTwgeTPXm2Z8JnSRXQ15UaJ8TRtqHqjOTsmrnkUkdXjJancpW7l3D_DLCOtsqP3JQJ3Q8S0ht5oDW40z30e5OwBsUpSs3Qz64eFRKaDL1E94rU_wg741YVSIWlI39PgCeh3MBHCoyAeTmWVmPm-JjZMA8ABUY7kRNvEZ-C0-MvWLNqFYfBy7H8oZxt13X3qBRmSDI5RZtUzxTNHo4ETsGneHgI5Ttxaf0WqdryBMfvcRuDLaXNzp6YZ-dpOlHH-75kF9yfh2wRsY8ZWRpgQ9NjKQVqQ7hRi4KBKnD-m3ye7Nt4mHYSWr5lNF-_Ngoc-runpg5Ep25dbFbStPp_jparjepwAkZm9yspdtk88_XQKrxbfGHCsGvTJPNPnvcNqtrUZxs8beDGQ50a7Wn5CvorSh_is1eV1Fxx9tFOxeMoIZk25RG3v3lslwDrz6pdzjJFRbZ-1H1k91A2nhvk4S2Dj9oCdcHfRGN6edmSMkolbiD7KhMcXzIWHydfaKpjMhOa0w8w2BfRBtaxrBPm559QTXKKwp416Ek_yloU55H_9k5mK79o2vqADUa_w1GDFis2iYweC8rGxuyCZK8j3EosZBlp3896tgVyzXQi3-sIzpO9nK0C8PT_VTm_XNu-k63RRxnJeZdf9vV-E5FLknAcnAbrvJ_goiMJPheeTrEG1oaQa6tdVExwDwmIn9eKOtCr1ihUXJrhPKNd3ik8glEym51OU1eV0CQrbyE7PyVmp-L9Na-HbxMWhCPX3DVcp8eJr1idQehQcAo-L9pm473FiHCeTKZyN6OBmiqntiy4_d21MMCjkiYamfgVtRF0ur30daBldr5YcySfHkchMzSkNyUTmZuMX2OhUB4KvFn8EkJ7OTdItg38sOGastoPSUzR_qSIfJm5Tv1o7y-7Zlvyaxu6yWdfoTt9rjyNcLzYH3-2a-i2UPDqZQcb929azzifb7ck1t0knNaPt_wsXyoqV5U-2Tqc6Eam2SQ74wLGQm0VwWnZ9YqLcAM8l3B9pK2b5EP-c8DZztmLt44c-8_cwUzfVr6CrhiAECTgly1U-MTCtXsu7AChwBzmwCaaSx6d5K7aP6Eo9mSgOoVFpCSHOURj68erkcXrS17XjwEQfCHtg8NqdGlod2z72d-ogJXoBWE3e1a1RZfzTDp3q54vfNFaZKEoJDeL-_vfDlT_1ZAylKEd4WDHUKVnnyXsq7968PEwAzgcDbwB2bvMdy3abj9MA-vlAuLeMb89tohZ-rdp2J8l9RrpCYH46FOgouud0MIo8Yg4W0t58wqJok2OauLEWiJ4ZDm7IkuFccjEcghOfCV7f8qjfEAaKBneNSDwIAXDRUxlkr3rpBKOArl4sYmOgVytqNtmytHzZJw-vOPH-ImOVyp_X2hSuGGdsT6_5_7akSQyQk6KLD6hTx0J62nDwe-45SngO5I_6svUczLUzPPvHeFSS1Yug_x8sQfpWc1B0-UkX3O-z4li1R_TSYgfSVmBU-q0JPVyh2gjm8DVT5pTQUaDk-Z-RMqBy4X0e8gvYUv0ShTpbpbLVNvCoLpz7A7mdCzJwwICB7L2eZZGqnc6ajs51JT4QlFIeOJvoDp1FD_0fqD13qMtEJaT5U1-3z2Zqq4SlKzRRGTOOgwqxE5wDVYqwTTUDZJ1_PeC5mzSpdGm0TKlPDXIYUkZdgzd9tUV2j3YkyHUQQT5g_2TiTWqGUI2Crc6aQCuxCoLdbLRCjaXDDJs8uipUttpQFBMKSf-ekW71l7nqSlbvGssN3B5vqedz8KH45bCUtBwSJv_D29jCFg_ReHLJgolFt_pf7Zag4IT8kAl4TR3HrFIcJMUhn55gtJqg_94nlsgi8iQeIWkVIcmWbEjdxKu6lysjv0oPRRPSDREpw61YN5C9JzmkgoGypdQZdxTUlZ5Fjz5jydSsc0LR4H0Q5JoeaZ6KFOsebodkTgXTzVZnXTatNAg7Zmlychq3VgypSVZISYtvh1q6K1BDYKJT3NMpI1gUt9-WF96tvCLQhsglmAnwj92LmzM5yZ9LCcCV3-kVLwn7cIUd1nntPI6QkK1UGl30zzYuC17YPxUPo6dA5K1Lpt_83rOl8HigkEXN6OgebaAjClTgSCPYY3yULOC8x6S2s9sSujrMZMHsP-YOCLpnYDdMPZ6qgitvs3TZkNvwIzhSyvFtjzvhVBXaJgEhvazsTT02ud8rjTKgPXrd-mctmUuGROsRCs3Es9lBthOBGP9v0XzjgPytwVfmWNf1uEG6Ji-NBJLhDqS5oKZWRykWx0bIdpR14MRME1gJHfzGFTk_9w-keOxLoZcSiia-T3mDcuhAxdOdaAz9Eany0VlA0NuSWZVz477H5z4wZCpGpmqhhkZROe1di7AP-e8J5fs-oaPwU-nVKeUNsP0Ex0YbGR7-ToNH3usZd9Tnxha-pzvBVObDff4HU9rHAMsaTfyPQSVYMro5i0Eaby65MCSqDgBS2KhK91_kKcFwV-vRKxeAuA4Ka_i_kyMZ2Ra5IzAtZUS1fsJr7CT7yLt2B053CvoPzAZHXekFgq_qswmaRs3UEL7zK8LjU0GKCAbtSQMy4jA2hc11Tvhor3XPZ5wmgxipXVEZSSW2vRIasvzcDcSnFjtbI50QtC0_VZ_ycTUibS0g0-kpwt--CHkm-2zKKL7xnlassMW-i9HiVNLZoNFvs06CW1CQEzYBEHmwxDx2x4VBvLOOO2SPukGYOrv8rlOpi8V1gW4lsJJkeVdDHXH5DhaLGOVavHPovDEY04L3vey4NNAxqgpSwwEmdDYCi4N7u1jvp48CLy_GT7LnUN88NTXt6JPvjbYva_r8-i8MaPbQsz5QJsKQA-AKbwBNDhsy2jCd1bGLE3Bm5EVj9M35ZfutGzsZfH1JhCGemyKUOL87pe762TThwuk51OhAOjK3WozNI8MLN3UFtAg",
+                "summary": [],
+                "status": "completed"
+              },
+              {
+                "type": "message",
+                "id": "msg_41c5f4bc-aa04-4c6e-8a27-8402c52478a9",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "{\"coverScore\": 8, \"observations\": [{\"count\": 1, \"detail\": \"large white-framed multi-pane window\", \"object\": \"window\", \"otherObject\": null}, {\"count\": 1, \"detail\": \"white panel radiator under window\", \"object\": \"radiator\", \"otherObject\": null}, {\"count\": 1, \"detail\": \"light wooden plank floor\", \"object\": \"other\", \"otherObject\": \"wooden_floor\"}, {\"count\": 1, \"detail\": \"white paneled interior door\", \"object\": \"other\", \"otherObject\": \"interior_door\"}], \"otherSubject\": null, \"privacySubjects\": [], \"quality\": \"good\", \"qualityIssues\": [], \"subject\": \"living_room\", \"summary\": \"Empty room with white walls, light wooden floor, large multi-pane window, radiator and paneled door.\"}",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 2011,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 992,
+              "output_tokens_details": {
+                "reasoning_tokens": 796
+              },
+              "total_tokens": 3003
+            },
+            "parallel_tool_calls": true,
+            "store": false,
+            "max_output_tokens": 4000
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "86e350f0d932e6602eb73cca26876caa33d9c86ddcbddf8e5b363a2da25a57d3"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "muse-spark-1.3",
+            "reasoning": {
+              "effort": "low"
+            },
+            "background": false,
+            "text": {
+              "format": {
+                "type": "json_schema",
+                "name": "photo_inventory",
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "coverScore": {
+                      "description": "integer 1-10: suitability as the listing cover photo",
+                      "type": "number"
+                    },
+                    "observations": {
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "count": {
+                            "description": "how many instances are clearly visible in this photo",
+                            "type": "number"
+                          },
+                          "detail": {
+                            "description": "short factual English phrase about what is visible",
+                            "type": "string"
+                          },
+                          "object": {
+                            "enum": [
+                              "energy_label",
+                              "balcony",
+                              "solar_panel",
+                              "heating_boiler",
+                              "heat_pump",
+                              "meter_cupboard",
+                              "attic_ladder",
+                              "fireplace",
+                              "bathtub",
+                              "shower",
+                              "toilet",
+                              "dishwasher",
+                              "oven",
+                              "cooktop",
+                              "washing_machine",
+                              "staircase",
+                              "elevator",
+                              "radiator",
+                              "window",
+                              "other"
+                            ],
+                            "type": "string"
+                          },
+                          "otherObject": {
+                            "description": "snake_case English name when object is \"other\", else null",
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "object",
+                          "otherObject",
+                          "count",
+                          "detail"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "otherSubject": {
+                      "description": "short English name when subject is \"other\", else null",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "privacySubjects": {
+                      "description": "every listed privacy subject visible anywhere in the photo",
+                      "items": {
+                        "enum": [
+                          "person",
+                          "license plate"
+                        ],
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "quality": {
+                      "enum": [
+                        "good",
+                        "acceptable",
+                        "poor"
+                      ],
+                      "type": "string"
+                    },
+                    "qualityIssues": {
+                      "items": {
+                        "enum": [
+                          "blurry",
+                          "too_dark",
+                          "overexposed",
+                          "tilted",
+                          "cluttered",
+                          "obstructed",
+                          "personal_items",
+                          "text_or_watermark"
+                        ],
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "subject": {
+                      "enum": [
+                        "living_room",
+                        "kitchen",
+                        "dining_room",
+                        "bedroom",
+                        "bathroom",
+                        "toilet",
+                        "hallway",
+                        "staircase",
+                        "study",
+                        "laundry_room",
+                        "storage_room",
+                        "attic",
+                        "basement",
+                        "balcony",
+                        "terrace",
+                        "garden",
+                        "garage",
+                        "exterior",
+                        "view",
+                        "floor_plan",
+                        "document",
+                        "common_area",
+                        "other"
+                      ],
+                      "type": "string"
+                    },
+                    "summary": {
+                      "description": "one short factual English sentence",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "subject",
+                    "otherSubject",
+                    "summary",
+                    "quality",
+                    "qualityIssues",
+                    "coverScore",
+                    "observations",
+                    "privacySubjects"
+                  ],
+                  "additionalProperties": false,
+                  "$schema": "http://json-schema.org/draft-07/schema#"
+                },
+                "strict": true
+              }
+            },
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae1e8db317ff976cc124ce1",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793190107,
+            "completed_at": 1793190107,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "reasoning",
+                "id": "rs_6ae1e8db317ff976cc124ce1:rs_5d66a13c-ade8-42ca-8157-f7b31472561a",
+                "encrypted_content": "Q-PaDgEeLQorcH-sylaCcQr4f7mikou9D5cX_5BLpbGL3vs1cWb8Y83F5dJKK1oSmz4-prQPoXG9wWYjpvU7AIxwC8_2f8VsA-n08MtSpuSbdlQbRZxTGuRRLz-g8nosfo6EGTyHEPEnULrCTdFfWY3iQjgwaprlfXERQMOQtBARKQqHRsRVUq8_UUIsGT6MDakBG5JZPn3eD3-qvUaRZskui-H624teJvNtEVxWmc83I0Isq7I1MineDEZ2Ur4IQ-bG2UMaYnbA4yu_bkCJLsUfHgE9kr0lWP0242oHq25NHVJy_HZNwtbayIgYyZPesYupWiDXylCS5pjSr0Q9y6Zf4kr8P8GHNGvby5ategIIfa9_G2fbuIroBmonqXedTLrWmdwcuBPU78iCu_zxU67pkuIZKHgunQC1_AuXN1bhHmwvjB-KK69C8O1wFOW5qr7F690f-TJhjBTBMucJ8btPgnwRHu0u-5o1q8Cw7vpmDAdUVxJOz2vkrfn-hiZDIjSFxKrGRP6q9gw7eOSuwkID0NcvVzXf_a3sigZB2Hdh22jfx7kuMAMcvUyJuh67xvFfUs91W88dohhzXgGR6VxI-wRi902B5-unXdLbktMUp98EjQq5wI2l7HzsSCTWOYbmT7q8ygvAJcghZu3g7oldcoyxnWzXGvRGRn8lqiiRZLxuSPpIKLJUOmN-fNVxOiIcR6qLuG4uKJunfKWdbN12gE7msSmk3OSEwiGEXoolCnHq4MkvahujwxEa6i25dC7SD7y7ibjbi3DXTwXU5vfmQ1FCJzf_MsQyIKVi-dRpC4m5c8UenV0pPAPIO09Nf3IorIEnHKDavMLP6KTadFaojMqdabPIbVxFyfnDOZvSaXaFvTBm1n8v_faawU6xPWQ9N_eIL9TezC8unPvglN4ZtyXydovdJpDa7bcG83wv9TIuym6f5WiJvcX75asARfHvxm8v-GSm9Nls7M-OzieJxhA25cCDw2Mvocr-dNMvh7F1B3Q_kgk0L83S4vqtJ1whneS7TdShsXHqC-FTx6Dj1cLP4Xo1XzTg3CBAmxhb6luD4xjc8-82cNxpe3RWb8j3Z1GVlFlrZw7R7kBRBbZd7zW_OJR85Lb3ZZZ8jnIFkGkQuTvvbhec5KXecYDh8xtny-4fP3NfJBVgcw3oVNWR2_9UCwMPaN7oqYKHiKuEYJEO2nxHFZsltjVzdylDZ1oSrl7ZG0UaLwDt6wbRGSe92S01xSxcrcXeapQ50-v6f7bj8M1f_TtCmQMu2XiY7DPJe206OErhSHmtKnrY0kKjanAkR89d2WkIpyRYWo0ceIfBJ6CQb07nqOf1g8jEkCPbVAV_TdsDSoTyQMd5Dksx0lWvW3thaSsA2GnJHt0tUdg-FsBBsw_HGoD0MPsuFT3HOlQ9-evPQpQ9n0q-jLZtHwb60ttnTwS5P4yg-NTtMuOcmYaW8DWofH91aIoAskkoDPq07Aofst96R4zIqMXXF8heKBdyd021NERfKbx6ZWY0C0JKEjUI5uinxG-UtnWwDLGLcAAsvua8j7cydb6HVK1wLXaeqoV0xPwJkt7LlnzOgSKqG0aHT9Ike0xmJJLaSW1lDMjB0uaV5nZJgdugsCGE_md1KqsJ1hg5a-HMXTzs2B8IdVHIfWiGiB-l5N8xJgAtIYVNMm2j1moLsPcGj3wxdCF4gB3q83d8zarStPNiGo5SUxyGMXerVM9qzD-yrUQSeZolxW8yi0djp55kXG1WxbGXFyMhvmnUf5diCC6EZPni6iEyiG-0qOquEGkXwCdpGfS4pbfDf4gZd3g_-q27KBT4hR5yZVn1wNXgLsU7gZQd7QuCi2cr1JsAG2MlnFmQ7FnhYWtwQpzd9zvz_HrmcZxSTgheQTHxVNMrjIusdf39F9bhiTmthpP7OwHtPbY_RNow6uS4ymkhpMjkjDeuTVQYItSniUaF-ccsUWb5A7_UtCE-CbOd5B3aFbaxSRrrmWvIEGOvZjWWR5wpqGlvJvlRSLgkU5t_mHnbibpVE3Di-C0qaZqTv3dWb_myGzUHpQ7-bqHj0IihUkKAodj3kqiYXcDLmzw9bXHee1e5JtTU8N5TNk6ezUbhO4XDF87oRwqlhV5wwSljMsfQOtgIjH_LjALGhGpMBXTJP74XAOiZIHeY_5X8qJsZ3exd-koMVZ7tIwUGlFa-G_0L6fuYdVQdqC4XsFlc7uJ1UA5DPCFWMdttLTPk7pbaSHxZVp_L47kzkH7XvQBlU4b6J5lQFp67hEisDkBLXoq2JQvjHn3ZE5ZyOWLeRxOz7Z-uhbKLwuO8-JP8IkGXv5GTOBR8mScVK2Wb0kcIdHDQsa9bMn5-jqe4oqy-Rj_hUN8Wxs627skWlwlD3lw-Zx8Nu2uRrSVYs8sfpnTaKfHtdt-0eKYjSl6vj97p1I4xavv97ZdveU0QSjnT6TLatZ1lC_JsKdrxeDHFDYfVSZWhnShhkvzlDC4xmHuYvGXFC6gxvYviBKYSE-fMgZnH-EZV_PKqddqjCWO_oIbeOQcKK1UVGC_6NtG9ClKKeMRP99cM2xm_Lf8_px1pcQdk_dhBb7cV79DGzSGrNmKRk7ti1rCd8D4IwReRgZupN0ET9XDFHyGcSS-qZuahQdf9ntI7vblJEkVlZbDIbd07IZCS8yh4LVaAJodvpDPfkXYAtTwCk4TOH_vopzVgMa0SVzGvnIh_igYqeIrjQ2J6lOf2LoXksOwVMJO8Oo8v3VEL052On4VFSHqMbFtV9mgQj-QETnaBpy_K9_GtkXMKNSwxJ40OlkNoiis9kEJHQQ27nrZe8OJa8TBjLWx1AoSkzRALmSpBf9C20miQMthL35IBzYjXSHNgCIq2-w09pDHkMKwhZ6Ge4nCg9LGxIugGE4VUfeHMsUlIGEu_olMTt1fyNf-uwiORMv7YFqHjH2g2vbKyu9nvFNIBAYTGc4ian9nm5j8J2Iz8zqZwLUbMd0g6Jrj-aSg3JGqMNkrutFtQUO9dHSg4XKJOYKiGp26TKDD3RU1RjQGDgHvGCedsIb4UgGqhK6Jqsm_tUp6fBrhGpNbAERVFv34_t02KI736ObuUJkyIy-yh4hypFOgBt_t1fqzdQKsLXb4JKCIIRvHHz2OfovhBTp27KfTOky_p762inOS2kILg1LsI6jrQrBaHaq7n3crQ32c4VoX7fc29MrsZSo_PZghDAMGqKdibhmqANspfToqhT4wJtz9IxoI66bLNoeLbp2h_ksOBbMOhoelTlZLZZu8Lukhc0BoBC2Cow37BnQLne5bKwoQCLhENU9SaWnLBHu5tP84PDE0Eh44g6vI2nGEu_Afa4F8lbSGvQc4CDpGJXgzSWg8iFWxkRrucfXdhL0TH5ytoW2utjj3E5rvhoB2AEBriFiyCx6cJrUKsynQge126u2G20HJLyiAfVBiZzkYuqsbByRhwmNrBbZTGO6BOMt-3L7s_gIZO3vjTDsZbNSHihL16tRQqZ8xPu-_Kk4VzIbTrdS7g54pJpN1lQKNPY6u4B4D5l6prrreYu0byt6l7dHMdTM92n68EbOyZEf19f9pOgHa2eybOJ-AYG1_SQGrn3PnhbCCojpleWjEhzZHqLoAAC7gmcHn15vNmzcveR1x4UtiC5biYiGt3B4ohz_4mLoxplhEXeG7hvK_DZARDGddiW3A8ojHepfRrKUyhXOQ55MvPrV8xWUPPgjjKX7VC7YqeNSs_Zt6SgsPtf63TwUqveMomsBWw9K5K84zRDQKenPGH3UnGhKR6t523fQH74PL6GGvK30LvVkrtcwiTx2fO-27s9my999J7qPV5zHqFy9F9F4YzuTSrx8zqFO9oa2Yxi_D_NhTSrZJbsWx71Zp41L83YCjMGLGNLEZS92bzccgS7b57JIrqGJ55lEIdGbfpxEuzNuXuwa5Lj2lyVOZsu3C2E73ZmrVHlJymQoosiqw7EX407eMQ6mXiDjWr4bib3_ZZduS4k044ewTVIUvbH2DQUsBpZ1npvAT5tAp6lLVte876nFfg7Lb4J5ZcwIdPKMl9-iXC-Au0zeFNly5TzFyGdHl85ooe6sgUaGLv-D3sz9mR6NqgJiEi3OeHtrXuRbCnlZ6xt6avkOKyTv7Xp0UbzcqLbb6NmS5vh0JYUC9ASsDI8u_NZ0uyi6az2LTjt4ttPSFZhcGPBZqnci3L254eCJfoPnbXVx50m6bufyJtdcQM-eU9N0BvMEHQ3oxnWldje6YbLBdsOIDr1ZYCOIVLUvTbvwQLbooZ5DM6inuWnq9DGVld8MQ2lUHHvuOR3J9TaLpQKRc63GSdSn79gdaLUrTLkxoql_rhW9HxLStDLJ67DE4A5NfFBh-Of2lUXY5ma-wHmWpUE2SUY0tOcpNngj_THqQipENWOhb1nroadHCIF2Zm6yhfxbwOu8VJUWkq0jU93Abx8GqYaxAN4YRX2XwJJ7_sFeKHNHGUYJIS762cnNnu4VuteXabF0oGSy0Bws4yrHapzSrDljhjIObNIHX8KzptoKteBbVX2oWh8V8eKnvUUpz0nFq9AHCg6fby0RPYuJIJzWZ3RrbyWDKApLByKymVnujDydUZnrknprRZShUPwqAro-ABiaNX9EWFNULFn6DNsveAs8FGHan8zde-iiw2pdUAfbDJHTVaj8DBO0Pm4vL62_Dzuaz2YlyHL3btM3rJ0kFuGetk6H3IIltwLliW7w24GY5AOvMzLN9a_Di2lQgDPQQe8aSKW1Uuj5NzQp8QzzImLv9uW-dfql8gnF9RVHb_4MGJQTY9D8X4sFQI2abC4FPqYyZ0rwPSe_GA3Jqcdah5VqsCMeeovhG5HAt79anS43-ZTj60l5trUHu59xU28rpGiq6MNa1TKszxv5XjKFto5H3eX3S-hrGeKeCufEtqps4wNWkGo9-LSMEt1mDOb6oHs2rzFzqAxhYRjOQuGzHTBRU54RIEIyT_qGwIUu0xXaP_xjUUt-teQle-BxB_13lLZG99pz0znEy8EMfcich2EWJSp6nRz5ehrjsWrD2e-LAYQ2cbZuXAo8gGRqHAPQ_xMZiIL0OrLwQ-TZBpmvmVcw-LuJXF_owZK02zfKmYhIkusOha9o3GzVL6UDpexNkWgtDYgiiIDtR1Xy_Hr-blSUyO6auUL0DWDNJHokXXsDgRXY-1V6-8_sq46mFzNs5LYTNWOjlHKnbrvvlYAsfikISwuVoU6uiW9oNLLqK8S_Um0XZvjl_pQAgWpCRiOnE_N0erJ7Amxv_nWHwLJ5L8FkF5gVcCWJHx3IM1GigxKAb8JKlh2pHKTRJuJJ_8AMqDLVV7O34tX0u9L8U9OPiZvwlDugPg4iBG8b2AZYP2Wi0AV-HQfMSVnSvHH00n-Ozt2pPS545ov3iEdZDFZ7_pDc_1EG2OOvZC0ICNXRB0qXmmM-H2Yi5TMVSVWoBOwQ5wlQNxMd_5c_dmgd6C4cBmd6lZdjhH2aCxYNqE1tDkt-Y70qAyPAkw8NtOVDhFhbhAEw",
+                "summary": [],
+                "status": "completed"
+              },
+              {
+                "type": "message",
+                "id": "msg_bd86ea23-1ac2-4901-a795-e5149e41482b",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "{\"coverScore\": 3, \"observations\": [{\"count\": 1, \"detail\": \"white wall-mounted radiator\", \"object\": \"radiator\", \"otherObject\": null}, {\"count\": 1, \"detail\": \"small frosted window at end of hallway\", \"object\": \"window\", \"otherObject\": null}, {\"count\": 1, \"detail\": \"wooden wall-mounted coat rack\", \"object\": \"other\", \"otherObject\": \"coat_rack\"}, {\"count\": 1, \"detail\": \"light wooden floor\", \"object\": \"other\", \"otherObject\": \"wooden_floor\"}, {\"count\": 3, \"detail\": \"white paneled interior doors\", \"object\": \"other\", \"otherObject\": \"interior_door\"}], \"otherSubject\": null, \"privacySubjects\": [], \"quality\": \"good\", \"qualityIssues\": [], \"subject\": \"hallway\", \"summary\": \"Bright white hallway with light wooden floor, radiator, coat rack and interior doors.\"}",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 2011,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 728,
+              "output_tokens_details": {
+                "reasoning_tokens": 507
+              },
+              "total_tokens": 2739
+            },
+            "parallel_tool_calls": true,
+            "store": false,
+            "max_output_tokens": 4000
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "8b9c2df5d6792e0a1e7d78ad06f0dfbe9843e067ac7fdc4790dc9456e2d333ef"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "muse-spark-1.3",
+            "reasoning": {
+              "effort": "low"
+            },
+            "background": false,
+            "text": {
+              "format": {
+                "type": "json_schema",
+                "name": "photo_inventory",
+                "schema": {
+                  "additionalProperties": false,
+                  "$schema": "http://json-schema.org/draft-07/schema#",
+                  "properties": {
+                    "coverScore": {
+                      "description": "integer 1-10: suitability as the listing cover photo",
+                      "type": "number"
+                    },
+                    "observations": {
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "count": {
+                            "description": "how many instances are clearly visible in this photo",
+                            "type": "number"
+                          },
+                          "detail": {
+                            "description": "short factual English phrase about what is visible",
+                            "type": "string"
+                          },
+                          "object": {
+                            "enum": [
+                              "energy_label",
+                              "balcony",
+                              "solar_panel",
+                              "heating_boiler",
+                              "heat_pump",
+                              "meter_cupboard",
+                              "attic_ladder",
+                              "fireplace",
+                              "bathtub",
+                              "shower",
+                              "toilet",
+                              "dishwasher",
+                              "oven",
+                              "cooktop",
+                              "washing_machine",
+                              "staircase",
+                              "elevator",
+                              "radiator",
+                              "window",
+                              "other"
+                            ],
+                            "type": "string"
+                          },
+                          "otherObject": {
+                            "description": "snake_case English name when object is \"other\", else null",
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "object",
+                          "otherObject",
+                          "count",
+                          "detail"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "otherSubject": {
+                      "description": "short English name when subject is \"other\", else null",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "privacySubjects": {
+                      "description": "every listed privacy subject visible anywhere in the photo",
+                      "items": {
+                        "enum": [
+                          "person",
+                          "license plate"
+                        ],
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "quality": {
+                      "enum": [
+                        "good",
+                        "acceptable",
+                        "poor"
+                      ],
+                      "type": "string"
+                    },
+                    "qualityIssues": {
+                      "items": {
+                        "enum": [
+                          "blurry",
+                          "too_dark",
+                          "overexposed",
+                          "tilted",
+                          "cluttered",
+                          "obstructed",
+                          "personal_items",
+                          "text_or_watermark"
+                        ],
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "subject": {
+                      "enum": [
+                        "living_room",
+                        "kitchen",
+                        "dining_room",
+                        "bedroom",
+                        "bathroom",
+                        "toilet",
+                        "hallway",
+                        "staircase",
+                        "study",
+                        "laundry_room",
+                        "storage_room",
+                        "attic",
+                        "basement",
+                        "balcony",
+                        "terrace",
+                        "garden",
+                        "garage",
+                        "exterior",
+                        "view",
+                        "floor_plan",
+                        "document",
+                        "common_area",
+                        "other"
+                      ],
+                      "type": "string"
+                    },
+                    "summary": {
+                      "description": "one short factual English sentence",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "subject",
+                    "otherSubject",
+                    "summary",
+                    "quality",
+                    "qualityIssues",
+                    "coverScore",
+                    "observations",
+                    "privacySubjects"
+                  ],
+                  "type": "object"
+                },
+                "strict": true
+              }
+            },
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae1e8d5245f7442170748e9",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793190101,
+            "completed_at": 1793190101,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "reasoning",
+                "id": "rs_6ae1e8d5245f7442170748e9:rs_ec6e5989-4777-4158-8c42-17d0e3cd7b8d",
+                "encrypted_content": "Q-PaDgHfQjLlkjOLdFderjC7JX6Q8lIvnoxMj2PyY2nZDlCtYHNWgiwe0jOiJE4B0htymj6QLf5n8f41_QPPwv-SaGAcgOsnBkzuzJ-EZ4BpjuVk6D31CNFoUIX9lryZOXuJJS8d_S4yI6AJ4xww-hLUakPMJx6nmA1BDbAwW6aXSSiNceHrG4f_pRhKBIVdksn-HiJJ1Qi-QZw1XLanAeXFW9GACDgpRdFhm7W-lC87Pju0roQuFvDP9eWMc6BkMpKT27XbkL6-qKT_gsfhrDyC9OZDmZ34mUi_JDe6rJvFayTpcP9T3k-y1BVwVVzok73hTAo5nTjMvl8xQ_MtjV0taQomKcm6Kba6Oga5zZzH-zYkd37DI50Sv2G_-KkLWsnyJDqmkN9jvngFQYqCeevGOwv924eTREeRsJX7Sa0GxIe4hkBkfbv6OEU6ueD7So1z7ugPY7CBSAO4YnTAas4IycQl8TJecN8JHZLNt_f_Qnf9yewUwAYRPVp-M-no5txMBz4UXBRh9n-BPxo9r6sMshr8VvQ01DKspDWBF_QTyaa-qUvR2Db6xbQN5JsxivRCkyJpk6lKDbziVuRbZwr4PruDx4vGNd6ifdJpBd7siuR2R4ebDxSenTw1_tTcPMLJVforDlbm-cLL5xEZr_lhjLuhu0qMyz_Q6zr0RINMZJNBMXRp6VBojsT_eK-4esQSTxzdnbuDDN6N2AMCGS6ePcG4jWuKvRY9qIaUUNTIW04A7xQr0-vwdFQtZMfBf11KLrq_6PoLZzSWj1IBzrQ_9jo4FViAgWrKCXpdmfwpA6lIjUCSHKdNDveFfGJ0mLQkQ0fh3NHlhnp5xeYotgiP_qjBvwod-orGkMhH8RNOwqmXI6nyWkH4dJV7RA_SzN5aBXd6V9_OaGQjpZVB1-2FIi0kr0bx4B-BR0l2umX6oLTEoxpYqnbG2Xw6-78hgfJIoQCf--X2UdxB8rYPi7Dt4AKYbfwErasYHmOye3mFk3tXyB7vI8prbG-RHO6CrEHqN36sePD5T7c-0696CviWmc6rIjlMis9UQ7zAEldSNklU9Rb2OkaQCR_12_9Jmh1ia5FuISlLcUYPKTsIlQ1UysZmSOuwxmVcjvkU9ekx86GXfc8aQlT4jKjMdAPipAl1-mAxApG6y6592wdyebwiiUJDhGXpK7tPqscA4XTtyRmyLd-sX11Z9cNoVtkn12fdYH3WEWt7-1GMF2cumFQQPG1Em6QTs-gJIL4Nv3fB1TkUncd_hnhTMOqqJyElbS3z-0Fij4nOSNDh5wsKuWkxdiiOBCKHZBPPMB5J5HP8fj38XfDB_7sWP9MkapVsfJGfqP_HrPtbL6LE9FM735g12W-AKwjnA630mQn216NGs3guMVB_1JiCAZlLB6O8Fld8IJXiOz9hX7AzDW-m6SiXAQWCg4-Dr5ZdnQ_B_-tZg-bA2_KUPGQPy586VBxoc0-beu6cnMsRx81xr1Quy-L8NqcV4SJ-9omz1fP28XTQe3Bed0xECCiGKf80UVjLDmhWoYXo92PXLhMq2htU40ESeE6DTJDvmWnY_DkNU7Pg3K4yNZ2vvb9MiSGXb2J22ktvyAIkPCC6x5MaA4GzV9Z_qq99_6SRCbb9PTYaoxomQw6eAIDrdFsL28I78-yrFyXeQE8e7nXtN5dVwchy5JYuLR1ucrng6jIlrGBTJbSMOZQ98BLsQWFK77c5cUztLed3cB6ayCVCRf3-mZSwW4AoltVyuFVcGAv0TJisph7yPEeMPe44DDLBFDlSPR6eqzIOIzLXFv-viNtm2GjfEbtllmhh0fRuyxBECd3zyeyrD_2sxvdDuHkIVt0ev2m-X5OsNJlud4fpWEAQLBXlYcN3oXCEIzYEwxlar85W0BTfRPc4vteLnK1JwCS3_pBXvBpXOFC6816iN2eB_9INH0cCzxD_EIWe4AF0k8j7_TEhTnEQfjMXDN-NsInS5bKilGnpTISThqmWzNsWAotMKSCty3x1cHwTeOh7a0d9qjI-VdmCF6jic1nhVtgDQr5gSC74Cg2UCsmnFxtY-nozf0D5x5vABWNn8BkX6uCJ7wxdnFfLv5ZHaFQydq4tg96uVFqz5yaU7V6AxrP-tXoo7J62u6KLYZrjmNsBebOs-XSEgk3tEfmnDtWiTzVD2zcuN0xVr9Z2-t2lIMxXtNtfvXWk2wE_Co0UDXWnUhHZmK7If2vx6g5Pn5zbCMS8CfVJHaRoxROQMBjOmyBUvvIYcmRloYRPrDScQWADzmQRJCdta_L5Vsp4hwWcQ3BpcPL923cDATYJBLhl92irCy03e3FbJMbyfd9Mn1XQwBt0WiWmGHcma52zmVB6WR2oibyNplr7u9CoBmRXDM40TL_RzIxH9x-F_mRVGanmM-gFvoqDjze0_k8xKWCYavwiAMXsu4zIRsMuRuqd5SxiLdU_pOnsvQJ-Um-21XvacuS2EbCeEybgS0nU-tmzvCSapdI7L09O8Rd1_9q8q-MVECYftlQQnHkf8GDkUGE3Qlln5gmwyIJOSAIhQpHcEv-KVqShTQT-iOhmEaooWZIlJLI_xZhaAQA50KljKL9PXnUA5E6Ba0x3DkEOKNjhtyGSZQJhySiNzvyiSs91ZMS2LW2GGG3LIBSghD6FLYrspWmxCJdHNy3CHenjZA57V_ZT89Tw5uTe5Z1X4YgVCER3Bi1zAOUliuumVlc3O1q9aFYJpZjpEm5yGdVi2mW9g_3SfKJoSs5rFwcO_ixvCYZUEnWSFntug26XQXBTlMUKH6lqjBd3XUnB8JYFX9ChXXNLtB8oy7TsmpZwzgotfI8paf-T5l7CZJFLxhC244RubsjNW3W_gIwPU5boNqXfKO-Oz65VaqUV1AF_NDzfmGfLW3pcujlq2toCqkoZaLTdRjvHsEA-cs11QJZvk0qH6iYyhYdVK8fttjmXp6TYcPqwUzJ_6z8rq_SBQFPSvXPfk1anXJsj0IALg-hJ8VItmL3sbonTG8mDpJaWc9meRwF2FeEsR-yCNGMfF3KUGSNXRKnT3WsW0BW2V_yIJJfs81q9ihBJU1tPpH1aDElrr3VhCf5xtR68Cth-KFJuI3YR8ZwX8q2cSMRrDe9LkvzjwmvDwRYRXiYL_S5UeIUCMPfO-1qzyG0m92nKePgGFtbiyXy5BDvNf_YFrPkWPdug4BqY5eW4tbBrcj2zpNp83L6CpqjaM7moiK9AhXXQMPoiLmwYm-TELwoRTlZgbtP5AxOyz05mLBPVR3xvydGoTYjMGIQwOTGSmUrljHHqT5Fw-u5Fpk6sEOVKcKvHeO_1A3MfmlG8QoyaprHVi_pjBTupL0QwvVeBTSHNhDKz-MsviTzyIyMSHOFnLQ1_LgnHusYHRp0fFHfQqMQrkR29tmVf8ia43vpjhYwoefTKgmo9CtUS0VCrHe8gKxz1SR5nAM072RdUQvlVqwY6hk7lSO-qeyQj6jIxz9oRU9tVLxazGIk0CgQ7RST22SLMVr98DJkt8VcKc7uhN7NDn8Pdu7L4R4VLtPXTmtcI2by0WX0zg2x22OtpzCRaoakb_EQjL56StVw96a9oixxfa0_o9oiWB0QaAb0O8liLZ5oe2ZdB78RLaWx3f3roKCeDjQPXNiD6ULAqjNIhXzmLaBLCo16uiKDbCjW0VXnlgRns_kLtbIprawp-v8O7SstD3QzJ1FmUknoR6jh9ljo_zlRKkXY6zFb_5GGLV1yIucjTlXdZMrLuNfDjHy5mO3YCY9imdyJWTshhqw-5iHjP1L3J_PQmDYpaQe-ogvh8-t1ajCbHDP_AGHhk1M0JU-ic-3pddrMFaTsTFUGLARDsMYsTLuShVCunaHpEjhUSKTEVo1e9J2jXUcs24cujwe3yqJ9aMkxid1EJLnNaO0V96gfGTpXHsx3xMTXgP1NYc4TFKBa8Ofm2p9AsYRJcvNoVPWa8OahwcOnj1G26w0WaTp3uOniFooz26xFvElNnxkreSMaCHg3Gh4P9DmuXA1xzrHJcjUKkDWUUyggKHuYW3_hlveQ3oAhVy9nz3099NfKNeoSqOiGW7ZbBAfLkj49_lxcvHgY4IqmhJgxfjGYWzhqjk0JQ13CEcitfArIebM-5IaYfmbXEgqqIFnjFq8qQaKmSFLxU4cAjA-ZJ60F-9VzoL6N5uUGQjjkuIAKrPanUjk-RDOXICNEaXX331K0tt4TnE381QN34JjqVKG9bCUm9rGbebPqhcXKGpCTVmxKuAtU82S79JbEF-lk0_LDd8d7gAw5CVfjSJQYFEiQL-_gUJ7e68887q9MYhdU7gh6VJYjpeWHlpif1cxFLWM5d_NLsvoxuoAuUKD5KMt6-t3WUmwo_-HM_8fjQpnn1REsmzuDxXWP-kWiAsnjryR_Co-O6nbXeXvU33HEXkzzzVMMNeiP2Z6yr7NyNQVDbD3_e50SPLXAObsUJtNnJRlzIuuOD8KaemFROTFoJSE5GROCxpqnYy8b3Y71eE5vW2EeuTqVhmU5ze_xzb1zlDCJ5bZNf7nXqB_207mi655rkAwfaN2XhlWyIlZODYhY5Lg-z0rKTwRj-geHiiMuJsqVLY7MA1ImR9X5h0JWOfXxkpImWIfD4TWeqPXmDMEtAtEbPPKlefoprvehvL0gDy3kZrzGe4Tt44fQpWI4XwtGrUTJrsSKfbRHqd_dsR6isVGrdgP8mRUBEbzOI4qlez6j-Iuz0hxYuE4fUgOsWQO_CucODyf0ypuDhzcDVH67-rzk7sbjqAi5D2IO9dYpUd_3tszai8BoHgF9n5lysbTEvODFCspABBbsk73qPuC1O1bWk_3lDiOcjhaslg192fvT9VUtejxUkx-Il6jsC1OtlnqpNxAYDmcj9vsYAUb4OKmheO8rxAT_2iuUCuVvLQzpNQ8D95tlJvQX_ioX0F1CzaoBMTYlLLz2G6tMMVh1a7Hc_mQlwunxXXLUfkrgQkbBSGleD-2ljajJUgPojzBWTmZq4b7FfeTharegzWH-nk7i8AoNlZ8pSvbqIda0OH480sauad0smPduqalK_pGDY0G9_d-NlfJZtl8JXvs3Rl8Cbxd7J1lAnWFDKoFcgYMcraElUQY0Y1k78yE0BhaZ1RddebXnGgV6EyuvohzlBMZiGrNkRrXRnfkWNf0Zzt0JB4lzO6nVHYwJcUB5O3bi26Y6xVbo9wZXS9Da7v-CId6Uy9ZPG_5fQ1rMV3EoTeTlc_gQPXpi4eSuM1Cb8q9gYG7C0hjQeV6Oowkkvbu9n0vVZ1FrEyicz8zKiQHM-I72mULsaoUxhl9yR3kSr-Jnpobge7kgTtS5EN-X0p8Gg_5WPAylxR7IJpHmIImHFI1Ij5G9hbAPSW41OekNVhqa61Cqku_9C9AMPrn1Dl2zXjAJiOPTHQtwctUUoM_NXI7PiF0qxQgzAE3WDn3tnSJp6qDgiLjaMGsnQA9Rpd_iGjYjc3EtRCTlYRZd0AV7TNUHBliFAg40cpP155Pn3ujJxJiLCltG_ho_lNAEVgC7w51vgb-Gl5KnWvO_aEcWN8-fpOVdWYF3EeFi5EASNEA8MBYBnL9Azr9X9Z2bYwyL362wjt1DRYMYWUyEUDDtO5x9R9t3vUCz5-4oVInoQANpgGqUpG0V6Rs6zlvaK0eBfe8ysy3DupOmTD3AGY6BvRyoNbdZHbviDSYFiTnT0-aP6FWRFmE3crSEYvCiIvVPlh5CTdZjgq1EvNvzmFqK4oBW9-lr6P-zovXhY3t1EJnEjAhYlRRYurqJSaghwADPz126WTBJApTYjns_oenS2BKFv9wls7zD7hkG4KkRtbcnAqtPILmEqZ-3Rm5fK8UvSLXg8UGV0I8HV_cWpBiZ8HtTo5Y0J-uFFtpGWyYlM0UTM49f3_UdP77jCTgdLJX6ToKnm9IV1GtWRKQdQBhewSPHzuYcnmGn3PP87ek20dvQq-P_SVvk_kazcRjUs_8hZGcOjXPtUOtbH17J5LN-RY7M-E0b4McAegrZLur5LGbo_izlBf3fLUnz5pMLHm_3ooBq4gsW6beh85TLrsphztpqaFHFbYJ7wGgNJBBBPHBXe_6MGQlVK9PjYxF6R4gFeUot1cfZAGmv0VBSiZmO3RDjFC8LX1piAil26ezb9WU9LphUI9sYiOvp3pmPwmFgPb4RnCwboex-WadNj5IzMWUR4Xx713DJ9lH2POscsm_jKkhnOkd7s4VMu7nHIdgwPStTOAF74VF9kAsr1WoqHl2_hwEieAk-uaFzuYrpuVDWo4Qpt5-c2MV3Otd2wIHIXENSm8Ezk66QS2n6vqO03sVntsP_UI2L-64SxLvV3C1FH9KJ3-4qfxegjjafy83YaJ0RQksytUIF-iLMhygMDviqSHkOR7Oz6G7iUIWBWR2LWLaQpxx8t1R97-whoa6lrGiXLBHG1GsbVblzZ7EfkWF4ydJi5PySyHu5hWJMh6lKaIC7pJKZo1RRIjhs38bAE_LkczkHXCuycMWqu2zd8SPv6dqsrpr39igdEQlbK7TeapypnXgHIU7QfjshrgTG3NeQ-FtoZRIQjxzLB02Xf3v24JQiFjdPBOWhEZL7O3wv3YzZ4JAhf28KrdSHBcn7sHwTB6ML-FfjdbKUCsd-cMAZMtP-cisxFpbgXBDrJHgXlqUJSO7zHqgf_hAu4NEMcncw3AVQh7Us2AY8aVimM0aJBnvAfyAVX-kpYr-nFKgM-o3dEaqt5t0hqOphNWwhslqtkbHx-JkGRARp1UMcvHZ6TnQ2yprOyQqhCYwb5P7BZ4RS_al1SyN8Ww4UHh8UmUBWkUmgNvtQUuJ_S8hKdEcgeBIkcLeB99NFCUQ_3ZYhDkZDguR2IAaXQNLZBe3yS31ijdk9NN4hRStO4lq8beSKZSHA5GUYIVS1qsdGrnO5oduU-ltZxovXA4L7XILUZPy_jvAV3wc8qaHdR3d7kjdPBeew12HVg2x-Z49jgx5_Kb9V8OAn97sh2GOn4D59Ds8f7t9q-r1tiUTLAkke3P3naUkfN6BbhO-P89PXQ6tJXusP22epg33bTiNIXtnjXQtSu8Jc7hMZnQNsN_CUA8J955OThNjcmuU2LfE-QazrpNHHDZgEJwSDWHMu61d_tSJ2kAj8Q2AZeSV26b3BZzdpaFggGNKMyCUd9GWbxNb_EXLV47cXHbAXh9AAmqdhMHFep-PGF99gu6qckJm7G-eqESpJESBKMAdgQv4KG7r0GAOoAIaRg5_QcpuJxQhbB7KnGQMbdNEa1GjDLiIdzw-S-r2QUHaa_X3Y21EmxH5Y9DkovPl4taW2nq_kzdYhriV_xYeLCbzAZdh9uFPLdLIBQl5swmaXXR5HQh1ATMCWbqeRCAIKtjD7xLwaODAb-mZ8DZd5i4CgibNBkIStNwuBfKWfUaLoCkqM1DMukr4-pqmQe3ctTBH_0TIdVrY_d2tjPwD9ZhDqg5CZnpcQ0elA-yt2ZC5nmzq3SSJEcCf1ZAtcJ_ont1D0rYoKFEnnE94kOuU7ngLWphfnb1DGbGUsSXTdyicHfMfU7Y7ek8lztTGs1qbDtW7m16GSdJKPYeC_-X1XspssDivcADt3ohV4mAeP_zXtK1cH7_5TVBT9mpu78tnSHVazEaZGJqSMo473az1EJ9JrEhCZPNfaqj3Ecd57n_Cn3KzPZR-ax9OF-SiYfq4k12RJxxvXdq2yjeyEXaVojdwrX4mwn5z0UyjziRxhgjUCunAmcioXEDJ4ivRoS0ceaDLhcpF7WD6v2u5KxGm_GGlKNySBQWBrnVI28tffKIkrNXO28VTLzQXCAkzWqSK1KQ32AJD9RmxiZr86w9uIVtzMYyXVk-zGJzhhJK-bz0buiHRAPqaF5RcsKIlkNpuFllgsViWfU27zn555R5q-GSgEc1yFQORcXpNvqnCePYlZFegHodpjOfMBhBJMYF_P-wVX22fkzTJbP89q925JKgTyGXgovm_r-PYncri7_AxYxSV8Ix8QTiyAgdmASRhZeWtSZUULs-dxC8VHqruc4V0COQlLbueXX9PrNS5u6M0yqH4rHXl8Ie9-WlPmiVOlh1Tl6Rk9d3HtonxA0ZrPTvs4CQafSLCEI1rVxcrAQ5IlyLGYSEWoulVwjZ6jneMSPMftf85fuxMYlWkv30l1IwCU1HAUHjKRXbHuAmlLNKk-uxOVP_iPfb0CQkaWi2BcJuSy6dql9cxSXL77V62WgZgbVqpESXBeT-lMsf4dRYEbWME9XBNx0MAs5EFZcLt38b4Y-cKoEpEU2nEDWqpDQT_AySAZmXxGac5PUdaiUMC_FvqJI8TqZx1xGDMSOvZ1TSn_yE3azdr2ze7ZYNE2xwNZUBqU-15Ltv_N8N5nGUJf8a_m1ZD4j0neqJdiyMAIJXFgPeEy7SeVenqKaQMz4L5UJD6strUPXaRavXHSjgBvLQyBmB_IfmrA5v7_KX-HWgo3M5HWOT-gCjbNY8z_SrULBfbrglcp6qeES5hgyNCq1lgNAOEPW6qQDdviI1AKc5GvDVydtGaogfqZ_nGWD1cJdpf7WT4K2b0IdMjWLweb_IALSKAj3RTtryETAVhSnFKtXpMHivS8C9KG6srEFCowD2oMYus2o5JvFoDeOnf6iHUxCXudjKXKNN8nXPRV1YxIi_XsGPjm5e_cIaHWqGYDA5HknGT8-spbSpHY1Ky6_0aQ5jS008EeAicAZyML8qt76QefAW_E5wcZv2Q6zonRo9PdmrpMgXJa6jdgZOxdoflg779RDbI5HRxTzVfTEaYiYTQkdjWwkC5z-p-OLgqz_R5MyNi3YYOPOy7WQi66Vc_GRcAAtQ_soYV0PBLn_Zxo2zxSBbLUnRfFdx2o_d-CJec33bu_XwAbCZYrnI9W9zeyNFXpYxKgRgFrI-0-bsrPkNU_AOa2_StLQhXfLGCXgMZ23Ue15RRMvkze96gi1l7yh711b3vHovcH7nbGSI4sFP-6loEi901oaQUM0l2hg3IhUhr1ajDNJV21_MhU1DJSr8GLic8hiBXHToc2rJYFre_JQ6woj0NEafzbCtAxUGva-HZQXoXf-tPQkY05dEe1qw621NUVGwbm3WkPdAEKxM_Gp16PRNsOjNprZHRtKiJxHEvfxmWlwwwzFFtQneEe7SrTG_quBD2A84tl2_NsH7VDJaOdwpAj3BFPGdza6_VhMIGAIcyqF_B8a6cTYjsJ3juQm3JcHpgf2AB2eYbipV8MYTRsVOsDdHV6aA6kkWT4avCy7fMIJhX8o5Tt86U4rOyVSl0c45rIYuNPsYMOzNGTEcAgrAAz104yJpAe00s4qtHINQjSkkYpMY_-ARD-6hLPS1PuLhd4WWD0gV9ghYhgjhSvhJfbqQk5SQSomxBtygSW0SfqHBx_Zw8cNV0UsiqUz3EcpfobBUlHcLfNyyFWkTeTsJocHaHR-5P8lmN4CUCab705ZRXw8Q1VeKzYM6i8pmmI39P2JEyNjemfHU-qsgVdluWDdWX-67BTDNuWtCww-8Sqr42PrZLWHCxmX4HXbufXHmmGwBaXHcNWNuHVQ9dbWsWuoQTffP0IzyWPQyYQGCUY7F7mqaRDB4E5ysSEOvlMYGBD3Vf-whH1eefcoOeg2IZ-QyeBAnLO5P2TLmaPpoonVcei_BpVdah9vlH9hAIySuYPTJBIYv-_ps3J8fOo1srdYTCTfIxLpSnGCAwZfHmWnON_sUwe-VFhMrTVJu2-qbc1qRDQkzmy7McQRWpAa9y_JF0SYtLCfdMYmwKqQVLjp8yFKzXcUZtA4NsypoxMWBzAU7qb0H7VOg4s4OOxLiWVfRE6AUyp_wQbbf2zYriMZbqQzpNAC_inoa4MJy1pZ4bfdbF-zySMGepnllJQo7xg-v3Zu_DjkVD_F57oVtWMetjvcdFN5IvMyknlthipu5zH04VV-XgFW8AcXT0f3R5im9afH2ritHnd3n2OUz29GaFBCOh5EJjfWP5iEgDGjbQxz0adl9Jgv5mXdKixIRqKt_hMPiLh4r-S2tAwJbUuJMD4CnnbY_ICnUpQr6nA5RkZJZKtJYMZ027dgBSw8TMWFwo3orwCBogaGWpTQQcuDTGsMxQwGc_jBoR7addgkXcvKdTjY2Vis7xNmJZj3i9-d_kPdC0n4F76XUUIajNfloBRvYTHloBWYprtN5Fe-pEFgspgaMDeyUJvgDaTWSwG_PKYp9vTJ9J-YjhoL83X9CFeSmUUzplWllU9438SiHGsuTYzgsgk7t5PGlHFhViXP13-gSpLzTPW1oXvHnZc6e1fj_3tATPM3QTIXEVGAQsghlIqEtXV-9OhX-WflfLoVINmUaFwvinN3tSyxpY2aJ8EzZBDDmLHVrPr6vm06dNTKsbsY038GSAwzPm6EClBtoI4Nubh2r284mYVAS1vED_ykq-D9J4Yn0XykLMz_GwFmBTbB7KF478EkfqoSOnyolA6NPBPTzp98frtvdH1qe-C7CEmrQ0Tife9TZPYwt0_2uGoOS8K33mxAn3pv9ioXNu2AFo17Hj7UWfyvSDeYI6hMyP2GwDk7Z8idlfmyjYWfV-vdwHrdKeCSOC0j6fpEPcomOH0yO6XS36UKb6kqr6YJWV3CdRFkfR78Qu9dB943rhEHDReeXTA82U2Dn8y4M4zUbzKegdUSCMO9_jwe7mrsddAFoW8Q0BIdWh-pLOqpgNxZky2_a3Lx4Lz-Kw0_SXqFlyqeluHBV58IUIEUTfYHKa66_WjA33nUBOVMX-xT2ZwuvAHjx7lNkswaUNWSVnZUeTXKe7Bw2B2XFA9qTUqt-zl8_YgnrRrVoRVPT3__S6qqJQkhJrDnLKT0NPFpYUmapDHecDvtWZSM8g2-tEShJm_1ypNtecQiryFbtlH_MJwxDNbKrls8M8WgG2WYnguOCZUnyq93PGS7q3Q9Mntc38gxW_Vc-lotKOkfhhKrSK7yozzUmXKQ8kyo_pC67vxedoo",
+                "summary": [],
+                "status": "completed"
+              },
+              {
+                "type": "message",
+                "id": "msg_29a371a6-4b4c-4940-8363-bb5c4abf8a13",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "{\"coverScore\": 6, \"observations\": [{\"count\": 2, \"detail\": \"white radiators under windows\", \"object\": \"radiator\", \"otherObject\": null}, {\"count\": 2, \"detail\": \"tall white-framed windows with tree view\", \"object\": \"window\", \"otherObject\": null}, {\"count\": 1, \"detail\": \"light herringbone parquet floor\", \"object\": \"other\", \"otherObject\": \"herringbone_wooden_floor\"}, {\"count\": 1, \"detail\": \"white paneled interior door\", \"object\": \"other\", \"otherObject\": \"interior_door\"}], \"otherSubject\": null, \"privacySubjects\": [], \"quality\": \"acceptable\", \"qualityIssues\": [\"cluttered\"], \"subject\": \"living_room\", \"summary\": \"Bright empty room with herringbone wooden floor, two tall windows, radiators and a paneled door.\"}",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 2011,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 1137,
+              "output_tokens_details": {
+                "reasoning_tokens": 928
+              },
+              "total_tokens": 3148
+            },
+            "parallel_tool_calls": true,
+            "store": false,
+            "max_output_tokens": 4000
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "97e999686bc44dd8453029cd7d77d8a1be137d3c8f1c45287703ea0cf5f24cba"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "metadata": {
+              "mask_encoding": "one_bit",
+              "include_confidence": "true"
+            },
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "sam-3.1",
+            "reasoning": {
+              "effort": "minimal"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae1e8d8f49ea9ca4e704097",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793190104,
+            "completed_at": 1793190104,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "message",
+                "id": "msg_0f511f61-50b5-49cb-b89c-f21baadb37a1",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 0,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 0,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 0,
+              "images_processed": 1
+            },
+            "parallel_tool_calls": true,
+            "store": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "988436dcd5e3da608d285e2edfea5899dfbe5321f93d99558b9d00bcf0356dc5"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "muse-spark-1.3",
+            "reasoning": {
+              "effort": "low"
+            },
+            "background": false,
+            "text": {
+              "format": {
+                "type": "json_schema",
+                "name": "photo_inventory",
+                "schema": {
+                  "additionalProperties": false,
+                  "$schema": "http://json-schema.org/draft-07/schema#",
+                  "required": [
+                    "subject",
+                    "otherSubject",
+                    "summary",
+                    "quality",
+                    "qualityIssues",
+                    "coverScore",
+                    "observations",
+                    "privacySubjects"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "coverScore": {
+                      "description": "integer 1-10: suitability as the listing cover photo",
+                      "type": "number"
+                    },
+                    "observations": {
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "count": {
+                            "description": "how many instances are clearly visible in this photo",
+                            "type": "number"
+                          },
+                          "detail": {
+                            "description": "short factual English phrase about what is visible",
+                            "type": "string"
+                          },
+                          "object": {
+                            "enum": [
+                              "energy_label",
+                              "balcony",
+                              "solar_panel",
+                              "heating_boiler",
+                              "heat_pump",
+                              "meter_cupboard",
+                              "attic_ladder",
+                              "fireplace",
+                              "bathtub",
+                              "shower",
+                              "toilet",
+                              "dishwasher",
+                              "oven",
+                              "cooktop",
+                              "washing_machine",
+                              "staircase",
+                              "elevator",
+                              "radiator",
+                              "window",
+                              "other"
+                            ],
+                            "type": "string"
+                          },
+                          "otherObject": {
+                            "description": "snake_case English name when object is \"other\", else null",
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "object",
+                          "otherObject",
+                          "count",
+                          "detail"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "otherSubject": {
+                      "description": "short English name when subject is \"other\", else null",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "privacySubjects": {
+                      "description": "every listed privacy subject visible anywhere in the photo",
+                      "items": {
+                        "enum": [
+                          "person",
+                          "license plate"
+                        ],
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "quality": {
+                      "enum": [
+                        "good",
+                        "acceptable",
+                        "poor"
+                      ],
+                      "type": "string"
+                    },
+                    "qualityIssues": {
+                      "items": {
+                        "enum": [
+                          "blurry",
+                          "too_dark",
+                          "overexposed",
+                          "tilted",
+                          "cluttered",
+                          "obstructed",
+                          "personal_items",
+                          "text_or_watermark"
+                        ],
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "subject": {
+                      "enum": [
+                        "living_room",
+                        "kitchen",
+                        "dining_room",
+                        "bedroom",
+                        "bathroom",
+                        "toilet",
+                        "hallway",
+                        "staircase",
+                        "study",
+                        "laundry_room",
+                        "storage_room",
+                        "attic",
+                        "basement",
+                        "balcony",
+                        "terrace",
+                        "garden",
+                        "garage",
+                        "exterior",
+                        "view",
+                        "floor_plan",
+                        "document",
+                        "common_area",
+                        "other"
+                      ],
+                      "type": "string"
+                    },
+                    "summary": {
+                      "description": "one short factual English sentence",
+                      "type": "string"
+                    }
+                  }
+                },
+                "strict": true
+              }
+            },
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae1e8d5aefb0c65eb6a4e2a",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793190101,
+            "completed_at": 1793190101,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "reasoning",
+                "id": "rs_6ae1e8d5aefb0c65eb6a4e2a:rs_a7b501fd-83a0-489c-b35b-91ad4b286874",
+                "encrypted_content": "Q-PaDgGW31yLpiPAyB6UyQzvTJLQK0eY693Dm1ruDNaGj44xPREWkme6oPYrvbUT3gKRkokNfGCZ0OvG4saMFH-M71W0NgnKzzJ4m6Bqaj6RTm2fMcCrk9sR1_kuIAdwXTRrKQ9dpcg68lshrK2KsQR05mldsYeGVCjLmITPWYMeMx42djaxhRI9nFKJNwTL4mEpEjuK60ZKpSyhogG4calpYjdoXISYrkLUw0pN8p8BXYYTULi48ss3eVkEIFjJoXOqXgC2CW7uD1UCnrfHt9BtiJeeGA_qiSkfZcwonCxWLdzXhTcix7h3SZlBoEB73r3bBbzEpzOCbh_GRdWRQGnszRMvCDMriImb2r7d0pxfa_WOYIxwGujD57Wh_5d6Gf4_cUiO1G4naPHAMY04bKv6OY91blm4HTmRboTleMn4efTIuL6VnVP8CpOD9akz2eyk3cRKNF46YxKQ_sU57pGlBjhT8Klh3IFIlcruD0rMGy5M4AycOsF_7hDqB_fVaHKEOjyJf159lK1hKmF1tFnk1fp-CjFT487VKjSjIsk0YAGaKrcjz8lzASnI-_WimiYkzjN-cjlNGrxKOFZ7lKr6kJxurRM5t90gWOv--iCO1KePHku-aH0u5sv6t9Rwzz2m8GWkE2YmWa_MlI4kc4DJLtR8qADnXfFjFqTHMhg0gijQuGjKLekxXrTuhjt7Lpfgh6o1B6k2IjVL77ih6Hk0GkY12zsemrEF60ciJfzkh0cWLbugm_50DcL8_WYGxrm4T-vHLo9c6r9PO-9qLSZkxn7mH2xP3pRU4KodKDzemGMqO2Wyox2cAIH4yd2Ejq2ActH2iTGETmbX8RxJXDoBLIvL7A2XLNAzWcuNzI2MbTYG9fRiK3vRU59tlzOo6TCVX6_d8DUzDsUlot4sWOyYNKvM89bUi3EJJ-bCe3v6nEOSbk8oNymCoV51_BCvNqEWx069kdKoVOwYZZll-YKRndW9R-fdrQlTkk90eeXXV3ZI6q3n05xr6Sx06ST7E-1qmwbm6nrf5q-Z1VxmDAgfG5nqgJPUYd8amPPfp5eDqMyAiHcufUx3bIc4HccgojbWPzj9pK0JQq0deuzc_2VfbLn9CdG1m5WvwNFEcxOZlVKsDG6Z2qJOJvjqzbs73BOUperQ99uhT21FBnBoAZfEm5l1MaHTx7MLerNc8qdICrsd3iiicwGU_gj_mdji93coyf798c_YqRBSWWlVuwAF5MKKIdCeElnF0P91NKaSUq9thaFWoHSelcNuq50wXBOv-1LQEdGQVEO4oLYhovUjw4ELGAi59aN6PDFtOBPbHnoZo_DkAIzUkU8VqwW954yZY1FYgfPotagY3VP5OczhVnzTlMac59H2ASqgaVUOP6hdNtSCydgctJq6oHGkGDrJCq3ovF2EWfoKqsseHJSM_sNz_kVO07kn7ixaNy8-tpejbTlXQdlkOeOcFrOPq0ksWcgxqCwZDeoRiQfYUY1Lxvg-p1eLUiq6ichg9zpJZu6tMpHJNc9rGYCycSmJHlxNx8uF64h9oV4tcI-1LAUAKlWDiBrS4lnKvXlmZwvw_PzE7yA6DS_SIYcBQAqzFxDORwTxYPAkeHKz2s8Mwa37OsaLEE6luCHXL8W_-bqHmdKkDehhbRqZqjALEyk0_Pq8vzqAMkkpvoJ3RC0nj_Agg9ev4PvJfz4_0lWCw-zlSJWnYn7xqhEDR4NNEKtQ7EEg3sTv1gFcpunKCuQmMVuSMqVzgqpG1sGKb28EJK6A-g8LiygFp6bS3pZSg5xiYLd9Ukl3uuhJoey_ay3fFx2QjNHx3uutEotquN8NcG3C131PEvvON8h94425Xoc7mss-E-68f4I17asgz1TJXckceyLvMz0yc9KC65xKrCTek6mCqhX5g_Ep13At407Z_jHvoMQmzMzWBPOWUo0LVAJsLQLPAKSw8vigAXWVaezGhwb237hmnKVGrlYvitQ6ajRGc6Y0awbwirq7HV6tgv28wkORM2A3v0aIIUtHp_hb3kwGcSlovLqNwE6YQuUnitCkzO9lPuq3v7SW0wFtWx1IyEqdSsEuw-1FWdsKqfaW1fvRBFBl-iEhaEAvxA5VQc-PCfTyGuFy8jcv1RdGKNVwV75Wb6uFzSw7ZXyHAjmCuq6W5Qhie0ouuejpFcZueo8NaRJkKT9LK18OsIh4BN7FH8voLc-kaDx5-50wl663uJ05xi1bxuDfc7z435SdBIO1t01qS5AuzQnLrMunvB7dP4sADTmxyumqX5Ip1ytmPtN7NFTKU5elrMOHYVNIOjepK6EN2NNdfrW5rJ2OtGFZ56i2Z-NRm1STr9c0cavUACXxa8fDDhTBy3n-IHzRoDJIZRrDKqauPl8X7PJj75j0ov5VfpHXTi87tD4FPXzXVMx8OmYtT79jY5zgbEf_tfMNRoIlAc7yUEH6_NKYBpLPElAw7VkfN60valUlrCFar4SUmFhRahm_Hkrlh4n-Xka_hRfKIkrydfGOw3J2LirxjsL0j8m-Hh6WpZDY9USpyUpWS90M76d_Qfk6v2OcuiJDCNZhqG6n9dNspnJOT2QQ62NT9f5AAC58CDNk2GJnv1w-KwtyU4hALRnIczNAlc5bhaHQfyrLbzI3Or-eTJWu_sze8romHS7BFVk883UUxTXIBWNvxW0O_QaS1FplQdZjyRV75iWndz_HHdon9dR_0Jg5EsRAy5-9bjEUujtk4a5RbtE7UyiUHhal_bjjES_VhIGdzKTKWmfWNamZovyBkmRpsp2NkfU6n3E3hBwelxB1D8455_huSGm7taygQ3LAjcdEQXgyZ6w1attrvpWO9E-1M0PIoVtmH-Xlg3LYCUr9dGpnXlJzHoRcn4Eg0loEzlrOFqpUiVhgSKVa_nqhmTI3Kz-X8unwtpf_GCJwYl1ys6ud56IihEoJjIfAQpqJeSBdjyqCnyPwdU47waEmvwA16jvANRfXKs0da2BgzEKquqtuGx3w5ZVByJKUSP7HhlJpRZl_ylej2PpozU6Q7C5IO9dGrTARYTAb0H6xMRApzI5tLA4UMQfDnoD3Ykf1Gl36at4FrS5EuSkxDzyWNz-kB6SobgqEUlZvoXXGob1ACFGEfThDfwrgKp8CiYyFtOZG28M_jhChQSx02UYLF4B_E1o5MmX9Yyc8_29iAe5nokPQRmKSfn_JZb0bLUQsZ5l6P_GwhvjAVyHwfGSoLtu5T8alrIElaFeyh-8_JXrqTK25vNCqVIeVUnIl-5yXI-A6LPMw1k3QjpaQWdInc8KG9qUQwm_knGgmsMACJ31HEct6UwxUwtbTgdEia7NThS019AezUhnQ9c8cWJQFt-FqU2drBw0Cu-5-hHh_sbZNA35VOSnI-XgtY-mpCnd2Xy5wGbLOIkCHE1EW7Wx8E7tMHabauhbYX4Xym5spVZo7NMGceojXWSccoZJVAXYY-wcEaQ8MPgDaeWYMbTg6UsxRidkBcqVp1woZNeOliEzwXfPoWZPCLhB-b3pSk-_kM0QoLZSczu_wUFgTi_7PDggpGOJOYT_CA5JrSovhVtJI-KV9mepCsFo5GrYjlniZgbdXHQR2mNykX5eK3yhs8GO29jOT5yySOSu0N_zNSKecsOIMYSlPao0SYV0Hy-ugf0EevieXLAI7pCOewijawUY-KhvP0QJJJkkjWaxBdLjVJJLof0Lk-FRx6MD_XdtRkGW7aTJHTXv59PDmawQrjF1iwggshHX9ZGeoEXh2-ZGkNqtu1ifcn-_DkpnLjPjIA8nwgeF_3Ul0WLnIwmB0edNaANKqosWdcfq5gRwzzBg6cGRgBL0tQyWOzxnxZt68Vv9ff0rMSTFgUtgIc7lX9gamdEIov8aSjiIU3z8c4DOSecpSUkekcaQjrieqKwfHZc6oeP8PSXeRCsk90bNVy_n53EaZtMrXzTJH6WedbOVkaQATpVhj6v1jQt5VVqdyvVcUgx_yOBuRa5FjhO0EmTp0p7ZMg9OUtR68gLRRQb3YUB99hD5cfcRS2KvvV5eyl5WXQNDxjKQFlLxXEVgrPLotQDA7b8tRJ0SGCJuHEXm5LEl_gHblBCemqZWUmeL7nbM8B8d08zOkMDYykHIHr5vIQ1Rc0OIv_hzbCR-UJrg2jQWWlZzxtOcgtixngxN59sDfa0fkIA_zkq0Yq4vJ_55XgTfABiYSS95BRueKQxYWly3XAYIq3lmV5LYcOgX4TifmryoZx6FxJDGvINZW_FaVeD7a98kxPwaeHlcI_W_aZRFNeHODMmOae-ZHxvxlpbC-x_fwkPNH4bkh3z-okrfiFuSOenRM5AIHrqLDb4vnHmGbkfyGIYvtAVNA0VkbE6A7nH9W_TQh5ri2rNnnQ6jWs_W98NT8O_FXz9l_2gHbRLWrzosWj_A0UXnUVZTkOdPBPoSK7lSGdTbajJRsskOcnx0q1LdD8ZR99hAL7whRsWPlsjPvO_Jw0vlyHer-TeOLjiuWKf7BvHO4LLxFcwOC2wlFPx3MW7MfCNtktknKbGGNlH6-ocoN2D9g89tZ48GG4d2M_vXkv8wTZXlusnXZhRduVK9WNvTu3wJzKSUYIMhnK6O1Uvid4tA5KfHHsZq0XdZRRdKezKSSxmffCJOqYa3tIAbB-jPV9P1U8FUP2krrMBP-pU-wla2dEdmTVWeXhiAYvkP3p60mPPZHJBe5UNGfNnvddGJopZ_EdRyUOX4Y5jFHctg0FWX07da_bkfQenzlNV6ViuY_wKcDtj_2BH86PuHcf2ZFBgbMN76UoLpJrbmBuohuQlVATMKmtBC2HWgOB6O5WC9dqh09MT2avnu1hfInoML-F7C0GGCPNhcEI7QNzJmqVyA6KYy036m9CONX-j2gstrc0ooyTqHbHoRWWiKXFUaxeMRKsw2dOtsjKC09Xw6iyL1sNEUvzbkwpaJCUWjf4BStQURn73Yr6M7LmCI9xBUMxDGYoZHLtmcE292_alpGWmaSNM_d9vadR0s78gDnXymfFCxSV6byJvMklLMfJgv4YaV7aGYxv8qrjLNjMgFsd1tzEaNDUyqyuapBpU1LTQAZT7MGSeEsrXGhXWAI2XJGrHYw9dlATpiBgKJZNxQ5q0IsNQpNmOv33U0o00_yxcM_ytJRV8KhG4z7XLv0lCBucEA6Zf20qZbdctcqrqrnPnh63KA59tw-432kJ1bz72Mi2IVFUdoXY2S7wD3qnRMF7FkNzwaBS36Wnyg6DDLIzH9BcK7oZ-o8XLDZtGCFM_3rEgmvGDra_GNUGgz9dao0-K0LpuEJXFbpdlr1qN8WxYgwrQotN4_FT4JvjNU7YMH8Utey-nr4XbtHI2vylAgeZeTf7U6PZ0zl881Gi0j0TBydtuan8IVHwBihGbx4EllctbQnPB9OUVQrrWAGv9UAjld50DlcqgRyLySbrvabrhUdZyzAwbxkYHSkFbYMXnZbhblYQYQP_ZnBYwUFOOANIX2Blvv8Bcu2AEJkyhEAAEB9Uk0wZ28_Ztsxlb0oaZVd658u4saGitFxU9Z1-m9aRTrXoVN_H8KHokH0HRAkbva3mof8aYEoRRPfB6A2Z-St6k0bpxGBUQhO8xL94QFz8Ie5fxjrLZNwGhPJ1nLSewFqlT5Eyl0Ml5fr5kg6eQXdk2Wp2xCpfdxGDmjNmAw6AjBNWuiDTHSDT0BFBA5CQ19KgeN9zwZES3koZSfChfvr5MVBWUZ9pBwgp3W0h-Q_OqLYp6JKYZRzJVcQa4WASQUYogd_sXW_nQ3RvxzvlMbbkDJVFXNITl29L08N_0YT_6cq24NnlGkdkmPI0Mb9pDdZ4u-ZOV9F4TSnoqBb4Pzr7HBh6ug4gMP6wjwGpvK7BnUyD7wgA4nry3HTgnLCbGojVJguRRWAyluihEX2Bc7fkcV9DvQ6MzRycRLtNAodgSAVkd4x2s-Bm_rucqX8FUD_f56s7rN21bpwFTWPwqIvseFYZFD_93LcQVNZwlTYdNBF26HO32A6-GDmETDCMNHhDs1laHl0vcZgjnzAF009nObgxlmJ0oH816b-fwgbz77owoOCcNAafj64hRKoF8fwMqlWruFdnJOBGFc8euiNvHTCIH6kO9jf33HhnjokTfpYdgI_NVIklzA7a6fU-v0GmELklLBZVymSULzjH9O_EJNzDg7DLcmUgK0tK39X6aPxGgUOT4S9BNZhLb9cefvyTuzSnbeN2z6C972W_H2QRgxBHWVnO6YrK9LkF1dT4NH4DwjGH-YLhPSok0sajN910LXJ02LBnggJ2mOtQc5sWQn0UcCgV274yCFAdfmgbAJ2uRMgzpR6G1txgwH5by0Jep3p63-tZpjkyfnZ81yLxibHbbg9JmZMyMHUv8eYXC_MJsTsMF8yLjShH_qoGu8S0IrxAs-qvc57wXg5iIMVU0ei4le9VigwCQOgfMJaX65-mP-niKe7_O4PUa9Y--ClzFAxhW0x0b0I5XgHSMzsgjYP_srB3ywuRnatfK316oL02C48DMgcBZN1TsOqotB8MYocHfnX3CVYTTtE4ALYP4o3mQX8s3IvTfvlsIZfcO-9y2JGMq_wqDk0-aCt8v25gakDEVM2QlSGQzyY2a_C_r-yB9y8DxjmBIKP5pnOrqYpaq8Z9QBzCdA5uxNTXEght7aUCNRqx_unuTCjg-zkFh8VmTr17Ja8QXxpJpj3YIFSx1SFcElddWKAxcA1n6RNyJKCKZrwVy19OpIt0kbfSiYVkTAgRWeCuRbhO7a68yOmHNcCHIWO1pbYkgmrHi9RvDehEqv-mjkbaPxNfR9kWX8rKGvvRy_JlJHekNowTeGQr-nJ36XUsJzDtQ5aXADw61Y8Osi_LpzYWexWsyMtEh_IYqbV19ou839yhzJmIsjP0Mdm01PLjISlXmqZSVWdBM7QBa3SHebU4AYiF9HUOJFjJ658bO2_-w6LiCtjtWnaZNJ-Z7duQroDNRcpsJoXvXd_0lhMXrEGalNbu-X5YnQz7EIXnJmsj8VFfxgZIIOu_tZ8bnCkMPvfNzgy2OqhxQwGQR9cKl6uj59PnzdNoAbjnlaXDd9o3VHXlgwAHV55LrYxA_8PV44OETNbUtyXtZF3JRg_RXaopSKNNmgk5_3YTiYrHJb-U1yyfXo_ODg9gI2tVOTTsoxPN05WmDxE8YjoRTl3q0yiEMYq1Jw4otv7pYDE6SSf5OsM1SkDrjFL69lNp_gdxWFdJUqtlmTcykKCc-1nMMA3tUUaN0HCh3xA1ElLR3EnMkE8JemIfmb9GEDR7vzCBrB_gbxVaEk4AAMbVYZNUtEc-HoccqbVDAfBknOBCJ17j1vTC2ybk4NhG9rh0zx1vDEUfy1rCNLqLYJtCG0vvVlX9qDmmfA_LpjV2euk7vt8aI9IVT0np-S7PPqkbSCkxqr32z7S4L63OF1Jx7ic2ZzOpgO7ROmS5k_FDoB7q2gd_RYjBgqatDhuNf5MSjj4O53JVsOAqMvSVPWJCMrB4Fib93lEehY-qfJqAdFPKfrX-UZmoEc5t27Ye7jeeYRAYoQ-_X8-kaKVMf87KPCDNtM7vbHJREE7AjJ1xc-BZnmkWpDpyCpH4DLD3Udb6O5UOyGItoxEWSx8BanDK1FrEizqdMPmJYtCRIfl9PgCFGdyyEsuKU8qMzZuAZEstOrhMwCgeO_VNehzLFTh-Wr4A6hIIe2C8fWp3tvpsQX59xFcFP6l1JIJ9QWKcBCvxOLXavO9FSchi-Jwxxsg-gj1ZeHgnHfoviXVphW5pZ-OAyaRIYL0JjF7khPlPnWoLP902_P_2R9eJo1Ved85L6ZjcICMrZiMZwmTCDM8dt8MafKAwj7dkkaw6ql-2lqYu9jZOKlPCoZqxZ_Vu-reeLv443DZ-X0uMQH9xEZWeOeJ8Lm9U3J-fP2fq_bxYbBQ0rwh_bzrt862WAD4uiXOk2Jwz5Czw074IQkSKqjDgqCAPhX_r2lsR67kMsvid9RNUvT7tYAOAC_3r4Mv0Mh8PlGi7eHrtDrXtLHAvGyGIa2vxMxL9bC4XE9pRIensquqlmAuPnRoZbg09JpmsbR6bQECgDGUAhyCpnYTmlw5d3d7O-HsjkGui15hnBU3jzmsvUUA5-24yYu5KQhrXW6iZhpvjcDaaAh0dY7ig81cLSD4W0j1gwQdWslTo6ZVzG6Sr3U4W0OxnHvP3exZrN3Y0JFjSDTsCrMDdoC_x_Fcrh-Tf1DPIno63zLTAupbhXHq49EXoGQFM37pidVuWeBC4KHV5FUIz7QfKshB4gGTN8yEbIJxIMe2d1e9nfMrmeiuqEevjNuwpOppH9Eer2H0c5eTVewXopKtib2t15MZBns80WA-8eiRg5aztiNALPhScCT4QP_BUw9BgwLuVSTf-kdV1mZQRg9L5ktPRoOxO2tUukDYKQiNXKtqEN8v92DZ2jnV8Xcj66fciorOqR2nKQ29te3jVyR7XGy324AqgW-KZdjNdIkzDOPJkkJQ0z75pLrdeYFvbUmWyiyMMjAdQN735mt193A_tLsEIZ_wrwYBHcXJEtmcLN0tbHKpocZWKR6UFvEW5hF74_6HndEewrppPryDvMERu1aeeFgdvYzuXnqpH2ppSAn7q0l4Z_sD1AjzDUTK_x_pchPCFLsSVOHJQ-FKVsOT3wlflNqeldC92mKGz8Vmkz8HDolDDtn5lXaFSmtgGDB_ge5q37LvbbC_ZpAf_xhmU3ZkLNwDM7GC6AhzzX5IH4Kv9nyxWXSUKBlqQHD-jlo7800anNZu3PEhjvnYz32PCKU0spAL5oSVWgTnuRuzc0f8BvlNrXl7YD48ZMMz6k5xxMI_YEDGkyVfKT935OAx2bHQUBQL3nLzUmzOfRwfx-B9ZUUltHnk7M-RsDyINpbF7MaB0wZv92K0P9uRtZmTaItkT8fAyZVYu6g1XDo6vr-I5ZmTzx3Q0SYGklSqHTEjO6LrGDBPdORv6yfESG55tmhBwwUXPcsJREhEX4n9ABlHuzDO0frGqv0HAQzevM6fbh86097wKWsR7h8ib-ajIAHeazOCnaqKt62KEtP66URl8lib9jFCQGriXVwMn9QIu_YqcueWmSg8lS_815QLN-GzWop2DcMP-CpseKW5TQRoxtYrW0Yu8YUgpjFuk3vNMZ-QBGjVz1xgbB3cY5qDOwMKenr7-QQiA3yziCfeb48hGFLKNE80YKhQjgUY3vLMs3gJbNZetfoQkDli_KFpYCblN_FjQP4K9dKaO703k33LCoY3yCTs9XbHKx6r7XBpTEKI8d0R2UIarkT3ieD87uFf7Ml8V4D6k7I9uCYgHm5a6fqfvzRnoHIhXHxHgGqsct85JQ3lcUKjta9YRbS5zHNc5-PiaQHks_Nbfv6K5tQ_QOHZKRSdx-DvceFFSBsVlpQdpTCa15zOYoekCXPR61Bh-s0rTq6Jd0Z-Ptm530uDrHto09N0hQLVZveGdvgvdEReKRaQHDDUNxMwqZenAJD8GnDeLa3Xt7OikJH6O3vHb7zZUPa4dn6WuiUPy2-ZFXmxqkkQsi2c7iZtQy8iBqH9tBaRt7Sm5HnxAkspktjomNX1twrNv_m6KS4yPrhwnMtF7Enzh2pb-kDamRDdpe9Rotfs8mtXbnNOPJWPy_TLM4kqod6Mr3OCO3NpxfFCfG4deBNBN4ZSd4a1NvOSXIUqTAkfPwVCALg30oJQydJG7WOX6pRTy-ExtwKxRcQCFJDgx5BE1eMsEvItEuw5e8kQkHtWAyPocKJzycNWZWi1xIwQRdqBFusUbTW2VQl9PmJBwH-W0s6gT5dL4W3RbVnwFer5yx7TK00WGErPC9j2vrtgZIpUYpj1rqGOkwOZpnd3RL95D4WqhLhz43GwifHfe-4OSM_8R0DORCgMn2H0OcAxf1F0-ip_NBNNCM80v7GYiVgMMwfMePW7J6jakG-fZ08xTLwE2wiGyXJuBMfLOH_EnReh_uu5sdh6dFAf0LaqCKr25MSTAgP8-MCeZkLpBtMLZPlqhWe-px01Kat515Ae-Wu0y1hCtJF91C7sPrU0sHB1t_6-V1eHrzSkB451wzgie32ZPmNDbDQTpbdJw1Bbe66vB7P5bp4yjgc9KHGmPXUjSXXcP-3jLViJRVoi97Lvi99NwgsNceRc9dSKVEqI7MlFwaW7LhsAdQjqlv5DqMx17KeAAB7VxBR_ED2-G5MnrLnhXXxWtrVEwoHsx7GVRTleUajkXY7bzwcMVR0WEpMLsc5QB1FbAVh21YDuLZf4HawnyZcSDUxyG--mxJmseEInU8Vf4GkUITIeJl_MbGzMQM6EqmPK4CZQ7XKiRLZX8S5euUCfOoWha7gok2C_G3JIxczDryGOZ5JJi6WG2nuM8Ao2Hgx4aJgpiEQ9Rslz1JG9o-vsYHFXe_bgk7w1XTt4Gum4G0HtNlEBO1lbhonrH4CMTW9ClACwnUilaWpxULD3UCGp_74nIkC01SqNaLymQVSp7wKo3F_yoKDji5umpXFYso9UuhX3zwL6gIRQWRDW0barM5609Z3uA3eZcnepj-drIHmICyVVRkJtwQJTN5UQPu79wRQxFJ5fFVy2r9vj7Zw0RTaUCyCxVkS6UQdygh8V9RFdzcx-Fur_-dtwksIqm_j7rNCwNbog3T092US5I3_TtiRTxy8BeJun3yEX-mg-9HpPwouRN2OMXv_lkhUdMWhtr-MVWvJK3Hd5S7AihmoO0zWka6Abtc8p9LF6liCZma0we5EQZRJfEI9Ep0C5YrBpZu43WEL7qLSDDj_FT1kEXlVh8zQoMDmBXeRcvR9JO4kwfCPLKEkIoGQ_lAmRr_6-V3KSec38g77lNP7Vjif2jdMvct7nrblrzH_ax6SSOpq_CWTDvg2CNYfC1O26OGWEv5uFgAUOabMsp2WOQ0Vyla6TuBoDmYbF5-XlEB6oqtTL635Pytb5neggPUyvyST-_6Fbaag0uDhdkczR7JejeZUQVaw",
+                "summary": [],
+                "status": "completed"
+              },
+              {
+                "type": "message",
+                "id": "msg_56e20272-4620-4e37-a812-507f8d92887a",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "{\"coverScore\": 6, \"observations\": [{\"count\": 1, \"detail\": \"white-framed window overlooking trees\", \"object\": \"window\", \"otherObject\": null}, {\"count\": 1, \"detail\": \"white panel radiator under window\", \"object\": \"radiator\", \"otherObject\": null}, {\"count\": 1, \"detail\": \"white floor-to-ceiling wardrobes along wall\", \"object\": \"other\", \"otherObject\": \"built_in_wardrobe\"}, {\"count\": 1, \"detail\": \"light grey carpet flooring\", \"object\": \"other\", \"otherObject\": \"carpet_floor\"}], \"otherSubject\": null, \"privacySubjects\": [], \"quality\": \"good\", \"qualityIssues\": [], \"subject\": \"bedroom\", \"summary\": \"Empty room with carpet flooring, built-in wardrobes, a window and a radiator.\"}",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 2011,
+              "input_tokens_details": {
+                "cached_tokens": 1137
+              },
+              "output_tokens": 914,
+              "output_tokens_details": {
+                "reasoning_tokens": 716
+              },
+              "total_tokens": 2925
+            },
+            "parallel_tool_calls": true,
+            "store": false,
+            "max_output_tokens": 4000
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "9fa08e4c3389f7a50b6691d3681f515afcd92eb30f92bbe5d1d2fa6e26f5bd8b"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "muse-spark-1.3",
+            "reasoning": {
+              "effort": "low"
+            },
+            "background": false,
+            "text": {
+              "format": {
+                "type": "json_schema",
+                "name": "photo_inventory",
+                "schema": {
+                  "type": "object",
+                  "$schema": "http://json-schema.org/draft-07/schema#",
+                  "additionalProperties": false,
+                  "properties": {
+                    "coverScore": {
+                      "description": "integer 1-10: suitability as the listing cover photo",
+                      "type": "number"
+                    },
+                    "observations": {
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "count": {
+                            "description": "how many instances are clearly visible in this photo",
+                            "type": "number"
+                          },
+                          "detail": {
+                            "description": "short factual English phrase about what is visible",
+                            "type": "string"
+                          },
+                          "object": {
+                            "enum": [
+                              "energy_label",
+                              "balcony",
+                              "solar_panel",
+                              "heating_boiler",
+                              "heat_pump",
+                              "meter_cupboard",
+                              "attic_ladder",
+                              "fireplace",
+                              "bathtub",
+                              "shower",
+                              "toilet",
+                              "dishwasher",
+                              "oven",
+                              "cooktop",
+                              "washing_machine",
+                              "staircase",
+                              "elevator",
+                              "radiator",
+                              "window",
+                              "other"
+                            ],
+                            "type": "string"
+                          },
+                          "otherObject": {
+                            "description": "snake_case English name when object is \"other\", else null",
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "object",
+                          "otherObject",
+                          "count",
+                          "detail"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "otherSubject": {
+                      "description": "short English name when subject is \"other\", else null",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "privacySubjects": {
+                      "description": "every listed privacy subject visible anywhere in the photo",
+                      "items": {
+                        "enum": [
+                          "person",
+                          "license plate"
+                        ],
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "quality": {
+                      "enum": [
+                        "good",
+                        "acceptable",
+                        "poor"
+                      ],
+                      "type": "string"
+                    },
+                    "qualityIssues": {
+                      "items": {
+                        "enum": [
+                          "blurry",
+                          "too_dark",
+                          "overexposed",
+                          "tilted",
+                          "cluttered",
+                          "obstructed",
+                          "personal_items",
+                          "text_or_watermark"
+                        ],
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "subject": {
+                      "enum": [
+                        "living_room",
+                        "kitchen",
+                        "dining_room",
+                        "bedroom",
+                        "bathroom",
+                        "toilet",
+                        "hallway",
+                        "staircase",
+                        "study",
+                        "laundry_room",
+                        "storage_room",
+                        "attic",
+                        "basement",
+                        "balcony",
+                        "terrace",
+                        "garden",
+                        "garage",
+                        "exterior",
+                        "view",
+                        "floor_plan",
+                        "document",
+                        "common_area",
+                        "other"
+                      ],
+                      "type": "string"
+                    },
+                    "summary": {
+                      "description": "one short factual English sentence",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "subject",
+                    "otherSubject",
+                    "summary",
+                    "quality",
+                    "qualityIssues",
+                    "coverScore",
+                    "observations",
+                    "privacySubjects"
+                  ]
+                },
+                "strict": true
+              }
+            },
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae1e8d7adf0fffd45874d17",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793190103,
+            "completed_at": 1793190103,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "reasoning",
+                "id": "rs_6ae1e8d7adf0fffd45874d17:rs_af9302e2-151b-4575-852f-d8055e8c025f",
+                "encrypted_content": "Q-PaDgFT_BlYjdgN9G8gYm8WF8E0Ozr6JSA8d2bIVVJvTDi5yOBsuPQznKen63wEk3ZOxv-L7d52cojAkWVFXEmzyH-vD4xouBRcalXrBZaoMR85syP4tGeDE16c8ALF4mikxvKz1SycVYbJgqFKrgvGjHfQb3Jgf8UKlFNay7FIq9mDTkqauBQFzN2QDGuZNmmGpFdxCpKVse-QGBftPfSMmBA68XL13l_UbqYS4FLxipofl_86Pce9pYfc3bk7F-uL36WRXZYv6oc9-gjex4mTWX4SQ_soFztazkWohp3Wl43cz7Y5kJMfnyzftZa4bj9JPR8GIWycO6I7sbjmMU_Ees5MOH0G9ZxYWqms6J13UzIEiZdNeZ-MxBPxLT33SRH4Oj2DnQPr_bKNmE0YmB7uUvNL5Ux46Mh5D176ukTQaLWcqoAkYEyhtY6pua9Rvyv1rraJ0l0KfM_g9Hp-2EKD3uVVzQ8_A6P_DepLpXCLiFeDOGpB-U8nT5B8Hws8-RNbm13oJTfi6tdfdx3HgAcuxYOQCJ0ePI8_arjLGntENLBPWVc43VWcoTt9WJFsbsVaICkBOyIgzv5pW1t-4_oe8MgUj1eeUmA0efeGTDjxelwYyZcWgokzHBYiJaKjke30isZFmepRUg1RwcbXJltRgY8TQSGWrQ9tx2HPrcZeU02IxUg1emu5iD-JMIlY1JdC4aKfPXtraHFwbMzZiVXVkomCYIoSDwncC_5ZSZ7yTUb9bhnoHYAfFo-fq4Czsr3gUVPKYyVR9epTK7279v0DW8Iuc5BxvJ5Ax3NdY60bP8Gm9au316XgAUWVKzTR8qPYcpxVzhP67NR8Krk30X8EGnUq0LrndWgFNm0NIZ_sVR277lWDRzQnL1-uVViW6DSHYUhE_q6s2F13ofiz67wyJfePWPlAm53NCdgvKdx2FUY7mB15Fq4nZkHXQDf_nnsd5Jk96dd8KzyQPs6Z28H17hs6qOvSbxTAS-Ppcn_c00NVXX65LhBBbflxXtf-A2splx6TAxvOdYa-EpaID_6HOu62X9GQKCY-MSpfGaX9VbqmcpRfXeHv917jQtJngmSb91CFm4Cb5PgffxVyk1kXO8F-NRFAvFMoBcDAjPi6Ep7gwU-DlFbVYMlnq5OVOfCSOERH7yj9dlUyArUWk8N_9wr3y99B1eQ_HM7izzVpeft0EpQQ7V45W-sqb8UHnhKxpF564y3PjtOs5TyNbCeEqng4VY67xgfYAlBkE8g8rFSjW9OAwfDY0a27mNu-T6wwz0pTRltye8gs2wDIUtKJzi8X6RMQcaQIF9h7VCl5tbbk4P7W2K3HzROU_r8ZEVsykWbREBGDNl0PA8k-HDwas6PzVpXtvvCTqalnTsKhrT2fLtuUlxVD9vLUsMIDu7p_jtzC1ygAU9awndVCeql3CwAjJsQCn71t5H2igv7PBCI-hauYjluHNr6hFDpFras5aiMSArOCUfVgDXQXsETHSoeSaWWxHZPCQhsJ4Q4abMRFQvuDTL-2PqiKV8a-mdYyv-mYuOtxc_NCzqkcxm9a3-GvST6erIwi1ckZraYqLKynHcUT7Qa9ZKGcqMakTrPc_A1K3VBFbbpIRM4tAzntuDS41cI2KGS4Rr6GQ-c8CvhyYScoyf2PHwm7Nr4ODBbQyAH32qrMxkVjwulIQnmqRGUPnGMED7aKyWMtYlQX1Le46ZdR1u_gvfeGAZupP8VxSPYmuoRsE76k3lLNXU58gjCFtY14GJ0jh36p_3mphSLaDtjzOcyGaszS7mlYAEE7FXd_5WL_MPpmQ_la2UuaMyJ7o3CLwQIdLZg7dnMs_0WqSkqxA23cSnZTnMOjQyXGw-iR-PziBDhZIr4Q2T-J-dotOe4eQrj447aqr4SPoGG2oEZKo3Jksjikh3ShJCUG6OGGpNVNdj1-1qZFV5BzBAH1MPU9QFywTTp5ixspfSKK2seo6CL0Ab9VAFTCOU-6imB4sl--g6ZZOU8Zg8TSo9vgWAhs_60LNBkUdux1jZ1QJuNpd4UurwkoyAAlBOMBQ7a8AT1blQk3tPJkj3dbcRjHPpsimcmI_Mn7eQLtOPbd4vH-xODttC-WPZSbwkdn0gjY0XWabAjSQ8PSEfzsG99HKTbBHAW5m-lB1-Fsc3fSj2pxAHDCZb1Pv7wTuzsYH3323kpes0U2VKilqfOJScRtPdC9T3nrqj_Z0FOh3nVnYCraDXcg4e-8COgXupt2FWNnNcr5z28cJF_WzQdLdulTlFap3_ixAXovmtcmMo1yWVYaFAC-GhvGFJ4lM5jZEvB1419f--utkcJTB1CozA41zwfnaFn-c2l4PHyQWuzGjpG7LtvcZo1srp1r_j2Ndkz9qekI0snZEpbeUo3s0gVkUs3Wfli4uR1hAiHYP6sv0xYg2-IwCNrrmE-QrXIsVZVRWr0ReqXUD3abaGc4BKHJEDd4xV-Ss3y2EwZFgDa3ZufM21z40n885dtc9ebln3_X9GDn4enVS3jXZV6Ii6_EvxWN0iH-8PgH73CtcE1ggDa9OXKpQ0fEeGZEAUTs5txVNZ2owBbXLBl0fgVhjkz3FN_UEBXsf7vPo8neNCqGAYhMbE2xLqQvO2hQKvl8lyjU5ONdwWWWwYshV2CK8S39AcewW5U2vtJ_ceLTx_LXRbCE5mye_DzYybr9NPm__rBiVxK4E9KdDgG4-M2hGsZYEk_nvBDWI-mYYRqWzBwlwtyYkDCv_VshyBy1oJjFfhLvGFvnJaXUCM_BXuZDfRES4ryGaVacTHZJEU42Vqa3qA-0JJkZrnIXU3VFEl6OnC67MlkyUd7g16TaLDFcH7tTCX1G6rrL_qtAvCAjQw6pN5zAnrn0sozsO2WmYhLt2_TxXm_UXgGAmKexsRpZ8BfsF5vjoqC9Hp5IY6TOW26zB3tfyx0aDfTZdYPMEtyW_FpCw6B1OdhKiGa2kLHWchK7h0QCbu1nZY8M1bLqImtQcMalB1-NHHS60PhRR-iBmIWl0l79mWeqfTuz6p0SOqEkYvWpLsxWWIy61vNAH-W_Bhzt9KPl8hNjs0KispAGiMy0mge4n4KWQ8rDf5GwwUFDLa9UTvsdPdDAs1U2zbhWna7CldaT1JkoF8pScUMYH92iLmWJ_ximV9hH6_c_0r4mPYlyJ6CtsoDsqA7z0ZuWGaVrLC58rrXZM70bg1KsatOP8xoXUl_nJ94S7SRmjZ1oK5WBCWRQ5GX3pi2Q5OB40QdMJTfESJOMxBHdFU2UuZi7tQKfjLphwD2ErNZPtTEmfInDEaTgPim_eLxSERZz4syv8fb0hD8iKsemQrQDbLJNUW-GdWHhqZgAyyt9E63at1RpqgNCFRHB77OG2sPGtxNb9e3_-dKKno5H1_3GUzd3-y3DwZMg0wVGFbtNzAWTjzClsv_SlLrCycnGpjL3ouTlECc_pr9vIDelbulqakA0Jw6UgwEi8Yum_EF6Y9PD_4vduLsC5RemVdiNJhZOZYO2ApVIE0P_vbwyg6hFxkVfjPVqa5hUX9UbPSNlgb44wqjJ0AlVRCCE3IZLQ-HsYQPn9IllV3gxVB0OKgw5REaEgYUdcCoFa2Y_fD6eHQIMp441jvUkAAN8BaPiOPG2VxcC4UCiRTDZ4nWwhdUgwjA1WhikXB38nPCDc4pxAeU_3jdY-n5O94BhHCGBx5LbDwWrVCqscTMM8VOUPomm6rkObuUhRz-pgI0i0nKkx_9OTLeHODJVBhko0O6BqGbtUE2TtF17cmSoKOG3m0FNk6_t5e73yEoOrVRIwGpZhUTD99xqbAnEc0cCbdPIcuZOgE2XsXoIFCabvY4Wd0HJNxQprrSZcDahzx-Rne4GJAE0VNBRlFZsTxHYh8L1gBcKVGAa9Z6_U85t4WEKOeVPYyn3ApepMbXDJh_fU7Q2kzRg4LVq5oows6iHVMUrZ3QykPKy05alOfAFkqpSFVQBBPHlTtC6CdLUNISlEpTLenj1JOtCR6wFdOxDgaWgy1Eg5PPYD4ca69clrteWMkxnXF80lq4r280-XRhZDvM3gI9xZUHbKjnBYbyvdYjJC_3trf9vsiVdjviaWfIctweDHzSAV74HaL9nf-3WYMBnxm-MezEVzuHBcY3p8vncFtLHd8VhDcS-WATR87MPDAC2hFhDzkhLWf36WvDfzRcnW07SsruYXRJEzHZXjha-X7CL-OpXrGND_APojXVMhrfe9k50ZxlqJGFTbyz4tCDcsdNoZtSJIjFb3oRT34-mX0hlLd6_6lmhTCZw1WQR_hIIwi5mlT0nP088pg2GWAXPa-I-wyjXTjGd5UFNFPFGb9W3H_1xKaMgEwzLHt0Fj5iJDovElOUmvP_QL0V0dRMYbfv4obfftA1oqfhNH50uZNNgRiXNKyp6zb2_VT1i7sLlJ63H5LAnOMP-yCBKxy7Bvne2VgGNkfTsCfIU3JrX888Du3sRd6JVbQsFyh84hj_MDjS8gv1aNswk3lDBcN7zwBh4ZDauspw6nNvcSTxdTD36Z6htoWga-nxq2Jz_7UI9alw32dY45xNAz4pi2q8RZ0uS0k_cWU_8esMBra7T88mrOuFwPa56sKjvirLdB6_e3aVeESF_ExCmQJfCt64Ul1w3Oj6u5_uV0RY0hc3dHkZPtX0wXiYGbhtbRS05ok7AJ-YNPHCUg7xHrvXbvs-45TC8aDL-ePDU9z7Wc7pzLNCfdbckqHSuF4azKv_KrW06hIVykjjxudjUiL7lR2K4CaFZwF5ezpEc7FAokcEngoLvrY42ImsVEe9B6P_5J3Wn5WhsUNJ6QBpN0_hFgiuKDRK2KFcnvAbtsGgCX3WX-fVL52KYu2hTXbtx434zoDbRYFAcMVX559sKDSPsCFNPuAhReLgxiqmdbk9w_FyIAESOkmkEEaujkyXBJFDkLvXzeuiNezfP3lV-zrFksNURSIr0PJQoABGUFcxjwRLnR3_caOR83B3wREkmC2v3LvQIBPIVnC71mv0PdD1owVIBX5MlrXnfUmDr6C08VUGWBLhMexbUroMScV48XV_f6UggK0J-Vocab7XlCEy0PIKVzGoG4Hx37PZ_nomwJho5mNsnizn9Z98-7MeGX0ZxJf-JKhAHCk0l5LC84KQ95XbolzWAolBBANqoKt_KSwbAYXz0ea6PHGrHYZzH9c5RZ2on28eEBv59NrX9FHIy4ay0RCqh6rLwKH5eMR8o1rcLQDCz0rIoZErxgo4ikhljgW_lN0viEFdSco1R5QYRv8HofBbkRVWyLRTQDZJV0fhBGYMlrtfNasestPM-fmOqjnDDxPiwsgvBmVwiLbldksN66Gqwcnq-N4Emdx8Kvtqiwi16nd_MWCxvdhIQjcQpJ_IgSDXgUvYH97Gd26SJ_VILBdCQD8GlAdUnTGKCVQLYGrmEWMGEfJNLbUOwQBcRYbruYOIOntXcL0X_EwL7agFCiOVf2S7Gxy0wiaUgSz7s5Z_101WThdHlO9w_u-VdVknke3ZMtJLkf5IaLA",
+                "summary": [],
+                "status": "completed"
+              },
+              {
+                "type": "message",
+                "id": "msg_7b71d605-7c42-4bc4-a682-96450e018a44",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "{\"coverScore\": 4, \"observations\": [{\"count\": 1, \"detail\": \"window above kitchen sink\", \"object\": \"window\", \"otherObject\": null}, {\"count\": 1, \"detail\": \"white panel radiator on wall\", \"object\": \"radiator\", \"otherObject\": null}, {\"count\": 1, \"detail\": \"stainless steel sink under window\", \"object\": \"other\", \"otherObject\": \"kitchen_sink\"}, {\"count\": 1, \"detail\": \"white upper and lower kitchen cabinets\", \"object\": \"other\", \"otherObject\": \"kitchen_cabinets\"}, {\"count\": 1, \"detail\": \"grey countertop with sink and dishes\", \"object\": \"other\", \"otherObject\": \"countertop\"}], \"otherSubject\": null, \"privacySubjects\": [], \"quality\": \"acceptable\", \"qualityIssues\": [\"cluttered\"], \"subject\": \"kitchen\", \"summary\": \"White kitchen with upper and lower cabinets, sink under a window, and countertop with dirty dishes.\"}",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 2011,
+              "input_tokens_details": {
+                "cached_tokens": 1137
+              },
+              "output_tokens": 856,
+              "output_tokens_details": {
+                "reasoning_tokens": 625
+              },
+              "total_tokens": 2867
+            },
+            "parallel_tool_calls": true,
+            "store": false,
+            "max_output_tokens": 4000
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "d962a04993e63064bf963473e39e559da6b3598bbdf8f1f258f9e8e43e0113ca"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "metadata": {
+              "mask_encoding": "one_bit",
+              "include_confidence": "true"
+            },
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "sam-3.1",
+            "reasoning": {
+              "effort": "minimal"
+            },
+            "background": false,
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae1e8d6c6dd66c893224cfc",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793190102,
+            "completed_at": 1793190102,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "message",
+                "id": "msg_3cc57725-d627-4058-be79-f0135e7edf6c",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 0,
+              "input_tokens_details": {
+                "cached_tokens": 0
+              },
+              "output_tokens": 0,
+              "output_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "total_tokens": 0,
+              "images_processed": 1
+            },
+            "parallel_tool_calls": true,
+            "store": false
+          }
+        }
+      }
+    }
+  ]
+}

@@ -99,3 +99,70 @@ market:
     - meerjarenonderhoudsplan
     - opstalverzekering
     - reservefonds
+
+  # Objects the vision inventory looks for in each photo (P2-08), in priority order: when the
+  # run's evidence cap (max_evidence_masks) is reached, earlier objects are segmented first.
+  # Chosen because a walkthrough or form statement can be supported or contradicted by seeing
+  # them: the energy label (a required fact), outdoor space, heating and energy installations,
+  # sanitary fittings, appliances, and fixed elements. "door" is deliberately absent: SAM also
+  # matches cupboard and wardrobe doors (docs/model-notes.md, P1-05). label is what Spark looks
+  # for; phrase is the SAM prompt (one English noun phrase).
+  evidence_objects:
+    - id: energy_label
+      label: Energy label sticker or certificate (energielabel)
+      phrase: energy label
+      supports: [energy_label]
+    - id: balcony
+      label: Balcony (balkon)
+      phrase: balcony
+    - id: solar_panel
+      label: Solar panels (zonnepanelen)
+      phrase: solar panel
+    - id: heating_boiler
+      label: Central heating boiler (cv-ketel, HR-ketel)
+      phrase: boiler
+    - id: heat_pump
+      label: Heat pump (warmtepomp)
+      phrase: heat pump
+    - id: meter_cupboard
+      label: Meter cupboard or fuse box (meterkast)
+      phrase: fuse box
+    - id: attic_ladder
+      label: Folding attic ladder (vlizotrap)
+      phrase: attic ladder
+    - id: fireplace
+      label: Fireplace or wood stove (open haard, kachel)
+      phrase: fireplace
+    - id: bathtub
+      label: Bathtub (ligbad)
+      phrase: bathtub
+    - id: shower
+      label: Shower (douche)
+      phrase: shower
+    - id: toilet
+      label: Toilet bowl
+      phrase: toilet
+    - id: dishwasher
+      label: Dishwasher (vaatwasser)
+      phrase: dishwasher
+    - id: oven
+      label: Oven
+      phrase: oven
+    - id: cooktop
+      label: Cooktop or hob (kookplaat)
+      phrase: cooktop
+    - id: washing_machine
+      label: Washing machine (wasmachine)
+      phrase: washing machine
+    - id: staircase
+      label: Staircase (trap)
+      phrase: staircase
+    - id: elevator
+      label: Elevator (lift)
+      phrase: elevator
+    - id: radiator
+      label: Radiator
+      phrase: radiator
+    - id: window
+      label: Window (raam)
+      phrase: window

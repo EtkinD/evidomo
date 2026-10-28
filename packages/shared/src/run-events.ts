@@ -102,3 +102,28 @@ export const factsExtractedPayloadSchema = z.strictObject({
   rejectedCount: count,
 });
 export type FactsExtractedPayload = z.infer<typeof factsExtractedPayloadSchema>;
+
+/**
+ * Appended by the vision inventory step together with its `photo_inventory` artifact and photo
+ * facts: counts for the run monitor. Never subjects, summaries, or observed objects.
+ */
+export const photosInventoriedPayloadSchema = z.strictObject({
+  stepId: z.string().min(1),
+  /** The step's `photo_inventory` artifact. */
+  artifactId: z.uuid(),
+  photoCount: count,
+  classifiedCount: count,
+  classificationFailedCount: count,
+  privacyClearCount: count,
+  privacyMaskedCount: count,
+  /** Spark saw a privacy subject that SAM did not segment: a human must look before export. */
+  privacyReviewCount: count,
+  /** A privacy segmentation failed: these photos are not privacy-checked. */
+  privacyFailedCount: count,
+  privacyRegionCount: count,
+  observationCount: count,
+  evidenceRequestCount: count,
+  evidenceMaskCount: count,
+  factCount: count,
+});
+export type PhotosInventoriedPayload = z.infer<typeof photosInventoriedPayloadSchema>;

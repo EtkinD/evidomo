@@ -112,7 +112,7 @@ The orchestrator (main session) delegates each task to its owner — see `.claud
 - [x] **P2-07 — Step: fact extraction**
   - Depends on: P1-02, P2-06
   - Done when: candidate facts are extracted with structured output; each has provenance (form field or transcript turn).
-- [ ] **P2-08 — Step: vision inventory**
+- [x] **P2-08 — Step: vision inventory**
   - Depends on: P1-02, P1-05, P2-03
   - Done when: each photo has room/subject, quality, and cover rank; privacy masks exist for people and license plates; evidence masks stay within the configured cap.
 - [ ] **P2-09 — Step: reconciliation**

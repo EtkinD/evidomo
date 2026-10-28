@@ -8,6 +8,7 @@ import {
   transcriptionKeywordSchema,
   turnTranscriptionModeSchema,
 } from './transcription.ts';
+import { samPhraseSchema } from './vision.ts';
 
 // Schemas for the declarative definition files in `definitions/` (docs/architecture.md §7):
 // service definitions (`definitions/services/<id>.v<version>.yaml`) and market profiles
@@ -147,8 +148,22 @@ export const serviceStepSchema = z.discriminatedUnion('agent', [
     agent: z.literal('vision'),
     ...reasoningModelFields,
     segmentation_model: modelIdSchema,
-    /** Cap on SAM evidence-region requests per run (privacy masks are not capped). */
+    /**
+     * Cap per run on evidence segmentation: at most this many SAM evidence requests, and at most
+     * this many evidence masks stored. Privacy segmentation is never capped.
+     */
     max_evidence_masks: z.int().min(0).max(100),
+    /**
+     * SAM noun phrases segmented on every photo for blurring at export (faces and plates are
+     * blurred by default, docs/architecture.md §14). One SAM call per phrase per photo.
+     */
+    privacy_phrases: z.array(samPhraseSchema).min(1).max(5),
+    /**
+     * Spark sees each photo downscaled to this long edge (never enlarged); SAM always gets the
+     * stored photo. Image input tokens grow with resolution: 2048 px cost 2.4x the input tokens
+     * of 1024 px in P2-08, and room classification does not need the extra detail.
+     */
+    classification_long_edge_px: z.int().min(256).max(4096),
   }),
   z.strictObject({ ...stepCommon, agent: z.literal('reconciler'), ...reasoningModelFields }),
   z.strictObject({
@@ -275,6 +290,14 @@ export const serviceDefinitionSchema = z
           });
         }
       }
+      if (step.agent === 'vision') {
+        checkUnique(
+          ctx,
+          step.privacy_phrases.map((phrase) => phrase.toLowerCase()),
+          (n) => ['steps', i, 'privacy_phrases', n],
+          'privacy phrase',
+        );
+      }
       if (!('reasoning_effort' in step)) return;
       if (step.fallback_model === step.model) {
         ctx.addIssue({
@@ -397,6 +420,23 @@ export const publicationChecklistItemSchema = z.discriminatedUnion('rule', [
 ]);
 export type PublicationChecklistItem = z.infer<typeof publicationChecklistItemSchema>;
 
+/**
+ * An object whose presence in a photo can support or contradict a listing statement (a balcony,
+ * a boiler, an energy label). Spark reports which of them each photo shows; SAM then segments
+ * them, within the run's evidence cap, so a photo claim has a region to point at.
+ */
+export const evidenceObjectSchema = z.strictObject({
+  /** Fact key suffix: photo observations are stored as `other:<id>` candidate facts. */
+  id: keySchema.refine((id) => id !== 'other', { message: '"other" is reserved' }),
+  /** What Spark is told to look for (may name local terms, e.g. "meterkast"). */
+  label: labelSchema,
+  /** The SAM text prompt: one English noun phrase. */
+  phrase: samPhraseSchema,
+  /** Market fact keys whose value this object can support (e.g. a balcony → outdoor space). */
+  supports: z.array(keySchema).default([]),
+});
+export type EvidenceObject = z.infer<typeof evidenceObjectSchema>;
+
 export const marketProfileSchema = z
   .strictObject({
     id: definitionIdSchema,
@@ -423,6 +463,11 @@ export const marketProfileSchema = z
       .array(transcriptionKeywordSchema)
       .max(TRANSCRIPTION_KEYWORD_LIMITS.maxKeywords)
       .default([]),
+    /**
+     * Objects the vision inventory reports per photo and segments as evidence, in priority
+     * order: when the run's evidence cap is reached, earlier objects are segmented first.
+     */
+    evidence_objects: z.array(evidenceObjectSchema).max(40).default([]),
   })
   .superRefine((market, ctx) => {
     checkUnique(ctx, market.source_languages, (i) => ['source_languages', i], 'language');
@@ -511,6 +556,29 @@ export const marketProfileSchema = z
     });
 
     checkUnique(ctx, market.flagged_phrasing, (i) => ['flagged_phrasing', i], 'phrasing category');
+    checkUnique(
+      ctx,
+      market.evidence_objects.map((item) => item.id),
+      (i) => ['evidence_objects', i, 'id'],
+      'evidence object',
+    );
+    checkUnique(
+      ctx,
+      market.evidence_objects.map((item) => item.phrase.toLowerCase()),
+      (i) => ['evidence_objects', i, 'phrase'],
+      'evidence phrase',
+    );
+    market.evidence_objects.forEach((item, i) => {
+      item.supports.forEach((key, k) => {
+        if (!factKeys.includes(key)) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['evidence_objects', i, 'supports', k],
+            message: `Evidence object references unknown fact "${key}"`,
+          });
+        }
+      });
+    });
     checkUnique(
       ctx,
       market.transcription_keywords.map((term) => term.normalize('NFC').toLowerCase()),

@@ -84,3 +84,68 @@ market:
       category: investment_promise
 
   flagged_phrasing: [exclusionary, investment_promise, unverifiable_superlative]
+
+  # Objects the vision inventory looks for in each photo (P2-08), in priority order: when the
+  # run's evidence cap (max_evidence_masks) is reached, earlier objects are segmented first.
+  # Outdoor space and parking are profile facts a photo can support; the rest are installations,
+  # sanitary fittings, appliances, and fixed elements that walkthroughs mention. "door" is
+  # deliberately absent: SAM also matches cupboard and wardrobe doors (docs/model-notes.md,
+  # P1-05). label is what Spark looks for; phrase is the SAM prompt (one English noun phrase).
+  evidence_objects:
+    - id: balcony
+      label: Balcony
+      phrase: balcony
+      supports: [outdoor_space]
+    - id: terrace
+      label: Terrace or patio
+      phrase: terrace
+      supports: [outdoor_space]
+    - id: garage
+      label: Garage or carport
+      phrase: garage
+      supports: [parking]
+    - id: solar_panel
+      label: Solar panels
+      phrase: solar panel
+    - id: heating_boiler
+      label: Central heating boiler
+      phrase: boiler
+    - id: heat_pump
+      label: Heat pump
+      phrase: heat pump
+    - id: fireplace
+      label: Fireplace or wood stove
+      phrase: fireplace
+    - id: bathtub
+      label: Bathtub
+      phrase: bathtub
+    - id: shower
+      label: Shower
+      phrase: shower
+    - id: toilet
+      label: Toilet bowl
+      phrase: toilet
+    - id: dishwasher
+      label: Dishwasher
+      phrase: dishwasher
+    - id: oven
+      label: Oven
+      phrase: oven
+    - id: cooktop
+      label: Cooktop or hob
+      phrase: cooktop
+    - id: washing_machine
+      label: Washing machine
+      phrase: washing machine
+    - id: staircase
+      label: Staircase
+      phrase: staircase
+    - id: elevator
+      label: Elevator
+      phrase: elevator
+    - id: radiator
+      label: Radiator
+      phrase: radiator
+    - id: window
+      label: Window
+      phrase: window

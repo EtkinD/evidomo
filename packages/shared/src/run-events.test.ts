@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   factsExtractedPayloadSchema,
+  photosInventoriedPayloadSchema,
   stepCompletedPayloadSchema,
   stepFailedPayloadSchema,
   transcriptStoredPayloadSchema,
@@ -85,5 +86,34 @@ describe('facts_extracted payload', () => {
     expect(
       factsExtractedPayloadSchema.safeParse({ ...summary, transcriptFactCount: -1 }).success,
     ).toBe(false);
+  });
+});
+
+describe('photos_inventoried payload', () => {
+  const summary = {
+    stepId: 'vision_inventory',
+    artifactId: '3bfcf0bb-5581-4e10-8691-6cc7a8e66dcf',
+    photoCount: 12,
+    classifiedCount: 11,
+    classificationFailedCount: 1,
+    privacyClearCount: 9,
+    privacyMaskedCount: 1,
+    privacyReviewCount: 1,
+    privacyFailedCount: 1,
+    privacyRegionCount: 2,
+    observationCount: 40,
+    evidenceRequestCount: 12,
+    evidenceMaskCount: 12,
+    factCount: 38,
+  };
+
+  it('carries counts only and rejects subjects or object names', () => {
+    expect(photosInventoriedPayloadSchema.parse(summary)).toEqual(summary);
+    expect(
+      photosInventoriedPayloadSchema.safeParse({ ...summary, subjects: ['kitchen'] }).success,
+    ).toBe(false);
+    expect(photosInventoriedPayloadSchema.safeParse({ ...summary, factCount: -1 }).success).toBe(
+      false,
+    );
   });
 });

@@ -4,6 +4,7 @@ import { createLogger } from './logger.ts';
 import { createMetaClients } from './meta/clients.ts';
 import { createFactExtractionHandler } from './pipeline/extraction/handler.ts';
 import { createIntakeHandler } from './pipeline/intake/handler.ts';
+import { createVisionInventoryHandler } from './pipeline/vision/handler.ts';
 import { shutdownOnSignals, startWorkerRuntime } from './runs/worker-runtime.ts';
 import { createLocalStorage } from './storage/local.ts';
 import { createPriceTableCostEstimator } from './usage/ledger.ts';
@@ -27,6 +28,7 @@ try {
       handlers: {
         intake: createIntakeHandler({ storage, markets: registry }),
         extractor: createFactExtractionHandler({ markets: registry }),
+        vision: createVisionInventoryHandler({ storage, markets: registry }),
       },
       createMetaClients: (usage) =>
         createMetaClients({ apiKey: env.MODEL_API_KEY, usage, estimateCost, logger }),
