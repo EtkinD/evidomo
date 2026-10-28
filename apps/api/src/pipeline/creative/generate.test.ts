@@ -8,6 +8,7 @@ import { createInMemoryUsageRecorder } from '../../meta/usage.ts';
 import { NonRetryableStepError, type StepConfig } from '../../runs/steps.ts';
 import { BudgetExceededError } from '../../usage/budget.ts';
 import { createPriceTableCostEstimator } from '../../usage/ledger.ts';
+import type { ClaimFact } from '../claims/validator.ts';
 import type { CopyCatalogFact, CopyFactCatalog } from './catalog.ts';
 import {
   buildCopyInput,
@@ -50,6 +51,27 @@ const facts: CopyCatalogFact[] = [
   },
 ];
 const CATALOG: CopyFactCatalog = { facts, byId: new Map(facts.map((f) => [f.id, f])) };
+/** The stored facts behind CATALOG, as the claim validator reads them. */
+const STORED: ClaimFact[] = [
+  {
+    id: FACT_IDS[0] ?? '',
+    key: 'living_area',
+    value: 92,
+    unit: 'm2',
+    status: 'verified',
+    assertion: 'stated',
+    source: { kind: 'form' },
+  },
+  {
+    id: FACT_IDS[1] ?? '',
+    key: 'other:window',
+    value: 2,
+    unit: null,
+    status: 'verified',
+    assertion: 'stated',
+    source: { kind: 'photo_region' },
+  },
+];
 
 const GOOD: CopyDraft = {
   portal: {
@@ -174,6 +196,7 @@ function sources(overrides: Partial<CopySources> = {}): CopySources {
   return {
     market,
     catalog: CATALOG,
+    facts: STORED,
     photos: { cover: 'living_room', rooms: ['living_room'] },
     tone: 'Warm.',
     outputLanguage: 'en',
@@ -334,11 +357,13 @@ describe('revision drafts (P3-06)', () => {
     const content = buildListingCopyContent({
       generated,
       catalog: CATALOG,
+      facts: STORED,
       input: buildCopyInput(sources()),
       revision: 0,
       previousArtifactId: null,
     });
     expect(toCopyDraft(content)).toEqual(GOOD);
+    expect(content.validation).toMatchObject({ result: 'pass', counts: { segments: 3 } });
 
     const revision = {
       draft: toCopyDraft(content),

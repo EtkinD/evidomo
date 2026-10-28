@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { gateSchema, usdAmountSchema } from './domain.ts';
+import { gateSchema, usdAmountSchema, validatorResultSchema } from './domain.ts';
 import { turnTranscriptionModeSchema } from './transcription.ts';
 
 // Payloads of the run events the run engine appends (docs/architecture.md §9). They feed the
@@ -195,6 +195,10 @@ export const copyGeneratedPayloadSchema = z.strictObject({
   /** Deterministic repairs: uncited segments merged, uncited paragraphs dropped. */
   mergedUncitedCount: count,
   droppedUncitedParagraphCount: count,
+  /** Claim validator (P3-02): overall result, segments it rejected, and its findings. */
+  validatorResult: validatorResultSchema,
+  validatorFailedSegmentCount: count,
+  validatorFindingCount: count,
   model: z.string().min(1),
   /** The primary model failed and the definition's fallback produced the copy. */
   fallbackUsed: z.boolean(),

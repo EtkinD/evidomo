@@ -16,6 +16,7 @@ import {
   buildCopyRequests,
   buildListingCopyContent,
   callCopy,
+  validateCopy,
 } from './generate.ts';
 import { COPY_OUTPUT_NAME } from './prompt.ts';
 import {
@@ -37,6 +38,12 @@ const responseBodySchema = z.object({
     format: z.object({ type: z.literal('json_schema'), name: z.string(), strict: z.boolean() }),
   }),
 });
+
+/** Segments and number claims the validator reads in each recording (P3-02). */
+const RECORDED_NUMBER_COUNTS = {
+  en: { segments: 17, numbers: 15 },
+  nl: { segments: 22, numbers: 20 },
+} as const satisfies Record<RecordedCopyLanguage, { segments: number; numbers: number }>;
 
 export function describeRecordedCopy(language: RecordedCopyLanguage): void {
   const replay = createMetaReplay({
@@ -111,6 +118,7 @@ export function describeRecordedCopy(language: RecordedCopyLanguage): void {
           },
         },
         catalog: sources.catalog,
+        facts: sources.facts,
         input,
         revision: 0,
         previousArtifactId: null,
@@ -126,6 +134,49 @@ export function describeRecordedCopy(language: RecordedCopyLanguage): void {
         for (const id of segment.factIds) expect(verified.has(id)).toBe(true);
       }
       expect(content.counts.citedCatalogFacts).toBeGreaterThan(5);
+
+      // The claim validator (P3-02): every number in the recorded copy is a cited fact's value
+      // (hand-checked in P3-01), so both recordings pass with every number read.
+      expect(content.validation).toMatchObject({
+        language,
+        result: 'pass',
+        counts: { ...RECORDED_NUMBER_COUNTS[language], failedSegments: 0, findings: 0 },
+      });
+      // Seeded defects on the recorded text: the same segments fail once a number is changed,
+      // softened, or left without its source.
+      const segments = content.variants.flatMap((variant) => variant.segments);
+      const withArea = segments.find(
+        (segment) => segment.text.includes('92 m²') && segment.catalogIds.length > 1,
+      );
+      if (withArea === undefined) throw new Error('The recorded copy no longer states 92 m²');
+      const seeded = (text: string, factIds = withArea.factIds) =>
+        validateCopy(
+          content.variants.map((variant) => ({
+            ...variant,
+            segments: variant.segments.map((segment) =>
+              segment.index === withArea.index ? { ...segment, text, factIds } : segment,
+            ),
+          })),
+          sources.facts,
+          language,
+        ).findings.map((finding) => [finding.segmentIndex, finding.code, finding.token]);
+      const about = language === 'en' ? 'about' : 'ca.';
+      expect(seeded(withArea.text.replace('92 m²', '95 m²'))).toEqual([
+        [withArea.index, 'number_not_in_facts', '95 m²'],
+      ]);
+      expect(seeded(withArea.text.replace('92 m²', `${about} 92 m²`))).toEqual([
+        [withArea.index, 'approximate_number', `${about} 92 m²`],
+      ]);
+      expect(seeded(withArea.text.replace('92 m²', '92 m³'))).toEqual([
+        [withArea.index, 'unit_mismatch', '92 m³'],
+      ]);
+      const living = sources.catalog.facts.find((fact) => fact.key === 'living_area');
+      expect(
+        seeded(
+          withArea.text,
+          withArea.factIds.filter((id) => !(living?.factIds ?? []).includes(id)),
+        ),
+      ).toEqual([[withArea.index, 'number_not_in_facts', '92 m²']]);
 
       expect(usage.entries).toHaveLength(1);
       const [entry] = usage.entries;

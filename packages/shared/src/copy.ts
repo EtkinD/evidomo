@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { claimValidationReportSchema } from './claims.ts';
 import { reconciliationModelRunSchema } from './reconciliation.ts';
 
 // Listing copy (docs/architecture.md §5 step 5, §6): the portal description and the social
@@ -98,6 +99,12 @@ export const listingCopyContentSchema = z
       citedCatalogFacts: count,
       segments: count,
     }),
+    /**
+     * The claim validator's report on these segments (P3-02), `variant` = the variant kind and
+     * `segmentIndex` = `segment.index`. A failed segment is kept, not dropped: verification
+     * revises it and Gate 2 shows what remains.
+     */
+    validation: claimValidationReportSchema,
   })
   .superRefine((content, ctx) => {
     content.variants.forEach((variant, i) => {
@@ -125,6 +132,20 @@ export const listingCopyContentSchema = z
     }
     if (content.counts.segments !== segments.length) {
       ctx.addIssue({ code: 'custom', path: ['counts', 'segments'], message: 'Segment count' });
+    }
+    const variantOf = new Map(
+      content.variants.flatMap((variant) => variant.segments.map((s) => [s.index, variant.kind])),
+    );
+    if (
+      content.validation.language !== content.outputLanguage ||
+      content.validation.counts.segments !== segments.length ||
+      content.validation.findings.some((f) => variantOf.get(f.segmentIndex) !== f.variant)
+    ) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['validation'],
+        message: 'The validation report must cover exactly these segments in the output language',
+      });
     }
     if ((content.revision === 0) !== (content.previousArtifactId === null)) {
       ctx.addIssue({

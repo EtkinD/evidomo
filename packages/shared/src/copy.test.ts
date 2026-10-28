@@ -30,6 +30,13 @@ const content: ListingCopyContent = {
   ],
   repairs: { mergedUncited: 0, droppedUncitedParagraphs: 0, droppedEmpty: 0 },
   counts: { catalogFacts: 1, citedCatalogFacts: 1, segments: 2 },
+  validation: {
+    rulesVersion: 1,
+    language: 'en',
+    result: 'pass',
+    counts: { segments: 2, failedSegments: 0, numbers: 2, findings: 0 },
+    findings: [],
+  },
 };
 
 describe('listing copy content', () => {
@@ -57,6 +64,48 @@ describe('listing copy content', () => {
     ).toBe(false);
   });
 
+  it('requires a validation report that covers these segments in the output language', () => {
+    const finding = {
+      variant: 'social',
+      segmentIndex: 1,
+      code: 'number_not_in_facts',
+      token: '92 m²',
+      factId: null,
+      detail: '"92 m²" is not stated by any cited fact.',
+    };
+    const failed = {
+      ...content.validation,
+      result: 'fail',
+      counts: { segments: 2, failedSegments: 1, numbers: 2, findings: 1 },
+      findings: [finding],
+    };
+    expect(listingCopyContentSchema.safeParse({ ...content, validation: failed }).success).toBe(
+      true,
+    );
+    const { validation: _validation, ...withoutReport } = content;
+    expect(listingCopyContentSchema.safeParse(withoutReport).success).toBe(false);
+    // The finding names the wrong variant for segment 1, or the report is for another language.
+    const misplaced = { ...failed, findings: [{ ...finding, variant: 'portal' }] };
+    expect(listingCopyContentSchema.safeParse({ ...content, validation: misplaced }).success).toBe(
+      false,
+    );
+    expect(
+      listingCopyContentSchema.safeParse({
+        ...content,
+        validation: { ...content.validation, language: 'nl' },
+      }).success,
+    ).toBe(false);
+    expect(
+      listingCopyContentSchema.safeParse({
+        ...content,
+        validation: {
+          ...content.validation,
+          counts: { ...content.validation.counts, segments: 3 },
+        },
+      }).success,
+    ).toBe(false);
+  });
+
   it('requires a revision to point at the copy it revises', () => {
     expect(listingCopyContentSchema.safeParse({ ...content, revision: 1 }).success).toBe(false);
     expect(
@@ -79,6 +128,9 @@ describe('copy_generated payload', () => {
     claimCount: 17,
     mergedUncitedCount: 0,
     droppedUncitedParagraphCount: 0,
+    validatorResult: 'fail',
+    validatorFailedSegmentCount: 1,
+    validatorFindingCount: 2,
     model: 'muse-spark-1.3',
     fallbackUsed: false,
   };

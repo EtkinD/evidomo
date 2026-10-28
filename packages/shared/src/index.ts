@@ -13,4 +13,5 @@ export * from './vision.ts';
 export * from './staging.ts';
 export * from './reconciliation.ts';
 export * from './copy.ts';
+export * from './claims.ts';
 export * from './gates.ts';

@@ -127,7 +127,7 @@ The orchestrator (main session) delegates each task to its owner — see `.claud
 - [x] **P3-01 — Step: creative copy**
   - Depends on: P2-10
   - Done when: portal and social variants are produced in the selected output language as `{ text, fact_ids[] }` segments, using the office tone.
-- [ ] **P3-02 — Claim validator**
+- [x] **P3-02 — Claim validator**
   - Depends on: P3-01
   - Done when: segments with empty or unknown fact IDs are rejected; numbers in text must exactly match the cited facts; unit tests cover pass and fail cases.
 - [ ] **P3-03 — Buyer Q&A cards**

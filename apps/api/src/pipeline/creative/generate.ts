@@ -1,5 +1,7 @@
 import {
   listingCopyContentSchema,
+  type ClaimValidationReport,
+  type CopyVariant,
   type ListingCopyContent,
   type MarketProfile,
   type MetaReasoningEffort,
@@ -9,6 +11,8 @@ import { generateText, NoObjectGeneratedError, Output } from 'ai';
 import type { MetaClients } from '../../meta/clients.ts';
 import { metaProviderOptions } from '../../meta/options.ts';
 import { NonRetryableStepError, type StepConfig, type StepLedger } from '../../runs/steps.ts';
+import { isClaimLanguage } from '../claims/numbers.ts';
+import { validateClaims, type ClaimFact } from '../claims/validator.ts';
 import { modelFailureClass } from '../reconciliation/call.ts';
 import type { CopyFactCatalog, CopyPhotoContext } from './catalog.ts';
 import { checkCopyOutput, CopyOutputError, type CheckedCopy } from './check.ts';
@@ -37,6 +41,8 @@ const languageNames = new Intl.DisplayNames(['en'], { type: 'language', fallback
 export interface CopySources {
   readonly market: MarketProfile;
   readonly catalog: CopyFactCatalog;
+  /** The verified facts behind the catalog; the claim validator checks the copy against them. */
+  readonly facts: readonly ClaimFact[];
   readonly photos: CopyPhotoContext | null;
   /** The office profile's tone; null for the default (warm, clear, factual). */
   readonly tone: string | null;
@@ -51,6 +57,12 @@ export function buildCopyInput(sources: CopySources): CopyInput {
   if (!market.output_languages.includes(outputLanguage)) {
     throw new NonRetryableStepError(
       `Output language "${outputLanguage}" is not offered by market ${market.id} v${market.version}`,
+    );
+  }
+  // Checked before any call: copy whose numbers cannot be validated is not worth paying for.
+  if (!isClaimLanguage(outputLanguage)) {
+    throw new NonRetryableStepError(
+      `The claim validator has no number rules for output language "${outputLanguage}"`,
     );
   }
   const name = languageNames.of(outputLanguage);
@@ -245,16 +257,50 @@ export async function generateListingCopy(
   }
 }
 
-/** The `listing_copy` artifact content for a checked draft. */
+/**
+ * The claim validator over a checked draft: one segment per copy segment, `variant` = the
+ * variant kind, `segmentIndex` = `segment.index` (= `claims.segment_index`).
+ */
+export function validateCopy(
+  variants: readonly CopyVariant[],
+  facts: readonly ClaimFact[],
+  outputLanguage: string,
+): ClaimValidationReport {
+  if (!isClaimLanguage(outputLanguage)) {
+    throw new NonRetryableStepError(
+      `The claim validator has no number rules for output language "${outputLanguage}"`,
+    );
+  }
+  return validateClaims({
+    language: outputLanguage,
+    segments: variants.flatMap((variant) =>
+      variant.segments.map((segment) => ({
+        variant: variant.kind,
+        segmentIndex: segment.index,
+        text: segment.text,
+        factIds: segment.factIds,
+      })),
+    ),
+    facts,
+  });
+}
+
+/**
+ * The `listing_copy` artifact content for a checked draft, with the claim validator's report.
+ * Every copy artifact (the first draft and each revision) is validated here, against the
+ * verified facts the catalog was built from.
+ */
 export function buildListingCopyContent(params: {
   readonly generated: GeneratedCopy;
   readonly catalog: CopyFactCatalog;
+  readonly facts: readonly ClaimFact[];
   readonly input: CopyInput;
   readonly revision: number;
   readonly previousArtifactId: string | null;
 }): ListingCopyContent {
   const { generated, catalog, input } = params;
   const { copy } = generated;
+  const validation = validateCopy(copy.variants, params.facts, input.language.code);
   return listingCopyContentSchema.parse({
     schemaVersion: 1,
     promptVersion: COPY_PROMPT_VERSION,
@@ -271,6 +317,7 @@ export function buildListingCopyContent(params: {
       citedCatalogFacts: copy.citedCatalogIds.length,
       segments: copy.variants.reduce((sum, variant) => sum + variant.segments.length, 0),
     },
+    validation,
   } satisfies ListingCopyContent);
 }
 

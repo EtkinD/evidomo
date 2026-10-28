@@ -1,12 +1,15 @@
 import {
+  CLAIM_VALIDATOR_RULES_VERSION,
   LISTING_COPY_ARTIFACT_KIND,
   PHOTO_INVENTORY_ARTIFACT_KIND,
+  claimValidatorDetailsSchema,
   copyGeneratedPayloadSchema,
   photoInventoryContentSchema,
   type CopyGeneratedPayload,
   type ListingCopyContent,
   type MarketProfile,
   type PhotoInventoryContent,
+  type ValidatorResult,
 } from '@evidomo/shared';
 import type { Executor } from '../../db/client.ts';
 import { insertArtifact, listArtifacts, type Artifact } from '../../db/repositories/artifacts.ts';
@@ -17,6 +20,7 @@ import { appendRunEvent } from '../../db/repositories/run-events.ts';
 import type { Run } from '../../db/repositories/runs.ts';
 import type { DefinitionRegistry } from '../../definitions/loader.ts';
 import { NonRetryableStepError, type StepHandler } from '../../runs/steps.ts';
+import { findingsForSegment } from '../claims/validator.ts';
 import {
   buildCopyFactCatalog,
   CopyCatalogError,
@@ -85,6 +89,7 @@ export async function loadCopySources(
   return {
     market,
     catalog,
+    facts,
     photos: photoContext(inventory),
     tone: project.officeProfile.tone ?? null,
     outputLanguage: run.outputLanguage,
@@ -100,9 +105,9 @@ export interface StoredListingCopy {
 
 /**
  * Stores one copy draft inside the caller's transaction: the `listing_copy` artifact, a `claims`
- * row per segment (fact IDs as cited, validator and verifier columns still empty), and a
- * `copy_generated` event with counts only. Used by the creative step and by verification's
- * revisions (P3-06).
+ * row per segment (fact IDs as cited, the claim validator's result and that segment's findings;
+ * verifier columns still empty), and a `copy_generated` event with counts only. Used by the
+ * creative step and by verification's revisions (P3-06).
  */
 export async function storeListingCopy(
   tx: Executor,
@@ -115,15 +120,26 @@ export async function storeListingCopy(
     kind: LISTING_COPY_ARTIFACT_KIND,
     content,
   });
-  const segments = content.variants.flatMap((variant) => variant.segments);
+  const { validation } = content;
   const claims = await insertClaims(
     tx,
     artifact.id,
-    segments.map((segment) => ({
-      segmentIndex: segment.index,
-      text: segment.text,
-      factIds: segment.factIds,
-    })),
+    content.variants.flatMap((variant) =>
+      variant.segments.map((segment) => {
+        const findings = findingsForSegment(validation, variant.kind, segment.index);
+        const validatorResult: ValidatorResult = findings.length === 0 ? 'pass' : 'fail';
+        return {
+          segmentIndex: segment.index,
+          text: segment.text,
+          factIds: segment.factIds,
+          validatorResult,
+          validatorDetails: claimValidatorDetailsSchema.parse({
+            rulesVersion: CLAIM_VALIDATOR_RULES_VERSION,
+            findings,
+          }),
+        };
+      }),
+    ),
   );
   const segmentCount = (kind: 'portal' | 'social'): number =>
     content.variants.find((variant) => variant.kind === kind)?.segments.length ?? 0;
@@ -139,6 +155,9 @@ export async function storeListingCopy(
     claimCount: claims.length,
     mergedUncitedCount: content.repairs.mergedUncited,
     droppedUncitedParagraphCount: content.repairs.droppedUncitedParagraphs,
+    validatorResult: validation.result,
+    validatorFailedSegmentCount: validation.counts.failedSegments,
+    validatorFindingCount: validation.counts.findings,
     model: content.modelRun.model,
     fallbackUsed: content.modelRun.fallbackFrom !== null,
   } satisfies CopyGeneratedPayload);
@@ -171,6 +190,7 @@ export function createCreativeHandler(deps: CreativeHandlerDeps): StepHandler<'c
     const content = buildListingCopyContent({
       generated,
       catalog: sources.catalog,
+      facts: sources.facts,
       input,
       revision: 0,
       previousArtifactId: null,
@@ -180,6 +200,8 @@ export function createCreativeHandler(deps: CreativeHandlerDeps): StepHandler<'c
         outputLanguage: content.outputLanguage,
         counts: content.counts,
         repairs: content.repairs,
+        // Counts only: findings quote copy text and stay in the artifact and the claims.
+        validation: { result: content.validation.result, ...content.validation.counts },
         languageChecks: content.variants.map((variant) => variant.languageCheck),
         model: content.modelRun.model,
       },

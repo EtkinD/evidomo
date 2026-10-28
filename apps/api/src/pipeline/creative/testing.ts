@@ -172,13 +172,11 @@ export function recordedCopySources(
   outputLanguage: RecordedCopyLanguage,
 ): CopySources {
   const market = registry.getMarket('nl', 1);
+  const verified = facts.filter((fact) => fact.status === 'verified');
   return {
     market,
-    catalog: buildCopyFactCatalog(
-      market,
-      facts.filter((fact) => fact.status === 'verified'),
-      inventory,
-    ),
+    catalog: buildCopyFactCatalog(market, verified, inventory),
+    facts: verified,
     photos: photoContext(inventory),
     tone: RECORDED_OFFICE_PROFILE.tone ?? null,
     outputLanguage,

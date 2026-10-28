@@ -2112,18 +2112,18 @@ Code: `apps/api/src/pipeline/creative/`; design in
 
 ### Quality on the recorded facts
 
-| Check                                                      | `en`                   | `nl`                   |
-| ---------------------------------------------------------- | ---------------------- | ---------------------- |
-| Portal: paragraphs / segments / words                      | 3 / 14 / 169           | 3 / 19 / 139           |
-| Social: segments / words                                   | 3 / 41                 | 3 / 31                 |
-| Catalog IDs cited (of 79)                                  | 38                     | 48                     |
-| Uncited segments (repairs needed)                          | 0                      | 0                      |
-| Numbers in the text equal to a cited fact's value          | all (manual P3-02 run) | all (manual P3-02 run) |
-| Market facts in the portal (label, area, year, VvE, lease) | 5/5                    | 5/5                    |
-| Superlatives, promises, exclusionary phrasing              | none seen              | none seen              |
-| Street or house number                                     | none (town named)      | none (town named)      |
-| Language check                                             | `match` / `match`      | `match` / `match`      |
-| Presence facts or the Gate 1 fact cited                    | no / no                | no / no                |
+| Check                                                      | `en`                  | `nl`                  |
+| ---------------------------------------------------------- | --------------------- | --------------------- |
+| Portal: paragraphs / segments / words                      | 3 / 14 / 169          | 3 / 19 / 139          |
+| Social: segments / words                                   | 3 / 41                | 3 / 31                |
+| Catalog IDs cited (of 79)                                  | 38                    | 48                    |
+| Uncited segments (repairs needed)                          | 0                     | 0                     |
+| Numbers in the text equal to a cited fact's value          | all (P3-02 validator) | all (P3-02 validator) |
+| Market facts in the portal (label, area, year, VvE, lease) | 5/5                   | 5/5                   |
+| Superlatives, promises, exclusionary phrasing              | none seen             | none seen             |
+| Street or house number                                     | none (town named)     | none (town named)     |
+| Language check                                             | `match` / `match`     | `match` / `match`     |
+| Presence facts or the Gate 1 fact cited                    | no / no               | no / no               |
 
 - Every number came from a cited fact: 92 m², 1987, label B, 34 m², 2021, 7 m², 14 m², 9 m²,
   €165, 6 m², floor 2, and in `nl` also 3 rooms, 2019, and 10 minutes by bike. No number was
@@ -2175,6 +2175,54 @@ RECORD=1 node --env-file=.env node_modules/vitest/vitest.mjs run --project api c
 
 Budget 0.60 USD (stop at 0.50). Costs from the price table ($1.25 / $4.25 per 1M); Meta's
 billing dashboard was not checked. No call failed or was retried.
+
+## P3-02 — Claim validator
+
+Status: done (pending review). Pure code, no model calls ($0). Code:
+`apps/api/src/pipeline/claims/`; rules and failure policy in
+[architecture.md §5 Claim validator](./architecture.md#5-run-pipeline).
+
+### Results on the recorded copy (P3-01 fixtures)
+
+| Recording       | Segments | Number claims read | Findings | Result |
+| --------------- | -------- | ------------------ | -------- | ------ |
+| `p3-01/copy-en` | 17       | 15                 | 0        | `pass` |
+| `p3-01/copy-nl` | 22       | 20                 | 0        | `pass` |
+
+- This confirms P3-01's hand check in code: every number (92 m², 1987, floor 2, 34 m², 2021,
+  7 m², 14 m², 9 m², €165, 6 m², and in `nl` 3 rooms, 2019, 10 minutes) equals a cited fact's
+  value with a compatible unit. Validator pass rate at Spark `medium`: 39/39 segments (100%).
+- Two readings needed a rule rather than luck: `nl` "€165 per maand" (currency prefix against the
+  fact's `EUR`) and "station op 10 minuten fietsen" against
+  `other:station_cycling_time_minutes = 10` with no unit field. Extraction puts units into
+  free-text keys, so a unit-less fact takes the unit named by its key's last word; without that
+  rule the `nl` recording would have failed on a correct claim.
+- The wording P3-01 noted ("a 6 m² external storage is included", "Grond in eigendom") has no
+  number problem and passes here; it remains the verifier's (P3-06) to judge.
+- Seeded defects on the recorded segments (in the replay test) fail as intended: 92 → 95 m²
+  (`number_not_in_facts`), "about"/"ca." before 92 m² (`approximate_number`), m² → m³
+  (`unit_mismatch`), and the living-area citation removed (`number_not_in_facts`).
+- The P1-03 verification sizing fixture (`synthetic-nl-apartment-copy.ts`, 26 segments, 21 number
+  claims, "NEN 2580" in the text) also passes, as its header claims.
+
+### Effort decision input
+
+P1-03 kept creative copy at Spark `medium` until the validator pass rate was known. Both
+recordings pass 100%, so the validator gives no reason to stay at `medium`; whether `low` (about
+half the reasoning cost, ~$0.015–0.02 per draft) still writes numbers exactly is unmeasured. It
+needs one recorded `low` call per language, run through this validator, before the definition
+changes (a live-call task with a budget).
+
+### Decisions worth remembering
+
+- Number words are mapped and validated, not rejected outright; `one`/`een` are skipped
+  (pronoun/article), so "one bathroom" against two bathrooms is the verifier's to catch. Ordinal
+  words are claims, so "first-time buyers" or "the second bedroom" get flagged; that is a
+  deliberate false-flag risk (one revision) over a missed floor claim.
+- Approximate wording is flagged even around a matching number ("ruim 92 m²" for exactly 92).
+- Photo facts never support a number, even when the per-photo count happens to be equal.
+- A failed segment is kept and flagged for P3-06 and Gate 2, never dropped or regenerated in
+  the creative step.
 
 ## P3-04 — Staging variants
 
