@@ -212,6 +212,8 @@ function invokeHandler(
       return call<'creative'>(handlers.creative, { ...base, step });
     case 'qa_writer':
       return call<'qa_writer'>(handlers.qa_writer, { ...base, step });
+    case 'stager':
+      return call<'stager'>(handlers.stager, { ...base, step });
     case 'integrity_checker':
       return call<'integrity_checker'>(handlers.integrity_checker, {
         ...base,

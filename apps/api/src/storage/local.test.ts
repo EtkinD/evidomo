@@ -10,6 +10,7 @@ import {
   InvalidStorageKeyError,
   isValidStorageKey,
   newMaterialStorageKey,
+  newRunArtifactStorageKey,
   StorageNotFoundError,
   type Storage,
 } from './storage.ts';
@@ -57,6 +58,20 @@ describe('storage keys', () => {
   it('refuses a project ID or extension that is not a plain token', () => {
     expect(() => newMaterialStorageKey('../x', 'jpg')).toThrow(InvalidStorageKeyError);
     expect(() => newMaterialStorageKey(randomUUID(), '../jpg')).toThrow(InvalidStorageKeyError);
+  });
+
+  it('generates unique run artifact keys under the project prefix', () => {
+    const projectId = randomUUID();
+    const runId = randomUUID();
+    const first = newRunArtifactStorageKey(projectId, runId, 'jpg');
+    expect(first).toMatch(
+      new RegExp(`^projects/${projectId}/runs/${runId}/artifacts/[0-9a-f-]{36}\\.jpg$`),
+    );
+    expect(first).not.toBe(newRunArtifactStorageKey(projectId, runId, 'jpg'));
+    expect(isValidStorageKey(first)).toBe(true);
+    expect(() => newRunArtifactStorageKey(projectId, '../x', 'jpg')).toThrow(
+      InvalidStorageKeyError,
+    );
   });
 });
 

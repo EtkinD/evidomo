@@ -200,3 +200,26 @@ export const copyGeneratedPayloadSchema = z.strictObject({
   fallbackUsed: z.boolean(),
 });
 export type CopyGeneratedPayload = z.infer<typeof copyGeneratedPayloadSchema>;
+
+/**
+ * Appended by the staging step together with its `staged_images` artifact and one
+ * `staged_image` artifact per staged photo: counts for the run monitor. Never subjects,
+ * operations, or prompts.
+ */
+export const imagesStagedPayloadSchema = z.strictObject({
+  stepId: z.string().min(1),
+  /** The step's `staged_images` artifact. */
+  artifactId: z.uuid(),
+  /** `max_staged_images` of the step. */
+  cap: count,
+  photoCount: count,
+  eligibleCount: count,
+  /** Edits sent to the image model. */
+  requestedCount: count,
+  stagedCount: count,
+  failedCount: count,
+  skippedCount: count,
+  /** Photos skipped because of their privacy status (masked, review, or failed). */
+  privacySkippedCount: count,
+});
+export type ImagesStagedPayload = z.infer<typeof imagesStagedPayloadSchema>;

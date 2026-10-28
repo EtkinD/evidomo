@@ -89,6 +89,7 @@ export const STEP_AGENTS = [
   'reconciler',
   'creative',
   'qa_writer',
+  'stager',
   'integrity_checker',
   'verifier',
   'exporter',
@@ -166,13 +167,23 @@ export const serviceStepSchema = z.discriminatedUnion('agent', [
     classification_long_edge_px: z.int().min(256).max(4096),
   }),
   z.strictObject({ ...stepCommon, agent: z.literal('reconciler'), ...reasoningModelFields }),
+  z.strictObject({ ...stepCommon, agent: z.literal('creative'), ...reasoningModelFields }),
+  z.strictObject({ ...stepCommon, agent: z.literal('qa_writer'), ...reasoningModelFields }),
+  /**
+   * Virtual staging: declared-operation edits of selected photos (docs/architecture.md §5). Its
+   * own step, apart from copy, so that verification's revision loops regenerate copy without
+   * re-running (and re-billing) image edits, and a staging failure does not re-bill copy.
+   */
   z.strictObject({
     ...stepCommon,
-    agent: z.literal('creative'),
-    ...reasoningModelFields,
+    agent: z.literal('stager'),
     image_model: modelIdSchema,
+    /**
+     * Staged images per run: one edit each ($0.01 on Muse Image), before integrity retries.
+     * 0 turns staging off. The bound limits spend and the number of images Gate 2 must review.
+     */
+    max_staged_images: z.int().min(0).max(10),
   }),
-  z.strictObject({ ...stepCommon, agent: z.literal('qa_writer'), ...reasoningModelFields }),
   z.strictObject({
     ...stepCommon,
     agent: z.literal('integrity_checker'),

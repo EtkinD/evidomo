@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   factsExtractedPayloadSchema,
   factsReconciledPayloadSchema,
+  imagesStagedPayloadSchema,
   photosInventoriedPayloadSchema,
   stepCompletedPayloadSchema,
   stepFailedPayloadSchema,
@@ -141,5 +142,30 @@ describe('facts_reconciled payload', () => {
     expect(
       factsReconciledPayloadSchema.safeParse({ ...summary, keys: ['living_area'] }).success,
     ).toBe(false);
+  });
+});
+
+describe('images_staged payload', () => {
+  const summary = {
+    stepId: 'staging',
+    artifactId: '3bfcf0bb-5581-4e10-8691-6cc7a8e66dcf',
+    cap: 3,
+    photoCount: 12,
+    eligibleCount: 7,
+    requestedCount: 3,
+    stagedCount: 2,
+    failedCount: 1,
+    skippedCount: 9,
+    privacySkippedCount: 2,
+  };
+
+  it('carries counts only, never operations or subjects', () => {
+    expect(imagesStagedPayloadSchema.parse(summary)).toEqual(summary);
+    expect(
+      imagesStagedPayloadSchema.safeParse({ ...summary, operations: ['declutter'] }).success,
+    ).toBe(false);
+    expect(imagesStagedPayloadSchema.safeParse({ ...summary, stagedCount: -1 }).success).toBe(
+      false,
+    );
   });
 });

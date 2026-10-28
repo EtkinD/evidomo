@@ -10,6 +10,7 @@ export * from './transcription.ts';
 export * from './api-error.ts';
 export * from './auth.ts';
 export * from './vision.ts';
+export * from './staging.ts';
 export * from './reconciliation.ts';
 export * from './copy.ts';
 export * from './gates.ts';

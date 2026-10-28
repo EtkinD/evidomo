@@ -1,6 +1,15 @@
+import { BadRequestError } from 'openai';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createMetaClients, ForbiddenModelError } from './clients.ts';
-import { editMetaImage, generateMetaImage, ImageDecodeError, imageDimensions } from './images.ts';
+import {
+  editMetaImage,
+  editMetaImageToolsOff,
+  generateMetaImage,
+  ImageDecodeError,
+  imageDimensions,
+  MetaImageEmptyError,
+  MetaImageResponseError,
+} from './images.ts';
 import { createInMemoryUsageRecorder, createTokenPriceEstimator } from './usage.ts';
 
 // 5x3 images encoded by ffmpeg (metadata stripped).
@@ -141,6 +150,116 @@ describe('image calls (stubbed fetch, no network)', () => {
     await expect(
       editMetaImage(clients, { modelId: 'image-model', prompt: 'x', images: [] }),
     ).rejects.toThrow(TypeError);
+    expect(requests).toHaveLength(0);
+  });
+});
+
+describe('editMetaImageToolsOff (stubbed fetch, no network)', () => {
+  const usage = createInMemoryUsageRecorder();
+  const estimateCost = createTokenPriceEstimator({ 'image-model': { usdPerImage: 0.01 } });
+  const clients = createMetaClients({ apiKey: 'k', usage, estimateCost, maxRetries: 0 });
+  const requests: Request[] = [];
+
+  function stubResponse(body: unknown, status = 200): void {
+    vi.stubGlobal('fetch', (input: string | URL | Request, init?: RequestInit) => {
+      requests.push(new Request(input, init));
+      return Promise.resolve(Response.json(body, { status }));
+    });
+  }
+
+  const request = {
+    modelId: 'image-model',
+    prompt: 'add a sofa',
+    image: { bytes: JPEG_5X3, mediaType: 'image/jpeg' },
+    size: '1024x682',
+    outputFormat: 'jpeg',
+  } as const;
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    requests.length = 0;
+    usage.clear();
+  });
+
+  it('sends the JSON edit body with every tool off and records one billed image', async () => {
+    stubResponse({
+      created: 1,
+      data: [{ b64_json: JPEG_5X3.toString('base64') }],
+      output_format: 'jpeg',
+      background: 'opaque',
+      usage: { input_tokens: 100, output_tokens: 50, total_tokens: 150 },
+    });
+    const result = await editMetaImageToolsOff(clients, request);
+
+    expect(requests).toHaveLength(1);
+    const [sent] = requests;
+    expect(sent?.url).toBe('https://api.meta.ai/v1/images/edits');
+    expect(sent?.headers.get('content-type')).toContain('application/json');
+    expect(await sent?.json()).toEqual({
+      model: 'image-model',
+      prompt: 'add a sofa',
+      images: [{ image_url: `data:image/jpeg;base64,${JPEG_5X3.toString('base64')}` }],
+      n: 1,
+      size: '1024x682',
+      output_format: 'jpeg',
+      response_format: 'b64_json',
+      tool_enablement: {
+        enable_image_search: false,
+        enable_web_search: false,
+        enable_shell: false,
+      },
+    });
+
+    expect(result.images).toHaveLength(1);
+    expect(result.images[0]).toMatchObject({ format: 'jpeg', width: 5, height: 3 });
+    expect(result.outputFormat).toBe('jpeg');
+    expect(usage.entries).toEqual([result.usage]);
+    expect(result.usage).toMatchObject({
+      sdk: 'openai',
+      modelId: 'image-model',
+      images: 1,
+      inputTokens: 100,
+      outputTokens: 50,
+      totalTokens: 150,
+      responseId: undefined,
+      estimatedCostUsd: 0.01,
+    });
+  });
+
+  it('treats a 2xx response without an image as a failure and records it as unbilled', async () => {
+    stubResponse({ created: 1, data: [] });
+    await expect(editMetaImageToolsOff(clients, request)).rejects.toThrow(MetaImageEmptyError);
+    expect(usage.entries).toHaveLength(1);
+    expect(usage.entries[0]).toMatchObject({ images: 0, estimatedCostUsd: 0 });
+  });
+
+  it('records an unknown image count for a malformed response, so the ledger refuses it', async () => {
+    stubResponse({ created: 1, images: [] });
+    await expect(editMetaImageToolsOff(clients, request)).rejects.toThrow(MetaImageResponseError);
+    expect(usage.entries).toHaveLength(1);
+    expect(usage.entries[0]).toMatchObject({ images: undefined, estimatedCostUsd: undefined });
+  });
+
+  it('meters returned bytes that are not an image before rejecting them', async () => {
+    stubResponse({
+      created: 1,
+      data: [{ b64_json: Buffer.from('not an image').toString('base64') }],
+    });
+    await expect(editMetaImageToolsOff(clients, request)).rejects.toThrow(ImageDecodeError);
+    expect(usage.entries[0]).toMatchObject({ images: 1, estimatedCostUsd: 0.01 });
+  });
+
+  it('surfaces an API rejection as the openai SDK error, without usage', async () => {
+    stubResponse({ error: { message: 'bad request', type: 'invalid_request_error' } }, 400);
+    await expect(editMetaImageToolsOff(clients, request)).rejects.toThrow(BadRequestError);
+    expect(usage.entries).toEqual([]);
+  });
+
+  it('rejects Contributor-mode models before any request', async () => {
+    stubResponse({ created: 1, data: [] });
+    await expect(
+      editMetaImageToolsOff(clients, { ...request, modelId: 'image-model-contributor' }),
+    ).rejects.toThrow(ForbiddenModelError);
     expect(requests).toHaveLength(0);
   });
 });

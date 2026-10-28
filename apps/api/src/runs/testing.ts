@@ -118,6 +118,7 @@ export function uniformHandlers(
     reconciler: handler,
     creative: handler,
     qa_writer: handler,
+    stager: handler,
     integrity_checker: handler,
     verifier: handler,
     exporter: handler,

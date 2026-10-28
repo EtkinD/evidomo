@@ -1,0 +1,192 @@
+{
+  "formatVersion": 1,
+  "cassette": "p3-04/staging",
+  "recordedAt": "2026-10-28T18:31:00.109Z",
+  "interactions": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/images/edits",
+        "bodySha256": "1105c24c511edac584369ecdf62b564765ecb43a45b40435504a351b1807245c"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "created": 1793212177,
+            "data": [
+              {
+                "b64_json": "19ae8f94ec68e9da3ed97f707bd6e46bcceb09d58c9d17e280a0bb5ce9d98317.jpg"
+              }
+            ],
+            "output_format": "jpeg",
+            "background": "opaque",
+            "usage": {
+              "input_tokens": 12330,
+              "output_tokens": 1138,
+              "total_tokens": 13468
+            }
+          },
+          "externals": [
+            {
+              "pointer": "/data/0/b64_json",
+              "file": "19ae8f94ec68e9da3ed97f707bd6e46bcceb09d58c9d17e280a0bb5ce9d98317.jpg"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/images/edits",
+        "bodySha256": "39d67eb20ae4e8c63d931f8dec3104ea4a0f1767d14d08237d0c6bde22b56c75"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "created": 1793212190,
+            "data": [
+              {
+                "b64_json": "bd6031da8d06f045a4ddf0d48b88c5f5593f1c5ce9f384fe441ad92f6c7aaca3.jpg"
+              }
+            ],
+            "output_format": "jpeg",
+            "background": "opaque",
+            "usage": {
+              "input_tokens": 11771,
+              "output_tokens": 556,
+              "total_tokens": 12327
+            }
+          },
+          "externals": [
+            {
+              "pointer": "/data/0/b64_json",
+              "file": "bd6031da8d06f045a4ddf0d48b88c5f5593f1c5ce9f384fe441ad92f6c7aaca3.jpg"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/images/edits",
+        "bodySha256": "422134836b6fb356c6824cd629ed95716b7e1d68e1ca0a5e2945d2b8d89e1bdf"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "created": 1793212259,
+            "data": [
+              {
+                "b64_json": "c817d525f14bcefeb5c0f5e7a242ea70a4ba2c27c9bc6c73b2b4ed6f0bd6773f.jpg"
+              }
+            ],
+            "output_format": "jpeg",
+            "background": "opaque",
+            "usage": {
+              "input_tokens": 42455,
+              "output_tokens": 2834,
+              "total_tokens": 45289
+            }
+          },
+          "externals": [
+            {
+              "pointer": "/data/0/b64_json",
+              "file": "c817d525f14bcefeb5c0f5e7a242ea70a4ba2c27c9bc6c73b2b4ed6f0bd6773f.jpg"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/images/edits",
+        "bodySha256": "83336e24a211073acb8afe58819464b9df0ecba053ad827310495014bdc115bd"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "created": 1793212187,
+            "data": [
+              {
+                "b64_json": "f9f641ba2887e818981859357d1146fc6ed446e263209eb5ea0e9f066fe602f0.jpg"
+              }
+            ],
+            "output_format": "jpeg",
+            "background": "opaque",
+            "usage": {
+              "input_tokens": 11969,
+              "output_tokens": 754,
+              "total_tokens": 12723
+            }
+          },
+          "externals": [
+            {
+              "pointer": "/data/0/b64_json",
+              "file": "f9f641ba2887e818981859357d1146fc6ed446e263209eb5ea0e9f066fe602f0.jpg"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/images/edits",
+        "bodySha256": "f85fa0c6607023129c3553dd192a347347b342a998f5798afc13d1f7e7948f58"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "created": 1793212177,
+            "data": [
+              {
+                "b64_json": "137f3320b38dc6186e54fac9fb1767ae076ef2ed4c75cfadddc36ca772f4a73f.jpg"
+              }
+            ],
+            "output_format": "jpeg",
+            "background": "opaque",
+            "usage": {
+              "input_tokens": 11839,
+              "output_tokens": 673,
+              "total_tokens": 12512
+            }
+          },
+          "externals": [
+            {
+              "pointer": "/data/0/b64_json",
+              "file": "137f3320b38dc6186e54fac9fb1767ae076ef2ed4c75cfadddc36ca772f4a73f.jpg"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

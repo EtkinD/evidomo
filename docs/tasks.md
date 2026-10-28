@@ -133,7 +133,7 @@ The orchestrator (main session) delegates each task to its owner — see `.claud
 - [ ] **P3-03 — Buyer Q&A cards**
   - Depends on: P3-02
   - Done when: Q&A cards are generated from verified facts only and pass the claim validator.
-- [ ] **P3-04 — Staging variants**
+- [x] **P3-04 — Staging variants**
   - Depends on: P1-07, P2-08
   - Done when: declared-operation edits are produced per the P1-07 decision; every staged image is labeled and linked to its original.
 - [ ] **P3-05 — Step: integrity check**

@@ -397,6 +397,64 @@ describe('serviceDefinitionSchema vision step', () => {
   });
 });
 
+describe('serviceDefinitionSchema staging step', () => {
+  function withSteps(...steps: Record<string, unknown>[]) {
+    const service = validService();
+    service.steps.splice(1, 0, ...steps);
+    return service;
+  }
+  const staging = {
+    id: 'staging',
+    agent: 'stager',
+    image_model: 'muse-image-1.0',
+    max_staged_images: 3,
+  };
+
+  it('accepts a stager with an image model and a cap, and prices its model', () => {
+    const parsed = serviceDefinitionSchema.parse(withSteps(staging));
+    expect(parsed.steps[1]).toEqual(staging);
+    const step = parsed.steps[1];
+    if (step === undefined) throw new Error('missing step');
+    expect(stepModelIds(step)).toEqual([{ field: 'image_model', modelId: 'muse-image-1.0' }]);
+    expect(
+      serviceDefinitionSchema.safeParse(withSteps({ ...staging, max_staged_images: 0 })).success,
+    ).toBe(true);
+  });
+
+  it('bounds the cap and requires both fields', () => {
+    expect(
+      messages(serviceDefinitionSchema.safeParse(withSteps({ ...staging, max_staged_images: 11 }))),
+    ).toEqual([expect.stringMatching(/^steps\.1\.max_staged_images: Too big/)]);
+    const { image_model: _omitted, ...withoutModel } = staging;
+    expect(messages(serviceDefinitionSchema.safeParse(withSteps(withoutModel)))[0]).toMatch(
+      /^steps\.1\.image_model: /,
+    );
+    expect(
+      messages(
+        serviceDefinitionSchema.safeParse(withSteps({ ...staging, image_model: 'muse-image-9' })),
+      ),
+    ).toEqual([expect.stringMatching(/^steps\.1\.image_model: Model "muse-image-9" has no entry/)]);
+  });
+
+  it('no longer lets the creative step carry an image model (staging is its own step)', () => {
+    const creative = {
+      id: 'creative',
+      agent: 'creative',
+      model: 'muse-spark-1.3',
+      reasoning_effort: 'medium',
+      max_output_tokens: 16000,
+    };
+    expect(serviceDefinitionSchema.safeParse(withSteps(creative)).success).toBe(true);
+    expect(
+      messages(
+        serviceDefinitionSchema.safeParse(
+          withSteps({ ...creative, image_model: 'muse-image-1.0' }),
+        ),
+      )[0],
+    ).toMatch(/^steps\.1: Unrecognized key/);
+  });
+});
+
 describe('marketProfileSchema evidence objects', () => {
   const object = (id: string, phrase: string, supports?: string[]) => ({
     id,

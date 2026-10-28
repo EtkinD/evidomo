@@ -74,3 +74,19 @@ export function newMaterialStorageKey(projectId: string, extension: string): Sto
   if (!UUID.test(projectId) || !EXTENSION.test(extension)) throw new InvalidStorageKeyError();
   return `projects/${projectId}/materials/${randomUUID()}.${extension}`;
 }
+
+/**
+ * A fresh key for one generated file of a run (e.g. a staged image):
+ * `projects/<projectId>/runs/<runId>/artifacts/<uuid>.<ext>`. Under the project prefix, like
+ * materials, so everything derived from a project's photos lives below one directory.
+ */
+export function newRunArtifactStorageKey(
+  projectId: string,
+  runId: string,
+  extension: string,
+): StorageKey {
+  if (!UUID.test(projectId) || !UUID.test(runId) || !EXTENSION.test(extension)) {
+    throw new InvalidStorageKeyError();
+  }
+  return `projects/${projectId}/runs/${runId}/artifacts/${randomUUID()}.${extension}`;
+}

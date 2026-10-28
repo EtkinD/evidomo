@@ -48,6 +48,7 @@ describe('the repository definitions', () => {
       'reconciliation',
       'creative',
       'qa_cards',
+      'staging',
       'integrity',
       'verification',
       'export',

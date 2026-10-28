@@ -14,9 +14,16 @@ export {
 } from './clients.ts';
 export {
   editMetaImage,
+  editMetaImageToolsOff,
   generateMetaImage,
+  IMAGE_EDITS_PATH,
   ImageDecodeError,
   imageDimensions,
+  MetaImageEmptyError,
+  MetaImageResponseError,
+  MUSE_IMAGE_TOOLS_OFF,
+  type MetaImageToolsOffEditRequest,
+  type MetaImageToolsOffEditResult,
   type ImageContainer,
   type ImageDimensions,
   type MetaImage,

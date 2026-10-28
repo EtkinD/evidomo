@@ -1,6 +1,6 @@
 import { generateImage, type GenerateImageResult } from 'ai';
 import { z } from 'zod';
-import type { MetaClients } from './clients.ts';
+import { assertStandardModelId, type MetaClients } from './clients.ts';
 import type { UsageEntry } from './usage.ts';
 
 /** Output formats Meta accepts for Muse Image (`webp` is the API default). */
@@ -203,6 +203,10 @@ export function generateMetaImage(
  * One declared-operation edit through the AI SDK (`POST /v1/images/edits`, multipart `image`).
  * Meta does not guarantee pixel preservation or the input's dimensions (docs/model-notes.md,
  * P1-06); the integrity check compares the result against the original.
+ *
+ * **Synthetic inputs only** (tests, sample generation). This path cannot turn off Muse Image's
+ * built-in tools (image search, web search, shell), so customer photos must go through
+ * {@link editMetaImageToolsOff} (P1-08).
  */
 export function editMetaImage(
   clients: MetaClients,
@@ -212,4 +216,128 @@ export function editMetaImage(
     return Promise.reject(new TypeError('editMetaImage needs at least one input image'));
   }
   return runImageCall(clients, request, { text: request.prompt, images: [...request.images] });
+}
+
+/** Every Muse Image built-in tool off (P1-08). Meta enables all three unless told otherwise. */
+export const MUSE_IMAGE_TOOLS_OFF = {
+  enable_image_search: false,
+  enable_web_search: false,
+  enable_shell: false,
+} as const;
+
+export const IMAGE_EDITS_PATH = '/images/edits';
+
+/** The response did not have the documented `Images Response` shape. */
+export class MetaImageResponseError extends Error {
+  override name = 'MetaImageResponseError';
+}
+
+/**
+ * A 2xx response without an image. Meta returns this for failed or safety-filtered images and
+ * does not bill them; the `openai` SDK does not retry it (unlike `generateImage`).
+ */
+export class MetaImageEmptyError extends Error {
+  override name = 'MetaImageEmptyError';
+}
+
+export interface MetaImageToolsOffEditRequest {
+  /** From the service definition; never hardcoded in reusable code. */
+  readonly modelId: string;
+  readonly prompt: string;
+  /** One encoded input image; sent as a data URL in Meta's JSON edit body. */
+  readonly image: {
+    readonly bytes: Uint8Array;
+    readonly mediaType: 'image/jpeg' | 'image/png' | 'image/webp';
+  };
+  /** `WxH`, read by Meta as an aspect ratio only. */
+  readonly size: MetaImageSize;
+  readonly outputFormat: MetaImageOutputFormat;
+  readonly abortSignal?: AbortSignal;
+}
+
+export type MetaImageToolsOffEditResult = Omit<MetaImageResult, 'warnings'>;
+
+const count = z.int().nonnegative();
+
+// Meta's documented `Images Response`. Other fields are tolerated (and ignored), so a new field
+// does not fail a step; the P1-08 test pins the field list on re-recording instead.
+const imagesResponseSchema = z.object({
+  data: z.array(z.object({ b64_json: z.string().min(1) })),
+  output_format: z.string().optional(),
+  usage: z
+    .object({ input_tokens: count, output_tokens: count, total_tokens: count.optional() })
+    .optional(),
+});
+
+// Read before full validation so that billed images are recorded even when the rest of the
+// response is malformed. Unknown counts stay `undefined`, which the usage ledger refuses loudly.
+const billedImagesSchema = z.object({ data: z.array(z.unknown()) });
+
+/**
+ * One edit of a customer photo with every built-in tool disabled: `POST /v1/images/edits` with
+ * Meta's JSON body (`images[].image_url`) through the `openai` SDK, the only transport that
+ * validates `tool_enablement` (docs/model-notes.md, P1-08). Retries and the per-attempt timeout
+ * are the `openai` client's.
+ *
+ * Records one usage entry (`images` = returned images, the billed unit) before validating the
+ * images, so a billed answer is metered even when it is unusable. Throws `MetaImageEmptyError`
+ * for a 2xx response without an image, `MetaImageResponseError` for another shape, and
+ * `ImageDecodeError` for bytes that are not an image.
+ */
+export async function editMetaImageToolsOff(
+  clients: MetaClients,
+  request: MetaImageToolsOffEditRequest,
+): Promise<MetaImageToolsOffEditResult> {
+  assertStandardModelId(request.modelId);
+  const body = {
+    model: request.modelId,
+    prompt: request.prompt,
+    images: [
+      {
+        image_url: `data:${request.image.mediaType};base64,${Buffer.from(request.image.bytes).toString('base64')}`,
+      },
+    ],
+    n: 1,
+    size: request.size,
+    output_format: request.outputFormat,
+    response_format: 'b64_json',
+    tool_enablement: MUSE_IMAGE_TOOLS_OFF,
+  };
+
+  const startedAt = performance.now();
+  const raw = await clients.openai.post<unknown>(IMAGE_EDITS_PATH, {
+    body,
+    ...(request.abortSignal === undefined ? {} : { signal: request.abortSignal }),
+  });
+  const latencyMs = performance.now() - startedAt;
+
+  const billed = billedImagesSchema.safeParse(raw);
+  const parsed = imagesResponseSchema.safeParse(raw);
+  const usage = clients.recordUsage({
+    sdk: 'openai',
+    // The response has no `model` field (P1-06), so `captureOpenAIUsage` cannot be used.
+    modelId: request.modelId,
+    inputTokens: parsed.success ? parsed.data.usage?.input_tokens : undefined,
+    cachedInputTokens: undefined,
+    outputTokens: parsed.success ? parsed.data.usage?.output_tokens : undefined,
+    reasoningTokens: undefined,
+    totalTokens: parsed.success ? parsed.data.usage?.total_tokens : undefined,
+    responseId: undefined,
+    latencyMs,
+    images: billed.success ? billed.data.data.length : undefined,
+  });
+  if (!parsed.success) {
+    throw new MetaImageResponseError(
+      `Unexpected Images Response shape:\n${z.prettifyError(parsed.error)}`,
+    );
+  }
+  if (parsed.data.data.length === 0) {
+    throw new MetaImageEmptyError('The image edit returned no image');
+  }
+
+  const images = parsed.data.data.map((item) => {
+    const bytes = new Uint8Array(Buffer.from(item.b64_json, 'base64'));
+    return { ...imageDimensions(bytes), bytes };
+  });
+  return { images, usage, outputFormat: parsed.data.output_format };
 }

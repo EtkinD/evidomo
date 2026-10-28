@@ -79,7 +79,6 @@ service:
       model: muse-spark-1.3
       reasoning_effort: medium
       max_output_tokens: 16000
-      image_model: muse-image-1.0
 
     # Its own step so roadmap cut level 1 (no Buyer Q&A) means removing just this entry.
     - id: qa_cards
@@ -87,6 +86,15 @@ service:
       model: muse-spark-1.3
       reasoning_effort: low
       max_output_tokens: 8000
+
+    # Declared-operation edits of the best-ranked stageable photos (docs/architecture.md §5,
+    # P3-04). Split from creative in place in P3-04, before any run existed: verification's
+    # revision loops regenerate copy only and must not re-bill image edits. One edit per staged
+    # image ($0.01); integrity retries (P3-05) come on top.
+    - id: staging
+      agent: stager
+      image_model: muse-image-1.0
+      max_staged_images: 3
 
     - id: integrity
       agent: integrity_checker

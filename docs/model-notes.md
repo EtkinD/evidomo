@@ -106,7 +106,8 @@ transcript, speaker? }] }`. There is no `model` and no `usage`: the billed unit 
   - AI SDK `generateImage` (`meta/images.ts`) for generations and plain edits.
   - **Staging customer photos must use the `openai` SDK JSON edit body with every tool off**
     (P1-08). The AI SDK cannot send `tool_enablement`, and the multipart form does not validate
-    it.
+    it. Implemented as `editMetaImageToolsOff` (P3-04); `editMetaImage` is for synthetic
+    inputs only.
 - **Request:** `model`, `prompt`, `n`, `size` (aspect ratio only), `output_format`
   (`webp` by default), `response_format: b64_json`. Meta-only fields:
   - `reasoning_strength`: `low` or `high`, default `high`;
@@ -122,7 +123,8 @@ output_tokens, total_tokens } }`. There is no `id`, `model`, or `size`, and no f
   - flat $0.01 per returned image (the tokens are informational);
   - edits take 8.4–15.9 s, generations 9.3–29.4 s;
   - output is 1920×1280 for `size` 1536x1024, never the input size; without `size` the aspect
-    drifts by 1.5%;
+    drifts by 1.5%; `size` = the input's own `1024x682` is accepted and also gives 1920×1280
+    (0.10% aspect change, P3-04);
   - the whole frame is re-rendered (no pixel preservation);
   - a "remove the window" edit was obeyed;
   - outputs carry an XMP `trainedAlgorithmicMedia` marker.
@@ -132,7 +134,7 @@ output_tokens, total_tokens } }`. There is no `id`, `model`, or `size`, and no f
   - P3-04 edits customer photos through the JSON body with
     `tool_enablement: { enable_image_search: false, enable_web_search: false, enable_shell: false }`.
 - **Details:** [P1-06](#p1-06--muse-image-edits),
-  [P1-08](#p1-08--muse-image-with-tools-disabled).
+  [P1-08](#p1-08--muse-image-with-tools-disabled), [P3-04](#p3-04--staging-variants).
 
 ### SAM 3.1 (`sam-3.1`)
 
@@ -2173,3 +2175,95 @@ RECORD=1 node --env-file=.env node_modules/vitest/vitest.mjs run --project api c
 
 Budget 0.60 USD (stop at 0.50). Costs from the price table ($1.25 / $4.25 per 1M); Meta's
 billing dashboard was not checked. No call failed or was retried.
+
+## P3-04 — Staging variants
+
+Status: done (pending review). Recorded 2026-10-28 against `openai@7.45.1`. Code:
+`apps/api/src/pipeline/staging/`, `meta/images.ts` (`editMetaImageToolsOff`); design in
+[architecture.md §5 Staging](./architecture.md#5-run-pipeline).
+
+### Request
+
+`editMetaImageToolsOff` sends the P1-08 body exactly: `model` (the step's `image_model`),
+`prompt`, `images: [{ image_url: data:image/jpeg;base64,… }]`, `n: 1`, `size`, `output_format:
+"jpeg"`, `response_format: "b64_json"`, `tool_enablement` with all three tools `false`.
+`reasoning_strength` stays at the default `high` (P1-08). Usage is recorded with
+`images = data.length` before the images are validated; a 2xx with an empty `data` is
+`MetaImageEmptyError` (unbilled, `images: 0`).
+
+- **`size` = the original's own `WxH`.** Meta accepted `1024x682` (not a "standard" size) and
+  returned 1920×1280 for all five edits: it snaps to its own resolution near the requested
+  aspect. Aspect change against the original 0.10%, the same as P1-06's `1536x1024`, well inside
+  the integrity check's 3%. Sending the input's dimensions needs no size table and keeps working
+  for 4:3 and portrait photos (untested live).
+- **Prompt:** P1-06's wrapper ("Edit this photo: `<operation>`. Change nothing else: keep the
+  camera angle, framing, walls, floor, ceiling, windows, doors, radiators, …") plus "built-in
+  fittings", "do not place anything in front of a window or a door", and a no-add list (people,
+  animals, text, logos, mirrors, pictures, screens, curtains, wardrobes, cabinets, tall
+  furniture) from P1-07's false-rejection risks. Operation texts are a fixed catalog
+  (`operations.ts`, `STAGING_PROMPT_VERSION` 1).
+
+### Measured: five edits of the synthetic originals (the recording)
+
+Selection from the P2-08 inventory with the cap raised to 5 (the definition's 3 selects the
+first three). Inputs 1024×682 JPEG; every output 1920×1280 JPEG, ~0.4–0.6 MB as returned and
+~150–250 KB after our re-encode (q85 mozjpeg).
+
+| Photo (cover rank)            | Operation             | Input / output tok | Visual check                                                                                                                                  |
+| ----------------------------- | --------------------- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `living-empty` (1)            | `furnish_living_room` | 12,330 / 1,138     | Very good. Sofa, coffee table, rug; window, radiator, door, floor, framing unchanged.                                                         |
+| `dining-chairs` (2)           | `furnish_dining_room` | 11,839 / 673       | Good. Chairs replaced (no cushions), table kept; window, door, radiator kept.                                                                 |
+| `bedroom-empty` (3)           | `furnish_bedroom`     | 42,455 / 2,834     | Good. Bed and bedside table under the window; radiator partly hidden (the P1-07 containment case); wardrobe, door, window kept.               |
+| `living-dining-cluttered` (4) | `declutter`           | 11,771 / 556       | Clutter fully removed; windows (2), radiators (2), door kept. **The table was redrawn larger and closer**, as in P1-06: unrequested geometry. |
+| `kitchen-cluttered` (5)       | `declutter`           | 11,969 / 754       | Dishes, jars, kettle gone; window, radiator, door, cabinets kept. **The counter under the clutter was re-imagined** (longer, plain worktop).  |
+
+- `hallway` (rank 6) was correctly `not_stageable`. No people, text, or logos appeared.
+- **Declutter changes what was hidden.** Both declutter edits invented the surface that the
+  clutter covered (a bigger table, a different counter run). Neither is a fixed-element class,
+  so the integrity check will pass them; Gate 2 (original next to staged) is the only check.
+  Furnishing was cleaner on these samples.
+- One edit (`bedroom-empty`) reported ~3.5× the tokens of the others, like P1-06's slow group;
+  the cause is still unknown (tools were off). Per-call latency was not captured: the
+  measurement log line did not reach the console. The first session ran 4 edits, 3 in flight,
+  in 24 s of wall time.
+
+### Recording incident and fixture
+
+- The first record run (3 edits in flight, ~1.3 MB JSON bodies) failed one request inside MSW's
+  record-mode passthrough with `ERR_SSL_TOO_LONG` (`asn1 … too long`), which the SDK surfaced as
+  `500 terminated`. Four edits had succeeded and were written. To avoid paying for them again,
+  the partial cassette was served read-only as an `include` while the fifth edit was recorded
+  alone, then the two were merged with `readCassette`/`writeCassette` (scratch script, not
+  committed). Unexplained; if it recurs, record with fewer edits in flight.
+- **The image blobs in `fixtures/meta/p3-04/staging.files/` are downscaled 2× (960×640, JPEG
+  q80, Meta's XMP kept) after recording**: 2.37 MB → 260 KB. Replay therefore serves smaller
+  images than the API returned; the tests assert aspect ratios and formats, never pixel sizes,
+  and the live dimensions are the ones in the table above. Re-recording overwrites the blobs
+  with full-size ones; downscale again before committing.
+
+### Replay and record
+
+`staging.test.ts` (`api`) runs the vision inventory core on the six samples from the P2-08 and
+P1-05 cassettes (`include`, never re-sent), plans with a cap of 5, and edits; the integration
+test runs vision then staging through the engine with the definition's cap of 3, whose requests
+are the first three recorded. Changing an operation text, the wrapper, the samples, or the
+vision recordings changes the request hashes and needs a re-record ($0.05):
+
+```sh
+RECORD=1 node --env-file=.env node_modules/vitest/vitest.mjs run --project api staging.test
+```
+
+`P3_04_EXPORT_DIR=<dir>` writes each stored staged image there (also in replay).
+
+### Live calls and cost (P3-04)
+
+| #   | Call                                                        | Images  | Est. USD          |
+| --- | ----------------------------------------------------------- | ------- | ----------------- |
+| 1–4 | Record run 1: four edits                                    | 4       | 0.04              |
+| 5   | Record run 1: one edit lost to the MSW error (no response)  | 0–1     | 0–0.01            |
+| 6   | Record run 2: the remaining edit                            | 1       | 0.01              |
+|     | Replayed: 6 Spark + 12 privacy + 12 evidence calls (vision) | –       | 0                 |
+|     | **Total**                                                   | **5–6** | **0.05 (≤ 0.06)** |
+
+Budget 0.30 USD (stop at 0.25). Cost from the price table ($0.01 per returned image); Meta's
+billing dashboard was not checked, so whether call 5 reached the API and was billed is unknown.
