@@ -4,37 +4,45 @@
 
 - Product, architecture, roadmap, and tasks live in `docs/`. Work task by task from `docs/tasks.md`; respect the checkpoints and cut order in `docs/roadmap.md`.
 - Check a task's box only when its "Done when" is demonstrably true. When a decision or interface changes, update `docs/architecture.md` (or `docs/model-notes.md` for model findings) in the same piece of work.
-- This is a public hackathon repository: everything must be new work. Never commit secrets, `.env` files, personal data (including in test fixtures), or third-party content we have no rights to.
+- This is a public hackathon repository: everything must be new work. Never commit secrets, `.env` files, personal data (including in fixtures), or third-party content we have no rights to.
+
+## Orchestration
+
+- The main session is the orchestrator: it plans, delegates, verifies, and commits. It implements only small, contained changes itself (docs, config tweaks, one-file fixes).
+- Implementation goes to the owning agent from the **Owners** table in `docs/tasks.md`: `frontend-developer`, `backend-developer`, `ai-pipeline-engineer`, `devops-engineer`. `/run-task <ID>` runs the full loop: delegate → review the diff → verify → commit.
+- Independent tasks with different owners may run in parallel. Agents never commit, push, tick tasks, or add dependencies.
+
+## Claude Code configuration
+
+- Keep this file short. File-specific conventions go in path-scoped `.claude/rules/`, repeatable procedures in `.claude/skills/`, roles in `.claude/agents/`, and anything that must always happen in hooks or permission rules in `.claude/settings.json`.
+- Add or change these only when it measurably helps — a repeated mistake, a repeated procedure, an invariant worth enforcing — and remove what goes stale.
 
 ## Commands
 
-| Command                                                        | Purpose                                            |
-| -------------------------------------------------------------- | -------------------------------------------------- |
-| `npm run lint`                                                 | ESLint, type-aware for TS                          |
-| `npm run format:check` / `npm run format`                      | Prettier                                           |
-| `npm run typecheck`                                            | Root configs + every workspace                     |
-| `npx vitest run --project <shared\|api\|api-integration\|web>` | One test project — run the narrowest one first     |
-| `npm test`                                                     | All Vitest projects (integration needs Docker)     |
-| `npm run test:e2e`                                             | Playwright smoke/e2e (starts the web dev server)   |
-| `npm run build`                                                | Web production build                               |
-| `npm run db:up` / `db:migrate` / `db:generate`                 | Local PostgreSQL and Drizzle migrations            |
-| `npm run dev:api` / `dev:worker` / `dev:web`                   | Local dev processes (read `.env` at the repo root) |
+| Command                                                        | Purpose                                                      |
+| -------------------------------------------------------------- | ------------------------------------------------------------ |
+| `npm run lint` / `npm run format:check`                        | ESLint (type-aware for TS) / Prettier                        |
+| `npm run typecheck`                                            | Root configs + every workspace (TypeScript pinned to `~6.0`) |
+| `npx vitest run --project <shared\|api\|api-integration\|web>` | One test project — run the narrowest one first               |
+| `npm test` / `npm run test:e2e`                                | All Vitest projects (integration needs Docker) / Playwright  |
+| `npm run audit:deps`                                           | `npm audit` (moderate and above fail) + registry signatures  |
+| `npm run build`                                                | Web production build                                         |
+| `npm run db:up` / `db:migrate` / `db:generate`                 | Local PostgreSQL and Drizzle migrations                      |
+| `npm run dev:api` / `dev:worker` / `dev:web`                   | Local dev processes (read `.env` at the repo root)           |
 
-## Conventions
+## Security
 
-- **TypeScript:** strict, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`. TypeScript is pinned to `~6.0` (typescript-eslint does not support 7 yet) — do not upgrade it.
-- **Node native type stripping** runs `apps/api` and `packages/shared` without a build step. Use only erasable syntax (no `enum`, no parameter properties, no namespaces with runtime code), add the `.ts` extension to relative imports, use `import type` for type-only imports, and do not use tsconfig `paths`.
-- **Web:** Next.js Pages Router, frontend only — never add API routes. Every file under `apps/web/src/pages` becomes a route, so web tests go in `apps/web/src/__tests__`. Next.js ships version-matched docs in `node_modules/next/dist/docs/02-pages/` — read them instead of relying on memory (`apps/web/AGENTS.md` is generated by `next dev`; keep it committed).
-- **Boundary data** (env, HTTP bodies, model output, JSON from the DB) is validated with zod before use.
-- **Tests:** unit tests `*.test.ts(x)`; integration tests `*.integration.test.ts` use Testcontainers PostgreSQL. Meta API calls in tests use recorded fixtures — never live calls in CI.
-- **Meta Model API:** Standard mode only; never `-contributor` model IDs. Vercel AI SDK is the primary client, the `openai` package covers its gaps (see `docs/architecture.md` §4).
-- **Dependencies:** library-first, unless the library is disproportionately heavy for the job (`docs/architecture.md` §1). Ask before adding any dependency.
-- **npm install scripts:** npm blocks them by default. None are currently required. If a new package needs one, review it and approve explicitly with `npm install-scripts approve <pkg>`.
-- **ESLint:** `eslint.config.mjs` re-scopes `eslint-config-next` to `apps/web`; type-aware rules apply to TS files only.
+- Target: zero known vulnerabilities. `npm run audit:deps` must pass. A hook audits after every npm install, update, or uninstall Claude runs, and CI audits every push and runs daily.
+- Fix advisories by upgrading or adding an `overrides` entry, then verify that the affected tool still works. Never run `npm audit fix --force`.
+- npm blocks install scripts by default and none are currently required. Approve one only when a package does not work without it.
+- New dependencies follow the `add-dependency` skill and need the user's approval.
 
 ## Git
 
-- Commit directly to `main`; keep CI green.
-- Conventional Commits (`feat`, `fix`, `refactor`, `perf`, `test`, `docs`, `chore`, `ci`, `build`), one logical change per commit.
-- Versioning: annotated git tag `v0.N.0` when phase N of the roadmap completes (Phase 0 → `v0.0.0`); fixes after a phase tag bump the patch (`v0.N.1`). No `npm version`.
-- Never push or push tags without explicit approval in the current conversation.
+- Commit directly to `main`; keep CI green. Conventional Commits, one logical change per commit, no attribution trailers.
+- **Versioning with `npm version`:**
+  - Completing a roadmap phase → `npm version minor` (Phase 0 → `0.1.0`, Phase 1 → `0.2.0`, …).
+  - Fixes after a phase release → `npm version patch`.
+  - `major` is reserved for the first production release.
+  - Use npm's default commit message and tag (`vX.Y.Z`); `preversion` runs lint, typecheck, tests, and the audit first.
+- Never push commits or tags without explicit approval in the current conversation.
