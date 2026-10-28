@@ -14,6 +14,7 @@ import {
   responseFromInteraction,
   writeCassette,
   type Interaction,
+  type MatchOptions,
 } from './fixtures.ts';
 
 export type ReplayMode = 'record' | 'replay';
@@ -38,6 +39,8 @@ export interface MetaReplayOptions {
   readonly baseURL?: string;
   /** Source of `MODEL_API_KEY` in record mode. */
   readonly env?: NodeJS.ProcessEnv;
+  /** Request matching options; must be identical when recording and replaying a cassette. */
+  readonly match?: MatchOptions;
 }
 
 export interface MetaReplay {
@@ -84,7 +87,7 @@ export function createMetaReplay(options: MetaReplayOptions): MetaReplay {
   const unmatched: string[] = [];
 
   const metaHandler = http.all(`${origin}/*`, async ({ request }) => {
-    const descriptor = await describeRequest(request.clone());
+    const descriptor = await describeRequest(request.clone(), options.match);
     const key = matchKey(descriptor);
 
     if (mode === 'record') {

@@ -73,7 +73,7 @@ The orchestrator (main session) delegates each task to its owner — see `.claud
 - [ ] **P1-03 — Wonder 1.0: cost and latency**
   - Depends on: P1-02
   - Done when: a reconciliation-sized prompt is run at low/medium/high effort; latency, reasoning tokens, and cost are recorded; per-step model and effort defaults are decided and written to architecture.md.
-- [ ] **P1-04 — Voice Transcribe**
+- [x] **P1-04 — Voice Transcribe**
   - Depends on: P1-01
   - Done when: ffmpeg converts m4a/webm to 16 kHz mono 16-bit PCM WAV; a 2–5 minute Dutch sample is transcribed with keyword biasing through the `openai` SDK's custom request (native `fetch` only if the SDK cannot send the multipart body — documented in model notes); turns with `startMs`/`endMs` are parsed into typed objects; fixture recorded.
 - [ ] **P1-05 — SAM 3.1 and output parser**

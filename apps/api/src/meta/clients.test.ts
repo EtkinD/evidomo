@@ -64,4 +64,22 @@ describe('Standard-mode guard', () => {
     expect(error).toBeInstanceOf(Error);
     expect(error instanceof Error ? error.cause : undefined).toBeInstanceOf(ForbiddenModelError);
   });
+
+  it('blocks Contributor-mode models inside a multipart JSON `request` part', async () => {
+    // Voice Transcribe sends `model` inside a JSON file part, not as a form field.
+    const clients = createMetaClients({ apiKey: 'k', usage, maxRetries: 0 });
+    const form = new FormData();
+    form.append(
+      'request',
+      new Blob([JSON.stringify({ model: 'muse-voice-transcribe-1.0-contributor' })], {
+        type: 'application/json',
+      }),
+    );
+    const error: unknown = await clients.openai.post('/asr/transcribe', { body: form }).then(
+      () => undefined,
+      (rejection: unknown) => rejection,
+    );
+    expect(error instanceof Error ? error.cause : undefined).toBeInstanceOf(ForbiddenModelError);
+    expect(replay.unmatched).toEqual([]);
+  });
 });

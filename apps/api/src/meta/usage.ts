@@ -32,7 +32,10 @@ export interface UsageEntry extends TokenUsage {
    * `undefined` when no estimator is configured or the model has no known price.
    */
   readonly estimatedCostUsd: number | undefined;
-  /** Billed audio duration in whole milliseconds, for per-audio-second models (Voice). */
+  /**
+   * Billed audio duration in whole milliseconds, for per-audio-second models (Voice). Taken from
+   * the API response, never from the local file.
+   */
   readonly audioDurationMs?: number | undefined;
   /** Number of billed images, for per-image models (Muse Image, SAM). */
   readonly images?: number | undefined;
@@ -47,8 +50,13 @@ export interface UsageRecorder {
   record(entry: UsageEntry): void;
 }
 
-/** Hook for the price table; the real one arrives with the usage ledger (P2-04). */
-export type CostEstimator = (usage: TokenUsage) => number | undefined;
+/**
+ * Hook for a display/log cost estimate (the ledger persists its own exact cost). Audio-priced
+ * calls also pass `audioDurationMs`.
+ */
+export type CostEstimator = (
+  usage: TokenUsage & { readonly audioDurationMs?: number },
+) => number | undefined;
 
 export interface InMemoryUsageRecorder extends UsageRecorder {
   readonly entries: readonly UsageEntry[];

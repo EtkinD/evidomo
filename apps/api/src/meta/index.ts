@@ -33,3 +33,18 @@ export {
   type UsageEntry,
   type UsageRecorder,
 } from './usage.ts';
+export {
+  parseTranscribeResponse,
+  transcribeAudio,
+  TRANSCRIBE_MAX_BYTES,
+  TRANSCRIBE_MAX_DURATION_MS,
+  TRANSCRIBE_PATH,
+  TRANSCRIPTION_MODES,
+  TranscriptionInputError,
+  TranscriptionResponseError,
+  type TranscribeDeps,
+  type TranscribeRequest,
+  type Transcript,
+  type TranscriptionMode,
+  type TranscriptTurn,
+} from './transcribe.ts';

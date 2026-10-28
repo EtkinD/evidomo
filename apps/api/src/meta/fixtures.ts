@@ -82,27 +82,45 @@ function sha256(data: string | Uint8Array): string {
   return createHash('sha256').update(data).digest('hex');
 }
 
+export interface MatchOptions {
+  /**
+   * Multipart file fields matched by filename and content type only, not by content. Lets a
+   * cassette recorded from a local-only input (e.g. TTS audio we may not commit) replay with a
+   * stand-in file of the same declared name. The filename becomes the fixture key, so it must be
+   * fixed by the test. Default: none (every file is matched by its SHA-256).
+   */
+  readonly ignoreFileContentFields?: readonly string[];
+}
+
 /**
  * Hash of the request body that ignores formatting differences: JSON is canonicalized, and
  * multipart bodies are reduced to their fields (the random boundary would otherwise change the
  * hash on every request). Other bodies are hashed byte for byte.
  */
-export async function normalizedBodyHash(request: Request): Promise<string> {
+export async function normalizedBodyHash(
+  request: Request,
+  options: MatchOptions = {},
+): Promise<string> {
+  const ignoredFileFields = new Set(options.ignoreFileContentFields ?? []);
   const contentType = request.headers.get('content-type') ?? '';
   if (contentType.includes('multipart/form-data')) {
     const form = await request.formData();
-    const fields: Array<[string, string | { name: string; type: string; sha256: string }]> = [];
+    const fields: Array<[string, string | { name: string; type: string; sha256?: string }]> = [];
     for (const [name, value] of form.entries()) {
-      fields.push([
-        name,
-        typeof value === 'string'
-          ? value
-          : {
-              name: value.name,
-              type: value.type,
-              sha256: sha256(new Uint8Array(await value.arrayBuffer())),
-            },
-      ]);
+      if (typeof value === 'string') {
+        fields.push([name, value]);
+      } else if (ignoredFileFields.has(name)) {
+        fields.push([name, { name: value.name, type: value.type }]);
+      } else {
+        fields.push([
+          name,
+          {
+            name: value.name,
+            type: value.type,
+            sha256: sha256(new Uint8Array(await value.arrayBuffer())),
+          },
+        ]);
+      }
     }
     return sha256(canonicalJson(fields));
   }
@@ -121,13 +139,16 @@ export async function normalizedBodyHash(request: Request): Promise<string> {
 }
 
 /** Describes a request for matching. Consumes the body: pass a clone if it is still needed. */
-export async function describeRequest(request: Request): Promise<RequestDescriptor> {
+export async function describeRequest(
+  request: Request,
+  options: MatchOptions = {},
+): Promise<RequestDescriptor> {
   const url = new URL(request.url);
   url.searchParams.sort();
   return {
     method: request.method.toUpperCase(),
     path: `${url.pathname}${url.search}`,
-    bodySha256: await normalizedBodyHash(request),
+    bodySha256: await normalizedBodyHash(request, options),
   };
 }
 

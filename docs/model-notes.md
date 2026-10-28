@@ -347,6 +347,174 @@ RECORD=1 node --env-file=.env node_modules/vitest/vitest.mjs run --project api s
 
 ## P1-04 — Voice Transcribe
 
+Status: done (pending review). Recorded 2026-10-28 against `openai@7.45.1`, `msw@3.0.3`, ffmpeg
+9.0.2 (macOS, Homebrew). Sources: Meta API reference (Voice: _Transcribe a recording_, _Schemas_)
+and the cookbook recipe `06_muse_voice/01_voice_api_fundamentals` (`utils.py`).
+
+### Code
+
+| File                            | Purpose                                                                                   |
+| ------------------------------- | ----------------------------------------------------------------------------------------- |
+| `media/convert.ts`              | `convertToTranscriptionWav(input, output, { sampleRate?, timeoutMs?, signal? })` (ffmpeg) |
+| `media/wav.ts`                  | WAV header parser, `assertTranscriptionWav`, `encodePcm16Wav` (silent WAVs for replay)    |
+| `meta/transcribe.ts`            | `transcribeAudio(deps, request)`, `parseTranscribeResponse`, typed `TranscriptTurn`       |
+| `meta/voice-transcribe.test.ts` | Record/replay test, cassette `fixtures/meta/p1-04/voice-transcribe.json`                  |
+
+`transcribeAudio({ openai, usage, estimateCost? }, { model, mode, audio, fileName?, keywords?,
+languageBias?, sessionId?, timeoutMs?, signal? })` returns `{ sessionId, text, audioDurationMs,
+turns: TranscriptTurn[] }` with `TranscriptTurn = { index, speaker?, text, startMs, endMs }`.
+`model` and `mode` are required arguments: they come from the service definition (P2-02), not
+from code. It takes the dependencies explicitly instead of a `MetaClients` method so that
+`clients.ts` stayed untouched apart from the guard below; callers pass `clients.openai` and the
+same recorder/estimator they gave `createMetaClients`.
+
+### Request (verified live)
+
+`POST /v1/asr/transcribe`, `multipart/form-data` with two parts:
+
+- `request`: a **JSON file part** (`Content-Type: application/json`) holding the settings, not
+  form fields: `{ "model", "audioEncoding": "WAV", "mode", "keywords"?, "languageBias"? }`.
+  `languageBias` takes language **names** (`["Dutch"]`), `keywords` free strings. Both are
+  omitted when empty: the server ignores unknown/empty fields silently, so `[]` would look like a
+  working request.
+- `audio`: the WAV (`audio/wav`). The filename is not interpreted by the server.
+- Optional query `sessionId` (correlation id, echoed back).
+
+**Client: the `openai` SDK's custom request works; native `fetch` is not needed.**
+`openai.post<unknown>('/asr/transcribe', { body: formData })` passes a native `FormData` through
+verbatim (and re-sends it on retries), and the SDK adds auth, `Accept: application/json`, retries,
+and the per-attempt timeout. The audio part is built with `toFile` from `openai/uploads`; the
+JSON part is a `Blob`, which undici sends with `filename="blob"` — the server accepts that. The
+SDK's own `multipartFormRequestOptions` helper is internal (not in the package `exports`) and
+would flatten nested objects into bracketed form fields, so it does not fit this endpoint.
+
+**Standard-mode guard:** because `model` is inside the JSON part, `metaFetch` now also reads a
+`request` Blob part of a multipart body (async) and rejects `-contributor` models there;
+`transcribeAudio` additionally checks the model before building the request. Both are tested.
+
+Validated before sending (no credit spent on a request the server would refuse): mono 16-bit
+integer PCM at 16/24 kHz (header parsed), at most 32 MiB of audio and 10 minutes (600,000 ms).
+
+### Response (verified live)
+
+```json
+{
+  "sessionId": "voyager/transcribe/3ED93CA563314E029689F354AAE89AFE",
+  "transcript": "Goedemiddag, we beginnen met de rondgang door het appartement aan de …",
+  "audioDurationMs": 168800,
+  "turns": [{ "turnId": 0, "startMs": 0, "endMs": 168300, "transcript": "Goedemiddag, …" }]
+}
+```
+
+- Exactly the documented `TranscribeResponse` fields. **No `model` and no `usage` field**: the
+  billed unit is `audioDurationMs`. The 168.73 s file was reported as 168,800 ms (one sample
+  suggests rounding up to 100 ms).
+- `turns[].speaker` is present only in `DIARIZATION`; `turns` is empty in `PUSH_TO_TALK`. The zod
+  schema requires integer, non-negative `startMs`/`endMs` with `endMs >= startMs`; turns are
+  sorted by `turnId` and re-indexed from 0. A malformed response throws
+  `TranscriptionResponseError` and records no usage (same rule as P1-01: an unmeasured call fails).
+
+### Usage
+
+`UsageEntry` gained one optional field, `audioDurationMs?: number` (integer ms, taken from the
+response, never from the local file). Transcription entries have `sdk: 'openai'`, the request's
+`modelId`, `responseId = sessionId`, all token counts `undefined`, and `estimatedCostUsd` from the
+`CostEstimator`, which now also receives `audioDurationMs`. The per-second price is applied by the
+P2-04 ledger; the test uses an inline $0.18/hour estimator.
+
+### Findings
+
+- **ENDPOINTING returned one turn for the whole 2:49 clip** (0–168,300 ms) in both calls. The TTS
+  pauses between paragraphs are too short to end a turn. Real speech pauses more, but this is
+  unverified: a single turn makes transcript provenance coarse (one evidence anchor for every
+  fact). P2-06/P2-07 should not assume short turns; a follow-up recording with `DIARIZATION`, or
+  with real agent audio, must confirm segmentation before P2-07 relies on turn-level anchors.
+- **Word repetition artifacts.** Both transcripts repeat words that are spoken once: "met in
+  totaal 12 12 woningen", "165 euro euro", "zit de zit de". Unbiased: 12 adjacent repeats;
+  biased: 5. Numbers can therefore appear twice in a row — fact extraction must not read
+  "12 12" as 1212, and the claim validator must cite facts, never raw transcript numbers.
+- **Number formatting is mixed:** "zes/zeven vierkante meter" as words, "92/34/14" as digits, and
+  "9" vs "negen" for the same phrase across the two calls. Fact extraction must normalize Dutch
+  number words.
+- **Seeded inconsistency survives transcription.** The script states the NEN 2580 living area as
+  "92 vierkante meter" early and "zo'n 95 vierkante meter woonoppervlak" in the summary; both
+  calls transcribed both values correctly. Use it in P2-09 (same basis, different value ⇒
+  conflict; "zo'n" marks the second as approximate) and in the eval set.
+- **Keyword biasing helps, but is a hint.** With the same audio and `languageBias: ["Dutch"]`:
+
+  | Measure (vs. the script, rough word-level WER) | Without keywords           | With keywords              |
+  | ---------------------------------------------- | -------------------------- | -------------------------- |
+  | WER                                            | 6.5%                       | 5.0%                       |
+  | Adjacent repeated words                        | 12                         | 5                          |
+  | `VvE`                                          | "VVE" (2×)                 | "VvE" (2×)                 |
+  | `meerjarenonderhoudsplan`                      | "meerjaren onderhoudsplan" | correct                    |
+  | `HR-ketel`                                     | correct                    | "HRketel" (hyphen dropped) |
+  | `Kwartelhoflaan`, `Zandmeer`, `NEN 2580`       | correct                    | correct                    |
+
+  The WER counts digit/word variants ("6" vs "zes") as errors, so it overstates real errors.
+
+- **Latency:** about 33 s per call for 169 s of audio (5.4 MB upload included), ~0.2× real time.
+  The default 180 s per-attempt timeout leaves room for ~9 minutes of audio at that rate; pass
+  `timeoutMs` for recordings near the 10-minute cap.
+- **TTS caveat:** macOS `say` speech is far cleaner than an agent's phone recording (no room
+  echo, traffic, or hesitations). Re-check accuracy, repetition, and segmentation on real audio
+  when samples arrive.
+
+### Converter (ffmpeg)
+
+`convertToTranscriptionWav` spawns `ffmpeg` with an argument array (`shell: false`), `-nostdin`,
+a timeout (default 120 s, `SIGKILL`), and an optional `AbortSignal`; on failure it throws
+`MediaConversionError` with the last 8 KB of stderr. Paths are passed as `file:<absolute path>`
+so a name can never be read as an option or a `concat:`/network protocol. Output: `-vn
+-map_metadata -1 -ac 1 -ar 16000 -c:a pcm_s16le -bitexact -f wav` (metadata dropped, canonical
+44-byte header). The written file is then parsed and checked (PCM, mono, 16-bit, requested rate,
+non-empty) instead of trusting the exit code.
+
+- Verified on the TTS audio: m4a (AAC, 22.05 kHz) and webm (Opus, 48 kHz) both convert to
+  16 kHz mono WAVs of the same length (±100 ms); 5.4 MB for 2:49.
+- Unit tests generate stereo `lavfi sine` tones (AAC 44.1 kHz, Opus 48 kHz) and cover 16/24 kHz
+  output, non-audio input (stderr captured), timeout, and a missing binary.
+- **CI has no ffmpeg** (GitHub `ubuntu-24.04` image; the API runtime image installs it). The
+  ffmpeg tests skip locally when the binary is missing but **always run when `CI` is set**, so
+  the CI job needs `sudo apt-get install -y --no-install-recommends ffmpeg` before the tests.
+
+### Fixture and replay without the audio
+
+The TTS audio is not committed (Apple TTS output redistribution terms are unclear); only the
+script is: `fixtures/meta/p1-04/walkthrough-nl.txt` (fictional property, street, and town; no
+real names or addresses). Replay must still pass on Linux CI without the audio, so:
+
+- `createMetaReplay({ …, match: { ignoreFileContentFields: ['audio'] } })` matches the `audio`
+  part by filename and content type only. All other parts (the JSON settings, including
+  keywords) still count. The test fixes the filename `p1-04-walkthrough-nl.wav`, which acts as
+  the declared fixture key. Default matching is unchanged (file content hashed).
+- In replay mode the test sends a 1-second silent WAV generated in code (`encodePcm16Wav`), so
+  neither the audio nor ffmpeg is needed. Record mode converts the local m4a (and checks the webm)
+  first.
+- Trade-off: a changed audio file under the same name replays the old response silently. That is
+  acceptable for a fixed, documented spike input; do not reuse the option where audio content is
+  what the test is about.
+
+Regenerate the audio and re-record (macOS; spends credit, about $0.017 for both calls):
+
+```sh
+mkdir -p data/p1-04
+say -v Xander -f fixtures/meta/p1-04/walkthrough-nl.txt -o data/p1-04/walkthrough-nl.aiff
+ffmpeg -i data/p1-04/walkthrough-nl.aiff -c:a aac -b:a 96k data/p1-04/walkthrough-nl.m4a
+ffmpeg -i data/p1-04/walkthrough-nl.aiff -c:a libopus -b:a 48k data/p1-04/walkthrough-nl.webm
+RECORD=1 node --env-file=.env node_modules/vitest/vitest.mjs run --project api voice-transcribe
+```
+
+### Live calls and cost (P1-04)
+
+| Call                                                | Audio (billed) | Latency | Est. cost (USD) |
+| --------------------------------------------------- | -------------- | ------- | --------------- |
+| ENDPOINTING, `languageBias: ["Dutch"]`, keywords    | 168.8 s        | 33.4 s  | 0.00844         |
+| ENDPOINTING, `languageBias: ["Dutch"]`, no keywords | 168.8 s        | 33.4 s  | 0.00844         |
+| **Total (2 calls)**                                 | 337.6 s        |         | **0.01688**     |
+
+Estimated at $0.18 per audio hour from `audioDurationMs`; the API returns no cost or usage field.
+
 ## P1-05 — SAM 3.1 and output parser
 
 ## P1-06 — Muse Image edits

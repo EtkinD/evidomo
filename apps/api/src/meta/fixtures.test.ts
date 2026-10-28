@@ -54,6 +54,43 @@ describe('describeRequest', () => {
     expect(await describeRequest(first)).toEqual(await describeRequest(second));
   });
 
+  it('can match chosen file fields by name and type instead of content', async () => {
+    const transcribeRequest = (
+      audio: Uint8Array,
+      fileName: string,
+      keywords: string[],
+    ): Request => {
+      const form = new FormData();
+      const settings = JSON.stringify({ model: 'muse-voice-transcribe-1.0', keywords });
+      form.append('request', new Blob([settings], { type: 'application/json' }));
+      form.append('audio', new Blob([audio], { type: 'audio/wav' }), fileName);
+      return new Request('https://api.meta.ai/v1/asr/transcribe', { method: 'POST', body: form });
+    };
+    const match = { ignoreFileContentFields: ['audio'] };
+    const recorded = await describeRequest(
+      transcribeRequest(new Uint8Array([1, 2, 3]), 'p1-04.wav', ['VvE']),
+      match,
+    );
+
+    // Different audio bytes, same declared name and settings: same key.
+    expect(
+      await describeRequest(transcribeRequest(new Uint8Array([9]), 'p1-04.wav', ['VvE']), match),
+    ).toEqual(recorded);
+    // Non-ignored parts (the JSON settings) and the filename still count.
+    expect(
+      await describeRequest(transcribeRequest(new Uint8Array([9]), 'p1-04.wav', []), match),
+    ).not.toEqual(recorded);
+    expect(
+      await describeRequest(transcribeRequest(new Uint8Array([9]), 'other.wav', ['VvE']), match),
+    ).not.toEqual(recorded);
+    // Without the option, content is part of the key.
+    expect(
+      await describeRequest(transcribeRequest(new Uint8Array([9]), 'p1-04.wav', ['VvE'])),
+    ).not.toEqual(
+      await describeRequest(transcribeRequest(new Uint8Array([1, 2, 3]), 'p1-04.wav', ['VvE'])),
+    );
+  });
+
   it('rejects a body that claims JSON but is not', async () => {
     await expect(describeRequest(jsonRequest('{not json'))).rejects.toThrow(FixtureError);
   });

@@ -56,13 +56,24 @@ function modelIdFromBody(body: unknown): string | undefined {
 }
 
 /**
+ * Voice Transcribe sends its settings, including `model`, as a JSON file part named `request`
+ * rather than as a form field, so multipart bodies need this second, asynchronous check.
+ */
+async function modelIdFromJsonPart(body: unknown): Promise<string | undefined> {
+  if (!(body instanceof FormData)) return undefined;
+  const part = body.get('request');
+  if (!(part instanceof Blob)) return undefined;
+  return modelIdFromBody(await part.text());
+}
+
+/**
  * The fetch both SDKs use. It resolves `globalThis.fetch` per request rather than at client
  * construction (the `openai` SDK captures it in its constructor), so MSW interception installed
  * after the clients exist still applies. It also refuses Contributor-mode models for every
  * request, whichever SDK or call site built it.
  */
 const metaFetch = async (input: string | URL | Request, init?: RequestInit): Promise<Response> => {
-  const modelId = modelIdFromBody(init?.body);
+  const modelId = modelIdFromBody(init?.body) ?? (await modelIdFromJsonPart(init?.body));
   if (modelId !== undefined) assertStandardModelId(modelId);
   return globalThis.fetch(input, init);
 };
