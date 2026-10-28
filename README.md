@@ -41,18 +41,20 @@ npm run dev:worker
 npm run dev:web      # http://localhost:3000
 ```
 
+Open the app at http://localhost:3000. The web dev server proxies `/api` to the API, so the session cookie and the API's origin check work on one origin.
+
 ## Scripts
 
-| Command                                  | Purpose                                                                                                                     |
-| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `npm run lint`                           | ESLint (type-aware for TypeScript)                                                                                          |
-| `npm run format` / `format:check`        | Prettier                                                                                                                    |
-| `npm run typecheck`                      | `tsc` for all workspaces                                                                                                    |
-| `npm test`                               | All Vitest projects (unit + integration; integration tests start PostgreSQL with Testcontainers, so Docker must be running) |
-| `npm run test:unit` / `test:integration` | One test level only                                                                                                         |
-| `npm run test:e2e`                       | Playwright (run `npx playwright install chromium` once first)                                                               |
-| `npm run build`                          | Production build of the web app                                                                                             |
-| `npm run db:generate` / `db:migrate`     | Drizzle migrations                                                                                                          |
+| Command                                  | Purpose                                                                                                                                               |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run lint`                           | ESLint (type-aware for TypeScript)                                                                                                                    |
+| `npm run format` / `format:check`        | Prettier                                                                                                                                              |
+| `npm run typecheck`                      | `tsc` for all workspaces                                                                                                                              |
+| `npm test`                               | All Vitest projects (unit + integration; integration tests start PostgreSQL with Testcontainers, so Docker must be running)                           |
+| `npm run test:unit` / `test:integration` | One test level only                                                                                                                                   |
+| `npm run test:e2e`                       | Playwright; starts the API and web servers itself, needs a migrated local database (`db:up`, `db:migrate`) and `npx playwright install chromium` once |
+| `npm run build`                          | Production build of the web app                                                                                                                       |
+| `npm run db:generate` / `db:migrate`     | Drizzle migrations                                                                                                                                    |
 
 ## Repository layout
 
