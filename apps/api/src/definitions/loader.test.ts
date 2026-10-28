@@ -173,6 +173,19 @@ describe('invalid definition files', () => {
     ]);
   });
 
+  it('reject a publication checklist rule the evaluator does not implement, at boot', async () => {
+    const nl = await readFile(path.join(DEFAULT_DEFINITIONS_DIR, 'markets/nl.v1.yaml'), 'utf8');
+    const source = nl.replace('rule: staged_images_labeled', 'rule: photos_watermarked');
+    expect(source).not.toBe(nl);
+    const [issue, ...others] = issuesOf(parseMarketProfile(source, 'markets/nl.v1.yaml'));
+    expect(others).toEqual([]);
+    expect(issue).toMatchObject({
+      file: 'markets/nl.v1.yaml',
+      path: 'market.publication_checklist[1].rule',
+    });
+    expect(issue?.message).toMatch(/fact_present.*staged_images_labeled.*no_flagged_phrasing/);
+  });
+
   it('reject malformed YAML', async () => {
     const source = await readInvalid('market-malformed.yaml');
     const issues = issuesOf(parseMarketProfile(source, 'markets/x.yaml'));

@@ -142,7 +142,7 @@ The orchestrator (main session) delegates each task to its owner — see `.claud
 - [x] **P3-06 — Step: verification**
   - Depends on: P3-02
   - Done when: the rubric covers claim support, superlatives and promises, exclusionary phrasing, and market-profile rules; up to two revision loops; remaining flags are stored for Gate 2.
-- [ ] **P3-07 — Publication checklist**
+- [x] **P3-07 — Publication checklist**
   - Depends on: P2-02, P3-06
   - Done when: checklist items are evaluated from the market profile (e.g., energy label present, staging disclosed) and shown in the pack.
 - [ ] **P3-08 — Gate 2 API**
