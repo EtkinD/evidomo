@@ -31,6 +31,7 @@ export default defineConfig([
     'test-results/**',
     'apps/web/next-env.d.ts',
     'apps/api/drizzle/**',
+    '.claude/worktrees/**',
   ]),
 
   js.configs.recommended,

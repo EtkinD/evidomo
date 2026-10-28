@@ -23,8 +23,9 @@ blob-report/
 uploads/
 data/
 
-# Personal Claude Code settings
+# Personal Claude Code settings and agent worktrees
 .claude/settings.local.json
+.claude/worktrees/
 
 # OS / editor
 .DS_Store
