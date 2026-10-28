@@ -4,7 +4,9 @@
     "module": "nodenext",
     "moduleResolution": "nodenext",
     "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true,
     "types": ["node"]
   },
-  "include": ["vitest.config.ts", "playwright.config.ts", "e2e"]
+  "include": ["vitest.config.ts", "playwright.config.ts", "e2e", ".claude/hooks"]
 }
