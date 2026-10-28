@@ -124,7 +124,7 @@ The orchestrator (main session) delegates each task to its owner — see `.claud
 
 ## Phase 3 — Generation, verification, export
 
-- [ ] **P3-01 — Step: creative copy**
+- [x] **P3-01 — Step: creative copy**
   - Depends on: P2-10
   - Done when: portal and social variants are produced in the selected output language as `{ text, fact_ids[] }` segments, using the office tone.
 - [ ] **P3-02 — Claim validator**

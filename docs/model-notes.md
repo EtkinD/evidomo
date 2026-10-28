@@ -31,12 +31,13 @@ checked), with cached input tokens billed at the full rate. Pinned versions: `ai
   a free 400. **The API default is `high`**: 95% of a one-sentence answer was reasoning.
 - **Measured:**
 
-  | Call                                                          | Cost                         | Latency |
-  | ------------------------------------------------------------- | ---------------------------- | ------- |
-  | Trivial prompt, `minimal` / `high`                            | $0.00036 / $0.0032           | –       |
-  | Fact extraction, `low`: 2.1k in, 8.4k out (4.0k reasoning)    | $0.038                       | ~25 s   |
-  | Photo classification, `low`, per photo: 2.0k in, 0.7–1.1k out | $0.0056–0.0073, mean $0.0064 | ~4 s    |
-  | Reconciliation fallback, `medium`: 4.8k in, 6.8k out          | $0.035                       | 22 s    |
+  | Call                                                           | Cost                         | Latency |
+  | -------------------------------------------------------------- | ---------------------------- | ------- |
+  | Trivial prompt, `minimal` / `high`                             | $0.00036 / $0.0032           | –       |
+  | Fact extraction, `low`: 2.1k in, 8.4k out (4.0k reasoning)     | $0.038                       | ~25 s   |
+  | Photo classification, `low`, per photo: 2.0k in, 0.7–1.1k out  | $0.0056–0.0073, mean $0.0064 | ~4 s    |
+  | Reconciliation fallback, `medium`: 4.8k in, 6.8k out           | $0.035                       | 22 s    |
+  | Creative copy, `medium`: 4.7k in, 5.8–7.1k out (88% reasoning) | $0.031–0.036                 | ~30 s   |
 
   A 1024×682 image costs about 870 input tokens, and a 2048×1364 image about 3,600.
 
@@ -45,7 +46,7 @@ checked), with cached input tokens billed at the full rate. Pinned versions: `ai
 - **Details:** [P1-01](#p1-01--meta-client-module),
   [P1-02](#p1-02--spark-13-text-vision-structured-output),
   [P1-03](#p1-03--wonder-10-cost-and-latency), [P2-07](#p2-07--fact-extraction),
-  [P2-08](#p2-08--vision-inventory).
+  [P2-08](#p2-08--vision-inventory), [P3-01](#p3-01--creative-copy).
 
 ### Wonder 1.0 (`muse-wonder-1.0`)
 
@@ -2063,3 +2064,112 @@ RECORD=1 node --env-file=.env node_modules/vitest/vitest.mjs run --project api r
 
 Budget 0.25 USD (stop at 0.20). Costs from the price table ($4 / $20 per 1M on Wonder, $1.25 /
 $4.25 on Spark); Meta's billing dashboard was not checked. No call failed or was retried.
+
+## P3-01 — Creative copy
+
+Status: done (pending review). Recorded 2026-10-28 against `ai@7.0.155`, `@ai-sdk/openai@4.0.104`.
+Code: `apps/api/src/pipeline/creative/`; design in
+[architecture.md §5 Creative copy](./architecture.md#5-run-pipeline).
+
+### Request
+
+- Spark through the AI SDK, `generateText` + `Output.object` (name `listing_copy`, strict
+  `json_schema`), `metaProviderOptions({ reasoningEffort })`, model, effort, and
+  `max_output_tokens` from the `creative` step (`muse-spark-1.3`, `medium`, 16,000; no fallback
+  in v1). Meta echoed `effort: medium`, `store: false`, `strict: true`.
+- Output schema: `{ portal: { paragraphs: [{ segments: [{ text, factIds }] }] }, social:
+{ segments: [{ text, factIds }] } }`, with `factIds` items an enum of the request's 79 catalog
+  IDs (`VF01…VF79`). Meta accepted the per-request enum inside nested arrays.
+- Input: the system prompt (9 rules; phrasing rules built from the market's `flagged_phrasing`)
+  and a compact JSON message (11.2k characters): language code and English name, the office
+  tone, the market's currency, units, and area bases, the 79 catalog facts (key, profile label,
+  value, unit, basis, `presence`, `seenIn`), the photo room list with the cover subject, and
+  `revision: null`. 4,739 input tokens.
+- Facts: the post-Gate-1 state of the recorded walkthrough, rebuilt without live calls from the
+  P2-07/P2-08 cassettes and the P2-09 Wonder answer (`replayPostGateFacts`), with the one
+  conflict (bedroom floor: "laminate floor" spoken, carpet in the photo) resolved by an `edit` to
+  "carpet", so a `gate_decision` fact is in the input. 107 facts, 98 verified, grouped into 79
+  IDs (71 stated, 8 photo presences).
+
+### Measurements (one call per language)
+
+| Call                           | Input tok (cached) | Output tok | Reasoning tok | Answer tok | Est. USD |
+| ------------------------------ | ------------------ | ---------- | ------------- | ---------- | -------- |
+| Spark `medium`, `en` (fixture) | 4,739 (0)          | 5,843      | 5,163         | 680        | 0.0308   |
+| Spark `medium`, `nl` (fixture) | 4,739 (0)          | 7,094      | 6,254         | 840        | 0.0361   |
+
+- Latency ~30 s per call (test wall time 30.5 s and 35.6 s, the replayed earlier steps take
+  milliseconds; the cassette stores no timing).
+- Reasoning is 88% of the output at `medium`; the answer itself is under 1k tokens. `low` would
+  likely halve the cost; it is not measured, and the effort decision waits for P3-02's validator
+  pass rate (architecture §5, P1-03 defaults), because a failed segment costs a revision loop.
+- **Per-run cost of this step: ~$0.03–0.04** per draft (the architecture's extrapolated $0.03
+  holds). Worst case at the 16,000 cap: $0.006 + $0.068 = **~$0.074**. P3-06's revision loops
+  call the same function with the previous draft in the input (~+1k input tokens), so two
+  revisions add ~$0.07–0.08.
+
+### Quality on the recorded facts
+
+| Check                                                      | `en`                   | `nl`                   |
+| ---------------------------------------------------------- | ---------------------- | ---------------------- |
+| Portal: paragraphs / segments / words                      | 3 / 14 / 169           | 3 / 19 / 139           |
+| Social: segments / words                                   | 3 / 41                 | 3 / 31                 |
+| Catalog IDs cited (of 79)                                  | 38                     | 48                     |
+| Uncited segments (repairs needed)                          | 0                      | 0                      |
+| Numbers in the text equal to a cited fact's value          | all (manual P3-02 run) | all (manual P3-02 run) |
+| Market facts in the portal (label, area, year, VvE, lease) | 5/5                    | 5/5                    |
+| Superlatives, promises, exclusionary phrasing              | none seen              | none seen              |
+| Street or house number                                     | none (town named)      | none (town named)      |
+| Language check                                             | `match` / `match`      | `match` / `match`      |
+| Presence facts or the Gate 1 fact cited                    | no / no                | no / no                |
+
+- Every number came from a cited fact: 92 m², 1987, label B, 34 m², 2021, 7 m², 14 m², 9 m²,
+  €165, 6 m², floor 2, and in `nl` also 3 rooms, 2019, and 10 minutes by bike. No number was
+  invented. The `primary_school_walking_distance` fact was used in `nl` ("basisschool op
+  loopafstand") neutrally, without addressing families.
+- Wording the verifier (P3-06) should look at: `en` "a 6 m² external storage is included"
+  ("included" is not a fact) and `nl` "Grond in eigendom zonder erfpacht" ("in eigendom" is
+  inferred from `ground_lease: false`; usually right in NL, but not stated).
+- The office tone ("Warm and professional; short, concrete sentences.") made the Dutch copy
+  telegraphic (article-less listing shorthand: "Woonoppervlakte 92 m². Energielabel B."); the
+  English copy kept full sentences. Tone handling is the model's; the language check still
+  matched, but a tone that asks for very short text pushes the caption towards the
+  `inconclusive` threshold (4 function-word hits).
+- The model segmented at sentence level and cited 1–5 IDs per segment; no segment needed the
+  uncited-text repair, so that code path is covered by unit tests, not by the fixtures. Neither
+  recording cited a photo presence or the Gate 1 decision, so the presence rule ("never count
+  from a photo") is untested on live output.
+
+### Replay and record
+
+- `creative-copy-en.test.ts` and `creative-copy-nl.test.ts` (`api`, shared body in
+  `recorded-copy.ts`) rebuild the post-Gate-1 facts from the P2-06, P2-07, P2-08, P1-05, and
+  P2-09 cassettes (`createMetaReplay({ include })`), build the catalog and request through the
+  step's code, and replay `p3-01/copy-en` / `p3-01/copy-nl`. Assertions: echoed settings,
+  catalog = verified facts (gate decision included, opinions never), presences carry no counts,
+  every segment cites verified facts only, both variants pass the language check, one ledger
+  entry under $0.10. Wording is not asserted.
+- `creative.integration.test.ts` runs the step through the engine on both recordings (artifact,
+  claims mirroring the segments, the count-only event, usage, cascade on project deletion),
+  plus no-call failures (nothing verified, a language the market does not offer) and a
+  superseded execution (one copy, two billed calls). `generate.test.ts` covers the fallback
+  policy and truncation on a stubbed fetch.
+- One cassette per language, so each can be re-recorded alone. Changing the prompt, the output
+  schema, the catalog serialization, the nl v1 profile, the office profile in `testing.ts`, or
+  the earlier fixtures changes the hash; re-record (~$0.03–0.04 each):
+
+```sh
+RECORD=1 node --env-file=.env node_modules/vitest/vitest.mjs run --project api creative-copy-en
+RECORD=1 node --env-file=.env node_modules/vitest/vitest.mjs run --project api creative-copy-nl
+```
+
+### Live calls and cost (P3-01)
+
+| #   | Call                                | Input tok | Output tok (reasoning) | Est. USD   |
+| --- | ----------------------------------- | --------- | ---------------------- | ---------- |
+| 1   | Spark `medium`, copy `en` (fixture) | 4,739     | 5,843 (5,163)          | 0.0308     |
+| 2   | Spark `medium`, copy `nl` (fixture) | 4,739     | 7,094 (6,254)          | 0.0361     |
+|     | **Total (2 calls)**                 | 9,478     | 12,937 (11,417)        | **0.0668** |
+
+Budget 0.60 USD (stop at 0.50). Costs from the price table ($1.25 / $4.25 per 1M); Meta's
+billing dashboard was not checked. No call failed or was retried.

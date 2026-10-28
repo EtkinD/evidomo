@@ -2,6 +2,7 @@ import { bootDefinitions } from './definitions/boot.ts';
 import { loadEnv } from './env.ts';
 import { createLogger } from './logger.ts';
 import { createMetaClients } from './meta/clients.ts';
+import { createCreativeHandler } from './pipeline/creative/handler.ts';
 import { createFactExtractionHandler } from './pipeline/extraction/handler.ts';
 import { createIntakeHandler } from './pipeline/intake/handler.ts';
 import { createReconciliationHandler } from './pipeline/reconciliation/handler.ts';
@@ -31,6 +32,7 @@ try {
         extractor: createFactExtractionHandler({ markets: registry }),
         vision: createVisionInventoryHandler({ storage, markets: registry }),
         reconciler: createReconciliationHandler({ markets: registry }),
+        creative: createCreativeHandler({ markets: registry }),
       },
       createMetaClients: (usage) =>
         createMetaClients({ apiKey: env.MODEL_API_KEY, usage, estimateCost, logger }),

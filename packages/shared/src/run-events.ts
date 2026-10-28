@@ -172,3 +172,31 @@ export const factsReconciledPayloadSchema = z.strictObject({
   fallbackUsed: z.boolean(),
 });
 export type FactsReconciledPayload = z.infer<typeof factsReconciledPayloadSchema>;
+
+/**
+ * Appended by the creative step (and by verification for each revision, P3-06) together with a
+ * `listing_copy` artifact and its claims: counts for the run monitor. Never copy text, fact keys,
+ * or values.
+ */
+export const copyGeneratedPayloadSchema = z.strictObject({
+  stepId: z.string().min(1),
+  /** The `listing_copy` artifact. */
+  artifactId: z.uuid(),
+  /** 0 for the creative step's copy, 1, 2, ... for revisions. */
+  revision: count,
+  outputLanguage: z.string().regex(/^[a-z]{2}$/),
+  /** Facts the model could cite, and how many of them the copy cites. */
+  catalogFactCount: count,
+  citedFactCount: count,
+  portalSegmentCount: count,
+  socialSegmentCount: count,
+  /** `claims` rows written (one per segment). */
+  claimCount: count,
+  /** Deterministic repairs: uncited segments merged, uncited paragraphs dropped. */
+  mergedUncitedCount: count,
+  droppedUncitedParagraphCount: count,
+  model: z.string().min(1),
+  /** The primary model failed and the definition's fallback produced the copy. */
+  fallbackUsed: z.boolean(),
+});
+export type CopyGeneratedPayload = z.infer<typeof copyGeneratedPayloadSchema>;

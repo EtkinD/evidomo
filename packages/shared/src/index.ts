@@ -11,4 +11,5 @@ export * from './api-error.ts';
 export * from './auth.ts';
 export * from './vision.ts';
 export * from './reconciliation.ts';
+export * from './copy.ts';
 export * from './gates.ts';
