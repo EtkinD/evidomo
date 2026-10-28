@@ -139,7 +139,7 @@ The orchestrator (main session) delegates each task to its owner — see `.claud
 - [x] **P3-05 — Step: integrity check**
   - Depends on: P1-07, P3-04
   - Done when: the check passes valid edits and rejects the structure-altering test edit; one retry then fallback to the original.
-- [ ] **P3-06 — Step: verification**
+- [x] **P3-06 — Step: verification**
   - Depends on: P3-02
   - Done when: the rubric covers claim support, superlatives and promises, exclusionary phrasing, and market-profile rules; up to two revision loops; remaining flags are stored for Gate 2.
 - [ ] **P3-07 — Publication checklist**

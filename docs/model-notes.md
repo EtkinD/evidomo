@@ -2448,3 +2448,142 @@ worst case (all three retried). No retry was triggered by a real edit in any mea
 Budget 0.30 USD (stop at 0.25). One record run; no failed requests. Cost from the price table
 ($0.0025 per SAM image); the repeats are inferred from the test's request pattern, since record
 mode stores one interaction per distinct request.
+
+## P3-06 — Verification
+
+Status: done (pending review). Recorded 2026-10-29 against `ai@7.0.155`, `@ai-sdk/openai@4.0.104`.
+Code: `apps/api/src/pipeline/verification/`; design in
+[architecture.md §5 Verification](./architecture.md#5-run-pipeline).
+
+### Request
+
+- Wonder through the AI SDK, `generateText` + `Output.object` (name `claim_audit`, strict
+  `json_schema`), `metaProviderOptions({ reasoningEffort })`, model, effort, `max_output_tokens`,
+  and fallback from the `verifier` step (`muse-wonder-1.0` `low`, 12,000; Spark `medium`). Meta
+  echoed `effort: low`, `store: false`, `strict: true`, and accepted per-request enums for the
+  segment IDs and the rubric categories.
+- Input: the step prompt (`step-prompt.ts`), the rubric built from the nl v1 profile (5 rules:
+  claim support, superlatives, promises, exclusionary phrasing, area basis), the catalog facts
+  the draft cites (38 for `en`, 48 for `nl`), and every segment with `audit: true | false`:
+  ~12–14k characters, **3.2–3.8k input tokens**.
+- Output: flags only, `{ segment, category, problem, suggestion }`. P1-03's prototype returned
+  an audit per segment; at Wonder `low` the answer dominated its cost. A clean pass now answers
+  with `{"flags":[]}`.
+- Revisions: the P3-01 copy request with `revision: { draft, flags }`, the `creative` step's
+  settings (Spark `medium`, 16,000), +0.6–0.9k input tokens over a first draft.
+
+### Measurements (one recording per scenario)
+
+| Scenario (fixture) | Call                       | Input tok (cached) | Output tok (reasoning) | Est. USD |
+| ------------------ | -------------------------- | ------------------ | ---------------------- | -------- |
+| `loop-en`          | Wonder pass 0 (17 audited) | 3,218 (0)          | 742 (666)              | 0.0277   |
+|                    | Spark revision 1           | 5,330 (0)          | 2,656 (1,975)          | 0.0180   |
+|                    | Wonder pass 1 (1 audited)  | 3,219 (0)          | 462 (449)              | 0.0221   |
+| `loop-nl`          | Wonder pass 0 (22 audited) | 3,827 (0)          | 753 (614)              | 0.0304   |
+|                    | Spark revision 1           | 5,534 (0)          | 4,111 (3,243)          | 0.0244   |
+|                    | Wonder pass 1 (2 audited)  | 3,822 (0)          | 236 (222)              | 0.0200   |
+| `seeded-en`        | Wonder pass 0 (17 audited) | 3,252 (0)          | 1,237 (870)            | 0.0377   |
+|                    | Spark revision 1           | 5,617 (0)          | 3,154 (2,475)          | 0.0204   |
+|                    | Wonder pass 1 (5 audited)  | 3,217 (372)        | 484 (471)              | 0.0225   |
+| `clean-en`         | Wonder pass 0 (17 audited) | 3,219 (2,548)      | 671 (658)              | 0.0263   |
+
+- **Wonder input dominates a pass at `low`:** $0.013–0.015 of input against 0.2–1.2k output
+  tokens, nearly all reasoning; the answer is ~15–40 tokens per flag. A full clean pass costs
+  $0.026, a pass with 1–2 flags $0.028–0.030, the seeded pass with 7 flags $0.038.
+- **Revisions are cheap:** Spark reasoned 2.0–3.2k tokens on a revision against 5.2–6.3k on a
+  first draft (P3-01), $0.018–0.024 per revision.
+- Latency: each recording run took 21–24 s of test wall time for three calls (earlier steps
+  replay in milliseconds), so a pass is ~5–10 s and a revision ~8–12 s; the cassette stores no
+  timing. Cached tokens are billed at the full input price (no cached rate is documented).
+
+**Per-run cost of the step** (measured on these recordings; the §10 table is not updated here):
+
+| Outcome            | Calls                                         | USD                          |
+| ------------------ | --------------------------------------------- | ---------------------------- |
+| Clean first draft  | 1 Wonder pass                                 | 0.026 (measured)             |
+| One revision loop  | pass + revision + partial re-audit            | 0.068–0.081 (measured, 3×)   |
+| Two revision loops | pass + 2 × (revision + partial re-audit)      | ~0.11–0.12 (derived)         |
+| Worst case         | 3 Wonder passes and 2 revisions at their caps | ~0.92 (caps, never observed) |
+
+No recording needed a second loop: every revision fixed every flag. The two-loop figure adds one
+measured loop (~$0.04) to the one-loop cost. The worst case is 3 × (4k × $4 + 12k × $20) + 2 ×
+(6k × $1.25 + 16k × $4.25) per 1M; the $1.00 run cap stops it earlier, and a cap reached inside
+a loop ends the loop at the last audited draft (`stopReason: budget`).
+
+### Re-verification of changed segments only (evaluated, implemented)
+
+- Regenerating only the flagged segments would need a different copy output shape (P3-01 returns
+  a whole draft); it was not needed: Spark kept every unflagged segment verbatim in all three
+  revisions (1, 2, and 5 segments changed). Regeneration stays whole-draft at ~$0.02.
+- Re-auditing only changed segments is implemented: unchanged segments (same variant, text, and
+  citations) keep their verdict and are sent as context. Measured saving per re-audit: $0.020–
+  0.023 against $0.026 for a full pass, ~20%, because input is the main cost and stays the same
+  (the whole draft is sent for context). The architecture's "$0.01–0.02 per loop instead of
+  $0.08" assumed the old per-segment answer; the measured loop is ~$0.04 (revision $0.02 +
+  re-audit $0.02). The stronger reason to keep it is consistency: an unchanged sentence cannot be
+  judged differently in a later pass, and an unfixed flag is carried rather than re-rolled.
+- Sending only the changed segments without the rest would save ~half the input (~$0.006 per
+  re-audit) but loses context for "it"/"also" references and for cross-segment claims; not done.
+
+### Quality on the recorded drafts
+
+- **P3-01's risk phrases, judged by an explicit rule** (the claim-support rubric names legal and
+  commercial status words and says a false value supports only its plain negation):
+  - `en` "a 6 m² external storage is included": flagged `claim_support` ("included" claims the
+    storage is part of the sale, which no fact states); the revision wrote "there is a 6 m²
+    external storage room", and the re-audit passed it.
+  - `nl` "Grond in eigendom zonder erfpacht": flagged `claim_support` (ownership of the land is
+    inferred from `ground_lease: false`); the revision wrote "Geen erfpacht.", re-audit clean.
+  - Decision: both are flagged, not accepted. "In eigendom" is usually true in NL when there is no
+    erfpacht, but other land rights exist, and a revision costs $0.04; the plain negation is the
+    faithful wording.
+- The `nl` pass also flagged the caption's "Open hoekkeuken": "open" comes from the
+  kitchen-location fact, which that segment does not cite. Correct (the portal segment that cites
+  it was not flagged).
+- **Seeded defects (`seeded-en`), all caught in pass 0 with the right category:** "one of the
+  most sought-after homes" (`unverifiable_superlative`), "perfect for a young family"
+  (`exclusionary`, plus "perfect" as a superlative), "a safe investment that will rise in value"
+  (`investment_promise`), "a 6 m² external storage adds to the living space" (`area_basis`), and
+  "8 m² balcony" against a 7 m² fact (the validator's `number_not_in_facts`, and the verifier's
+  `claim_support` too). One revision fixed all five; the re-audit of the five changed segments
+  was clean. P1-03's coarse `market_rule` category is gone: the verifier returns the rubric
+  category.
+- No false flags on these drafts: `clean-en` (17 segments, the loop-en revision) passed with no
+  flag, and every unflagged segment was left alone. No model flag was refused by code in any
+  recording (`dropped` all zero); the refusal paths are covered by unit tests.
+
+### Replay and record
+
+- `verification-{loop-en,loop-nl,seeded-en,clean-en}.test.ts` (`api`, shared body in
+  `recorded-verification.ts`) rebuild the post-Gate-1 facts and the P3-01 drafts from earlier
+  cassettes (`include`, never re-sent), apply the scenario's edits (`testing.ts`), and run
+  `verifyCopy` against `p3-06/<scenario>`. They assert the structure, the code checks, and each
+  recording's outcome (stop reason, flags per pass as source + category, segments audited per
+  pass); the wording is the models'. `verification.integration.test.ts` runs creative then
+  verification through the engine on `loop-en` and `loop-nl` (and `loop-en` with
+  `max_revision_loops: 0` for remaining flags). `call.test.ts` covers the fallback on a stubbed
+  fetch.
+- Changing the step prompt, a rubric text, the input serialization, the creative prompt, the
+  nl v1 profile, or the earlier fixtures changes the hashes; re-record one scenario at a time
+  (~$0.03–0.08 each):
+
+```sh
+RECORD=1 node --env-file=.env node_modules/vitest/vitest.mjs run --project api verification-loop-en
+```
+
+- Record mode overwrites the cassette with what that run captured; a failed recording still
+  writes its successful calls, so fix the test before re-running rather than paying twice.
+
+### Live calls and cost (P3-06)
+
+| #   | Recording   | Calls                  | Input tok | Output tok (reasoning) | Est. USD   |
+| --- | ----------- | ---------------------- | --------- | ---------------------- | ---------- |
+| 1   | `loop-en`   | 2 Wonder + 1 Spark     | 11,767    | 3,860 (3,090)          | 0.0678     |
+| 2   | `loop-nl`   | 2 Wonder + 1 Spark     | 13,183    | 5,100 (4,079)          | 0.0748     |
+| 3   | `seeded-en` | 2 Wonder + 1 Spark     | 12,086    | 4,875 (3,816)          | 0.0806     |
+| 4   | `clean-en`  | 1 Wonder               | 3,219     | 671 (658)              | 0.0263     |
+|     | **Total**   | **7 Wonder + 3 Spark** | 40,255    | 14,506 (11,643)        | **0.2496** |
+
+Budget 1.00 USD (stop at 0.80). Costs from the price table ($4 / $20 per 1M on Wonder, $1.25 /
+$4.25 on Spark); Meta's billing dashboard was not checked. No call failed or was retried, and
+every recording was made once.

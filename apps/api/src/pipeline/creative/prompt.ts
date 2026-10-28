@@ -24,9 +24,19 @@ const PHRASING_RULES: Readonly<Record<PhrasingCategory, string>> = {
 };
 const ALWAYS: readonly PhrasingCategory[] = ['unverifiable_superlative', 'investment_promise'];
 
+/**
+ * The phrasing categories copy must avoid in a market, in prompt order: superlatives and
+ * promises always, then the profile's `flagged_phrasing`. Verification (P3-06) audits the same
+ * set, so a draft is never flagged for a rule its writer was not given.
+ */
+export function copyPhrasingCategories(market: MarketProfile): PhrasingCategory[] {
+  return [...new Set([...ALWAYS, ...market.flagged_phrasing])];
+}
+
 function phrasingRule(market: MarketProfile): string {
-  const categories = [...new Set([...ALWAYS, ...market.flagged_phrasing])];
-  return categories.map((category) => PHRASING_RULES[category]).join('; ');
+  return copyPhrasingCategories(market)
+    .map((category) => PHRASING_RULES[category])
+    .join('; ');
 }
 
 export function buildCopySystemPrompt(market: MarketProfile): string {

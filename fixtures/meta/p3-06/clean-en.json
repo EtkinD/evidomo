@@ -1,0 +1,160 @@
+{
+  "formatVersion": 1,
+  "cassette": "p3-06/clean-en",
+  "recordedAt": "2026-10-28T22:48:21.973Z",
+  "interactions": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/v1/responses",
+        "bodySha256": "a3969249c6e95c3ce86563f4e415ff7d2a1a6585e759b2da28d6fe23707789bf"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "type": "json",
+          "value": {
+            "top_logprobs": 0,
+            "temperature": 1,
+            "top_p": 1,
+            "service_tier": "auto",
+            "model": "muse-wonder-1.0",
+            "reasoning": {
+              "effort": "low"
+            },
+            "background": false,
+            "text": {
+              "format": {
+                "type": "json_schema",
+                "name": "claim_audit",
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "flags": {
+                      "description": "one entry per problem; empty when no audited segment breaks a rule",
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "category": {
+                            "description": "the rubric category the words break",
+                            "enum": [
+                              "claim_support",
+                              "unverifiable_superlative",
+                              "investment_promise",
+                              "exclusionary",
+                              "area_basis"
+                            ],
+                            "type": "string"
+                          },
+                          "problem": {
+                            "description": "one English sentence: the exact words at fault and why they break the rule",
+                            "type": "string"
+                          },
+                          "segment": {
+                            "description": "id of a segment with \"audit\": true",
+                            "enum": [
+                              "P01",
+                              "P02",
+                              "P03",
+                              "P04",
+                              "P05",
+                              "P06",
+                              "P07",
+                              "P08",
+                              "P09",
+                              "P10",
+                              "P11",
+                              "P12",
+                              "P13",
+                              "P14",
+                              "S01",
+                              "S02",
+                              "S03"
+                            ],
+                            "type": "string"
+                          },
+                          "suggestion": {
+                            "description": "the whole segment rewritten in the copy language so that its cited facts support it and it follows every rule; null if the claim should be dropped",
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "segment",
+                          "category",
+                          "problem",
+                          "suggestion"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    }
+                  },
+                  "type": "object",
+                  "required": [
+                    "flags"
+                  ],
+                  "$schema": "http://json-schema.org/draft-07/schema#"
+                },
+                "strict": true
+              }
+            },
+            "tools": [],
+            "tool_choice": "auto",
+            "truncation": "disabled",
+            "id": "resp_6ae27bb5272bb55473fc4dad",
+            "object": "response",
+            "status": "completed",
+            "created_at": 1793227701,
+            "completed_at": 1793227701,
+            "error": null,
+            "incomplete_details": null,
+            "output": [
+              {
+                "type": "reasoning",
+                "id": "rs_6ae27bb5272bb55473fc4dad:rs_27eed863-d475-4929-b995-f3fa7be1ddc5",
+                "encrypted_content": "Q-PaDgH20m5R9i95YBa9PvN0iCYT3BbIGpga_uttLJ8qK85k5hHI0guuXlurzcoWf9d_KdAhQBEfwAvv3rZi0tqusDa7uEWkgEHD-YteRnyAa_iKBGBf_koruulcR9jQ0Q7u-5AsjhONgWnqDjte7EvswlxsPnUi19Mei0F3ohavZflXfA_sSwEr4skDMcK7lejKxnbJW4n7Z6KMVnH5QT1nzaiD9Hx9ekMxX35_mAiwMKVSenusg3_keiFay0VQ0HcMG3iko9lkLhB_HNtqZP0RPUmw4xjxLV_IJfhuRdCdN5ykk4R0Yce3sj_V4lXSb34cj_Zg60KvNHybGSaSXDi7GzbVuCPiLJgQ9yZxGUz4uAObI6YGvHY1TApJvIxYYl0nJDWIKjQ7XP7n2W1kBCcfqbhgOaTB3RPRSJRv11VF1Y-tRoHuZciR83ysyjJixfH5GuPiZwMYmwaC6mOqkaCBopx4cQlS85j3srs89o9cCm-budfMY2KhUriT2rRTl-MpZ3iLjufboHT8c35QNIoAbsln-7qCrpirP0ubbRp8cAwSZZQsIxMVqs755qfbgjE0WpYqvjtOuk6hV2DHYEMz2DPqaOHAs6CyR2KTY80lGOg6s9NshWWbLrsE7J-7oSSm-S1MpKlblyR_-QOl-NZV_FajkWSWTVPguh8dAIgNmdNAy-awJzM832y8OLYEfGYP62qDlCWgyyq8IBCQtCsp48pUJvZJ-D2IpNgfkOrUaqI_jLca1J8Bh3GVadI-MHep2CeUYbqVYGGzs-OBglU4ivptExxA2I-0D0hGjipOcRM00eqtH_ap7mFip6x6mePmqswKthxbapof2aX06Z4VpGF8hyyxIX15fy8ft3JRCYCK46GcTeVmzFYwSybjiY9FZKM849Xyu2jWh6gNGQr9Fi8dIVJ2yvsyB2KFC9ULCZsE_g7qq0vcqOlGNQlFgIKlILsLe2_CKnZJZ_CMytwMczqy3FbOUbL9mVKF2ARMyqa4d0HO567SvEJBDZtz1w6kBb8iJA9c5GeQZNHgeQosSN_rW6xGCs7dvhfKv4Sws9pmBFqOoC-hrYH52mSwCYkNKcNozwTtjF-8U9P1P3Iy2yUKLaiVhVYnSvGeZPHw8UIVST8hDQxdNqItnNkHrXZ8XE55Ln11Wp0VJojR82wjQZCcwOmylmEhfQgtJUZ3t5ZiJs1fiVEDhfyJZKlRxgn9_xiTk2snj96IbpNmwbmwCmOJeFKQvtPtSHj8YRhgD0PpIowP0W4ebEgzTylvoUhZxd61MIG2kCGXaI9RKkMHXWi5EV2bkWOerGWjfy7s1Z7a6lOAWuYgXDKajLFoNMtKByFtYtyXWUo6VS5rQq_IDTa50qimEz1iEYPxdZ-DjtFoM-Y_mtZ4jrKq-DK87K4OULdRrRNL5IiGJbZ4CvH40eH1T0I5PANZRu7W9P3unrzRhytsbmP7zhE-5lCbcV1x0t_JC0E-cX3cMfZbW70L68_kw96rxfl02DhwIbkhUWC-HyR3r9yX0BxlliBcXS30HeGdzlOv58u_lftiY_5oqJTUi62F6tA-ZWY3Eak8wbgnS576f3kcfE5s43omXNSk4NHfqiV_juBieilOqsDJHOpk_DhgbXkla1bZg49F6Z79_ZvKrAA0AO4FIHk_HFm4-97QWmoz6I6aqKlsCTJiF8ll_y3kBPJgqNB1B96u1YiL5K6w85oa6jkm3tXOpYD_TpVOsOKFRPHdbe_8TtT1wXXtvuzYHLNRGP-AnbvHM_phoBD_3WZH-RyO4ZJ0ImIW5yTSpTem9V0WdUDq8y9C-Xj71gqZ5wfDKBJZUdYMhijp5H8ellIt78kB_OS3oKmY5H69a4s367aRMB47OOSUUjgQG6NMjpslnfFbK6rsiZKPUeGoOTiJaijWwaQn-NjlTG1AXTseh0AyKEMR7daU6YBzU8DHL93F4Oi1ARVmPID_Zja-9HlvZ_M7hQP3IwQ-_jWz125bWDTjjGlzho5vJVoK1tZ_FQzgcj4J7JYZV-yQi3YwOFdgE_alom44WHAYE7FYMQJIiM3c_Jht4gi6Gub8_uPSX4EwhbAVDTncODlNM43M3ZSEndG6um1hl9g-ELs6WIOuigi9JmO2HBEtn4OcvS78xtzrddA35ixLeu001Qbbx7y_TbFILNIUD4uZ1HuKSJwXxtam0SZeRHxk92QntXkj3PSrEovCsoLiMCuHxOnNLkRJsr3Qm5ARJf2seH_TJA0Sa3k9XO_h7oOE9M1iSCinrF02_1vKm3yKMA_2j43QWKl7mYdmBf77g62l2ZlvfeyhifBNiA8lrL1ijlO3GYeZHiPW1YzyWoa7VwPtcp9vAgFFsSxQrN2xaT0Sut2BITfNjQzQw8yzo6xp3JnRCf3VJeFCGhOsl_XVMSeZA8ho_XJbtRYEHAQb1Ur5pQN5ofaQwKVALMORUyQUdR_X6lQnpLu9jlqRAVo-A-QBBFIW5dtK28_rv5kUswvsJzUpOsghKR-o7UdT0K4jivIA2dqF91EQXJoj-7UB6KJsmSDsGbQxW4tlxC7qTpa7FesielcgBckl61VuaDeAMHJ5OPlqaHHk18U2kBzc_BrM9RVH-4zyGkRAuAGL4CG5eOpoO2TM9AXmk-qHebZInKBg0ry8f-sOjKQC0B8rsE33nsiR3zqq9RH4TFZ7ZQGgkkgveqJ6BVEXg2xOIvFukZ2S-jSE_u8r5YlENf2gL0N_w-I7Gl8Oi5qBtf5WlEl_FD0ZhgpVkX3DFpePiQFxeOH7zeIlh3gijhndi7RHzcr-C_7lq4P0TCOIK5WZfh2DdkA9xhXqNY5YfDO7fc00Jqii87afmuPDZ7fqbJa9MWotwk0JrQVyn9dDXUqEayjQ7OoQMpaEFaeAPTkEdBg8nf74XIfdhv7a2zjN0uEe8PkuTYiGKgDkywWIk616Ox0e6g7BGWcgbqv-wqWhmyYkKvLMre8kslV8PLM-eye8-FHhRkfusc_mxhz9xbF2Hja7jJZnSs8A2V27y5eTwxOXspPwyIW8D1TNhx0P4TVdCLBMNSv4mOjfNAZpBg7gkMQ1CSYBTpImCXxdRoqWp1Cy4Wta2fesuftC8JiVG4NxBVQY_BXdZaCYcea_OnEHsabZZQbR5trUYBu33AY2PJ0XP1GwVGAqBixWMXzeRJkhdP4NREM8JkgS0c8piTeMVvcXEDpK4Xr-CAJ5V7nZu9baSLpdHBRaoaP3kPLLPx0K4pZtYGJFuOHxk-ak9zTQyCe8zJVqcJMUXS4Mr46Ko7oFsqDQITs53SHKsLOpYWgHoSh0kYO8NhPV9R_Vfb2LKQQP33ALi3wauresfkePIAtSfkwoogQHfeDVO_EFa8FNHLH5HnuTlLEbdWJ2BEmgeca8NKWyHslIfnYDFNTFTB9JiLFmh9BTsFgalUsWEw8CLA_0-cBPzkDRFPrBXHxFDxyx0GKnBK8rAoyBMbWLEcF_HvPyZ2KKQ0Q1hFzz7iFeIFi5Eszr4peZDwzYU-I7-m-wQDzNGFupJrU0I71PtMxz1OyL8zaASpI3DsBe2gq9qI_jARDYftRNBnaZEoRHrEC4segmAiIGvfU423G3XjorPCjv3QaaJ0R08uSvM5KGgeiTkKm2jb_dfHYCNR2f3BvX0XMl3IzNxoy5q1ll83zl_3iISSW4KTZIDx5o8vrCDavMs2yPTAqaxr_6wIXjuFoOutsACzXoyjRi5SyxxWTlpuoYI1mAec9laN6R47RoNAFgKVJ87J6xYE8jsycbe1OodhxWMK7el_NW83OG1ekcphUqGunw3tupI7oui-vjlnsTFOtCpxXolOY4WE0Yku7YeLQeHiChHsh7tNv2KCopwDThXpNLMHWIJKERvINI-iemjCHFGMUkxYD7Pn5cjxlGJcO_Sd3lNSNgBjR1uwXv8KegRERbHFnG-ZWIRXcn5UfzanHnkZx0eh-aYeQVde2xbDinOIiTlLG6PnSTJEMryzD0BW5Gix1By-7V4E3QArfhORcenKBaMVS7ahb7xhGMPcnNmBh8tXW5qZrVFXXYr9gD5cWnoWxrI9Njv9YZX3KXHTBaxWVyKZziuZ6oMbEydYhOUOPzcrKKLhOunodQXRwU09YmbhP2K-98ZqOJUOH9jEj7HK7AHC_vGqngLG9QKM9IEM4yyu664qD9pGgUiAB2T0EUVDNQMF-O159xwjfIkH14xDlh-Pw707Tjq5FuwgQmivOroB9gu9KmCl1mUQeJK7qE-L3QWToebNvO8EgX9SFf_hBY3UF3scKuCvXIV-3fWddNCcEt8dCU_j0eT4UeFzUf1619wNKLRpq2LOCb6gc7bUlUMUAbzoMJwIbZjkRPKq70N8ISdXyD1oImPBIX2n-Kd0lz9TQYONfBf8wtgAMFLMuoc8DVbv3WdwHAMcEzjo4vvXXNQVL7nmA-ffZSUXeKAcUWIXNPRAM3v0BkfOU2uypu9Qz0YtC9SsXLlSMZFbWSJcqwA6MzBpfNVmMsSIFsLQ8UFlh53-YotWqac0C30HSv7LK-DXf_fc-tsoMj66A7IKjStOYArlT_pxSJAwtOR4olvG4K4RNueRgj-qQazuD8MZZe3_e6JJWHIjWfBjtvj2v88YG0UfsPDVoh8nuXqfU3kjboKi3lI0QWdTzwcGfbD-B4hiuUYbxK3PEkxbUudUr7QC2o85XeS05X3PxtYuRchBSz2ZA6YPuQ3HebybdYaWKlirNAx8cNdivVCgJR6qL5nurChrHJASM0N6-pJEaKKeDu-8Wsj051iyQBtcNnxR0yQm3qT9GP_ui1Gk458CR5Mm7lGVXvY4pUEADWXnOJVzVrT6AA0zHXch5eAs2Rmd1e6JO_o6o8388e9829wPM66-ME1KylckIDv4RcHjgWS35kb0nW9YhRzy5rNaL0dgKKnBfOXGto553DiTgqHU3SE58XqZ0TdBFfimHy99skwBWd1qgunYPhtpU94mDRTlYEAYjzIqxFLOCaIu44qOa690R7nQbuECo6ixxz6r3CmIiqyKc97dnosPROLXorFdFXNY18-q9DiiLa-xpWImhJgZjn4QA_uAQpSOI4Acdbnvumai-I_1swtiDurtl1osSXRK8Ajoap2mNVL0K5s72xqwdZwtCVqzMbVT2vM9As6og-5USKUForB1elZAhVEXcEZjWZcT0Ym9c7dTnDg3FBlE2JSaK_VykK1S02XO7WvGSna2kkWPBbuAVbbCxmalI_ht3-hAMK6fr8aWK0BNForCpxqHBgMp1Zr1fR34eLEU_pRzyXwQ0Fvqtmll8DsYJMeb_Y-_O1SmVnHyc8DjImAnJckU9SmrGaPeW0-u5TXl1M2eY5D-7XTzVnUnMKZ-YgJzeS0qUFvJ-Zq7_PlRNCPIBY1WuTCPcfiwfOeEOqyhV4-sUe6iivElegS0TrZc4Dk3HAmfTV2Kr4gFQBaC-cmeQF32hezaE9SSxl33YqbygAjb6n7QxZPH6DbXH7pQQGP0zAwSZe-hBtWEzSuyIrpg",
+                "summary": [],
+                "status": "completed"
+              },
+              {
+                "type": "message",
+                "id": "msg_21eb9e47-2ac5-4101-9a80-edcf42cfdaab",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "output_text",
+                    "text": "{\"flags\":[]}",
+                    "annotations": [],
+                    "logprobs": []
+                  }
+                ],
+                "status": "completed"
+              }
+            ],
+            "instructions": null,
+            "usage": {
+              "input_tokens": 3219,
+              "input_tokens_details": {
+                "cached_tokens": 2548
+              },
+              "output_tokens": 671,
+              "output_tokens_details": {
+                "reasoning_tokens": 658
+              },
+              "total_tokens": 3890
+            },
+            "parallel_tool_calls": true,
+            "store": false,
+            "max_output_tokens": 12000
+          }
+        }
+      }
+    }
+  ]
+}

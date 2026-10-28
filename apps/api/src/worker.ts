@@ -8,6 +8,7 @@ import { createIntakeHandler } from './pipeline/intake/handler.ts';
 import { createIntegrityHandler } from './pipeline/integrity/handler.ts';
 import { createReconciliationHandler } from './pipeline/reconciliation/handler.ts';
 import { createStagingHandler } from './pipeline/staging/handler.ts';
+import { createVerificationHandler } from './pipeline/verification/handler.ts';
 import { createVisionInventoryHandler } from './pipeline/vision/handler.ts';
 import { shutdownOnSignals, startWorkerRuntime } from './runs/worker-runtime.ts';
 import { createLocalStorage } from './storage/local.ts';
@@ -37,6 +38,7 @@ try {
         creative: createCreativeHandler({ markets: registry }),
         stager: createStagingHandler({ storage }),
         integrity_checker: createIntegrityHandler({ storage }),
+        verifier: createVerificationHandler({ markets: registry }),
       },
       createMetaClients: (usage) =>
         createMetaClients({ apiKey: env.MODEL_API_KEY, usage, estimateCost, logger }),

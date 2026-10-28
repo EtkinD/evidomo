@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { claimAuditStopReasonSchema } from './claim-audit.ts';
 import { gateSchema, usdAmountSchema, validatorResultSchema } from './domain.ts';
 import { turnTranscriptionModeSchema } from './transcription.ts';
 
@@ -247,3 +248,30 @@ export const integrityCheckedPayloadSchema = z.strictObject({
   uncheckedCount: count,
 });
 export type IntegrityCheckedPayload = z.infer<typeof integrityCheckedPayloadSchema>;
+
+/**
+ * Appended by the verification step together with its `claim_audit` artifact (and after the
+ * `copy_generated` event of each revision it stored). The run then always stops at Gate 2,
+ * even without remaining flags. Counts, the stop reason, and the model ID only: never copy
+ * text, problems, or suggestions.
+ */
+export const claimsAuditedPayloadSchema = z.strictObject({
+  stepId: z.string().min(1),
+  /** The step's `claim_audit` artifact. */
+  artifactId: z.uuid(),
+  /** The `listing_copy` artifact Gate 2 reviews. */
+  finalDraftArtifactId: z.uuid(),
+  passCount: count,
+  revisionCount: count,
+  verifierCallCount: count,
+  stopReason: claimAuditStopReasonSchema,
+  remainingFlagCount: count,
+  remainingValidatorFlagCount: count,
+  remainingVerifierFlagCount: count,
+  flaggedClaimCount: count,
+  /** The model of the last verifier call; null when no call was needed. */
+  model: z.string().min(1).nullable(),
+  /** Some pass's verdict came from the definition's fallback model. */
+  fallbackUsed: z.boolean(),
+});
+export type ClaimsAuditedPayload = z.infer<typeof claimsAuditedPayloadSchema>;
