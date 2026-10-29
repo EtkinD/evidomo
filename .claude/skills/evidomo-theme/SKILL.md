@@ -49,6 +49,7 @@ Shape and density tokens: `--radius-field` / `--radius-selector` 0.5rem, `--radi
 - Status is never colour alone: pair it with an icon or text (accessibility, and the evidence UI depends on it).
 - Mobile first: base classes target phone width, `sm:`/`md:` add the larger layouts. Touch targets are at least `btn-sm` height.
 - Server and client errors on a field: `input-error` on the input, `aria-invalid`, and a `text-sm text-error` message linked with `aria-describedby`. daisyUI's `validator` / `validator-hint` react only to native constraint validation, so use them for pure client constraints, not for API errors.
+- Disabled buttons keep a readable label: `globals.css` holds the label at `base-content/70` (about 5.5:1 light, 6.3:1 dark; daisyUI's own dimming is 1.5:1). Never hide state in a disabled control: say why next to it ("Save your changes first."), and use a badge plus text, not a disabled button, for a feature that does not exist yet.
 - Every token pair used for text must pass WCAG AA (4.5:1). Run the contrast check after any token change.
 
 ## 4. Recipes
@@ -104,3 +105,4 @@ When the user comments on the look or feel:
 
 - **2026-10-28 — daisyUI-first.** Component and style choice follows daisyUI → Tailwind → raw CSS. Light and dark looks are daisyUI custom themes (`evidomo-light` default, `evidomo-dark` for dark preference), not per-component overrides.
 - **2026-10-28 — Seed palette (awaiting the user's review).** Calm and trustworthy for a real estate tool: teal primary (hue ~200), slate-blue secondary, amber accent for highlights, cool-grey surfaces, flat surfaces (`--depth: 0`), 0.5rem fields and 0.75rem boxes. Every text pair is at least 5:1. The earlier `text-error-strong` CSS utility was removed because the theme's `error` token now passes AA as text.
+- **2026-10-29 — Disabled controls (review of P4-02).** A disabled `btn` rendered at 1.5:1, unreadable on "Start run" and "Save details". `globals.css` now keeps disabled button labels at `base-content/70`; "coming soon" features are a `badge badge-outline` plus text, not a disabled button.

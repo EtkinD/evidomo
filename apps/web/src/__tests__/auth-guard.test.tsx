@@ -116,6 +116,7 @@ describe('public pages and the header', () => {
     setRoute('/projects');
     const fetchMock = mockFetch({
       'GET /api/auth/me': meSignedIn,
+      'GET /api/projects': () => jsonResponse(200, { projects: [] }),
       'POST /api/auth/logout': () => new Response(null, { status: 204 }),
     });
     const { queryClient } = renderPage(ProjectsPage);
@@ -144,6 +145,7 @@ describe('public pages and the header', () => {
     setRoute('/projects');
     mockFetch({
       'GET /api/auth/me': meSignedIn,
+      'GET /api/projects': () => jsonResponse(200, { projects: [] }),
       'POST /api/auth/logout': () => jsonResponse(500, { error: 'internal_error' }),
     });
     renderPage(ProjectsPage);

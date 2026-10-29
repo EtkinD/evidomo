@@ -97,3 +97,15 @@
   --depth: 0;
   --noise: 0;
 }
+
+/*
+ * daisyUI dims a disabled button to about 1.5:1, which leaves labels such as "Start run" and
+ * "Save details" unreadable. Keep the dimmed look but hold the label at AA (4.5:1); neither a
+ * daisyUI modifier nor a Tailwind utility can restyle the disabled state of every `.btn`.
+ */
+@layer utilities {
+  .btn:disabled,
+  .btn[disabled] {
+    color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
+  }
+}

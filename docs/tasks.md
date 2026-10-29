@@ -160,13 +160,13 @@ The orchestrator (main session) delegates each task to its owner — see `.claud
 - [x] **P4-01 — Auth**
   - Depends on: P2-01
   - Done when: register, login, logout with argon2 and httpOnly cookie sessions; protected routes redirect to login.
-- [ ] **P4-02 — Project creation**
+- [x] **P4-02 — Project creation**
   - Depends on: P4-01
   - Done when: a project is created with office profile, market profile, and output language.
 - [ ] **P4-03 — Mobile capture**
   - Depends on: P4-02, P2-05
   - Done when: on a phone, photos can be taken or picked (downscaled client-side) and a voice walkthrough recorded in the browser and uploaded; layout works at phone width.
-- [ ] **P4-04 — Fact form**
+- [x] **P4-04 — Fact form**
   - Depends on: P2-02, P4-02
   - Done when: the form is generated from the market profile schema with validation and required fields.
 - [ ] **P4-05 — Run monitor**

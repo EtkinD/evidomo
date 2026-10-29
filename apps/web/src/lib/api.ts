@@ -1,4 +1,10 @@
-import { apiErrorSchema, type ApiErrorCode, type ApiValidationIssue } from '@evidomo/shared';
+import {
+  apiErrorSchema,
+  type ApiErrorCode,
+  type ApiValidationIssue,
+  type FactFormFieldProblem,
+  type ReadinessItem,
+} from '@evidomo/shared';
 
 /** The part of a zod schema the client needs; keeps the web app off a direct zod dependency. */
 export interface ResponseSchema<T> {
@@ -12,6 +18,10 @@ export class ApiRequestError extends Error {
   /** `null` when the body was not a recognised API error (e.g. a proxy's HTML error page). */
   readonly code: ApiErrorCode | null;
   readonly issues: readonly ApiValidationIssue[];
+  /** Fact form `validation_failed` only: the problem per field key. */
+  readonly fields: Readonly<Record<string, FactFormFieldProblem>>;
+  /** `not_ready` only: what is still missing before a run can start. */
+  readonly missing: readonly ReadinessItem[];
   /** Seconds from the `Retry-After` header, when present and valid. */
   readonly retryAfterSeconds: number | null;
 
@@ -19,12 +29,16 @@ export class ApiRequestError extends Error {
     status: number;
     code: ApiErrorCode | null;
     issues?: readonly ApiValidationIssue[];
+    fields?: Readonly<Record<string, FactFormFieldProblem>>;
+    missing?: readonly ReadinessItem[];
     retryAfterSeconds?: number | null;
   }) {
     super(`API request failed with ${init.status} (${init.code ?? 'unrecognised body'})`);
     this.status = init.status;
     this.code = init.code;
     this.issues = init.issues ?? [];
+    this.fields = init.fields ?? {};
+    this.missing = init.missing ?? [];
     this.retryAfterSeconds = init.retryAfterSeconds ?? null;
   }
 }
@@ -64,6 +78,8 @@ async function toApiRequestError(response: Response): Promise<ApiRequestError> {
     status: response.status,
     code: parsed.success ? parsed.data.error : null,
     issues: parsed.success ? (parsed.data.issues ?? []) : [],
+    fields: parsed.success ? (parsed.data.fields ?? {}) : {},
+    missing: parsed.success ? (parsed.data.missing ?? []) : [],
     retryAfterSeconds: parseRetryAfter(response.headers.get('Retry-After')),
   });
 }
