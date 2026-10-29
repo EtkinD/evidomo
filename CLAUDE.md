@@ -4,18 +4,21 @@
 
 - Product, architecture, roadmap, and tasks live in `docs/`. Work task by task from `docs/tasks.md`; respect the checkpoints and cut order in `docs/roadmap.md`.
 - Check a task's box only when its "Done when" is demonstrably true. When a decision or interface changes, update `docs/architecture.md` (or `docs/model-notes.md` for model findings) in the same piece of work.
-- This is a public hackathon repository: everything must be new work. Never commit secrets, `.env` files, personal data (including in fixtures), or third-party content we have no rights to.
+- This is a public hackathon repository: everything must be new work. Never commit secrets, `.env` files, personal data (including in fixtures), or third-party content (stock photos included, even when licensed).
+- Raw property samples live outside the repository in `../samples/`. Never commit them or anything derived from them (cassettes, masks, exports).
 
 ## Orchestration
 
 - The main session is the orchestrator: it plans, delegates, verifies, and commits. It implements only small, contained changes itself (docs, config tweaks, one-file fixes).
 - Implementation goes to the owning agent from the **Owners** table in `docs/tasks.md`: `frontend-developer`, `backend-developer`, `ai-pipeline-engineer`, `devops-engineer`. `/run-task <ID>` runs the full loop: delegate → review the diff → verify → commit.
 - Independent tasks with different owners may run in parallel. Agents never commit, push, tick tasks, or add dependencies.
+- Substantial work runs in a worktree under `.claude/worktrees/`. The orchestrator merges it with the procedure in `run-task`.
+- `code-reviewer` (large diffs) and `media-inspector` (images, rendered packs) are read-only helpers that keep the orchestrator's context small.
 
 ## Claude Code configuration
 
 - Keep this file short. File-specific conventions go in path-scoped `.claude/rules/`, repeatable procedures in `.claude/skills/`, roles in `.claude/agents/`, and anything that must always happen in hooks or permission rules in `.claude/settings.json`.
-- Add or change these only when it measurably helps — a repeated mistake, a repeated procedure, an invariant worth enforcing — and remove what goes stale.
+- Add or change these only when it measurably helps — a repeated mistake, a repeated procedure, an invariant worth enforcing — and remove what goes stale. The orchestrator's periodic improvement review and lessons log live in the gitignored `CLAUDE.local.md`.
 
 ## Commands
 
