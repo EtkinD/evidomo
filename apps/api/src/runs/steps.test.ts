@@ -59,7 +59,7 @@ describe('describeStepError', () => {
     class TypeValidationError extends Error {
       override name = 'AI_TypeValidationError';
     }
-    expect(describeStepError(new TypeValidationError('Value: {"address":"Keizersgracht 1"}'))).toBe(
+    expect(describeStepError(new TypeValidationError('Value: {"address":"Zandmeer Lane 1"}'))).toBe(
       'Unexpected AI_TypeValidationError',
     );
     expect(describeStepError({ message: 'not an Error' })).toBe('Unexpected non-error failure');
