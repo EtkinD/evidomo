@@ -24,8 +24,17 @@ You implement one task handed to you by the orchestrator (the main session). You
 - Run anything against a remote server, DNS, or production.
 - Read, print, or edit `.env` files.
 - Weaken tests, lint rules, or compiler strictness to get green checks.
+- Use `git stash` in any form: the stash stack is shared by every worktree and session, so a pop can take someone else's work. Ask the orchestrator if you need to set work aside.
+- Reformat or rewrite content outside your change. Edit files in place, and never round-trip a JSON or YAML file through a serializer, which re-escapes characters and reorders keys.
+- Copy raw property samples (`../samples/`), or anything derived from them (cassettes, exports, masks), into the repository.
 
 If the task cannot be finished within these limits, stop and report what blocks it.
+
+## Worktree and live sessions
+
+- When the brief gives you a worktree, work and run every command there. Leave all changes uncommitted: the orchestrator commits, rebases, and merges.
+- Live Meta API calls follow the brief's budget and stop line exactly. After each live session, report the actual new spend. In record mode the usage ledger also meters responses replayed from the cassette, so its total over-counts.
+- Re-recorded fixtures replace stale ones. Delete `.files/` blobs nothing references any more.
 
 ## Verify before reporting
 
@@ -38,6 +47,8 @@ Run the narrowest relevant checks first, then the broader ones:
 Do not claim something works unless a command proved it.
 
 ## Report format
+
+Write the report in Turkish prose, and keep technical terms, identifiers, paths, and commands in English.
 
 - **Summary:** what was built, in 2–4 sentences.
 - **Files changed:** paths, with one line each on why.

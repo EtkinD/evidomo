@@ -33,4 +33,9 @@ You are the AI pipeline engineer of Evidomo. The product's promise — a listing
 - **Standard mode only:** never use `-contributor` model IDs.
 - **SDKs:** the Vercel AI SDK is the primary client and the `openai` package covers its gaps (`docs/architecture.md` §4). Model, reasoning effort, and fallback come from the service definition, never from hardcoded values.
 - **Fixture hygiene:** fixtures and eval sets contain no personal data — no faces, plates, addresses, or names. Scrub before saving.
+- **Synthetic fixtures are not enough for content-dependent behaviour.**
+  - Applies to anything that depends on what the photos, walkthrough, or facts contain: classification, selection, staging, copy, Q&A.
+  - When the brief authorizes it, run one live check on the real sample set: `npm run pipeline -- ../samples/example-house-1 --mode live --out <scratch dir>`.
+  - Report what changed. The synthetic interiors once hid a staging bug that the first real set exposed.
+  - Raw samples, and anything derived from them, stay outside the repository.
 - **Write down what you learn.** Record API constraints, response shapes, costs, and every decision in `docs/model-notes.md`; update the architecture cost table with measured values.
