@@ -5,7 +5,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { appConfigFromEnv, createApp } from './app.ts';
 import { createDbClient, type DbClient } from './db/client.ts';
 import { loadEnv } from './env.ts';
-import { unusedRunDeps } from './http/testing.ts';
+import { unusedProjectDeps, unusedRunDeps, unusedStorage } from './http/testing.ts';
 
 describe('GET /api/healthz against a real PostgreSQL', () => {
   let container: StartedPostgreSqlContainer;
@@ -28,6 +28,8 @@ describe('GET /api/healthz against a real PostgreSQL', () => {
       logger: pino({ enabled: false }),
       config: appConfigFromEnv(env),
       runs: unusedRunDeps(),
+      storage: unusedStorage(),
+      projects: unusedProjectDeps(),
     });
 
     const response = await request(app).get('/api/healthz');

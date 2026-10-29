@@ -1,22 +1,20 @@
 import { createHash } from 'node:crypto';
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { readFile } from 'node:fs/promises';
 import path from 'node:path';
-import {
-  photoMaterialMetadataSchema,
-  voiceMemoMaterialMetadataSchema,
-  type JsonObject,
-} from '@evidomo/shared';
 import type { Executor } from '../db/client.ts';
-import { addMaterial, setMaterialStatus, type Material } from '../db/repositories/materials.ts';
-import { processVoiceMemo } from '../media/audio.ts';
-import { processPhoto } from '../media/image.ts';
+import type { Material } from '../db/repositories/materials.ts';
 import { UploadRejectedError } from '../media/upload-error.ts';
-import { newMaterialStorageKey, type Storage } from '../storage/storage.ts';
+import type { Storage } from '../storage/storage.ts';
+import {
+  insertReadyMaterial,
+  preparePhoto,
+  prepareVoiceMemo,
+  storePrepared,
+} from '../upload/prepare.ts';
 
-// The project's inputs as uploads: the same validation and processing the upload route will
-// use (P2-05 media functions), then storage and a `ready` material row, in upload order.
-// There is no `processUpload` service yet (P4-03 adds the route); this is its minimal CLI form.
+// The project's inputs as uploads: the same validation and processing as the upload route
+// (`upload/prepare.ts`, shared with `processUpload`), then storage and a `ready` material row,
+// in upload order. The CLI's files belong to the operator, so nothing here deletes them.
 
 /** An input file was refused by upload validation; the message is the uploader-safe one. */
 export class InputRejectedError extends Error {
@@ -50,37 +48,21 @@ export async function ingestPhoto(
   photo: { readonly name: string; readonly path: string },
 ): Promise<IngestedPhoto> {
   const source = new Uint8Array(await readFile(photo.path));
-  let processed;
+  let prepared;
   try {
-    processed = await processPhoto(photo.path);
+    prepared = await preparePhoto(photo.path);
   } catch (error) {
     throw rejected(photo.path, error);
   }
-  const stored = await storage.put(newMaterialStorageKey(projectId, 'jpg'), processed.data);
-  const material = await addMaterial(db, {
-    projectId,
-    kind: 'photo',
-    storageKey: stored.key,
-    mimeType: 'image/jpeg',
-    sizeBytes: stored.sizeBytes,
-    sha256: stored.sha256,
-    status: 'processing',
-  });
-  const metadata: JsonObject = photoMaterialMetadataSchema.parse({
-    width: processed.width,
-    height: processed.height,
-    sourceFormat: processed.sourceFormat,
-    sourceWidth: processed.sourceWidth,
-    sourceHeight: processed.sourceHeight,
-  });
+  const stored = await storePrepared(storage, projectId, prepared);
   return {
-    material: await setMaterialStatus(db, material.id, 'ready', metadata),
+    material: await insertReadyMaterial(db, projectId, prepared, stored),
     name: photo.name,
     sourceSha256: sha256Hex(source),
     stored: {
-      bytes: new Uint8Array(processed.data),
-      width: processed.width,
-      height: processed.height,
+      bytes: new Uint8Array(prepared.data),
+      width: prepared.width,
+      height: prepared.height,
     },
   };
 }
@@ -91,33 +73,12 @@ export async function ingestVoiceMemo(
   projectId: string,
   file: string,
 ): Promise<Material> {
-  const workDir = await mkdtemp(path.join(tmpdir(), 'evidomo-pipeline-voice-'));
+  let prepared;
   try {
-    let processed;
-    try {
-      processed = await processVoiceMemo(file, path.join(workDir, 'memo.wav'));
-    } catch (error) {
-      throw rejected(file, error);
-    }
-    const wav = await readFile(processed.wavPath);
-    const stored = await storage.put(newMaterialStorageKey(projectId, 'wav'), wav);
-    const material = await addMaterial(db, {
-      projectId,
-      kind: 'voice_memo',
-      storageKey: stored.key,
-      mimeType: 'audio/wav',
-      sizeBytes: stored.sizeBytes,
-      sha256: stored.sha256,
-      status: 'processing',
-    });
-    const metadata: JsonObject = voiceMemoMaterialMetadataSchema.parse({
-      durationMs: processed.durationMs,
-      sampleRate: processed.sampleRate,
-      sourceContainer: processed.sourceContainer,
-      sourceCodec: processed.sourceCodec,
-    });
-    return await setMaterialStatus(db, material.id, 'ready', metadata);
-  } finally {
-    await rm(workDir, { recursive: true, force: true });
+    prepared = await prepareVoiceMemo(file);
+  } catch (error) {
+    throw rejected(file, error);
   }
+  const stored = await storePrepared(storage, projectId, prepared);
+  return insertReadyMaterial(db, projectId, prepared, stored);
 }

@@ -49,7 +49,7 @@ import {
   sha256Hex,
   syntheticPhoto,
 } from '../export/testing.ts';
-import { unusedRunDeps } from '../http/testing.ts';
+import { unusedProjectDeps, unusedRunDeps } from '../http/testing.ts';
 import { createLogger } from '../logger.ts';
 import { encodePcm16Wav } from '../media/wav.ts';
 import { decodeSamMask } from '../meta/sam-mask.ts';
@@ -460,9 +460,10 @@ beforeAll(async () => {
     runs: {
       ...unusedRunDeps(),
       services: testRegistry(service),
-      storage,
       eventStream: { pollIntervalMs: 25 },
     },
+    storage,
+    projects: unusedProjectDeps(),
   });
   server = app.listen(0);
   await new Promise<void>((resolve) => server.once('listening', () => resolve()));

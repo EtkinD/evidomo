@@ -42,8 +42,19 @@ export function canTransition(from: RunStatus, to: RunStatus): boolean {
   return RUN_TRANSITIONS[from].includes(to);
 }
 
+/**
+ * `created_at` is `clock_timestamp()`, like materials': steps use only materials created before
+ * the run, and a run started right after an upload (both under the project lock) must sort after
+ * it even though its transaction began first.
+ */
 export async function createRun(db: Executor, input: NewRun): Promise<Run> {
-  return returnedRow(await db.insert(runs).values(input).returning(), 'run');
+  return returnedRow(
+    await db
+      .insert(runs)
+      .values({ ...input, createdAt: sql`clock_timestamp()` })
+      .returning(),
+    'run',
+  );
 }
 
 export async function getRun(db: Executor, runId: string): Promise<Run | undefined> {

@@ -1,5 +1,7 @@
 import { z } from 'zod';
 import { claimFindingSchema } from './claims.ts';
+import { uploadRejectionCodeSchema } from './materials.ts';
+import { factFormFieldProblemSchema, readinessItemSchema } from './projects.ts';
 
 /**
  * Machine-readable error codes returned by the API as `{ error: <code> }`. Clients branch on
@@ -30,6 +32,18 @@ export const apiErrorCodeSchema = z.enum([
   'range_not_satisfiable',
   // Run API: the user already has the maximum number of open event streams.
   'too_many_streams',
+  // Project inputs: a run exists, so materials, the fact form, and the office profile are fixed.
+  'inputs_locked',
+  // The service's maximum photo count is reached.
+  'photo_limit_reached',
+  // Too many uploads in flight for this user or this server; retry after `Retry-After` seconds.
+  'too_many_uploads',
+  // The upload was refused by content validation; `reason` says why.
+  'upload_rejected',
+  // Starting a run: inputs incomplete (`missing`), a run already active, or today's budget spent.
+  'not_ready',
+  'run_active',
+  'daily_budget_reached',
   'internal_error',
 ]);
 
@@ -48,6 +62,12 @@ export const apiErrorSchema = z.object({
   issues: z.array(apiValidationIssueSchema).optional(),
   // Present on `claim_edit_rejected` only: the validator's findings on the operator's own text.
   findings: z.array(claimFindingSchema).optional(),
+  // Present on `validation_failed` from the fact form only: the problem per field key.
+  fields: z.record(z.string(), factFormFieldProblemSchema).optional(),
+  // Present on `not_ready` only: what is still missing before a run can start.
+  missing: z.array(readinessItemSchema).optional(),
+  // Present on `upload_rejected` only.
+  reason: uploadRejectionCodeSchema.optional(),
 });
 
 export type ApiError = z.infer<typeof apiErrorSchema>;

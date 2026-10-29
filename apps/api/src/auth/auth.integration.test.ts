@@ -9,7 +9,7 @@ import { sessions, users } from '../db/schema.ts';
 import { startTestDatabase, type TestDatabase } from '../db/testing.ts';
 import { loadEnv } from '../env.ts';
 import { createErrorHandler } from '../http/errors.ts';
-import { unusedRunDeps } from '../http/testing.ts';
+import { unusedProjectDeps, unusedRunDeps, unusedStorage } from '../http/testing.ts';
 import { authConfigFromEnv, DEFAULT_AUTH_RATE_LIMITS, type AuthRateLimits } from './config.ts';
 import { createSessionMiddleware, currentUser, optionalUser } from './session.ts';
 import { hashSessionToken } from './tokens.ts';
@@ -57,6 +57,8 @@ describe('auth API against a real PostgreSQL', () => {
       logger,
       config: appConfigFromEnv(env, rateLimits),
       runs: unusedRunDeps(),
+      storage: unusedStorage(),
+      projects: unusedProjectDeps(),
     });
   }
 

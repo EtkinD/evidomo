@@ -12,6 +12,7 @@ const logger = createLogger(env);
 // Before the pool and the port: an invalid definition must stop the process, not a later run.
 const registry = await bootDefinitions({ dir: env.DEFINITIONS_DIR, logger });
 const dbClient = createDbClient(env.DATABASE_URL, { logger });
+const storage = createLocalStorage({ rootDir: env.STORAGE_DIR });
 
 // The API only enqueues (a gate decision resumes its run in the same transaction); the worker
 // works jobs and runs pg-boss maintenance, so supervision and cron stay off here.
@@ -42,18 +43,32 @@ try {
 
 // Ends open run event streams on shutdown; otherwise `server.close()` waits for them forever.
 const streamShutdown = new AbortController();
-const app = createApp({
-  db: dbClient,
-  logger,
-  config: appConfigFromEnv(env),
-  runs: {
-    engine,
-    markets: registry,
-    services: registry,
-    storage: createLocalStorage({ rootDir: env.STORAGE_DIR }),
-    shutdownSignal: streamShutdown.signal,
-  },
-});
+let app: ReturnType<typeof createApp>;
+try {
+  app = createApp({
+    db: dbClient,
+    logger,
+    config: appConfigFromEnv(env),
+    runs: {
+      engine,
+      markets: registry,
+      services: registry,
+      shutdownSignal: streamShutdown.signal,
+    },
+    storage,
+    projects: { definitions: registry, dailyCapUsd: env.DAILY_BUDGET_USD },
+  });
+} catch (error) {
+  // E.g. the pinned service (listing-launch v1) is missing or cannot be captured.
+  logger.fatal({ err: error }, 'api failed to build the app');
+  await boss.stop({ graceful: false }).catch((stopError: unknown) => {
+    logger.error({ err: stopError }, 'error while stopping pg-boss after a failed start');
+  });
+  await dbClient.close().catch((closeError: unknown) => {
+    logger.error({ err: closeError }, 'error while closing the database pool');
+  });
+  process.exit(1);
+}
 
 const server = app.listen(env.PORT, (error) => {
   if (error) {

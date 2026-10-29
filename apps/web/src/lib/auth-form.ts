@@ -137,9 +137,7 @@ export function describeAuthFailure(
         kind: 'message',
         message: 'The form could not be sent. Reload the page and try again.',
       };
-    // Gate and run API codes (not_found, gate_not_open, fact_not_in_conflict,
-    // gate_decisions_pending, claim_edit_rejected, export_not_ready, range_not_satisfiable,
-    // too_many_streams) are never returned by the auth endpoints.
+    // Gate, run API, and project codes are never returned by the auth endpoints.
     case 'unauthenticated':
     case 'internal_error':
     case 'not_found':
@@ -150,6 +148,13 @@ export function describeAuthFailure(
     case 'export_not_ready':
     case 'range_not_satisfiable':
     case 'too_many_streams':
+    case 'inputs_locked':
+    case 'photo_limit_reached':
+    case 'too_many_uploads':
+    case 'upload_rejected':
+    case 'not_ready':
+    case 'run_active':
+    case 'daily_budget_reached':
     case null:
       return { kind: 'message', message: GENERIC_FAILURE };
     default: {

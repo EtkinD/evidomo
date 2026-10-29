@@ -7,7 +7,7 @@ import { appConfigFromEnv, createApp, type AppConfig } from './app.ts';
 import { DEFAULT_AUTH_RATE_LIMITS, type AuthRateLimits } from './auth/config.ts';
 import { createDbClient } from './db/client.ts';
 import { loadEnv } from './env.ts';
-import { unusedRunDeps } from './http/testing.ts';
+import { unusedProjectDeps, unusedRunDeps, unusedStorage } from './http/testing.ts';
 
 const silentLogger = pino({ enabled: false });
 
@@ -39,6 +39,8 @@ function appWith(
     logger: options.logger ?? silentLogger,
     config: config(options),
     runs: unusedRunDeps(),
+    storage: unusedStorage(),
+    projects: unusedProjectDeps(),
   });
 }
 
@@ -75,6 +77,8 @@ describe('GET /api/healthz', () => {
       logger: silentLogger,
       config: config(),
       runs: unusedRunDeps(),
+      storage: unusedStorage(),
+      projects: unusedProjectDeps(),
     });
 
     const response = await request(app).get('/api/healthz');
