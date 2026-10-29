@@ -1,5 +1,6 @@
 import { bootDefinitions } from './definitions/boot.ts';
 import { loadEnv } from './env.ts';
+import { createExportHandler } from './export/handler.ts';
 import { createLogger } from './logger.ts';
 import { createMetaClients } from './meta/clients.ts';
 import { createCreativeHandler } from './pipeline/creative/handler.ts';
@@ -39,6 +40,7 @@ try {
         stager: createStagingHandler({ storage }),
         integrity_checker: createIntegrityHandler({ storage }),
         verifier: createVerificationHandler({ markets: registry }),
+        exporter: createExportHandler({ storage, markets: registry }),
       },
       createMetaClients: (usage) =>
         createMetaClients({ apiKey: env.MODEL_API_KEY, usage, estimateCost, logger }),

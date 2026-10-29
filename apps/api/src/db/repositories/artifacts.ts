@@ -14,6 +14,11 @@ const artifactKindSchema = z.string().regex(/^[a-z][a-z0-9_]*$/, 'Expected a sna
 
 /** An artifact is structured content, a stored file, or both. */
 export type NewArtifact = {
+  /**
+   * A caller-chosen ID (e.g. the export's content-derived IDs, so a rebuilt pack references the
+   * same artifacts); the database generates one when absent.
+   */
+  id?: string;
   runId: string;
   stepId: string;
   kind: string;
@@ -35,6 +40,7 @@ export async function insertArtifact(db: Executor, input: NewArtifact): Promise<
   const rows = await db
     .insert(artifacts)
     .values({
+      ...(input.id === undefined ? {} : { id: z.uuid().parse(input.id) }),
       runId: input.runId,
       stepId: input.stepId,
       kind: artifactKindSchema.parse(input.kind),

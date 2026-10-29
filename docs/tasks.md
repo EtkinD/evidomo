@@ -148,7 +148,7 @@ The orchestrator (main session) delegates each task to its owner — see `.claud
 - [x] **P3-08 — Gate 2 API**
   - Depends on: P3-05, P3-06
   - Done when: each flag can be approved, edited, or removed and each staged image approved or rejected through the API; export is blocked until all are decided.
-- [ ] **P3-09 — Export**
+- [x] **P3-09 — Export**
   - Depends on: P3-08
   - Done when: a print-ready HTML pack and portal-fields JSON (schema in `packages/shared`) are produced deterministically from stored artifacts; exported images have faces/plates blurred.
 - [ ] **P3-10 — Headless pipeline CLI**

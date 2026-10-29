@@ -296,3 +296,24 @@ export const claimsAuditedPayloadSchema = z.strictObject({
   fallbackUsed: z.boolean(),
 });
 export type ClaimsAuditedPayload = z.infer<typeof claimsAuditedPayloadSchema>;
+
+/**
+ * Appended by the export step together with its `export` manifest and file artifacts: counts for
+ * the run monitor. Never copy text, fact values, or file names.
+ */
+export const packExportedPayloadSchema = z.strictObject({
+  stepId: z.string().min(1),
+  /** The step's `export` manifest artifact. */
+  artifactId: z.uuid(),
+  imageCount: count,
+  originalCount: count,
+  stagedCount: count,
+  /** Originals with at least one blurred privacy region, and the regions blurred. */
+  blurredImageCount: count,
+  blurredRegionCount: count,
+  /** Withheld originals and staged images (privacy check incomplete, blur or label failure). */
+  withheldCount: count,
+  checklistFailCount: count,
+  readyToPublish: z.boolean(),
+});
+export type PackExportedPayload = z.infer<typeof packExportedPayloadSchema>;

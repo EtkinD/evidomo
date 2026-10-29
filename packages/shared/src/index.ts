@@ -19,3 +19,4 @@ export * from './claim-audit.ts';
 export * from './gates.ts';
 export * from './gate2.ts';
 export * from './integrity.ts';
+export * from './export.ts';

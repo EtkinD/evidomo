@@ -90,6 +90,7 @@ export const RUN_EVENT_TYPES = [
   'images_staged',
   'integrity_checked',
   'claims_audited',
+  'pack_exported',
 ] as const;
 export const runEventTypeSchema = z.enum(RUN_EVENT_TYPES);
 export type RunEventType = z.infer<typeof runEventTypeSchema>;
