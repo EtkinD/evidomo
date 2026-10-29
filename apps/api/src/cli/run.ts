@@ -6,8 +6,10 @@ import {
   EXPORT_MANIFEST_ARTIFACT_KIND,
   exportManifestContentSchema,
   PHOTO_INVENTORY_ARTIFACT_KIND,
+  QA_CARDS_ARTIFACT_KIND,
   photoInventoryContentSchema,
   portalFieldsSchema,
+  qaCardsContentSchema,
   STAGED_IMAGES_ARTIFACT_KIND,
   stagedImagesContentSchema,
   usdAmountSchema,
@@ -32,6 +34,7 @@ import { createMetaClients } from '../meta/clients.ts';
 import { cassettePath } from '../meta/fixtures.ts';
 import { createMetaReplay, type MetaReplay } from '../meta/replay.ts';
 import { createStepHandlers } from '../pipeline/handlers.ts';
+import { droppedCardCount } from '../pipeline/qa/generate.ts';
 import { readAll } from '../pipeline/vision/handler.ts';
 import { createRunEngine } from '../runs/engine.ts';
 import { createLocalStorage } from '../storage/local.ts';
@@ -42,7 +45,6 @@ import {
   planFactConflictDecisions,
   ScriptedDecisionError,
 } from './decisions.ts';
-import { cliServiceRegistry } from './definition.ts';
 import { createFixtureImageAliases, type FixtureImageAliases } from './image-aliases.ts';
 import { ingestPhoto, ingestVoiceMemo } from './ingest.ts';
 import { loadProject, withVoiceMemo, type Project } from './project.ts';
@@ -205,6 +207,31 @@ async function photoSummaries(
   });
 }
 
+/** Every stored set of Q&A cards, in revision order; null when there is none. */
+async function qaSummary(
+  db: TestDatabase['db'],
+  runId: string,
+): Promise<PipelineSummary['qaCards']> {
+  const rows = await listArtifacts(db, runId, { kind: QA_CARDS_ARTIFACT_KIND });
+  if (rows.length === 0) return null;
+  return {
+    drafts: rows
+      .map((row) => {
+        const content = qaCardsContentSchema.parse(row.content);
+        return {
+          stepId: row.stepId,
+          revision: content.revision,
+          cards: content.counts.cards,
+          segments: content.counts.segments,
+          droppedCards: droppedCardCount(content),
+          validatorFailedSegments: content.validation.counts.failedSegments,
+        };
+      })
+      // Artifacts of one transaction share `created_at`; revisions are numbered by their loop.
+      .sort((a, b) => a.revision - b.revision),
+  };
+}
+
 async function buildSummary(
   db: TestDatabase['db'],
   run: Run,
@@ -260,6 +287,7 @@ async function buildSummary(
     steps,
     photos: await photoSummaries(db, run.id, context.photoNames),
     factConflicts: context.gates.factConflicts,
+    qaCards: await qaSummary(db, run.id),
     claimAudit: context.gates.claimAudit,
     unusedDecisions: context.gates.unused,
     export: context.exported,
@@ -316,6 +344,7 @@ async function writeExport(
     outDir,
     files: manifest.files.map((f) => ({ fileName: f.fileName, sizeBytes: f.sizeBytes })),
     readyToPublish: manifest.readyToPublish,
+    qaCards: fields.qaCards.length,
     checklist: fields.publicationChecklist.items.map((item) => ({
       id: item.id,
       status: item.status,
@@ -334,11 +363,10 @@ export async function runPipeline(options: RunPipelineOptions): Promise<Pipeline
   const startedAt = Date.now();
   const { mode, env, logger, progress } = options;
   const definitions = await loadDefinitions(options.definitionsDir);
-  const registry = cliServiceRegistry(definitions);
   let project: Project = await loadProject(
     options.projectDir,
     definitions,
-    registry.getService,
+    (id, version) => definitions.getService(id, version),
     options.decisionsPath,
   );
   if (options.voiceMemo !== undefined) project = await withVoiceMemo(project, options.voiceMemo);
@@ -394,7 +422,7 @@ export async function runPipeline(options: RunPipelineOptions): Promise<Pipeline
     const engine = createRunEngine({
       db,
       boss,
-      registry,
+      registry: definitions,
       logger,
       dailyCapUsd: dailyCap.data,
       handlers: createStepHandlers({ storage, markets: definitions }),

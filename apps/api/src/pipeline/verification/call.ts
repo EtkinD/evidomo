@@ -9,7 +9,7 @@ import { claimAuditOutputSchema, type ModelAuditOutput } from './step-schema.ts'
 import {
   buildVerificationStepPrompt,
   VERIFICATION_OUTPUT_NAME,
-  VERIFICATION_STEP_SYSTEM_PROMPT,
+  verificationSystemPrompt,
 } from './step-prompt.ts';
 
 // The verifier call with the definition's fallback (docs/architecture.md §5 step 8, §9), the
@@ -39,7 +39,7 @@ export function buildVerificationRequests(
 ): VerificationRequests {
   const common = {
     maxOutputTokens: step.max_output_tokens,
-    system: VERIFICATION_STEP_SYSTEM_PROMPT,
+    system: verificationSystemPrompt(request.input.copy.some((text) => text.variant === 'qa')),
     prompt: buildVerificationStepPrompt(request.input),
     segmentIds: request.auditIds,
     categories: request.categories,

@@ -4,7 +4,6 @@ import path from 'node:path';
 import { portalFieldsSchema } from '@evidomo/shared';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createLogger } from '../logger.ts';
-import { DEFERRED_STEP_ID } from './definition.ts';
 import { runPipeline, SUMMARY_FILE } from './run.ts';
 import type { PipelineSummary } from './summary.ts';
 
@@ -54,7 +53,7 @@ describe('headless pipeline CLI, fixture mode', () => {
 
     expect(summary.status).toBe('completed');
     expect(summary.failureReason).toBeNull();
-    expect(summary.service.steps).not.toContain(DEFERRED_STEP_ID);
+    expect(summary.service.steps).toContain('qa_cards');
     expect(summary.steps.map((s) => [s.stepId, s.status, s.attempts, s.executions])).toEqual(
       summary.service.steps.map((id) => [id, 'completed', 1, 1]),
     );
@@ -128,6 +127,18 @@ describe('headless pipeline CLI, fixture mode', () => {
       summary.photos.filter((p) => p.staging?.status === 'staged').map((p) => p.photo),
     ).toEqual(['living-empty.jpg']);
 
+    // Buyer Q&A cards (P3-03): written once, validator-clean, and clean in the audit.
+    expect(summary.qaCards?.drafts).toEqual([
+      expect.objectContaining({
+        stepId: 'qa_cards',
+        revision: 0,
+        cards: 7,
+        droppedCards: 0,
+        validatorFailedSegments: 0,
+      }),
+    ]);
+    expect(summary.claimAudit?.claims.filter((c) => c.variant === 'qa')).toEqual([]);
+
     // Gate 2: the staged image the integrity check offered was accepted by the default.
     expect(summary.claimAudit?.images.map((i) => [i.photo, i.choice, i.origin])).toEqual([
       ['living-empty.jpg', 'accept', 'default_policy'],
@@ -153,8 +164,13 @@ describe('headless pipeline CLI, fixture mode', () => {
       value: 1987,
     });
     expect(fields.images.filter((i) => i.kind === 'staged')).toHaveLength(1);
+    expect(exported.qaCards).toBe(7);
+    expect(fields.qaCards).toHaveLength(7);
+    expect(fields.qaCards.every((card) => card.question.endsWith('?'))).toBe(true);
     const html = await readFile(path.join(outDir, 'listing-pack.html'), 'utf8');
     expect(html).toContain('Virtually staged');
+    expect(html).toContain('<section id="qa">');
+    expect(html.match(/<dt>/g)).toHaveLength(7);
     const written: unknown = JSON.parse(await readFile(path.join(outDir, SUMMARY_FILE), 'utf8'));
     expect(written).toEqual(JSON.parse(JSON.stringify(summary)));
   }, 300_000);

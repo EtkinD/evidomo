@@ -2,11 +2,15 @@ import {
   CLAIM_AUDIT_ARTIFACT_KIND,
   INTEGRITY_CHECKS_ARTIFACT_KIND,
   LISTING_COPY_ARTIFACT_KIND,
+  QA_CARDS_ARTIFACT_KIND,
+  QA_VARIANT,
   STAGED_IMAGE_ARTIFACT_KIND,
   claimAuditContentSchema,
   integrityChecksContentSchema,
   listingCopyContentSchema,
+  qaCardsContentSchema,
   type ClaimAuditContent,
+  type ClaimAuditVariant,
 } from '@evidomo/shared';
 import { z } from 'zod';
 import type { Executor } from '../../db/client.ts';
@@ -41,8 +45,8 @@ export interface PublicationChecklistRunInput {
    */
   readonly approvedStagedArtifactIds: readonly string[];
   /**
-   * The Gate 2 decisions on claims of the final draft (`claim_audit.finalDraftArtifactId`), one
-   * per decided claim. A claim without a decision stays in the copy unchanged; a flagged claim
+   * The Gate 2 decisions on claims of the final draft (`claim_audit.finalDraftArtifactId`) and
+   * of the final Q&A cards (`finalQaArtifactId`), one per decided claim. A claim without a decision stays in the copy unchanged; a flagged claim
    * without one is unresolved.
    */
   readonly claimDecisions: readonly {
@@ -72,12 +76,20 @@ async function readClaimAudit(db: Executor, runId: string): Promise<ClaimAuditCo
   return content.data;
 }
 
-async function readFinalCopy(
+/** A segment of the final draft or the final Q&A cards, before decisions are applied. */
+interface FinalSegment {
+  readonly claimId: string;
+  readonly variant: ClaimAuditVariant;
+  readonly factIds: readonly string[];
+  /** The Q&A card of an answer segment; null for copy. */
+  readonly card: number | null;
+}
+
+async function readFinalCopySegments(
   db: Executor,
   runId: string,
   audit: ClaimAuditContent,
-  decisions: PublicationChecklistRunInput['claimDecisions'],
-): Promise<ChecklistCopySegment[]> {
+): Promise<FinalSegment[]> {
   const artifact = await getArtifact(db, audit.finalDraftArtifactId);
   if (artifact?.runId !== runId || artifact.kind !== LISTING_COPY_ARTIFACT_KIND) {
     throw new PublicationChecklistInputError(
@@ -93,19 +105,82 @@ async function readFinalCopy(
       variant.segments.map((segment) => [segment.index, variant.kind] as const),
     ),
   );
-  const claims = await listClaims(db, artifact.id);
-  if (claims.length !== variantOf.size) {
+  return withClaims(db, artifact.id, variantOf, new Map(), 'final draft');
+}
+
+/**
+ * The final Q&A cards' answer segments (P3-03), variant `qa`, so a `qa` flag points at a segment
+ * like a copy flag does. None when the run has no Q&A step.
+ */
+async function readFinalQaSegments(
+  db: Executor,
+  runId: string,
+  audit: ClaimAuditContent,
+): Promise<FinalSegment[]> {
+  if (audit.finalQaArtifactId === null) return [];
+  const artifact = await getArtifact(db, audit.finalQaArtifactId);
+  if (artifact?.runId !== runId || artifact.kind !== QA_CARDS_ARTIFACT_KIND) {
     throw new PublicationChecklistInputError(
-      `The final draft has ${variantOf.size} segments but ${claims.length} claims`,
+      "The claim audit's final Q&A cards are not Q&A cards of the run",
     );
   }
+  const content = qaCardsContentSchema.safeParse(artifact.content);
+  if (!content.success) {
+    throw new PublicationChecklistInputError('The final Q&A cards have an invalid format');
+  }
+  const cards = content.data.cards.flatMap((card) =>
+    card.segments.map((segment) => [segment.index, card.card] as const),
+  );
+  const variantOf = new Map(cards.map(([index]) => [index, QA_VARIANT] as const));
+  return withClaims(db, artifact.id, variantOf, new Map(cards), 'final Q&A cards');
+}
 
+async function withClaims(
+  db: Executor,
+  artifactId: string,
+  variantOf: ReadonlyMap<number, ClaimAuditVariant>,
+  cardOf: ReadonlyMap<number, number>,
+  what: string,
+): Promise<FinalSegment[]> {
+  const claims = await listClaims(db, artifactId);
+  if (claims.length !== variantOf.size) {
+    throw new PublicationChecklistInputError(
+      `The ${what} have ${variantOf.size} segments but ${claims.length} claims`,
+    );
+  }
+  return claims.map((claim) => {
+    const variant = variantOf.get(claim.segmentIndex);
+    if (variant === undefined) {
+      throw new PublicationChecklistInputError(
+        `Claim ${claim.id} has no segment ${claim.segmentIndex} in the ${what}`,
+      );
+    }
+    return {
+      claimId: claim.id,
+      variant,
+      factIds: claim.factIds,
+      card: cardOf.get(claim.segmentIndex) ?? null,
+    };
+  });
+}
+
+/** The final segments (copy, then Q&A) with the operator's decisions applied. */
+async function readFinalCopy(
+  db: Executor,
+  runId: string,
+  audit: ClaimAuditContent,
+  decisions: PublicationChecklistRunInput['claimDecisions'],
+): Promise<ChecklistCopySegment[]> {
+  const segments = [
+    ...(await readFinalCopySegments(db, runId, audit)),
+    ...(await readFinalQaSegments(db, runId, audit)),
+  ];
   const choiceOf = new Map<string, ClaimDecisionChoice>();
-  const claimIds = new Set(claims.map((claim) => claim.id));
+  const claimIds = new Set(segments.map((segment) => segment.claimId));
   for (const { claimId, choice } of decisions) {
     if (!claimIds.has(claimId)) {
       throw new PublicationChecklistInputError(
-        `Claim ${claimId} is not a segment of the final draft`,
+        `Claim ${claimId} is not a segment of the final draft or Q&A cards`,
       );
     }
     if (choiceOf.has(claimId)) {
@@ -113,21 +188,18 @@ async function readFinalCopy(
     }
     choiceOf.set(claimId, choice);
   }
-
-  return claims.map((claim) => {
-    const variant = variantOf.get(claim.segmentIndex);
-    if (variant === undefined) {
-      throw new PublicationChecklistInputError(
-        `Claim ${claim.id} has no segment ${claim.segmentIndex} in the final draft`,
-      );
-    }
-    return {
-      claimId: claim.id,
-      variant,
-      factIds: claim.factIds,
-      decision: choiceOf.get(claim.id) ?? null,
-    };
-  });
+  // Removing any answer of a Q&A card drops the whole card at Gate 2 (P3-03), so its other
+  // claims are not published either: they count as removed, whatever their own decision.
+  const droppedCards = new Set(
+    segments.flatMap((segment) =>
+      segment.card !== null && choiceOf.get(segment.claimId) === 'remove' ? [segment.card] : [],
+    ),
+  );
+  return segments.map(({ card, ...segment }) => ({
+    ...segment,
+    decision:
+      card !== null && droppedCards.has(card) ? 'remove' : (choiceOf.get(segment.claimId) ?? null),
+  }));
 }
 
 async function readApprovedStagedImages(
@@ -178,7 +250,7 @@ async function readApprovedStagedImages(
 
 /**
  * The checklist inputs for a run after Gate 2: the run's market profile, its verified facts,
- * the final draft's segments with the operator's decisions, the claim audit's categories and
+ * the final draft's and Q&A cards' segments with the operator's decisions, the claim audit's categories and
  * remaining flags, and the approved staged images' disclosures. Pass the result to
  * `evaluatePublicationChecklist`.
  */

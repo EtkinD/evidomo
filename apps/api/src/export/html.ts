@@ -71,6 +71,8 @@ figcaption{font-size:8.5pt;color:#444;margin-top:1mm}
 .status-fail{color:#b42318}
 .status-not_applicable{color:#555}
 blockquote{margin:1mm 0 2mm;padding-left:3mm;border-left:.6mm solid #d0d0d0}
+.qa dt{font-weight:600;margin-top:2mm}
+.qa dd{margin:0.5mm 0 0}
 footer{margin-top:10mm;font-size:8.5pt;color:#555;border-top:.2mm solid #d0d0d0;padding-top:3mm}
 @media screen{body{background:#f4f4f5}main{background:#fff;padding:14mm 15mm;margin:8mm auto;box-shadow:0 1px 4px rgba(0,0,0,.12)}}`;
 
@@ -159,6 +161,15 @@ function renderVariant(variant: PortalCopyVariant, title: string, t: PackStrings
     paragraphs.at(-1)?.push(segment.text);
   }
   return `<h3>${esc(title)}</h3>${paragraphs.map((p) => `<p>${esc(p.join(' '))}</p>`).join('')}`;
+}
+
+/** The approved buyer Q&A cards (P3-03); nothing when the pack has none. */
+function renderQa(fields: PortalFields, t: PackStrings): string {
+  if (fields.qaCards.length === 0) return '';
+  const cards = fields.qaCards
+    .map((card) => `<dt>${esc(card.question)}</dt><dd>${esc(card.answer)}</dd>`)
+    .join('');
+  return `<section id="qa"><h2>${esc(t.qaTitle)}</h2><dl class="qa">${cards}</dl></section>`;
 }
 
 function renderFacts(fields: PortalFields, t: PackStrings): string {
@@ -264,8 +275,8 @@ function renderPhotos(input: ListingPackHtmlInput, t: PackStrings): string {
 }
 
 interface QuotedSegment {
-  readonly segment: PortalCopySegment;
-  readonly variant: 'portal' | 'social';
+  readonly segment: Pick<PortalCopySegment, 'claimId' | 'text' | 'origin'>;
+  readonly variant: 'portal' | 'social' | 'qa';
 }
 
 function quote({ segment, variant }: QuotedSegment, t: PackStrings): string {
@@ -306,10 +317,13 @@ interface Gate2Decisions {
 }
 
 function gate2Decisions(input: ListingPackHtmlInput): Gate2Decisions {
-  const { copy } = input.fields;
+  const { copy, qaCards } = input.fields;
   const segments: QuotedSegment[] = [
     ...copy.portal.segments.map((segment) => ({ segment, variant: 'portal' as const })),
     ...copy.social.segments.map((segment) => ({ segment, variant: 'social' as const })),
+    ...qaCards.flatMap((card) =>
+      card.segments.map((segment) => ({ segment, variant: 'qa' as const })),
+    ),
   ];
   const overrides: QuotedSegment[] = [];
   const refused: (QuotedSegment & { categories: PhrasingCategory[] })[] = [];
@@ -444,6 +458,7 @@ export function renderListingPackHtml(input: ListingPackHtmlInput): string {
       renderVariant(fields.copy.portal, t.portalTitle, t) +
       renderVariant(fields.copy.social, t.socialTitle, t) +
       '</section>',
+    renderQa(fields, t),
     renderFacts(fields, t),
     renderPhotos(input, t),
     renderChecklist(input, t),

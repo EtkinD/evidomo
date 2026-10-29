@@ -6,6 +6,7 @@ import {
   type PortalCopyVariant,
   type PortalFields,
   type PortalImage,
+  type PortalQaCard,
   type PortalWithheldImage,
   type PublicationChecklistResult,
 } from '@evidomo/shared';
@@ -34,6 +35,15 @@ export function copyVariant(
   };
 }
 
+/** The approved Q&A cards: each answer joins its segments with a space. */
+export function qaCards(pack: Pick<ApprovedPackContent, 'qaCards'>): PortalQaCard[] {
+  return pack.qaCards.map((card) => ({
+    question: card.question,
+    answer: card.segments.map((segment) => segment.text).join(' '),
+    segments: card.segments.map((segment) => ({ ...segment, factIds: [...segment.factIds] })),
+  }));
+}
+
 export interface PortalFieldsParts {
   readonly runId: string;
   readonly pack: { readonly artifactId: string; readonly content: ApprovedPackContent };
@@ -48,7 +58,7 @@ export interface PortalFieldsParts {
 export function composePortalFields(parts: PortalFieldsParts): PortalFields {
   const { pack } = parts;
   return portalFieldsSchema.parse({
-    schemaVersion: 1,
+    schemaVersion: 2,
     formatVersion: EXPORT_FORMAT_VERSION,
     runId: parts.runId,
     approvedPackArtifactId: pack.artifactId,
@@ -60,6 +70,7 @@ export function composePortalFields(parts: PortalFieldsParts): PortalFields {
       portal: copyVariant(pack.content, 'portal'),
       social: copyVariant(pack.content, 'social'),
     },
+    qaCards: qaCards(pack.content),
     images: [...parts.images],
     withheld: [...parts.withheld],
     publicationChecklist: parts.checklist,

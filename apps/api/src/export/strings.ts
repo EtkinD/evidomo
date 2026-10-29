@@ -28,7 +28,9 @@ export interface PackStrings {
   readonly portalTitle: string;
   readonly socialTitle: string;
   readonly variantEmpty: string;
-  readonly variantName: { readonly portal: string; readonly social: string };
+  readonly variantName: { readonly portal: string; readonly social: string; readonly qa: string };
+  /** The buyer Q&A section (P3-03), shown only when the pack has cards. */
+  readonly qaTitle: string;
   readonly factsTitle: string;
   readonly factColumn: string;
   readonly valueColumn: string;
@@ -85,7 +87,8 @@ const en: PackStrings = {
   portalTitle: 'Portal description',
   socialTitle: 'Social media caption',
   variantEmpty: 'No text: every segment was removed at Gate 2.',
-  variantName: { portal: 'portal description', social: 'social media caption' },
+  variantName: { portal: 'portal description', social: 'social media caption', qa: 'buyer Q&A' },
+  qaTitle: 'Buyer questions and answers',
   factsTitle: 'Fact sheet',
   factColumn: 'Fact',
   valueColumn: 'Value',
@@ -155,7 +158,12 @@ const nl: PackStrings = {
   portalTitle: 'Omschrijving voor de woningsite',
   socialTitle: 'Tekst voor sociale media',
   variantEmpty: 'Geen tekst: alle zinnen zijn bij Gate 2 verwijderd.',
-  variantName: { portal: 'omschrijving', social: 'tekst voor sociale media' },
+  variantName: {
+    portal: 'omschrijving',
+    social: 'tekst voor sociale media',
+    qa: 'vragen van kopers',
+  },
+  qaTitle: 'Vragen en antwoorden voor kopers',
   factsTitle: 'Feitenoverzicht',
   factColumn: 'Kenmerk',
   valueColumn: 'Waarde',

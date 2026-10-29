@@ -133,8 +133,8 @@ async function isFile(file: string): Promise<boolean> {
  * Loads `project.json` and `decisions.json`, and checks them against the definitions before any
  * database, upload, or model call: the service and market exist, the language is offered, the
  * fact form fits the market profile, the inputs fit the service's input constraints, every file
- * exists, and every image decision names a project photo. `service` is the definition the run
- * will use (the caller may pass a derived one, see ./definition.ts).
+ * exists, and every image decision names a project photo. `resolveService` returns the
+ * definition the run will use.
  */
 export async function loadProject(
   dir: string,

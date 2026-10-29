@@ -41,7 +41,7 @@ import { appConfigFromEnv, createApp } from '../app.ts';
 import type { Executor } from '../db/client.ts';
 import { insertArtifact, listArtifacts } from '../db/repositories/artifacts.ts';
 import { listClaims, recordVerifierVerdict, type Claim } from '../db/repositories/claims.ts';
-import { insertFacts, type NewFact } from '../db/repositories/facts.ts';
+import { insertFacts, listFacts, type NewFact } from '../db/repositories/facts.ts';
 import { listRunEvents } from '../db/repositories/run-events.ts';
 import { getRun, type Run } from '../db/repositories/runs.ts';
 import { seedProject, seedRun, startTestDatabase, type TestDatabase } from '../db/testing.ts';
@@ -70,6 +70,8 @@ import {
   stagingOperation,
   stagingPrompt,
 } from '../pipeline/staging/operations.ts';
+import { storeQaCards } from '../pipeline/qa/handler.ts';
+import { qaCardsFromCopy } from '../pipeline/qa/testing.ts';
 import { verificationService } from '../pipeline/verification/testing.ts';
 import { createRunEngine, type RunEngine } from '../runs/engine.ts';
 import { RUN_STEP_QUEUE } from '../runs/queue.ts';
@@ -107,10 +109,29 @@ interface ImageSpec {
   readonly operationId: StagingOperationId;
 }
 
+/** A flag on a Q&A answer segment (by its index in the cards). */
+interface QaFlagSpec {
+  readonly index: number;
+  readonly category: ClaimAuditCategory;
+  readonly problem: string;
+}
+
 interface Scenario {
   readonly flags: readonly FlagSpec[];
   readonly images: readonly ImageSpec[];
+  /** Present: the stub also stores Q&A cards (P3-03) with these flags. */
+  readonly qaFlags?: readonly QaFlagSpec[];
 }
+
+/**
+ * Q&A cards built from recorded draft segments (same text and citations, so they validate):
+ * card 0 answers with segment 0 (living area), card 1 with segments 1 (energy label) and 12
+ * (parking). Answer indexes 0, 1, 2.
+ */
+const QA_CARD_SOURCES = [
+  { question: 'How large is the living area?', segments: [0] },
+  { question: 'What is the energy label, and where can I park?', segments: [1, 12] },
+] as const;
 
 /** Files stand-in for every staged artifact the verifier stub stores, per run. */
 interface StoredImages {
@@ -342,11 +363,48 @@ const verifierStub: StepHandler<'verifier'> = async (context) => {
   if (draftArtifact === undefined) throw new Error('no draft');
   const draft = listingCopyContentSchema.parse(draftArtifact.content);
   const claims = await listClaims(context.db, draftArtifact.id);
-  const flags = scenario.flags.map((spec) => auditFlag(spec, draftArtifact.id, draft, claims));
-  const segments = draft.counts.segments;
+  const copyFlags = scenario.flags.map((spec) => auditFlag(spec, draftArtifact.id, draft, claims));
+  const qaContent =
+    scenario.qaFlags === undefined
+      ? null
+      : qaCardsFromCopy(
+          draft,
+          await listFacts(context.db, run.id, { status: 'verified' }),
+          QA_CARD_SOURCES,
+        );
+  const segments = draft.counts.segments + (qaContent?.counts.segments ?? 0);
   return {
     async commit(tx) {
       await storeIntegrity(tx, run, scenario.images);
+      let qaId: string | null = null;
+      const qaFlags: ClaimAuditFlag[] = [];
+      if (qaContent !== null) {
+        const stored = await storeQaCards(tx, {
+          runId: run.id,
+          stepId: 'qa_cards',
+          content: qaContent,
+        });
+        qaId = stored.artifact.id;
+        const qaClaims = await listClaims(tx, qaId);
+        for (const spec of scenario.qaFlags ?? []) {
+          const claim = qaClaims.find((c) => c.segmentIndex === spec.index);
+          if (claim === undefined) throw new Error(`no Q&A claim ${spec.index}`);
+          qaFlags.push({
+            source: 'verifier',
+            category: spec.category,
+            code: null,
+            artifactId: qaId,
+            variant: 'qa',
+            segment: spec.index,
+            segmentIndex: spec.index,
+            claimId: claim.id,
+            problem: spec.problem,
+            suggestion: null,
+            carried: false,
+          });
+        }
+      }
+      const flags = [...copyFlags, ...qaFlags];
       const audit = await insertArtifact(tx, {
         runId: run.id,
         stepId: 'verification',
@@ -361,9 +419,12 @@ const verifierStub: StepHandler<'verifier'> = async (context) => {
           stopReason: flags.length === 0 ? 'clean' : 'loop_limit',
           initialDraftArtifactId: draftArtifact.id,
           finalDraftArtifactId: draftArtifact.id,
+          initialQaArtifactId: qaId,
+          finalQaArtifactId: qaId,
           passes: [
             {
               draftArtifactId: draftArtifact.id,
+              qaDraftArtifactId: qaId,
               revision: 0,
               segments,
               auditedSegments: segments,
@@ -968,6 +1029,143 @@ describe('Gate 2 API', () => {
     const after = await getGate(run.id);
     expect(after).toMatchObject({ state: 'released', runStatus: 'completed', openCount: 0 });
     expect(segmentAt(after, 12).decision?.choice).toBe('edit');
+  });
+
+  it('decides Q&A answers like copy claims and puts the approved cards into the pack (P3-03)', async () => {
+    const run = await gate2Run({
+      flags: [],
+      images: [],
+      qaFlags: [
+        { index: 0, category: 'claim_support', problem: 'Synthetic flag on the area answer.' },
+        { index: 2, category: 'claim_support', problem: '"available" is not stated.' },
+      ],
+    });
+    const gate = await getGate(run.id);
+    expect(gate.finalQaArtifactId).not.toBeNull();
+    expect(gate.qaCards.map((c) => [c.card, c.question, c.segments.map((s) => s.index)])).toEqual([
+      [0, 'How large is the living area?', [0]],
+      [1, 'What is the energy label, and where can I park?', [1, 2]],
+    ]);
+    expect(gate.counts).toMatchObject({ flaggedClaims: 2, openClaims: 2 });
+    const [area] = gate.qaCards[0]?.segments ?? [];
+    const [label, parking] = gate.qaCards[1]?.segments ?? [];
+    if (area === undefined || label === undefined || parking === undefined) {
+      throw new Error('no Q&A segments');
+    }
+    expect(area).toMatchObject({ position: 0, paragraph: 0, validatorResult: 'pass' });
+    expect(parking.flags.map((f) => f.problem)).toEqual(['"available" is not stated.']);
+    expect(label.flags).toEqual([]);
+    // The copy segment with the same index (0) is unflagged: Q&A claims are their own rows.
+    expect(segmentAt(gate, 0).flags).toEqual([]);
+
+    // An edited answer must pass the claim validator against the answer's citations.
+    const invalid = await decideClaim(run.id, parking.claimId, {
+      choice: 'edit',
+      text: 'Parking is in front of the door, about 8 minutes from the station.',
+    });
+    expect([invalid.status, errorCode(invalid)]).toEqual([400, 'claim_edit_rejected']);
+    expect(
+      (apiErrorSchema.parse(invalid.body).findings ?? []).every((f) => f.variant === 'qa'),
+    ).toBe(true);
+    const editedText = 'Parking is in front of the door, with no paid parking.';
+    parsed(await decideClaim(run.id, parking.claimId, { choice: 'edit', text: editedText }));
+    const decided = parsed(await decideClaim(run.id, area.claimId, { choice: 'remove' }));
+    expect(decided.openCount).toBe(0);
+    expect(decided.qaCards.map((c) => c.dropped)).toEqual([true, false]);
+    // An unflagged answer is not a decision target.
+    const unflagged = await decideClaim(run.id, label.claimId, { choice: 'accept' });
+    expect([unflagged.status, errorCode(unflagged)]).toEqual([404, 'not_found']);
+
+    parsed(await approve(run.id));
+    await waitForStatus(run.id, 'completed');
+    const [packArtifact] = await approvedPacks(run.id);
+    const pack = approvedPackContentSchema.parse(packArtifact?.content);
+    expect(pack.finalQaArtifactId).toBe(gate.finalQaArtifactId);
+    // Card 0 lost its only answer and is gone; card 1 keeps the unflagged and the edited answer.
+    expect(pack.qaCards).toEqual([
+      {
+        card: 1,
+        question: 'What is the energy label, and where can I park?',
+        segments: [
+          expect.objectContaining({
+            claimId: label.claimId,
+            origin: 'unflagged',
+            text: label.text,
+          }),
+          expect.objectContaining({ claimId: parking.claimId, origin: 'edited', text: editedText }),
+        ],
+      },
+    ]);
+    expect(pack.removedClaimIds).toEqual([area.claimId]);
+    // Copy is untouched and raises no warning for Q&A removals.
+    expect(pack.variants.flatMap((v) => v.segments)).toHaveLength(17);
+    expect(pack.warnings).toEqual([]);
+    expect(await gateDecidedEvents(run.id)).toEqual([
+      expect.objectContaining({
+        flaggedClaimCount: 2,
+        editedClaimCount: 1,
+        removedClaimCount: 1,
+      }),
+    ]);
+  });
+
+  it('drops the whole Q&A card when a flagged answer is removed, question included (P3-03)', async () => {
+    // The verifier flags a question's problem on the card's first answer (index 1, card 1); the
+    // card's second answer (index 2) is flagged too.
+    const run = await gate2Run({
+      flags: [],
+      images: [],
+      qaFlags: [
+        { index: 1, category: 'exclusionary', problem: 'The question addresses families.' },
+        { index: 2, category: 'claim_support', problem: '"available" is not stated.' },
+      ],
+    });
+    const gate = await getGate(run.id);
+    const [label, parking] = gate.qaCards[1]?.segments ?? [];
+    const area = gate.qaCards[0]?.segments[0];
+    if (label === undefined || parking === undefined || area === undefined) {
+      throw new Error('no Q&A segments');
+    }
+    expect(gate.counts.openClaims).toBe(2);
+
+    // Removing the first answer drops card 1: its other flagged answer is no longer open.
+    const dropped = parsed(await decideClaim(run.id, label.claimId, { choice: 'remove' }));
+    expect(dropped.qaCards.map((c) => [c.card, c.dropped])).toEqual([
+      [0, false],
+      [1, true],
+    ]);
+    expect(dropped).toMatchObject({ openCount: 0, counts: { flaggedClaims: 2, openClaims: 0 } });
+
+    parsed(await approve(run.id));
+    await waitForStatus(run.id, 'completed');
+    const [packArtifact] = await approvedPacks(run.id);
+    const pack = approvedPackContentSchema.parse(packArtifact?.content);
+    // Only card 0 is published; every claim of card 1 is removed, the undecided one too.
+    expect(pack.qaCards.map((c) => [c.card, c.segments.map((x) => x.claimId)])).toEqual([
+      [0, [area.claimId]],
+    ]);
+    expect(pack.removedClaimIds).toEqual([label.claimId, parking.claimId]);
+  });
+
+  it('keeps the Q&A card when its flagged answer is accepted', async () => {
+    const run = await gate2Run({
+      flags: [],
+      images: [],
+      qaFlags: [{ index: 1, category: 'claim_support', problem: 'Synthetic flag.' }],
+    });
+    const label = (await getGate(run.id)).qaCards[1]?.segments[0];
+    if (label === undefined) throw new Error('no Q&A segment');
+    const accepted = parsed(await decideClaim(run.id, label.claimId, { choice: 'accept' }));
+    expect(accepted.qaCards.map((c) => c.dropped)).toEqual([false, false]);
+    parsed(await approve(run.id));
+    await waitForStatus(run.id, 'completed');
+    const [packArtifact] = await approvedPacks(run.id);
+    const pack = approvedPackContentSchema.parse(packArtifact?.content);
+    expect(pack.qaCards.map((c) => c.segments.map((x) => x.origin))).toEqual([
+      ['unflagged'],
+      ['accepted', 'unflagged'],
+    ]);
+    expect(pack.removedClaimIds).toEqual([]);
   });
 
   it('still waits for an explicit approval when there is nothing to decide', async () => {

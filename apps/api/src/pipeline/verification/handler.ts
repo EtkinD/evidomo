@@ -2,10 +2,12 @@ import { randomUUID } from 'node:crypto';
 import {
   CLAIM_AUDIT_ARTIFACT_KIND,
   LISTING_COPY_ARTIFACT_KIND,
+  QA_CARDS_ARTIFACT_KIND,
   claimAuditContentSchema,
   claimVerifierDetailsSchema,
   claimsAuditedPayloadSchema,
   listingCopyContentSchema,
+  qaCardsContentSchema,
   verifierVerdictFor,
   type ClaimAuditContent,
   type ClaimAuditFlag,
@@ -14,6 +16,7 @@ import {
   type ClaimsAuditedPayload,
   type ListingCopyContent,
   type MarketProfile,
+  type QaCardsContent,
   type ServiceDefinition,
 } from '@evidomo/shared';
 import type { Executor } from '../../db/client.ts';
@@ -39,18 +42,35 @@ import {
   type CopySources,
 } from '../creative/generate.ts';
 import { loadCopySources, storeListingCopy } from '../creative/handler.ts';
-import { auditDraft, toRevisionFlags, type DraftAudit, type VerdictMemory } from './audit.ts';
+import {
+  buildQaCardsContent,
+  buildQaInput,
+  buildQaRequests,
+  generateQaCards,
+  qaFailureClass,
+  toQaDraft,
+} from '../qa/generate.ts';
+import { storeQaCards } from '../qa/handler.ts';
+import {
+  auditDraft,
+  toQaRevisionFlags,
+  toRevisionFlags,
+  type DraftAudit,
+  type VerdictMemory,
+} from './audit.ts';
 import { buildVerificationRequests, verifyWithFallback } from './call.ts';
 import { runRevisionLoop, type LoopResult } from './loop.ts';
 import { buildVerificationRubric } from './rubric.ts';
 import { VERIFICATION_PROMPT_VERSION } from './step-prompt.ts';
 
-// Step 8, verification (docs/architecture.md §5): the creative step's copy → the claim
-// validator's findings plus one Wonder audit (Spark fallback) against a rubric built from the
-// market profile → up to `max_revision_loops` revisions through the creative step's own
-// functions (and settings), each audited again, changed segments only → every revision as a
-// `listing_copy` artifact, verifier verdicts on every audited claim, and one `claim_audit`
-// artifact with the remaining flags. The run always stops at Gate 2 (`claim_audit`), even when
+// Step 8, verification (docs/architecture.md §5): the creative step's copy, plus the Q&A
+// step's cards when the service has one → the claim validator's findings plus one Wonder audit
+// (Spark fallback) of both against a rubric built from the market profile → up to
+// `max_revision_loops` loops; in each, the copy is revised through the creative step's functions
+// (and settings) if it has flags, the cards through the Q&A step's (P3-03) if they have flags,
+// and changed segments are audited again → every revision as a `listing_copy` or `qa_cards`
+// artifact, verifier verdicts on every audited claim, and one `claim_audit` artifact with the
+// remaining flags. The run always stops at Gate 2 (`claim_audit`), even when
 // nothing is flagged: the operator signs off on the copy and the staged images there. Copy,
 // problems, and suggestions are personal data: artifacts and claims only, never logs or events.
 
@@ -68,6 +88,49 @@ export interface VerificationDraft {
    * provisional UUID that commit replaces with the inserted artifact's ID.
    */
   readonly provisionalId: string;
+}
+
+/** Q&A cards during the loop; same storage rules as {@link VerificationDraft}. */
+export interface QaVerificationDraft {
+  readonly content: QaCardsContent;
+  readonly storedId: string | null;
+  readonly provisionalId: string;
+}
+
+/** What one pass audits: the copy draft and, when the service writes them, the Q&A cards. */
+export interface VerificationDraftSet {
+  readonly copy: VerificationDraft;
+  readonly qa: QaVerificationDraft | null;
+}
+
+/** The service's Q&A step, or null when it has none (roadmap cut level 1). */
+export function qaStepOf(service: ServiceDefinition): StepConfig<'qa_writer'> | null {
+  const steps = service.steps.filter(
+    (step): step is StepConfig<'qa_writer'> => step.agent === 'qa_writer',
+  );
+  if (steps.length > 1) {
+    throw new NonRetryableStepError(
+      `Verification expects at most one Q&A step in service ${service.id} v${service.version}; found ${steps.length}`,
+    );
+  }
+  return steps[0] ?? null;
+}
+
+async function readInitialQa(
+  db: Executor,
+  runId: string,
+  qaStepId: string,
+): Promise<QaVerificationDraft> {
+  const stored = await listArtifacts(db, runId, { kind: QA_CARDS_ARTIFACT_KIND, stepId: qaStepId });
+  const [artifact] = stored;
+  if (artifact === undefined || stored.length > 1) {
+    throw new NonRetryableStepError(
+      `Verification expects one set of Q&A cards from the Q&A step; found ${stored.length}`,
+    );
+  }
+  const content = qaCardsContentSchema.safeParse(artifact.content);
+  if (!content.success) throw new NonRetryableStepError('The Q&A cards have an invalid format');
+  return { content: content.data, storedId: artifact.id, provisionalId: artifact.id };
 }
 
 export function creativeStepOf(service: ServiceDefinition): StepConfig<'creative'> {
@@ -107,12 +170,16 @@ async function readInitialDraft(
  * Revisions cite catalog IDs, which are derived from the verified facts; if those changed after
  * the copy was written, the draft's IDs would point at other facts.
  */
-function assertSameCatalog(content: ListingCopyContent, catalog: CopyFactCatalog): void {
+function assertSameCatalog(
+  content: Pick<ListingCopyContent, 'catalog'>,
+  catalog: CopyFactCatalog,
+  what: 'the copy was' | 'the Q&A cards were',
+): void {
   const current = JSON.stringify(catalog.facts.map((fact) => [fact.id, [...fact.factIds]]));
   const written = JSON.stringify(content.catalog.map((entry) => [entry.id, entry.factIds]));
   if (current !== written) {
     throw new NonRetryableStepError(
-      'The verified facts changed after the copy was written; the copy must be generated again',
+      `The verified facts changed after ${what} written; it must be generated again`,
     );
   }
 }
@@ -126,7 +193,7 @@ function assertSameCatalog(content: ListingCopyContent, catalog: CopyFactCatalog
 export function revisionFailureClass(error: unknown, signal?: AbortSignal): string | undefined {
   const cause =
     error instanceof NonRetryableStepError && error.cause !== undefined ? error.cause : error;
-  return copyFailureClass(cause, signal);
+  return copyFailureClass(cause, signal) ?? qaFailureClass(cause, signal);
 }
 
 export interface VerificationLoopDeps {
@@ -138,9 +205,17 @@ export interface VerificationLoopDeps {
   readonly onFallback?: (stepId: string, failure: string) => void;
 }
 
+/** Q&A cards to audit with the copy: the service's Q&A step and its stored cards. */
+export interface VerificationQa {
+  readonly step: StepConfig<'qa_writer'>;
+  readonly initial: QaVerificationDraft;
+}
+
 /**
- * The audit and revision loop over one initial draft, without storage: the handler stores the
- * result in `commit`; the replay tests run it on recorded drafts.
+ * The audit and revision loop over one initial draft (and its Q&A cards), without storage: the
+ * handler stores the result in `commit`; the replay tests run it on recorded drafts. A loop
+ * revises the copy if it has flags and the cards if they have flags (copy first); the other
+ * stays as it was and its segments keep their verdicts. Revisions are numbered by their loop.
  */
 export function verifyCopy(
   deps: VerificationLoopDeps,
@@ -151,9 +226,12 @@ export function verifyCopy(
     readonly sources: CopySources;
     readonly rubric: readonly ClaimAuditRule[];
     readonly initial: VerificationDraft;
+    /** Null or absent without a Q&A step. */
+    readonly qa?: VerificationQa | null;
   },
-): Promise<LoopResult<VerificationDraft, DraftAudit>> {
+): Promise<LoopResult<VerificationDraftSet, DraftAudit>> {
   const { step, market, creativeStep, sources, rubric } = params;
+  const qa = params.qa ?? null;
   const memory: VerdictMemory = new Map();
   const callDeps = (stepId: string) => ({
     clients: deps.clients(),
@@ -161,13 +239,69 @@ export function verifyCopy(
     ...(deps.signal === undefined ? {} : { signal: deps.signal }),
     onFallback: (failure: string) => deps.onFallback?.(stepId, failure),
   });
-  return runRevisionLoop<VerificationDraft, DraftAudit>({
-    initial: params.initial,
+
+  const reviseCopy = async (
+    draft: VerificationDraft,
+    flags: ReturnType<typeof toRevisionFlags>,
+    revision: number,
+  ): Promise<VerificationDraft> => {
+    const input = buildCopyInput({
+      ...sources,
+      revision: { draft: toCopyDraft(draft.content), flags },
+    });
+    const generated = await generateListingCopy(
+      callDeps(creativeStep.id),
+      buildCopyRequests(creativeStep, market, input),
+      sources.catalog,
+      sources.outputLanguage,
+    );
+    const content = buildListingCopyContent({
+      generated,
+      catalog: sources.catalog,
+      facts: sources.facts,
+      input,
+      revision,
+      previousArtifactId: draft.provisionalId,
+    });
+    return { content, storedId: null, provisionalId: randomUUID() };
+  };
+
+  const reviseQa = async (
+    qaStep: StepConfig<'qa_writer'>,
+    draft: QaVerificationDraft,
+    flags: ReturnType<typeof toQaRevisionFlags>,
+    revision: number,
+  ): Promise<QaVerificationDraft> => {
+    const { photos: _photos, revision: _revision, ...qaSources } = sources;
+    const input = buildQaInput({
+      ...qaSources,
+      revision: { draft: toQaDraft(draft.content), flags },
+    });
+    const generated = await generateQaCards(
+      callDeps(qaStep.id),
+      buildQaRequests(qaStep, market, input),
+      sources.catalog,
+      sources.outputLanguage,
+    );
+    const content = buildQaCardsContent({
+      generated,
+      catalog: sources.catalog,
+      facts: sources.facts,
+      input,
+      revision,
+      previousArtifactId: draft.provisionalId,
+    });
+    return { content, storedId: null, provisionalId: randomUUID() };
+  };
+
+  return runRevisionLoop<VerificationDraftSet, DraftAudit>({
+    initial: { copy: params.initial, qa: qa?.initial ?? null },
     maxRevisionLoops: step.max_revision_loops,
     failureClass: (error) => revisionFailureClass(error, deps.signal),
-    audit: (draft) =>
+    audit: (drafts) =>
       auditDraft({
-        content: draft.content,
+        content: drafts.copy.content,
+        qa: drafts.qa?.content ?? null,
         catalog: sources.catalog,
         market,
         rubric,
@@ -175,41 +309,40 @@ export function verifyCopy(
         verify: (request) =>
           verifyWithFallback(callDeps(step.id), buildVerificationRequests(step, request)),
       }),
-    revise: async (draft, audit, revision) => {
-      const flags = toRevisionFlags(audit.flags);
-      if (flags.length === 0) throw new Error('A flagged draft produced no revision flags');
-      const input = buildCopyInput({
-        ...sources,
-        revision: { draft: toCopyDraft(draft.content), flags },
-      });
-      const generated = await generateListingCopy(
-        callDeps(creativeStep.id),
-        buildCopyRequests(creativeStep, market, input),
-        sources.catalog,
-        sources.outputLanguage,
-      );
-      const content = buildListingCopyContent({
-        generated,
-        catalog: sources.catalog,
-        facts: sources.facts,
-        input,
-        revision,
-        previousArtifactId: draft.provisionalId,
-      });
-      return { content, storedId: null, provisionalId: randomUUID() };
+    revise: async (drafts, audit, revision) => {
+      const copyFlags = toRevisionFlags(audit.flags);
+      const qaFlags = toQaRevisionFlags(audit.flags, drafts.qa?.content ?? null);
+      if (copyFlags.length === 0 && qaFlags.length === 0) {
+        throw new Error('A flagged draft produced no revision flags');
+      }
+      const copy =
+        copyFlags.length === 0 ? drafts.copy : await reviseCopy(drafts.copy, copyFlags, revision);
+      let revisedQa = drafts.qa;
+      if (qaFlags.length > 0) {
+        if (qa === null || drafts.qa === null) throw new Error('Q&A flags without Q&A cards');
+        revisedQa = await reviseQa(qa.step, drafts.qa, qaFlags, revision);
+      }
+      return { copy, qa: revisedQa };
     },
   });
 }
 
-/** The stored flags of one pass: the draft's artifact and each segment's claim attached. */
+/** The stored flags of one pass: each flag's draft artifact and claim attached. */
 function storedFlags(
   audit: DraftAudit,
-  artifactId: string,
-  claimIdByIndex: ReadonlyMap<number, string>,
+  ids: { readonly copy: string; readonly qa: string | null },
+  claims: {
+    readonly copy: ReadonlyMap<number, string>;
+    readonly qa: ReadonlyMap<number, string>;
+  },
 ): ClaimAuditFlag[] {
   return audit.flags.map((flag) => {
-    const claimId = claimIdByIndex.get(flag.segmentIndex);
-    if (claimId === undefined) throw new Error('An audited segment has no claim row');
+    const isQa = flag.variant === 'qa';
+    const artifactId = isQa ? ids.qa : ids.copy;
+    const claimId = (isQa ? claims.qa : claims.copy).get(flag.segmentIndex);
+    if (artifactId === null || claimId === undefined) {
+      throw new Error('An audited segment has no claim row');
+    }
     return { ...flag, artifactId, claimId };
   });
 }
@@ -219,11 +352,19 @@ export function createVerificationHandler(deps: VerificationHandlerDeps): StepHa
     const { run, step } = ctx;
     const market = deps.markets.getMarket(run.marketProfileId, run.marketProfileVersion);
     const creativeStep = creativeStepOf(ctx.service);
+    const qaStep = qaStepOf(ctx.service);
     const initial = await readInitialDraft(ctx.db, run.id, creativeStep.id);
+    const initialQa = qaStep === null ? null : await readInitialQa(ctx.db, run.id, qaStep.id);
     const sources = await loadCopySources(ctx.db, run, market);
-    assertSameCatalog(initial.content, sources.catalog);
+    assertSameCatalog(initial.content, sources.catalog, 'the copy was');
     if (initial.content.outputLanguage !== sources.outputLanguage) {
       throw new NonRetryableStepError('The listing copy is not in the run output language');
+    }
+    if (initialQa !== null) {
+      assertSameCatalog(initialQa.content, sources.catalog, 'the Q&A cards were');
+      if (initialQa.content.outputLanguage !== sources.outputLanguage) {
+        throw new NonRetryableStepError('The Q&A cards are not in the run output language');
+      }
     }
     const rubric = buildVerificationRubric(market);
     const result = await verifyCopy(
@@ -235,7 +376,15 @@ export function createVerificationHandler(deps: VerificationHandlerDeps): StepHa
           ctx.logger.warn({ stepId, failure }, 'primary model failed; using the fallback model');
         },
       },
-      { step, creativeStep, market, sources, rubric, initial },
+      {
+        step,
+        creativeStep,
+        market,
+        sources,
+        rubric,
+        initial,
+        qa: qaStep === null || initialQa === null ? null : { step: qaStep, initial: initialQa },
+      },
     );
     const finalAudit = result.passes.at(-1)?.audit;
     ctx.logger.info(
@@ -249,6 +398,7 @@ export function createVerificationHandler(deps: VerificationHandlerDeps): StepHa
           carried: audit.carriedSegments,
           validatorFlags: audit.flags.filter((f) => f.source === 'validator').length,
           verifierFlags: audit.flags.filter((f) => f.source === 'verifier').length,
+          qaFlags: audit.flags.filter((f) => f.variant === 'qa').length,
           dropped: audit.dropped,
           model: audit.modelRun?.model ?? null,
         })),
@@ -271,48 +421,84 @@ export function createVerificationHandler(deps: VerificationHandlerDeps): StepHa
             { artifactId: existing.id },
             'claim audit already stored for this step; keeping the existing audit',
           );
-          const revisions = await listArtifacts(tx, run.id, {
-            kind: LISTING_COPY_ARTIFACT_KIND,
-            stepId: step.id,
-          });
+          const revisions = [
+            ...(await listArtifacts(tx, run.id, {
+              kind: LISTING_COPY_ARTIFACT_KIND,
+              stepId: step.id,
+            })),
+            ...(await listArtifacts(tx, run.id, { kind: QA_CARDS_ARTIFACT_KIND, stepId: step.id })),
+          ];
           return { artifactIds: [existing.id, ...revisions.map((r) => r.id)] };
         }
 
-        // Revisions in order, each pointing at the stored artifact it revises.
+        // Revisions in loop order, each pointing at the stored artifact it revises. A draft
+        // left unchanged by a loop appears in several passes and is stored once.
         const storedIdOf = new Map<string, string>();
-        const draftIds: string[] = [];
-        for (const { draft } of result.passes) {
-          if (draft.storedId !== null) {
-            draftIds.push(draft.storedId);
-            continue;
-          }
-          const previous = draft.content.previousArtifactId;
+        const revisionIds: string[] = [];
+        const resolve = (previous: string | null): string | null =>
+          previous === null ? null : (storedIdOf.get(previous) ?? previous);
+        const storeCopy = async (draft: VerificationDraft): Promise<string> => {
+          if (draft.storedId !== null) return draft.storedId;
+          const known = storedIdOf.get(draft.provisionalId);
+          if (known !== undefined) return known;
           const content = listingCopyContentSchema.parse({
             ...draft.content,
-            previousArtifactId: previous === null ? null : (storedIdOf.get(previous) ?? previous),
+            previousArtifactId: resolve(draft.content.previousArtifactId),
           });
           const stored = await storeListingCopy(tx, { runId: run.id, stepId: step.id, content });
           storedIdOf.set(draft.provisionalId, stored.artifact.id);
-          draftIds.push(stored.artifact.id);
+          revisionIds.push(stored.artifact.id);
+          return stored.artifact.id;
+        };
+        const storeQa = async (draft: QaVerificationDraft): Promise<string> => {
+          if (draft.storedId !== null) return draft.storedId;
+          const known = storedIdOf.get(draft.provisionalId);
+          if (known !== undefined) return known;
+          const content = qaCardsContentSchema.parse({
+            ...draft.content,
+            previousArtifactId: resolve(draft.content.previousArtifactId),
+          });
+          const stored = await storeQaCards(tx, { runId: run.id, stepId: step.id, content });
+          storedIdOf.set(draft.provisionalId, stored.artifact.id);
+          revisionIds.push(stored.artifact.id);
+          return stored.artifact.id;
+        };
+        const passIds: { copy: string; qa: string | null }[] = [];
+        for (const { draft } of result.passes) {
+          const copy = await storeCopy(draft.copy);
+          const qa = draft.qa === null ? null : await storeQa(draft.qa);
+          passIds.push({ copy, qa });
         }
 
-        const claimsByPass = await Promise.all(draftIds.map((id) => listClaims(tx, id)));
-        const passes: ClaimAuditPass[] = result.passes.map(({ draft, audit }, i) => {
-          const artifactId = draftIds[i] ?? '';
-          const claimIdByIndex = new Map(
-            (claimsByPass[i] ?? []).map((claim) => [claim.segmentIndex, claim.id]),
-          );
-          return {
-            draftArtifactId: artifactId,
-            revision: draft.content.revision,
+        const claimsOf = new Map<string, Awaited<ReturnType<typeof listClaims>>>();
+        const claimsFor = async (artifactId: string) => {
+          const cached = claimsOf.get(artifactId);
+          if (cached !== undefined) return cached;
+          const claims = await listClaims(tx, artifactId);
+          claimsOf.set(artifactId, claims);
+          return claims;
+        };
+        const indexMap = (claims: Awaited<ReturnType<typeof listClaims>>) =>
+          new Map(claims.map((claim) => [claim.segmentIndex, claim.id]));
+        const passes: ClaimAuditPass[] = [];
+        for (const [i, { audit }] of result.passes.entries()) {
+          const ids = passIds[i];
+          if (ids === undefined) throw new Error('unreachable: a pass without stored drafts');
+          const copyClaims = indexMap(await claimsFor(ids.copy));
+          const qaClaims =
+            ids.qa === null ? new Map<number, string>() : indexMap(await claimsFor(ids.qa));
+          passes.push({
+            draftArtifactId: ids.copy,
+            qaDraftArtifactId: ids.qa,
+            revision: i,
             segments: audit.segments,
             auditedSegments: audit.auditedSegments,
             carriedSegments: audit.carriedSegments,
             modelRun: audit.modelRun,
-            flags: storedFlags(audit, artifactId, claimIdByIndex),
+            flags: storedFlags(audit, ids, { copy: copyClaims, qa: qaClaims }),
             dropped: audit.dropped,
-          };
-        });
+          });
+        }
         const last = passes.at(-1);
         if (last === undefined) throw new Error('unreachable: no audit pass');
         const remaining = last.flags;
@@ -326,6 +512,8 @@ export function createVerificationHandler(deps: VerificationHandlerDeps): StepHa
           stopReason: result.stopReason,
           initialDraftArtifactId: initial.provisionalId,
           finalDraftArtifactId: last.draftArtifactId,
+          initialQaArtifactId: initialQa?.provisionalId ?? null,
+          finalQaArtifactId: last.qaDraftArtifactId,
           passes,
           remainingFlags: remaining,
           counts: {
@@ -347,22 +535,43 @@ export function createVerificationHandler(deps: VerificationHandlerDeps): StepHa
           content,
         });
 
-        // The verifier's verdict on every claim of every audited draft.
+        // The verifier's verdict on every claim of every audited draft; a draft that several
+        // passes audited keeps the verdict of the last of them.
         for (const [i, { audit }] of result.passes.entries()) {
-          for (const claim of claimsByPass[i] ?? []) {
-            const flags = audit.verifierFlagsByIndex.get(claim.segmentIndex) ?? [];
-            await recordVerifierVerdict(
-              tx,
-              claim.id,
-              verifierVerdictFor(flags),
-              claimVerifierDetailsSchema.parse({
-                promptVersion: VERIFICATION_PROMPT_VERSION,
-                auditArtifactId: auditArtifact.id,
-                pass: i,
-                carried: audit.carriedIndexes.has(claim.segmentIndex),
-                flags: flags.map((flag) => ({ ...flag })),
-              }),
-            );
+          const ids = passIds[i];
+          if (ids === undefined) throw new Error('unreachable: a pass without stored drafts');
+          const groups = [
+            {
+              artifactId: ids.copy,
+              flags: audit.verifierFlagsByIndex,
+              carried: audit.carriedIndexes,
+            },
+            ...(ids.qa === null
+              ? []
+              : [
+                  {
+                    artifactId: ids.qa,
+                    flags: audit.qaVerifierFlagsByIndex,
+                    carried: audit.qaCarriedIndexes,
+                  },
+                ]),
+          ];
+          for (const group of groups) {
+            for (const claim of await claimsFor(group.artifactId)) {
+              const flags = group.flags.get(claim.segmentIndex) ?? [];
+              await recordVerifierVerdict(
+                tx,
+                claim.id,
+                verifierVerdictFor(flags),
+                claimVerifierDetailsSchema.parse({
+                  promptVersion: VERIFICATION_PROMPT_VERSION,
+                  auditArtifactId: auditArtifact.id,
+                  pass: i,
+                  carried: group.carried.has(claim.segmentIndex),
+                  flags: flags.map((flag) => ({ ...flag })),
+                }),
+              );
+            }
           }
         }
 
@@ -371,6 +580,7 @@ export function createVerificationHandler(deps: VerificationHandlerDeps): StepHa
           stepId: step.id,
           artifactId: auditArtifact.id,
           finalDraftArtifactId: content.finalDraftArtifactId,
+          finalQaArtifactId: content.finalQaArtifactId,
           passCount: content.counts.passes,
           revisionCount: content.counts.revisions,
           verifierCallCount: content.counts.verifierCalls,
@@ -385,7 +595,7 @@ export function createVerificationHandler(deps: VerificationHandlerDeps): StepHa
         await appendRunEvent(tx, run.id, { type: 'claims_audited', payload: summary });
         // Never `releaseGate`: Gate 2 is where the operator approves the copy and the staged
         // images, so the run stops there even with no remaining flags.
-        return { artifactIds: [auditArtifact.id, ...draftIds.slice(1)] };
+        return { artifactIds: [auditArtifact.id, ...revisionIds] };
       },
     };
   };

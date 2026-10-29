@@ -130,7 +130,7 @@ The orchestrator (main session) delegates each task to its owner — see `.claud
 - [x] **P3-02 — Claim validator**
   - Depends on: P3-01
   - Done when: segments with empty or unknown fact IDs are rejected; numbers in text must exactly match the cited facts; unit tests cover pass and fail cases.
-- [ ] **P3-03 — Buyer Q&A cards**
+- [x] **P3-03 — Buyer Q&A cards**
   - Depends on: P3-02
   - Done when: Q&A cards are generated from verified facts only and pass the claim validator.
 - [x] **P3-04 — Staging variants**

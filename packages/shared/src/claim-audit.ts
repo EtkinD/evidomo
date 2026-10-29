@@ -34,8 +34,8 @@ export const claimAuditCategorySchema = z.enum(CLAIM_AUDIT_CATEGORIES);
 export type ClaimAuditCategory = z.infer<typeof claimAuditCategorySchema>;
 
 /**
- * The audited text groups: the listing copy's `portal` and `social` variants; `qa` is reserved
- * for buyer Q&A cards (P3-03), which verification audits once that step stores them.
+ * The audited text groups: the listing copy's `portal` and `social` variants, and `qa` for the
+ * answer segments of the buyer Q&A cards (P3-03), audited in the same verifier call.
  */
 export const CLAIM_AUDIT_VARIANTS = ['portal', 'social', 'qa'] as const;
 export const claimAuditVariantSchema = z.enum(CLAIM_AUDIT_VARIANTS);
@@ -75,7 +75,7 @@ export const claimAuditFlagSchema = z
     category: claimAuditCategorySchema,
     /** The claim validator's finding code; null for verifier flags. */
     code: claimFindingCodeSchema.nullable(),
-    /** The draft artifact the segment belongs to (a `listing_copy`, later also Q&A cards). */
+    /** The draft artifact the segment belongs to: a `listing_copy`, or `qa_cards` for `qa`. */
     artifactId: z.uuid(),
     variant: claimAuditVariantSchema,
     /** 0-based position within the variant, across paragraphs (the revision flag's `segment`). */
@@ -134,11 +134,19 @@ export const claimAuditDroppedSchema = z.strictObject({
 });
 export type ClaimAuditDropped = z.infer<typeof claimAuditDroppedSchema>;
 
-/** One audit of one draft: the validator's report plus one verifier call (or none). */
+/**
+ * One audit of one draft (the copy, plus the Q&A cards when the service writes them): the
+ * validator's reports plus one verifier call (or none).
+ */
 export const claimAuditPassSchema = z.strictObject({
   /** The `listing_copy` artifact audited. */
   draftArtifactId: z.uuid(),
-  /** The draft's `revision` (0 = the creative step's copy). */
+  /**
+   * The `qa_cards` artifact audited with it; null when the service has no Q&A step. Read with
+   * a default so audits stored before P3-03 still parse.
+   */
+  qaDraftArtifactId: z.uuid().nullable().default(null),
+  /** The loop that produced this pass (0 = the creative and Q&A steps' drafts). */
   revision: count,
   segments: count,
   /** Segments the verifier judged in this pass. */
@@ -170,6 +178,10 @@ export const claimAuditContentSchema = z
     initialDraftArtifactId: z.uuid(),
     /** The last audited draft: what Gate 2 reviews and export publishes. */
     finalDraftArtifactId: z.uuid(),
+    /** The Q&A step's cards (revision 0); null when the service has no Q&A step. */
+    initialQaArtifactId: z.uuid().nullable().default(null),
+    /** The last audited Q&A cards; null exactly when `initialQaArtifactId` is. */
+    finalQaArtifactId: z.uuid().nullable().default(null),
     /** In revision order: the initial draft, then each revision. */
     passes: z.array(claimAuditPassSchema).min(1),
     /** The final draft's flags (= the last pass's flags), for Gate 2. */
@@ -197,16 +209,29 @@ export const claimAuditContentSchema = z
       if (pass.auditedSegments + pass.carriedSegments !== pass.segments) {
         issue(['passes', i], 'Every segment is audited or carried');
       }
-      if (pass.flags.some((flag) => flag.artifactId !== pass.draftArtifactId)) {
+      const pointsAtOwnDraft = (flag: ClaimAuditFlag) =>
+        flag.variant === 'qa'
+          ? flag.artifactId === pass.qaDraftArtifactId
+          : flag.artifactId === pass.draftArtifactId;
+      if (!pass.flags.every(pointsAtOwnDraft)) {
         issue(['passes', i, 'flags'], 'A flag points at another draft');
+      }
+      if ((pass.qaDraftArtifactId === null) !== (content.initialQaArtifactId === null)) {
+        issue(['passes', i, 'qaDraftArtifactId'], 'Every pass audits Q&A cards, or none does');
       }
     });
     if (content.passes[0]?.draftArtifactId !== content.initialDraftArtifactId) {
       issue(['initialDraftArtifactId'], 'The first pass audits the initial draft');
     }
+    if (content.passes[0]?.qaDraftArtifactId !== content.initialQaArtifactId) {
+      issue(['initialQaArtifactId'], 'The first pass audits the initial Q&A cards');
+    }
     if (last !== undefined) {
       if (last.draftArtifactId !== content.finalDraftArtifactId) {
         issue(['finalDraftArtifactId'], 'The last pass audits the final draft');
+      }
+      if (last.qaDraftArtifactId !== content.finalQaArtifactId) {
+        issue(['finalQaArtifactId'], 'The last pass audits the final Q&A cards');
       }
       if (JSON.stringify(last.flags) !== JSON.stringify(content.remainingFlags)) {
         issue(['remainingFlags'], "The remaining flags are the last pass's flags");

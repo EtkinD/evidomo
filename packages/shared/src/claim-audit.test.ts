@@ -49,9 +49,12 @@ const audit: ClaimAuditContent = {
   stopReason: 'clean',
   initialDraftArtifactId: DRAFT_0,
   finalDraftArtifactId: DRAFT_1,
+  initialQaArtifactId: null,
+  finalQaArtifactId: null,
   passes: [
     {
       draftArtifactId: DRAFT_0,
+      qaDraftArtifactId: null,
       revision: 0,
       segments: 4,
       auditedSegments: 4,
@@ -62,6 +65,7 @@ const audit: ClaimAuditContent = {
     },
     {
       draftArtifactId: DRAFT_1,
+      qaDraftArtifactId: null,
       revision: 1,
       segments: 4,
       auditedSegments: 1,
@@ -101,6 +105,48 @@ describe('claim audit content', () => {
     expect(bad({ maxRevisionLoops: 0 })).toBe(false);
   });
 
+  it('reads audits stored before Q&A cards existed with null Q&A drafts', () => {
+    const { initialQaArtifactId: _i, finalQaArtifactId: _f, ...old } = audit;
+    const parsed = claimAuditContentSchema.parse({
+      ...old,
+      passes: audit.passes.map(({ qaDraftArtifactId: _q, ...pass }) => pass),
+    });
+    expect(parsed).toEqual(audit);
+  });
+
+  it('points Q&A flags at the pass Q&A draft and copy flags at the copy draft', () => {
+    const QA_0 = '0b5bd1a8-3a43-4d8a-9c55-0d8c58d4c001';
+    const QA_1 = '0b5bd1a8-3a43-4d8a-9c55-0d8c58d4c002';
+    const qaFlag: ClaimAuditFlag = { ...flag, variant: 'qa', artifactId: QA_0 };
+    const withQa = (first: ClaimAuditFlag): ClaimAuditContent => ({
+      ...audit,
+      initialQaArtifactId: QA_0,
+      finalQaArtifactId: QA_1,
+      passes: audit.passes.map((pass, i) => ({
+        ...pass,
+        qaDraftArtifactId: i === 0 ? QA_0 : QA_1,
+        flags: i === 0 ? [first] : [],
+      })),
+    });
+    expect(claimAuditContentSchema.safeParse(withQa(qaFlag)).success).toBe(true);
+    expect(
+      claimAuditContentSchema.safeParse(withQa({ ...qaFlag, artifactId: DRAFT_0 })).success,
+    ).toBe(false);
+    // Every pass audits Q&A cards, or none does; the last pass names the final cards.
+    const partial = withQa(qaFlag);
+    expect(
+      claimAuditContentSchema.safeParse({
+        ...partial,
+        passes: partial.passes.map((pass, i) =>
+          i === 1 ? { ...pass, qaDraftArtifactId: null } : pass,
+        ),
+      }).success,
+    ).toBe(false);
+    expect(claimAuditContentSchema.safeParse({ ...partial, finalQaArtifactId: QA_0 }).success).toBe(
+      false,
+    );
+  });
+
   it('requires a code exactly on validator flags, and no suggestion or carry on them', () => {
     expect(claimAuditFlagSchema.safeParse({ ...flag, code: 'number_not_in_facts' }).success).toBe(
       false,
@@ -129,6 +175,7 @@ describe('claim audit content', () => {
       stepId: 'verification',
       artifactId: DRAFT_1,
       finalDraftArtifactId: DRAFT_1,
+      finalQaArtifactId: null,
       passCount: 2,
       revisionCount: 1,
       verifierCallCount: 2,
@@ -141,6 +188,9 @@ describe('claim audit content', () => {
       fallbackUsed: false,
     };
     expect(claimsAuditedPayloadSchema.parse(payload)).toEqual(payload);
+    // Events appended before P3-03 have no finalQaArtifactId.
+    const { finalQaArtifactId: _qa, ...old } = payload;
+    expect(claimsAuditedPayloadSchema.parse(old)).toEqual(payload);
     expect(claimsAuditedPayloadSchema.safeParse({ ...payload, problem: 'x' }).success).toBe(false);
   });
 });

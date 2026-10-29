@@ -64,6 +64,20 @@ export interface PipelineSummary {
       readonly origin: DecisionOrigin;
     }[];
   } | null;
+  /**
+   * Buyer Q&A cards (P3-03): every stored set in revision order, the Q&A step's first and then
+   * each verification revision. Null when none was stored (not reached, or no Q&A step).
+   */
+  readonly qaCards: {
+    readonly drafts: readonly {
+      readonly stepId: string;
+      readonly revision: number;
+      readonly cards: number;
+      readonly segments: number;
+      readonly droppedCards: number;
+      readonly validatorFailedSegments: number;
+    }[];
+  } | null;
   readonly claimAudit: {
     readonly stopReason: ClaimAuditStopReason | null;
     readonly passes: number;
@@ -89,6 +103,8 @@ export interface PipelineSummary {
     readonly outDir: string;
     readonly files: readonly { readonly fileName: string; readonly sizeBytes: number }[];
     readonly readyToPublish: boolean;
+    /** Q&A cards in the portal fields (and the HTML pack). */
+    readonly qaCards: number;
     readonly checklist: readonly {
       readonly id: string;
       readonly status: ChecklistItemStatus;
@@ -184,6 +200,18 @@ export function formatSummary(summary: PipelineSummary): string {
     }
   }
 
+  lines.push('', 'Buyer Q&A cards');
+  if (summary.qaCards === null) {
+    lines.push('  none stored');
+  } else {
+    for (const d of summary.qaCards.drafts) {
+      lines.push(
+        `  ${d.stepId} revision ${d.revision}: ${d.cards} card(s), ${d.segments} answer segment(s), ` +
+          `${d.droppedCards} dropped, ${d.validatorFailedSegments} failing the validator`,
+      );
+    }
+  }
+
   lines.push('', 'Gate 2 (claim audit and staged images)');
   const gate2 = summary.claimAudit;
   if (gate2 === null) {
@@ -216,6 +244,7 @@ export function formatSummary(summary: PipelineSummary): string {
   } else {
     lines.push(`  ${summary.export.files.length} files written to ${summary.export.outDir}`);
     lines.push(`  readyToPublish: ${summary.export.readyToPublish}`);
+    lines.push(`  Q&A cards: ${summary.export.qaCards}`);
     for (const item of summary.export.checklist)
       lines.push(`  checklist ${item.id}: ${item.status}`);
     if (summary.export.withheld > 0) lines.push(`  withheld images: ${summary.export.withheld}`);

@@ -4,6 +4,8 @@ import { NonRetryableStepError } from '../../runs/steps.ts';
 import { BudgetExceededError } from '../../usage/budget.ts';
 import { CopyOutputError } from '../creative/check.ts';
 import { classifyCopyError } from '../creative/generate.ts';
+import { QaOutputError } from '../qa/check.ts';
+import { classifyQaError } from '../qa/generate.ts';
 import { revisionFailureClass } from './handler.ts';
 
 // Which failures inside a revision loop end the loop at the last audited draft (a class) and
@@ -32,6 +34,13 @@ describe('revisionFailureClass', () => {
     const wrapped = classifyCopyError(truncated, 16_000);
     expect(wrapped).toBeInstanceOf(NonRetryableStepError);
     expect(revisionFailureClass(wrapped)).toBe('NoObjectGeneratedError length');
+    // The same for a Q&A revision (P3-03).
+    expect(revisionFailureClass(new QaOutputError('no_cards', 'no cards'))).toBe(
+      'QaOutputError no_cards',
+    );
+    expect(revisionFailureClass(classifyQaError(truncated, 8000))).toBe(
+      'NoObjectGeneratedError length',
+    );
   });
 
   it('still fails the execution on abort, configuration, budget, and programming errors', () => {

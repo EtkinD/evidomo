@@ -4,6 +4,7 @@ import {
   COPY_VARIANTS,
   INTEGRITY_CHECKS_ARTIFACT_KIND,
   LISTING_COPY_ARTIFACT_KIND,
+  QA_CARDS_ARTIFACT_KIND,
   STAGED_IMAGE_ARTIFACT_KIND,
   approvedPackContentSchema,
   claimAuditContentSchema,
@@ -11,14 +12,18 @@ import {
   claimEditSchema,
   integrityChecksContentSchema,
   listingCopyContentSchema,
+  qaCardsContentSchema,
   stagedImageContentSchema,
   type ApprovedPackContent,
+  type ApprovedQaCard,
   type ClaimAuditContent,
   type ClaimAuditFlag,
   type ClaimAuditGateImage,
+  type ClaimAuditGateQaCard,
   type ClaimAuditGateResponse,
   type ClaimAuditGateSegment,
   type ClaimAuditGateState,
+  type ClaimAuditVariant,
   type ClaimAuditWarning,
   type ClaimEdit,
   type ClaimFinding,
@@ -31,6 +36,7 @@ import {
   type ListingCopyContent,
   type MarketProfile,
   type ParsedClaimDecisionRequest,
+  type QaCardsContent,
   type StagedImageContent,
   type StagedImageDecisionRequest,
   type StagedImageGateDecision,
@@ -115,12 +121,14 @@ export interface ClaimAuditGate {
   approve(userId: string, runId: string): Promise<ClaimAuditGateResponse>;
 }
 
-/** A segment of the final draft with its `claims` row. */
+/** A segment of the final draft or the final Q&A cards with its `claims` row. */
 interface DraftSegment {
   readonly claim: Claim;
-  readonly variant: CopyVariantKind;
+  readonly variant: ClaimAuditVariant;
+  /** `claims.segment_index` in its own artifact (copy and Q&A both start at 0). */
   readonly index: number;
   readonly position: number;
+  /** The paragraph for copy; the card for Q&A. */
   readonly paragraph: number;
   readonly text: string;
   readonly factIds: readonly string[];
@@ -139,7 +147,9 @@ interface LoadedGate {
   readonly stepId: string;
   readonly released: boolean;
   readonly draft: ListingCopyContent;
-  /** Draft order: portal, then social. */
+  /** The final Q&A cards; null when the service has no Q&A step. */
+  readonly qa: { readonly artifactId: string; readonly content: QaCardsContent } | null;
+  /** Draft order: portal, then social, then the Q&A answers. */
   readonly segments: readonly DraftSegment[];
   /** Remaining flags by claim ID, in the audit's order; the keys are the flagged claims. */
   readonly flagsByClaim: ReadonlyMap<string, readonly ClaimAuditFlag[]>;
@@ -189,6 +199,39 @@ async function loadDraft(
     }),
   );
   return { draft, segments };
+}
+
+async function loadQa(
+  db: Executor,
+  run: Run,
+  audit: ClaimAuditContent,
+): Promise<{ qa: LoadedGate['qa']; segments: DraftSegment[] }> {
+  const artifactId = audit.finalQaArtifactId;
+  if (artifactId === null) return { qa: null, segments: [] };
+  const artifact = await getArtifact(db, artifactId);
+  if (artifact?.runId !== run.id || artifact.kind !== QA_CARDS_ARTIFACT_KIND) {
+    throw new Error(`Run ${run.id}: the audit's final Q&A cards are not qa_cards of the run`);
+  }
+  const content = qaCardsContentSchema.parse(artifact.content);
+  const claims = new Map((await listClaims(db, artifact.id)).map((c) => [c.segmentIndex, c]));
+  const segments = content.cards.flatMap((card) =>
+    card.segments.map((segment): DraftSegment => {
+      const claim = claims.get(segment.index);
+      if (claim === undefined) {
+        throw new Error(`Run ${run.id}: Q&A segment ${segment.index} has no claim`);
+      }
+      return {
+        claim,
+        variant: 'qa',
+        index: segment.index,
+        position: segment.index,
+        paragraph: card.card,
+        text: segment.text,
+        factIds: segment.factIds,
+      };
+    }),
+  );
+  return { qa: { artifactId, content }, segments };
 }
 
 async function loadIntegrity(
@@ -241,14 +284,18 @@ async function loadGate(db: Executor, run: Run): Promise<LoadedGate | undefined>
       `Run ${run.id} has an audit from step ${auditArtifact.stepId}, never completed`,
     );
   }
-  const { draft, segments } = await loadDraft(db, run, audit);
+  const loadedDraft = await loadDraft(db, run, audit);
+  const { draft } = loadedDraft;
+  const loadedQa = await loadQa(db, run, audit);
+  const segments = [...loadedDraft.segments, ...loadedQa.segments];
 
   const byClaim = new Map(segments.map((segment) => [segment.claim.id, segment]));
   const flagsByClaim = new Map<string, ClaimAuditFlag[]>();
   for (const flag of audit.remainingFlags) {
     const segment = byClaim.get(flag.claimId);
+    const artifactId = flag.variant === 'qa' ? audit.finalQaArtifactId : audit.finalDraftArtifactId;
     if (
-      flag.artifactId !== audit.finalDraftArtifactId ||
+      flag.artifactId !== artifactId ||
       segment?.index !== flag.segmentIndex ||
       segment.variant !== flag.variant
     ) {
@@ -286,6 +333,7 @@ async function loadGate(db: Executor, run: Run): Promise<LoadedGate | undefined>
     stepId: step.stepId,
     released: step.gateReleasedAt !== null,
     draft,
+    qa: loadedQa.qa,
     segments,
     flagsByClaim,
     integrity,
@@ -347,7 +395,11 @@ function imageDecisionOf(row: Decision | undefined): StagedImageGateDecision | n
   return { choice: row.choice, decidedAt: row.decidedAt.toISOString() };
 }
 
-/** One segment for the warnings: its variant, claim, citations' keys, and whether it is removed. */
+/**
+ * One copy segment for the warnings: its variant, claim, citations' keys, and whether it is
+ * removed. Q&A answers raise no warnings: the cards are not required to mention any fact, and a
+ * card whose answers are all removed is simply left out.
+ */
 export interface WarningSegment {
   readonly variant: CopyVariantKind;
   readonly claimId: string;
@@ -393,15 +445,22 @@ function warningsFor(
   market: Pick<MarketProfile, 'facts'>,
 ): ClaimAuditWarning[] {
   return copyWarnings(
-    loaded.segments.map((segment) => ({
-      variant: segment.variant,
-      claimId: segment.claim.id,
-      factKeys: segment.factIds.flatMap((id) => {
-        const key = loaded.facts.get(id)?.key;
-        return key === undefined ? [] : [key];
-      }),
-      removed: claimDecisionOf(loaded.claimDecisions.get(segment.claim.id))?.choice === 'remove',
-    })),
+    loaded.segments.flatMap((segment) => {
+      const { variant } = segment;
+      if (variant === 'qa') return [];
+      return [
+        {
+          variant,
+          claimId: segment.claim.id,
+          factKeys: segment.factIds.flatMap((id) => {
+            const key = loaded.facts.get(id)?.key;
+            return key === undefined ? [] : [key];
+          }),
+          removed:
+            claimDecisionOf(loaded.claimDecisions.get(segment.claim.id))?.choice === 'remove',
+        },
+      ];
+    }),
     market,
   );
 }
@@ -476,11 +535,39 @@ function gateImage(loaded: LoadedGate, image: OfferedImage): ClaimAuditGateImage
   };
 }
 
+/**
+ * Q&A cards dropped at Gate 2 (decided rule, P3-03): removing any flagged answer segment drops
+ * the whole card, question included. The verifier flags a question's problem on the card's
+ * first answer and questions cannot be edited, so removing only that answer would still publish
+ * the question; cards are optional, so dropping them fails safe.
+ */
+function droppedQaCards(loaded: LoadedGate): ReadonlySet<number> {
+  const dropped = new Set<number>();
+  for (const segment of loaded.segments) {
+    if (segment.variant !== 'qa' || !loaded.flagsByClaim.has(segment.claim.id)) continue;
+    if (claimDecisionOf(loaded.claimDecisions.get(segment.claim.id))?.choice === 'remove') {
+      dropped.add(segment.paragraph);
+    }
+  }
+  return dropped;
+}
+
+/** Claims of dropped Q&A cards: published nowhere, so they need no decision of their own. */
+function droppedQaClaimIds(loaded: LoadedGate): ReadonlySet<string> {
+  const dropped = droppedQaCards(loaded);
+  return new Set(
+    loaded.segments
+      .filter((segment) => segment.variant === 'qa' && dropped.has(segment.paragraph))
+      .map((segment) => segment.claim.id),
+  );
+}
+
 function openCounts(loaded: LoadedGate): { openClaims: number; openImages: number } {
   if (loaded.released) return { openClaims: 0, openImages: 0 };
+  const dropped = droppedQaClaimIds(loaded);
   return {
     openClaims: [...loaded.flagsByClaim.keys()].filter(
-      (id) => claimDecisionOf(loaded.claimDecisions.get(id)) === null,
+      (id) => !dropped.has(id) && claimDecisionOf(loaded.claimDecisions.get(id)) === null,
     ).length,
     openImages: loaded.offered.filter(
       (image) => imageDecisionOf(loaded.imageDecisions.get(image.artifactId)) === null,
@@ -500,6 +587,7 @@ function buildResponse(
       state: 'not_reached',
       claimAuditArtifactId: null,
       finalDraftArtifactId: null,
+      finalQaArtifactId: null,
       integrityChecksArtifactId: null,
       approvedPackArtifactId: null,
       outputLanguage: null,
@@ -509,6 +597,7 @@ function buildResponse(
       openCount: 0,
       approval: null,
       variants: [],
+      qaCards: [],
       facts: [],
       images: [],
       integrityFallbacks: [],
@@ -516,29 +605,36 @@ function buildResponse(
     };
   }
   const { openClaims, openImages } = openCounts(loaded);
+  const gateSegment = (segment: DraftSegment): ClaimAuditGateSegment => ({
+    claimId: segment.claim.id,
+    index: segment.index,
+    position: segment.position,
+    paragraph: segment.paragraph,
+    text: segment.text,
+    factIds: [...segment.factIds],
+    validatorResult: segment.claim.validatorResult,
+    verifierVerdict: segment.claim.verifierVerdict,
+    flags: (loaded.flagsByClaim.get(segment.claim.id) ?? []).map((flag) => ({
+      source: flag.source,
+      category: flag.category,
+      code: flag.code,
+      problem: flag.problem,
+      suggestion: flag.suggestion,
+      carried: flag.carried,
+    })),
+    decision: claimDecisionOf(loaded.claimDecisions.get(segment.claim.id)),
+  });
   const variants = COPY_VARIANTS.map((kind) => ({
     kind,
-    segments: loaded.segments
-      .filter((segment) => segment.variant === kind)
-      .map((segment): ClaimAuditGateSegment => ({
-        claimId: segment.claim.id,
-        index: segment.index,
-        position: segment.position,
-        paragraph: segment.paragraph,
-        text: segment.text,
-        factIds: [...segment.factIds],
-        validatorResult: segment.claim.validatorResult,
-        verifierVerdict: segment.claim.verifierVerdict,
-        flags: (loaded.flagsByClaim.get(segment.claim.id) ?? []).map((flag) => ({
-          source: flag.source,
-          category: flag.category,
-          code: flag.code,
-          problem: flag.problem,
-          suggestion: flag.suggestion,
-          carried: flag.carried,
-        })),
-        decision: claimDecisionOf(loaded.claimDecisions.get(segment.claim.id)),
-      })),
+    segments: loaded.segments.filter((segment) => segment.variant === kind).map(gateSegment),
+  }));
+  const qaSegments = loaded.segments.filter((segment) => segment.variant === 'qa');
+  const droppedCards = droppedQaCards(loaded);
+  const qaCards = (loaded.qa?.content.cards ?? []).map((card): ClaimAuditGateQaCard => ({
+    card: card.card,
+    question: card.question,
+    dropped: droppedCards.has(card.card),
+    segments: qaSegments.filter((segment) => segment.paragraph === card.card).map(gateSegment),
   }));
   const cited = new Set(loaded.segments.flatMap((segment) => segment.factIds));
   return {
@@ -547,6 +643,7 @@ function buildResponse(
     state: gateState(run, loaded),
     claimAuditArtifactId: loaded.auditArtifact.id,
     finalDraftArtifactId: loaded.audit.finalDraftArtifactId,
+    finalQaArtifactId: loaded.audit.finalQaArtifactId,
     integrityChecksArtifactId: loaded.integrity?.artifactId ?? null,
     approvedPackArtifactId: loaded.approvedPackArtifactId,
     outputLanguage: loaded.audit.outputLanguage,
@@ -573,6 +670,7 @@ function buildResponse(
             decidedAt: loaded.approval.decidedAt.toISOString(),
           },
     variants,
+    qaCards,
     facts: [...loaded.facts.values()].filter((fact) => cited.has(fact.id)).map(gateFact),
     images: loaded.offered.map((image) => gateImage(loaded, image)),
     integrityFallbacks: integrityPhotos(loaded)
@@ -609,46 +707,83 @@ function validatedEdit(loaded: LoadedGate, segment: DraftSegment, text: string):
 }
 
 type ApprovedSegment = ApprovedPackContent['variants'][number]['segments'][number];
+type SegmentOrigin = ApprovedSegment['origin'];
 
-/** The approved copy and image selection, from the final draft and the decisions. */
+/** The approved copy, Q&A cards, and image selection, from the final drafts and the decisions. */
 function composeApprovedPack(
   loaded: LoadedGate,
   approval: Decision,
   warnings: readonly ClaimAuditWarning[],
 ): ApprovedPackContent {
   const removedClaimIds: string[] = [];
+  /** The published text and its origin, or null when the segment is removed. */
+  const publish = (segment: DraftSegment): { text: string; origin: SegmentOrigin } | null => {
+    if (!loaded.flagsByClaim.has(segment.claim.id)) {
+      return { text: segment.text, origin: 'unflagged' };
+    }
+    const decision = claimDecisionOf(loaded.claimDecisions.get(segment.claim.id));
+    switch (decision?.choice) {
+      case 'accept':
+        return { text: segment.text, origin: 'accepted' };
+      case 'edit':
+        return { text: decision.text, origin: 'edited' };
+      case 'remove':
+        removedClaimIds.push(segment.claim.id);
+        return null;
+      case undefined:
+        throw new Error(`Claim ${segment.claim.id} is not decided`);
+      default: {
+        const unreachable: never = decision;
+        throw new Error(`Unhandled claim decision ${JSON.stringify(unreachable)}`);
+      }
+    }
+  };
   const variants = COPY_VARIANTS.map((kind) => ({
     kind,
     segments: loaded.segments
       .filter((segment) => segment.variant === kind)
       .flatMap((segment): ApprovedSegment[] => {
-        const base = {
-          claimId: segment.claim.id,
-          index: segment.index,
-          paragraph: segment.paragraph,
-          factIds: [...segment.factIds],
-        };
-        if (!loaded.flagsByClaim.has(segment.claim.id)) {
-          return [{ ...base, text: segment.text, origin: 'unflagged' }];
-        }
-        const decision = claimDecisionOf(loaded.claimDecisions.get(segment.claim.id));
-        switch (decision?.choice) {
-          case 'accept':
-            return [{ ...base, text: segment.text, origin: 'accepted' }];
-          case 'edit':
-            return [{ ...base, text: decision.text, origin: 'edited' }];
-          case 'remove':
-            removedClaimIds.push(segment.claim.id);
-            return [];
-          case undefined:
-            throw new Error(`Claim ${segment.claim.id} is not decided`);
-          default: {
-            const unreachable: never = decision;
-            throw new Error(`Unhandled claim decision ${JSON.stringify(unreachable)}`);
-          }
-        }
+        const published = publish(segment);
+        if (published === null) return [];
+        return [
+          {
+            claimId: segment.claim.id,
+            index: segment.index,
+            paragraph: segment.paragraph,
+            text: published.text,
+            factIds: [...segment.factIds],
+            origin: published.origin,
+          },
+        ];
       }),
   }));
+  const qaSegments = loaded.segments.filter((segment) => segment.variant === 'qa');
+  const droppedCards = droppedQaCards(loaded);
+  const qaCards = (loaded.qa?.content.cards ?? []).flatMap((card): ApprovedQaCard[] => {
+    if (droppedCards.has(card.card)) {
+      // Every claim of a dropped card is removed, decided or not (see droppedQaCards).
+      for (const segment of qaSegments) {
+        if (segment.paragraph === card.card) removedClaimIds.push(segment.claim.id);
+      }
+      return [];
+    }
+    const segments = qaSegments
+      .filter((segment) => segment.paragraph === card.card)
+      .flatMap((segment) => {
+        const published = publish(segment);
+        if (published === null) return [];
+        return [
+          {
+            claimId: segment.claim.id,
+            index: segment.index,
+            text: published.text,
+            factIds: [...segment.factIds],
+            origin: published.origin,
+          },
+        ];
+      });
+    return [{ card: card.card, question: card.question, segments }];
+  });
   const offeredByPhoto = new Map(loaded.offered.map((image) => [image.photo, image]));
   const images = integrityPhotos(loaded).map((photo) => {
     const offered = offeredByPhoto.get(photo);
@@ -670,9 +805,11 @@ function composeApprovedPack(
     schemaVersion: 1,
     claimAuditArtifactId: loaded.auditArtifact.id,
     finalDraftArtifactId: loaded.audit.finalDraftArtifactId,
+    finalQaArtifactId: loaded.audit.finalQaArtifactId,
     integrityChecksArtifactId: loaded.integrity?.artifactId ?? null,
     outputLanguage: loaded.draft.outputLanguage,
     variants,
+    qaCards,
     removedClaimIds,
     images,
     warnings: [...warnings],
@@ -682,7 +819,10 @@ function composeApprovedPack(
 }
 
 function countChoices(pack: ApprovedPackContent, origin: 'accepted' | 'edited'): number {
-  return pack.variants.flatMap((v) => v.segments).filter((s) => s.origin === origin).length;
+  return [
+    ...pack.variants.flatMap((v) => v.segments),
+    ...pack.qaCards.flatMap((card) => card.segments),
+  ].filter((s) => s.origin === origin).length;
 }
 
 export function createClaimAuditGate(deps: ClaimAuditGateDeps): ClaimAuditGate {

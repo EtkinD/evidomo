@@ -47,6 +47,8 @@ import { createExportHandler } from './handler.ts';
 import { serializePortalFields } from './portal-fields.ts';
 import {
   EDITED_BALCONY_TEXT,
+  EDITED_QA_YEAR_TEXT,
+  QA_EXPORT_CARDS,
   SEGMENT_TEXT,
   seedExportScenario,
   sha256Hex,
@@ -75,14 +77,16 @@ let storageDir: string;
 let gate: ClaimAuditGate;
 const scenarios = new Map<string, ExportScenario>();
 const stagedIds = new Map<string, Readonly<Record<'living' | 'dining', string>>>();
+const qaClaimIdsOf = new Map<string, readonly string[]>();
 
 const verifierStub: StepHandler<'verifier'> = (context) => {
   const scenario = scenarios.get(context.run.id);
   if (scenario === undefined) throw new Error('no scenario for this run');
   return Promise.resolve({
     async commit(tx) {
-      const { staged } = await scenario.storeVerification(tx);
+      const { staged, qaClaimIds } = await scenario.storeVerification(tx);
       stagedIds.set(context.run.id, staged);
+      qaClaimIdsOf.set(context.run.id, qaClaimIds);
       return {};
     },
   });
@@ -106,10 +110,14 @@ async function readStored(artifact: Artifact): Promise<Buffer> {
   );
 }
 
-/** Seeds a run, takes it to Gate 2, decides every item, approves, and waits for the export. */
-async function exportedRun(energyLabel: boolean): Promise<ExportScenario> {
+/**
+ * Seeds a run, takes it to Gate 2, decides every item, approves, and waits for the export. With
+ * `withQa`, the three flagged Q&A answers are accepted, edited, and removed (in card order).
+ */
+async function exportedRun(energyLabel: boolean, withQa = false): Promise<ExportScenario> {
   const scenario = await seedExportScenario(testDb.db, storage, nl, {
     energyLabel,
+    withQa,
     serviceId: service.id,
     serviceVersion: service.version,
   });
@@ -134,6 +142,15 @@ async function exportedRun(energyLabel: boolean): Promise<ExportScenario> {
   await gate.decideClaim(user.id, run.id, claims.unmissable.id, { choice: 'remove' });
   await gate.decideImage(user.id, run.id, staged.living, { choice: 'accept' });
   await gate.decideImage(user.id, run.id, staged.dining, { choice: 'reject' });
+  if (withQa) {
+    const [accepted, edited, removed] = qaClaimIdsOf.get(run.id) ?? [];
+    if (accepted === undefined || edited === undefined || removed === undefined) {
+      throw new Error('no Q&A claims');
+    }
+    await gate.decideClaim(user.id, run.id, accepted, { choice: 'accept' });
+    await gate.decideClaim(user.id, run.id, edited, { choice: 'edit', text: EDITED_QA_YEAR_TEXT });
+    await gate.decideClaim(user.id, run.id, removed, { choice: 'remove' });
+  }
   await gate.approve(user.id, run.id);
   await waitForStatus(run.id, 'completed');
   return scenario;
@@ -418,6 +435,55 @@ describe('export step', () => {
     });
     expect(result.html).not.toContain('id="not-ready"');
     expect(result.html).toContain(SEGMENT_TEXT.label);
+  });
+
+  it('agrees with the pack on Q&A answers accepted, edited, and removed at Gate 2 (P3-03)', async () => {
+    const run = (await exportedRun(true, true)).run;
+    const [accepted, edited, removed] = qaClaimIdsOf.get(run.id) ?? [];
+    const result = await storedExport(run.id);
+    // The pack: the removed answer's card is gone, the other two are published as decided.
+    expect(result.fields.qaCards.map((card) => [card.question, card.answer])).toEqual([
+      [QA_EXPORT_CARDS[0]?.question, SEGMENT_TEXT.area],
+      [QA_EXPORT_CARDS[1]?.question, EDITED_QA_YEAR_TEXT],
+    ]);
+    expect(result.fields.qaCards.flatMap((card) => card.segments.map((s) => s.origin))).toEqual([
+      'accepted',
+      'edited',
+    ]);
+    expect(result.html).toContain(`<dt>${escapeHtml(QA_EXPORT_CARDS[0]?.question ?? '')}</dt>`);
+    expect(result.html).not.toContain(escapeHtml(QA_EXPORT_CARDS[2]?.question ?? ''));
+    // The approved answer is named as an operator override in the pack.
+    expect(result.html).toContain(`buyer Q&amp;A:</span> ${escapeHtml(SEGMENT_TEXT.area)}`);
+
+    // The checklist sees the same decisions. Evaluated against the nl profile plus a
+    // no_flagged_phrasing item for the flags' category: it passes, listing each Q&A decision
+    // (before the fix the accepted and edited answers were "unresolved").
+    const withPhrasingItem = {
+      getMarket: (id: string, version: number) => {
+        const market = definitions.getMarket(id, version);
+        return {
+          ...market,
+          publication_checklist: [
+            ...market.publication_checklist,
+            {
+              id: 'no_investment_promises',
+              label: 'No investment promises remain',
+              rule: 'no_flagged_phrasing' as const,
+              category: 'investment_promise' as const,
+            },
+          ],
+        };
+      },
+    };
+    const rebuilt = await buildRunExport({ storage, markets: withPhrasingItem }, testDb.db, run);
+    const item = rebuilt.checklist.items.find((i) => i.id === 'no_investment_promises');
+    expect(item).toMatchObject({
+      status: 'pass',
+      acceptedClaimIds: [accepted],
+      editedClaimIds: [edited],
+      removedClaimIds: [removed],
+      unresolvedClaimIds: [],
+    });
   });
 
   it('fails the run without retrying when the approved pack is missing', async () => {

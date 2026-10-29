@@ -1,10 +1,11 @@
 import {
+  claimAuditVariantSchema,
   claimDecisionRequestSchema,
-  copyVariantKindSchema,
   factConflictDecisionRequestSchema,
   stagedImageDecisionRequestSchema,
   type ClaimAuditGateResponse,
-  type CopyVariantKind,
+  type ClaimAuditGateSegment,
+  type ClaimAuditVariant,
   type FactConflictsGateResponse,
   type FactSourceKind,
   type GateConflict,
@@ -45,14 +46,16 @@ const factConflictEntrySchema = z.discriminatedUnion('choice', [
 ]);
 export type FactConflictEntry = z.infer<typeof factConflictEntrySchema>;
 
+// `qa` addresses a buyer Q&A answer segment by its position across all cards (Gate 2's
+// `position`, the audit's `Q01` = 0).
 const claimEntrySchema = z.discriminatedUnion('choice', [
   z.strictObject({
-    variant: copyVariantKindSchema,
+    variant: claimAuditVariantSchema,
     position: z.int().nonnegative(),
     choice: z.enum(['accept', 'remove']),
   }),
   z.strictObject({
-    variant: copyVariantKindSchema,
+    variant: claimAuditVariantSchema,
     position: z.int().nonnegative(),
     choice: z.literal('edit'),
     text: z.string().min(1).max(8000),
@@ -300,7 +303,7 @@ export function planFactConflictDecisions(
 
 export interface PlannedClaimDecision {
   readonly claimId: string;
-  readonly variant: CopyVariantKind;
+  readonly variant: ClaimAuditVariant;
   readonly position: number;
   /** Remaining flags as `source/category[/code]`, never their text (it quotes copy). */
   readonly flags: readonly string[];
@@ -323,7 +326,8 @@ export interface ClaimAuditPlan {
 }
 
 /**
- * Gate 2: one decision per flagged claim of the final draft and per offered staged image.
+ * Gate 2: one decision per flagged claim of the final draft and Q&A cards, and per offered
+ * staged image.
  * `photoNames` maps a material ID to its project photo's file name.
  */
 export function planClaimAuditDecisions(
@@ -334,7 +338,11 @@ export function planClaimAuditDecisions(
   const claimEntries = new Map(file.claims.decisions.map((e) => [`${e.variant}:${e.position}`, e]));
   const usedClaims = new Set<string>();
   const claims: PlannedClaimDecision[] = [];
-  for (const variant of gate.variants) {
+  const groups: { kind: ClaimAuditVariant; segments: readonly ClaimAuditGateSegment[] }[] = [
+    ...gate.variants,
+    { kind: 'qa', segments: gate.qaCards.flatMap((card) => card.segments) },
+  ];
+  for (const variant of groups) {
     for (const segment of variant.segments) {
       if (segment.flags.length === 0 || segment.decision !== null) continue;
       const address = `${variant.kind}:${segment.position}`;
@@ -402,7 +410,10 @@ export function planClaimAuditDecisions(
   const unused = [
     ...file.claims.decisions
       .filter((e) => !usedClaims.has(`${e.variant}:${e.position}`))
-      .map((e) => `claim ${e.variant}:${e.position}: not a flagged segment of the final draft`),
+      .map(
+        (e) =>
+          `claim ${e.variant}:${e.position}: not a flagged segment of the final draft or Q&A cards`,
+      ),
     ...file.images.decisions
       .filter((e) => !usedImages.has(e.photo))
       .map((e) => `image ${e.photo}: no staged image of this photo was offered`),

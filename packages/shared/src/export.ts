@@ -190,6 +190,24 @@ export const portalCopyVariantSchema = z.strictObject({
 });
 export type PortalCopyVariant = z.infer<typeof portalCopyVariantSchema>;
 
+/** One buyer Q&A card as approved: `answer` joins the answer segments with a space (P3-03). */
+export const portalQaCardSchema = z.strictObject({
+  question: z.string().min(1),
+  answer: z.string().min(1),
+  segments: z
+    .array(
+      z.strictObject({
+        claimId: z.uuid(),
+        index: count,
+        text: z.string().min(1).max(CLAIM_EDIT_MAX_LENGTH),
+        factIds: z.array(z.string().min(1)).min(1),
+        origin: z.enum(APPROVED_SEGMENT_ORIGINS),
+      }),
+    )
+    .min(1),
+});
+export type PortalQaCard = z.infer<typeof portalQaCardSchema>;
+
 // --- Images -----------------------------------------------------------------------------------
 
 const imageCommon = {
@@ -258,7 +276,8 @@ export type PortalWithheldImage = z.infer<typeof portalWithheldImageSchema>;
  */
 export const portalFieldsSchema = z
   .strictObject({
-    schemaVersion: z.literal(1),
+    /** 2 since P3-03 added `qaCards`. */
+    schemaVersion: z.literal(2),
     formatVersion: z.literal(EXPORT_FORMAT_VERSION),
     runId: z.uuid(),
     approvedPackArtifactId: z.uuid(),
@@ -272,6 +291,8 @@ export const portalFieldsSchema = z
       presences: z.array(portalPresenceSchema),
     }),
     copy: z.strictObject({ portal: portalCopyVariantSchema, social: portalCopyVariantSchema }),
+    /** The approved buyer Q&A cards in order; empty without a Q&A step. */
+    qaCards: z.array(portalQaCardSchema),
     /** Publishable images in order; a staged image directly precedes its original. */
     images: z.array(portalImageSchema),
     withheld: z.array(portalWithheldImageSchema),

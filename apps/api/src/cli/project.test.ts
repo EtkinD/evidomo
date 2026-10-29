@@ -4,7 +4,6 @@ import path from 'node:path';
 import type { ServiceDefinition } from '@evidomo/shared';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { loadDefinitions, type DefinitionRegistry } from '../definitions/loader.ts';
-import { cliServiceRegistry, DEFERRED_STEP_ID, withoutDeferredSteps } from './definition.ts';
 import { loadProject, ProjectDirError } from './project.ts';
 
 const DEMO_PROJECT = path.resolve(
@@ -41,11 +40,11 @@ const validDecisions = {
 
 describe('loadProject', () => {
   it('loads the committed demo project against the real definitions', async () => {
-    const registry = cliServiceRegistry(definitions);
     const project = await loadProject(DEMO_PROJECT, definitions, (id, version) =>
-      registry.getService(id, version),
+      definitions.getService(id, version),
     );
-    expect(project.service.steps.map((s) => s.id)).not.toContain(DEFERRED_STEP_ID);
+    // The real definition, Q&A step included (the temporary P3-10 filter is gone).
+    expect(project.service.steps.map((s) => s.id)).toContain('qa_cards');
     expect(project.market.id).toBe('nl');
     expect(project.outputLanguage).toBe('en');
     expect(project.photos).toHaveLength(11);
@@ -101,17 +100,5 @@ describe('loadProject', () => {
     await expect(loadProject(dir, definitions, getService)).rejects.toThrow(
       /decisions\.json: file is missing/,
     );
-  });
-});
-
-describe('withoutDeferredSteps (temporary, until cut level 1 is decided)', () => {
-  it('drops qa_cards and nothing else, and is a no-op without it', () => {
-    const service = definitions.getService('listing-launch', 1);
-    const filtered = withoutDeferredSteps(service);
-    expect(filtered.steps.map((s) => s.id)).toEqual(
-      service.steps.map((s) => s.id).filter((id) => id !== DEFERRED_STEP_ID),
-    );
-    expect(filtered.id).toBe(service.id);
-    expect(withoutDeferredSteps(filtered)).toBe(filtered);
   });
 });

@@ -39,7 +39,8 @@ export interface CheckedCopy {
   readonly citedCatalogIds: readonly string[];
 }
 
-interface Piece {
+/** A segment after whitespace normalization: its text and de-duplicated catalog IDs. */
+export interface Piece {
   readonly text: string;
   readonly ids: readonly string[];
 }
@@ -62,7 +63,7 @@ function paragraphsOf(draft: CopyDraft, kind: CopyVariantKind): ModelSegment[][]
  * its paragraph, or to the previous one at the paragraph's end, so it is checked together with
  * the claim it leads into; a paragraph that cites nothing at all is dropped.
  */
-function mergeUncited(pieces: readonly Piece[]): { merged: Piece[]; mergedCount: number } {
+export function mergeUncited(pieces: readonly Piece[]): { merged: Piece[]; mergedCount: number } {
   const merged: Piece[] = [];
   let pending: string[] = [];
   let mergedCount = 0;

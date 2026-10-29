@@ -150,6 +150,22 @@ export const claimAuditGateVariantSchema = z.strictObject({
 });
 export type ClaimAuditGateVariant = z.infer<typeof claimAuditGateVariantSchema>;
 
+/**
+ * One buyer Q&A card of the final Q&A draft (P3-03). The question is context, not a claim: only
+ * answer segments are decided, like copy segments (`paragraph` is the card number). Removing any
+ * flagged answer segment drops the whole card, question included (the verifier flags a
+ * question's problem on the first answer, and questions cannot be edited); the card's other
+ * flagged answers then need no decision.
+ */
+export const claimAuditGateQaCardSchema = z.strictObject({
+  card: count,
+  question: z.string().min(1),
+  /** A flagged answer was removed: the card is not published. */
+  dropped: z.boolean(),
+  segments: z.array(claimAuditGateSegmentSchema).min(1),
+});
+export type ClaimAuditGateQaCard = z.infer<typeof claimAuditGateQaCardSchema>;
+
 /** One integrity attempt, summarized for display (the full verdict stays in the artifact). */
 export const integrityAttemptSummarySchema = z.strictObject({
   attempt: z.union([z.literal(1), z.literal(2)]),
@@ -236,6 +252,8 @@ export const claimAuditGateResponseSchema = z.strictObject({
   /** Null before the gate is reached. */
   claimAuditArtifactId: z.uuid().nullable(),
   finalDraftArtifactId: z.uuid().nullable(),
+  /** The final `qa_cards` artifact; null before the gate and when the service has no Q&A step. */
+  finalQaArtifactId: z.uuid().nullable(),
   /** Null when the run has no integrity record (nothing is offered then). */
   integrityChecksArtifactId: z.uuid().nullable(),
   /** Set once the pack is approved. */
@@ -262,7 +280,9 @@ export const claimAuditGateResponseSchema = z.strictObject({
   openCount: count,
   approval: z.strictObject({ decidedBy: z.uuid(), decidedAt }).nullable(),
   variants: z.array(claimAuditGateVariantSchema),
-  /** Every fact the final draft cites, with provenance for the evidence inspector (P4-07). */
+  /** The final Q&A cards in order; empty without a Q&A step. */
+  qaCards: z.array(claimAuditGateQaCardSchema),
+  /** Every fact the final draft and Q&A cards cite, with provenance (evidence inspector, P4-07). */
   facts: z.array(gateFactSchema),
   images: z.array(claimAuditGateImageSchema),
   integrityFallbacks: z.array(integrityFallbackSchema),
@@ -272,6 +292,25 @@ export type ClaimAuditGateResponse = z.infer<typeof claimAuditGateResponseSchema
 
 /** Where a published segment's text comes from. */
 export const APPROVED_SEGMENT_ORIGINS = ['unflagged', 'accepted', 'edited'] as const;
+
+/** A published Q&A answer segment (same meaning as a copy segment, without paragraphs). */
+export const approvedQaSegmentSchema = z.strictObject({
+  claimId: z.uuid(),
+  index: count,
+  text: z.string().min(1).max(CLAIM_EDIT_MAX_LENGTH),
+  factIds: z.array(z.string().min(1)).min(1),
+  origin: z.enum(APPROVED_SEGMENT_ORIGINS),
+});
+export type ApprovedQaSegment = z.infer<typeof approvedQaSegmentSchema>;
+
+/** A published Q&A card: no flagged answer of it was removed at Gate 2. */
+export const approvedQaCardSchema = z.strictObject({
+  /** The card's number in the final Q&A draft (gaps where a card was dropped). */
+  card: count,
+  question: z.string().min(1),
+  segments: z.array(approvedQaSegmentSchema).min(1),
+});
+export type ApprovedQaCard = z.infer<typeof approvedQaCardSchema>;
 
 /**
  * Content of the `approved_pack` artifact (step ID `gate:claim_audit`), written once in the
@@ -284,6 +323,11 @@ export const approvedPackContentSchema = z
     schemaVersion: z.literal(1),
     claimAuditArtifactId: z.uuid(),
     finalDraftArtifactId: z.uuid(),
+    /**
+     * The claim audit's final Q&A cards; null without a Q&A step. Read with defaults so packs
+     * approved before P3-03 still parse.
+     */
+    finalQaArtifactId: z.uuid().nullable().default(null),
     integrityChecksArtifactId: z.uuid().nullable(),
     outputLanguage: z.string().regex(/^[a-z]{2}$/),
     /** `portal`, then `social`; a variant whose segments were all removed is empty. */
@@ -304,6 +348,12 @@ export const approvedPackContentSchema = z
         }),
       )
       .length(2),
+    /**
+     * The published Q&A cards in card order. A card with a removed flagged answer is absent, and
+     * all of its claims are in `removedClaimIds`.
+     */
+    qaCards: z.array(approvedQaCardSchema).default([]),
+    /** Removed copy and Q&A claims. */
     removedClaimIds: z.array(z.uuid()),
     /** One entry per staged photo of the integrity record, in its order. */
     images: z.array(
@@ -325,6 +375,12 @@ export const approvedPackContentSchema = z
   .superRefine((pack, ctx) => {
     if (pack.variants.some((variant, i) => variant.kind !== (i === 0 ? 'portal' : 'social'))) {
       ctx.addIssue({ code: 'custom', path: ['variants'], message: 'portal, then social' });
+    }
+    if (pack.finalQaArtifactId === null && pack.qaCards.length > 0) {
+      ctx.addIssue({ code: 'custom', path: ['qaCards'], message: 'Q&A cards need their draft' });
+    }
+    if (pack.qaCards.some((card, i) => i > 0 && card.card <= (pack.qaCards[i - 1]?.card ?? -1))) {
+      ctx.addIssue({ code: 'custom', path: ['qaCards'], message: 'Cards in card order' });
     }
     pack.images.forEach((image, i) => {
       const consistent =

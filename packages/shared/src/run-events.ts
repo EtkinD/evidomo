@@ -228,6 +228,35 @@ export const copyGeneratedPayloadSchema = z.strictObject({
 export type CopyGeneratedPayload = z.infer<typeof copyGeneratedPayloadSchema>;
 
 /**
+ * Appended by the Q&A step (and by verification for each Q&A revision, P3-06) together with a
+ * `qa_cards` artifact and its claims: counts for the run monitor. Never questions, answers, fact
+ * keys, or values.
+ */
+export const qaCardsGeneratedPayloadSchema = z.strictObject({
+  stepId: z.string().min(1),
+  /** The `qa_cards` artifact. */
+  artifactId: z.uuid(),
+  /** 0 for the Q&A step's cards, else the verification loop that revised them. */
+  revision: count,
+  outputLanguage: z.string().regex(/^[a-z]{2}$/),
+  catalogFactCount: count,
+  citedFactCount: count,
+  cardCount: count,
+  /** Answer segments; one `claims` row each. */
+  segmentCount: count,
+  claimCount: count,
+  mergedUncitedCount: count,
+  /** Cards removed by the code check (uncited, invalid or numbered question, duplicate, over the limit). */
+  droppedCardCount: count,
+  validatorResult: validatorResultSchema,
+  validatorFailedSegmentCount: count,
+  validatorFindingCount: count,
+  model: z.string().min(1),
+  fallbackUsed: z.boolean(),
+});
+export type QaCardsGeneratedPayload = z.infer<typeof qaCardsGeneratedPayloadSchema>;
+
+/**
  * Appended by the staging step together with its `staged_images` artifact and one
  * `staged_image` artifact per staged photo: counts for the run monitor. Never subjects,
  * operations, or prompts.
@@ -282,6 +311,11 @@ export const claimsAuditedPayloadSchema = z.strictObject({
   artifactId: z.uuid(),
   /** The `listing_copy` artifact Gate 2 reviews. */
   finalDraftArtifactId: z.uuid(),
+  /**
+   * The `qa_cards` artifact Gate 2 reviews; null when the service has no Q&A step. Defaults to
+   * null so events appended before P3-03 still parse.
+   */
+  finalQaArtifactId: z.uuid().nullable().default(null),
   passCount: count,
   revisionCount: count,
   verifierCallCount: count,

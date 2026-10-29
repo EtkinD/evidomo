@@ -44,6 +44,11 @@ export const verificationStepInputSchema = z.strictObject({
     .array(
       z.strictObject({
         variant: claimAuditVariantSchema,
+        /**
+         * Q&A only (P3-03): the card questions, by card; a Q&A segment's `paragraph` is its
+         * card. Absent for copy variants, so a request without Q&A is the P3-06 request.
+         */
+        questions: z.array(z.string().min(1)).min(1).optional(),
         segments: z
           .array(
             z.strictObject({

@@ -139,7 +139,8 @@ export async function readApprovedPack(
     audit?.runId !== run.id ||
     audit.kind !== CLAIM_AUDIT_ARTIFACT_KIND ||
     !auditContent.success ||
-    auditContent.data.finalDraftArtifactId !== pack.finalDraftArtifactId
+    auditContent.data.finalDraftArtifactId !== pack.finalDraftArtifactId ||
+    auditContent.data.finalQaArtifactId !== pack.finalQaArtifactId
   ) {
     throw new NonRetryableStepError('The approved pack does not match the run claim audit');
   }
@@ -197,7 +198,11 @@ async function evaluateChecklist(
   run: Run,
   pack: ApprovedPackContent,
 ): Promise<PublicationChecklistResult> {
-  const segments = pack.variants.flatMap((variant) => variant.segments);
+  // Copy and Q&A answers alike: an accepted or edited Q&A claim is a decision too (P3-03).
+  const segments = [
+    ...pack.variants.flatMap((variant) => variant.segments),
+    ...pack.qaCards.flatMap((card) => card.segments),
+  ];
   const claimDecisions: { claimId: string; choice: ClaimDecisionChoice }[] = [];
   for (const segment of segments) {
     if (segment.origin === 'accepted')

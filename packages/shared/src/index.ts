@@ -14,6 +14,7 @@ export * from './staging.ts';
 export * from './publication-checklist.ts';
 export * from './reconciliation.ts';
 export * from './copy.ts';
+export * from './qa.ts';
 export * from './claims.ts';
 export * from './claim-audit.ts';
 export * from './gates.ts';

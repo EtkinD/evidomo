@@ -87,6 +87,7 @@ export const RUN_EVENT_TYPES = [
   'photos_inventoried',
   'facts_reconciled',
   'copy_generated',
+  'qa_cards_generated',
   'images_staged',
   'integrity_checked',
   'claims_audited',

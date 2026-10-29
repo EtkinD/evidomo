@@ -234,6 +234,7 @@ function gate2(): ClaimAuditGateResponse {
     state: 'open',
     claimAuditArtifactId: uuid(700),
     finalDraftArtifactId: uuid(701),
+    finalQaArtifactId: null,
     integrityChecksArtifactId: uuid(702),
     approvedPackArtifactId: null,
     outputLanguage: 'en',
@@ -246,6 +247,7 @@ function gate2(): ClaimAuditGateResponse {
       { kind: 'portal', segments: [segment(0, false), segment(1, true)] },
       { kind: 'social', segments: [segment(0, true)] },
     ],
+    qaCards: [],
     facts: [],
     images: [
       {
@@ -321,7 +323,52 @@ describe('planClaimAuditDecisions', () => {
     expect(plan.images.map((i) => [i.photo, i.request.choice, i.origin])).toEqual([
       ['living-empty.jpg', 'reject', 'decisions_file'],
     ]);
-    expect(plan.unused).toEqual(['claim portal:0: not a flagged segment of the final draft']);
+    expect(plan.unused).toEqual([
+      'claim portal:0: not a flagged segment of the final draft or Q&A cards',
+    ]);
+  });
+
+  it('decides flagged Q&A answers by their position across the cards', () => {
+    const qaSegment = (position: number, flagged: boolean) => ({
+      ...segment(position, flagged),
+      claimId: uuid(300 + position),
+      paragraph: position === 0 ? 0 : 1,
+    });
+    const gate = {
+      ...gate2(),
+      finalQaArtifactId: uuid(703),
+      qaCards: [
+        { card: 0, question: 'How large is it?', dropped: false, segments: [qaSegment(0, false)] },
+        {
+          card: 1,
+          question: 'What is the label?',
+          dropped: false,
+          segments: [qaSegment(1, true), qaSegment(2, true)],
+        },
+      ],
+    };
+    const plan = planClaimAuditDecisions(
+      gate,
+      file({
+        claimAudit: {
+          claims: {
+            default: 'accept',
+            decisions: [{ variant: 'qa', position: 2, choice: 'remove' }],
+          },
+          images: { default: 'accept' },
+        },
+      }).claimAudit,
+      photos,
+    );
+    expect(
+      plan.claims
+        .filter((c) => c.variant === 'qa')
+        .map((c) => [c.claimId, c.position, c.request.choice, c.origin]),
+    ).toEqual([
+      [uuid(301), 1, 'accept', 'default_policy'],
+      [uuid(302), 2, 'remove', 'decisions_file'],
+    ]);
+    expect(plan.unused).toEqual([]);
   });
 
   it('applies the image default and stops on fail defaults', () => {

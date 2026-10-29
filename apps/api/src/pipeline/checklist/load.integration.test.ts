@@ -29,6 +29,8 @@ import { createMetaClients } from '../../meta/clients.ts';
 import { createMetaReplay, type MetaReplay } from '../../meta/replay.ts';
 import { createInMemoryUsageRecorder } from '../../meta/usage.ts';
 import { storeListingCopy } from '../creative/handler.ts';
+import { storeQaCards } from '../qa/handler.ts';
+import { qaCardsFromCopy } from '../qa/testing.ts';
 import type { PostGateFacts } from '../creative/testing.ts';
 import { evaluatePublicationChecklist } from './evaluate.ts';
 import {
@@ -58,6 +60,9 @@ interface SeededPack {
   readonly run: Run;
   readonly claims: Claim[];
   readonly flagged: Claim;
+  /** With `withQa`: the Q&A answer claims, and the one flagged `exclusionary`. */
+  readonly qaClaims: Claim[];
+  readonly qaFlagged: Claim | null;
   /** Final staged images in manifest order: the first labeled, the second without disclosure. */
   readonly finals: readonly [string, string];
   /** A staged image that failed the integrity check (stored, never final). */
@@ -125,7 +130,9 @@ function integrityPhoto(
   };
 }
 
-async function seedPack(options: { auditMarketId?: string } = {}): Promise<SeededPack> {
+async function seedPack(
+  options: { auditMarketId?: string; withQa?: boolean } = {},
+): Promise<SeededPack> {
   const db = testDb.db;
   const user = await seedUser(db);
   const project = await seedProject(db, user.id, { outputLanguage: 'nl' });
@@ -156,6 +163,50 @@ async function seedPack(options: { auditMarketId?: string } = {}): Promise<Seede
     suggestion: null,
     carried: false,
   };
+
+  // Q&A cards (P3-03) answered with copy segments: card 0 by the energy-label segment, card 1 by
+  // segment 0 (flagged) and the energy-label segment again.
+  let qaId: string | null = null;
+  let qaClaims: Claim[] = [];
+  let qaFlag: ClaimAuditFlag | null = null;
+  if (options.withQa === true) {
+    const labelFactIds = new Set(
+      facts.filter((f) => f.key === 'energy_label' && f.status === 'verified').map((f) => f.id),
+    );
+    const labelSegment = content.variants
+      .flatMap((v) => v.segments)
+      .find((segment) => segment.factIds.some((id) => labelFactIds.has(id)));
+    if (labelSegment === undefined) throw new Error('The recorded copy names no energy label');
+    const qa = qaCardsFromCopy(
+      content,
+      facts.filter((f) => f.status === 'verified'),
+      [
+        { question: 'Wat is het energielabel?', segments: [labelSegment.index] },
+        // Two answers: removing the flagged first one drops the card (the Gate 2 rule).
+        { question: 'Hoe groot is de woning?', segments: [0, labelSegment.index] },
+      ],
+    );
+    const stored = await storeQaCards(db, { runId: run.id, stepId: 'qa_cards', content: qa });
+    qaId = stored.artifact.id;
+    qaClaims = await listClaims(db, qaId);
+    const target = qaClaims[1];
+    if (target === undefined) throw new Error('two Q&A claims expected');
+    qaFlag = {
+      source: 'verifier',
+      category: 'exclusionary',
+      code: null,
+      artifactId: qaId,
+      variant: 'qa',
+      segment: 1,
+      segmentIndex: 1,
+      claimId: target.id,
+      problem: 'The question addresses buyers by family status.',
+      suggestion: null,
+      carried: false,
+    };
+  }
+  const flags = qaFlag === null ? [flag] : [flag, qaFlag];
+  const segmentCount = claims.length + qaClaims.length;
   const audit: ClaimAuditContent = claimAuditContentSchema.parse({
     schemaVersion: 1,
     promptVersion: 1,
@@ -164,17 +215,23 @@ async function seedPack(options: { auditMarketId?: string } = {}): Promise<Seede
     rubric: [
       { category: 'claim_support', rule: 'Say only what the cited facts say.' },
       { category: 'unverifiable_superlative', rule: 'No unverifiable superlatives.' },
+      ...(qaFlag === null
+        ? []
+        : [{ category: 'exclusionary' as const, rule: 'No exclusionary wording.' }]),
     ],
     maxRevisionLoops: 0,
     stopReason: 'loop_limit',
     initialDraftArtifactId: draft.id,
     finalDraftArtifactId: draft.id,
+    initialQaArtifactId: qaId,
+    finalQaArtifactId: qaId,
     passes: [
       {
         draftArtifactId: draft.id,
+        qaDraftArtifactId: qaId,
         revision: 0,
-        segments: claims.length,
-        auditedSegments: claims.length,
+        segments: segmentCount,
+        auditedSegments: segmentCount,
         carriedSegments: 0,
         modelRun: {
           model: 'muse-wonder-1.0',
@@ -182,7 +239,7 @@ async function seedPack(options: { auditMarketId?: string } = {}): Promise<Seede
           maxOutputTokens: 12000,
           fallbackFrom: null,
         },
-        flags: [flag],
+        flags,
         dropped: {
           unknownSegment: 0,
           notAudited: 0,
@@ -192,16 +249,16 @@ async function seedPack(options: { auditMarketId?: string } = {}): Promise<Seede
         },
       },
     ],
-    remainingFlags: [flag],
+    remainingFlags: flags,
     counts: {
       passes: 1,
       revisions: 0,
       verifierCalls: 1,
-      remainingFlags: 1,
+      remainingFlags: flags.length,
       remainingValidatorFlags: 0,
-      remainingVerifierFlags: 1,
-      flaggedClaims: 1,
-      finalClaims: claims.length,
+      remainingVerifierFlags: flags.length,
+      flaggedClaims: flags.length,
+      finalClaims: segmentCount,
     },
     fallbackUsed: false,
   } satisfies ClaimAuditContent);
@@ -259,7 +316,15 @@ async function seedPack(options: { auditMarketId?: string } = {}): Promise<Seede
     }),
   });
 
-  return { run, claims, flagged, finals: [labeled, unlabeled], notFinal: failed };
+  return {
+    run,
+    claims,
+    flagged,
+    qaClaims,
+    qaFlagged: qaClaims[1] ?? null,
+    finals: [labeled, unlabeled],
+    notFinal: failed,
+  };
 }
 
 const load = (params: PublicationChecklistRunInput) =>
@@ -355,7 +420,7 @@ describe('loadPublicationChecklistInput', () => {
     ).rejects.toThrow('approved more than once');
     await expect(
       load({ ...base, claimDecisions: [{ claimId: randomUUID(), choice: 'accept' }] }),
-    ).rejects.toThrow('is not a segment of the final draft');
+    ).rejects.toThrow('is not a segment of the final draft or Q&A cards');
     await expect(
       load({
         ...base,
@@ -365,6 +430,52 @@ describe('loadPublicationChecklistInput', () => {
         ],
       }),
     ).rejects.toThrow('more than one decision');
+  });
+
+  it('adds the final Q&A answers to the segments, so a Q&A flag can be decided (P3-03)', async () => {
+    const pack = await seedPack({ withQa: true });
+    const qaFlagged = pack.qaFlagged;
+    if (qaFlagged === null) throw new Error('no flagged Q&A claim');
+    const decided = await load({
+      run: pack.run,
+      approvedStagedArtifactIds: [],
+      claimDecisions: [
+        { claimId: pack.flagged.id, choice: 'remove' },
+        { claimId: qaFlagged.id, choice: 'remove' },
+      ],
+    });
+    expect(decided.copy.segments.map((s) => s.claimId)).toEqual([
+      ...pack.claims.map((c) => c.id),
+      ...pack.qaClaims.map((c) => c.id),
+    ]);
+    // Removing the flagged answer drops its card: the card's unflagged second answer counts as
+    // removed too, so the checklist sees what the pack publishes.
+    expect(decided.copy.segments.filter((s) => s.variant === 'qa')).toEqual([
+      expect.objectContaining({ claimId: pack.qaClaims[0]?.id, decision: null }),
+      expect.objectContaining({ claimId: qaFlagged.id, decision: 'remove' }),
+      expect.objectContaining({ claimId: pack.qaClaims[2]?.id, decision: 'remove' }),
+    ]);
+    // The kept Q&A answer cites the energy label, so the fact is cited in Q&A too.
+    const nl = evaluatePublicationChecklist(decided);
+    expect(nl.items[0]).toMatchObject({ id: 'energy_label_shown' });
+    expect(nl.items[0]?.rule === 'fact_present' && nl.items[0].citedIn).toContain('qa');
+
+    // Evaluated against a market with an exclusionary item: the removed Q&A answer resolves it,
+    // an undecided one keeps it failed (before P3-03 a Q&A flag always failed closed).
+    const international = registry.getMarket('international', 1);
+    const exclusionary = (input: typeof decided) =>
+      evaluatePublicationChecklist({ ...input, market: international }).items.find(
+        (item) => item.id === 'no_exclusionary_language',
+      );
+    expect(exclusionary(decided)).toMatchObject({
+      status: 'pass',
+      removedClaimIds: [qaFlagged.id],
+    });
+    const open = await load({ run: pack.run, approvedStagedArtifactIds: [], claimDecisions: [] });
+    expect(exclusionary(open)).toMatchObject({
+      status: 'fail',
+      unresolvedClaimIds: [qaFlagged.id],
+    });
   });
 
   it('refuses a claim audit made for another market', async () => {

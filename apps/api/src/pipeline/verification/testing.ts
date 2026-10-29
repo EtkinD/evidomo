@@ -4,7 +4,9 @@
 // defects. Imported only by tests.
 import {
   listingCopyContentSchema,
+  qaCardsContentSchema,
   type ListingCopyContent,
+  type QaCardsContent,
   type ServiceDefinition,
 } from '@evidomo/shared';
 import type { Fact } from '../../db/repositories/facts.ts';
@@ -13,6 +15,15 @@ import type { MetaClients } from '../../meta/clients.ts';
 import type { UsageRecorder } from '../../meta/usage.ts';
 import type { StepConfig } from '../../runs/steps.ts';
 import { storedFact } from '../reconciliation/testing.ts';
+import { checkQaOutput } from '../qa/check.ts';
+import {
+  buildQaCardsContent,
+  buildQaInput,
+  buildQaRequests,
+  callQa,
+  validateQa,
+} from '../qa/generate.ts';
+import { QA_CASSETTES, recordedQaSources, recordedQaStep } from '../qa/testing.ts';
 import { checkCopyOutput } from '../creative/check.ts';
 import {
   buildCopyInput,
@@ -37,16 +48,31 @@ export { COPY_MATCH as VERIFICATION_MATCH } from '../creative/testing.ts';
 
 export const VERIFICATION_SCENARIOS = {
   /** The recorded en draft as written. */
-  'loop-en': { language: 'en', edits: 'none' },
+  'loop-en': { language: 'en', edits: 'none', qa: 'absent' },
   /** The recorded nl draft as written. */
-  'loop-nl': { language: 'nl', edits: 'none' },
+  'loop-nl': { language: 'nl', edits: 'none', qa: 'absent' },
   /** The recorded en draft with the defects of {@link SEEDED_EN_DEFECTS}. */
-  'seeded-en': { language: 'en', edits: 'seeded' },
+  'seeded-en': { language: 'en', edits: 'seeded', qa: 'absent' },
   /** The recorded en draft with its one flagged segment as the loop-en revision rewrote it. */
-  'clean-en': { language: 'en', edits: 'clean' },
+  'clean-en': { language: 'en', edits: 'clean', qa: 'absent' },
+  /**
+   * P3-03: the recorded en draft as written, audited together with the recorded en Q&A cards
+   * carrying the defects of {@link SEEDED_QA_EN_DEFECTS}, so the loop revises the cards only.
+   */
+  'qa-en': { language: 'en', edits: 'none', qa: 'seeded' },
+  /** P3-03: the recorded en draft and the recorded en Q&A cards, both as written. */
+  'qa-clean-en': { language: 'en', edits: 'none', qa: 'recorded' },
 } as const satisfies Record<
   string,
-  { language: RecordedCopyLanguage; edits: 'none' | 'seeded' | 'clean' }
+  {
+    language: RecordedCopyLanguage;
+    edits: 'none' | 'seeded' | 'clean';
+    /**
+     * `absent`: no Q&A step (the P3-06 requests); `recorded`: the recorded P3-03 cards as
+     * written; `seeded`: the same cards with {@link SEEDED_QA_EN_DEFECTS}.
+     */
+    qa: 'absent' | 'recorded' | 'seeded';
+  }
 >;
 export type VerificationScenario = keyof typeof VERIFICATION_SCENARIOS;
 
@@ -59,6 +85,8 @@ export const VERIFICATION_INCLUDED_CASSETTES = [
   ...COPY_INCLUDED_CASSETTES,
   COPY_CASSETTES.en,
   COPY_CASSETTES.nl,
+  QA_CASSETTES.en,
+  QA_CASSETTES.nl,
 ] as const;
 
 /**
@@ -234,4 +262,91 @@ export function scenarioDraft(
       throw new Error(`Unknown scenario edits ${String(unreachable)}`);
     }
   }
+}
+
+/** The P3-03 Q&A cards for a language, rebuilt from the replayed facts and Q&A answer. */
+export async function recordedInitialQa(
+  clients: MetaClients,
+  registry: Pick<DefinitionRegistry, 'getService' | 'getMarket'>,
+  draft: RecordedDraft,
+  language: RecordedCopyLanguage,
+): Promise<QaCardsContent> {
+  const sources = recordedQaSources(registry, draft.facts, draft.recorded.inventory, language);
+  const input = buildQaInput(sources);
+  const { primary } = buildQaRequests(recordedQaStep(registry), sources.market, input);
+  const answer = await callQa(clients, primary);
+  return buildQaCardsContent({
+    generated: {
+      qa: checkQaOutput(answer.output, sources.catalog, language),
+      modelRun: {
+        model: primary.modelId,
+        reasoningEffort: primary.reasoningEffort,
+        maxOutputTokens: primary.maxOutputTokens,
+        fallbackFrom: null,
+      },
+    },
+    catalog: sources.catalog,
+    facts: sources.facts,
+    input,
+    revision: 0,
+    previousArtifactId: null,
+  });
+}
+
+/**
+ * Seeded defects in the recorded en Q&A cards (fictional town), by exact text: a question that
+ * addresses buyers by family status, a changed number, and a promise. `question` defects replace
+ * a card's question; the verifier flags them on the card's first answer segment.
+ */
+export const SEEDED_QA_EN_DEFECTS = [
+  {
+    kind: 'question',
+    category: 'exclusionary',
+    source: 'verifier',
+    original: 'What outdoor space is available?',
+    seeded: 'Is the outdoor space suitable for a young family with children?',
+  },
+  {
+    kind: 'answer',
+    category: 'claim_support',
+    source: 'validator',
+    original: 'There is external storage of 6 m².',
+    seeded: 'There is external storage of 8 m².',
+  },
+  {
+    kind: 'answer',
+    category: 'investment_promise',
+    source: 'verifier',
+    original: 'The station is 10 minutes away by bicycle.',
+    seeded: 'The station is 10 minutes away by bicycle, so the home is sure to rise in value.',
+  },
+] as const;
+
+/** The cards with questions and answer texts replaced (same citations) and validated again. */
+export function editQa(
+  content: QaCardsContent,
+  sources: CopySources,
+  edits: readonly { readonly original: string; readonly seeded: string }[],
+): QaCardsContent {
+  const replacements = new Map<string, string>(edits.map((d) => [d.original, d.seeded]));
+  const used = new Set<string>();
+  const replace = (text: string): string => {
+    const seeded = replacements.get(text);
+    if (seeded === undefined) return text;
+    used.add(text);
+    return seeded;
+  };
+  const cards = content.cards.map((card) => ({
+    ...card,
+    question: replace(card.question),
+    segments: card.segments.map((segment) => ({ ...segment, text: replace(segment.text) })),
+  }));
+  if (used.size !== replacements.size) {
+    throw new Error('The recorded Q&A cards no longer contain every text to edit');
+  }
+  return qaCardsContentSchema.parse({
+    ...content,
+    cards,
+    validation: validateQa(cards, sources.facts, content.outputLanguage),
+  });
 }

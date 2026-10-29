@@ -33,7 +33,8 @@ export function copyPhrasingCategories(market: MarketProfile): PhrasingCategory[
   return [...new Set([...ALWAYS, ...market.flagged_phrasing])];
 }
 
-function phrasingRule(market: MarketProfile): string {
+/** The phrasing rules of a market as one prompt clause; the Q&A prompt (P3-03) uses it too. */
+export function phrasingRule(market: MarketProfile): string {
   return copyPhrasingCategories(market)
     .map((category) => PHRASING_RULES[category])
     .join('; ');

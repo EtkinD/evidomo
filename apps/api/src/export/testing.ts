@@ -40,6 +40,8 @@ import { recordedMaskAt } from '../meta/sam-test-support.ts';
 import { validateClaims } from '../pipeline/claims/validator.ts';
 import { buildCopyFactCatalog } from '../pipeline/creative/catalog.ts';
 import { storeListingCopy } from '../pipeline/creative/handler.ts';
+import { storeQaCards } from '../pipeline/qa/handler.ts';
+import { qaCardsFromCopy } from '../pipeline/qa/testing.ts';
 import {
   compareFixedElements,
   DEFAULT_INTEGRITY_THRESHOLDS,
@@ -291,6 +293,16 @@ export const SEGMENT_TEXT: Readonly<Record<SegmentName, string>> = {
 
 export const EDITED_BALCONY_TEXT = 'The apartment has a balcony.';
 
+/** Q&A cards of the `withQa` scenario, answered by copy segments (one answer each). */
+export const QA_EXPORT_CARDS: readonly { question: string; segment: SegmentName }[] = [
+  { question: 'How large is the living area?', segment: 'area' },
+  { question: 'When was the building built?', segment: 'year' },
+  { question: 'How far is the station?', segment: 'station' },
+];
+
+/** A rewrite of the second card's answer that passes the validator against its citations. */
+export const EDITED_QA_YEAR_TEXT = 'It was built in 1932, without ground lease.';
+
 export interface ExportScenario {
   readonly user: PublicUser;
   readonly project: Project;
@@ -301,10 +313,15 @@ export interface ExportScenario {
   readonly facts: readonly Fact[];
   readonly draftArtifactId: string;
   readonly claims: Readonly<Partial<Record<SegmentName, Claim>>>;
-  /** What the verification stand-in stores in its commit: staged images, integrity, audit. */
-  storeVerification(
-    tx: Executor,
-  ): Promise<{ readonly staged: Readonly<Record<'living' | 'dining', string>> }>;
+  /**
+   * What the verification stand-in stores in its commit: staged images, integrity, audit, and
+   * with `withQa` the Q&A cards ({@link QA_EXPORT_CARDS}), each answer flagged
+   * `investment_promise`; `qaClaimIds` are their claims in card order (empty without).
+   */
+  storeVerification(tx: Executor): Promise<{
+    readonly staged: Readonly<Record<'living' | 'dining', string>>;
+    readonly qaClaimIds: readonly string[];
+  }>;
 }
 
 async function storePhoto(
@@ -590,6 +607,8 @@ export async function seedExportScenario(
   market: MarketProfile,
   options: {
     readonly energyLabel?: boolean;
+    /** Also store Q&A cards with flagged answers (P3-03). */
+    readonly withQa?: boolean;
     readonly serviceId: string;
     readonly serviceVersion: number;
   },
@@ -754,7 +773,38 @@ export async function seedExportScenario(
         carried: false,
       };
     });
-    const segments = specs.length;
+
+    let qaId: string | null = null;
+    const qaClaimIds: string[] = [];
+    if (options.withQa === true) {
+      const qa = qaCardsFromCopy(
+        content,
+        facts,
+        QA_EXPORT_CARDS.map((card) => ({
+          question: card.question,
+          segments: [specs.findIndex((spec) => spec.name === card.segment)],
+        })),
+      );
+      const stored = await storeQaCards(tx, { runId: run.id, stepId: 'qa_cards', content: qa });
+      qaId = stored.artifact.id;
+      for (const claim of await listClaims(tx, qaId)) {
+        qaClaimIds.push(claim.id);
+        flags.push({
+          source: 'verifier',
+          category: 'investment_promise',
+          code: null,
+          artifactId: qaId,
+          variant: 'qa',
+          segment: claim.segmentIndex,
+          segmentIndex: claim.segmentIndex,
+          claimId: claim.id,
+          problem: 'A synthetic promise in a Q&A answer.',
+          suggestion: null,
+          carried: false,
+        });
+      }
+    }
+    const segments = specs.length + qaClaimIds.length;
     await insertArtifact(tx, {
       runId: run.id,
       stepId: 'verification',
@@ -774,9 +824,12 @@ export async function seedExportScenario(
         stopReason: 'loop_limit',
         initialDraftArtifactId: draft.id,
         finalDraftArtifactId: draft.id,
+        initialQaArtifactId: qaId,
+        finalQaArtifactId: qaId,
         passes: [
           {
             draftArtifactId: draft.id,
+            qaDraftArtifactId: qaId,
             revision: 0,
             segments,
             auditedSegments: segments,
@@ -806,7 +859,7 @@ export async function seedExportScenario(
         fallbackUsed: false,
       }),
     });
-    return { staged };
+    return { staged, qaClaimIds };
   }
 
   return {

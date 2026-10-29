@@ -17,7 +17,12 @@ import { STAGED_DIGITAL_SOURCE_TYPE } from '../pipeline/staging/encode.ts';
 import { escapeHtml } from './escape.ts';
 import { buildPortalFacts } from './facts.ts';
 import { formatApprovedAt, renderListingPackHtml, type ListingPackHtmlInput } from './html.ts';
-import { composePortalFields, copyVariant, serializePortalFields } from './portal-fields.ts';
+import {
+  composePortalFields,
+  copyVariant,
+  qaCards,
+  serializePortalFields,
+} from './portal-fields.ts';
 import { syntheticPhoto } from './testing.ts';
 
 // The HTML pack and the portal-fields JSON from synthetic parts: escaping of every untrusted
@@ -75,6 +80,7 @@ function pack(overrides: Partial<ApprovedPackContent> = {}): ApprovedPackContent
     schemaVersion: 1,
     claimAuditArtifactId: randomUUID(),
     finalDraftArtifactId: randomUUID(),
+    finalQaArtifactId: null,
     integrityChecksArtifactId: randomUUID(),
     outputLanguage: 'en',
     variants: [
@@ -88,6 +94,7 @@ function pack(overrides: Partial<ApprovedPackContent> = {}): ApprovedPackContent
       },
       { kind: 'social', segments: [segment(3, 0, 'Bright and calm.', 'unflagged')] },
     ],
+    qaCards: [],
     removedClaimIds: [],
     images: [],
     warnings: [],
@@ -201,6 +208,35 @@ function input(
     flagCategories: new Map(),
     ...overrides,
   };
+}
+
+/** Two approved Q&A cards, one answer approved as written with untrusted text. */
+function qaPack(): ApprovedPackContent {
+  const qaSegment = (index: number, text: string, origin: 'unflagged' | 'accepted') => ({
+    claimId: randomUUID(),
+    index,
+    text,
+    factIds: [randomUUID()],
+    origin,
+  });
+  return pack({
+    finalQaArtifactId: randomUUID(),
+    qaCards: [
+      {
+        card: 0,
+        question: 'How large is the living area?',
+        segments: [
+          qaSegment(0, 'The living area is 92.5 m².', 'unflagged'),
+          qaSegment(1, 'It is measured to NEN 2580.', 'unflagged'),
+        ],
+      },
+      {
+        card: 2,
+        question: `Is there a balcony ${PAYLOAD}?`,
+        segments: [qaSegment(2, PAYLOAD, 'accepted')],
+      },
+    ],
+  });
 }
 
 describe('renderListingPackHtml', () => {
@@ -377,6 +413,22 @@ describe('renderListingPackHtml', () => {
     expect(html).toContain('<td>92,5 m²</td>');
   });
 
+  it('renders the approved Q&A cards escaped, and names an accepted answer as an override', () => {
+    const withQa: PortalFields = { ...fields(), qaCards: qaCards(qaPack()) };
+    const html = renderListingPackHtml(input(withQa));
+    const section = /<section id="qa">[\s\S]*?<\/section>/.exec(html)?.[0] ?? '';
+    expect(section).toContain('<h2>Buyer questions and answers</h2>');
+    expect(section).toContain(
+      '<dt>How large is the living area?</dt><dd>The living area is 92.5 m². It is measured to NEN 2580.</dd>',
+    );
+    expect(section).toContain(`<dt>Is there a balcony ${escapeHtml(PAYLOAD)}?</dt>`);
+    expect(section).not.toContain(PAYLOAD);
+    const checklistSection = /<section id="checklist">[\s\S]*?<\/section>/.exec(html)?.[0] ?? '';
+    expect(checklistSection).toContain(`buyer Q&amp;A:</span> ${escapeHtml(PAYLOAD)}`);
+    // No cards, no section.
+    expect(renderListingPackHtml(input(fields()))).not.toContain('id="qa"');
+  });
+
   it('is deterministic: the same input renders the same string', () => {
     const portalFields = fields();
     expect(renderListingPackHtml(input(portalFields))).toBe(
@@ -413,6 +465,16 @@ describe('portal fields', () => {
     });
   });
 
+  it('joins each Q&A answer and keeps its segments with their citations, in card order', () => {
+    const cards = qaCards(qaPack());
+    expect(cards.map((card) => [card.question, card.answer])).toEqual([
+      ['How large is the living area?', 'The living area is 92.5 m². It is measured to NEN 2580.'],
+      [`Is there a balcony ${PAYLOAD}?`, PAYLOAD],
+    ]);
+    expect(cards[1]?.segments[0]).toMatchObject({ index: 2, origin: 'accepted' });
+    expect(qaCards(pack())).toEqual([]);
+  });
+
   it('serializes with the schema key order whatever the construction order', () => {
     const portalFields = fields();
     const json = serializePortalFields(portalFields);
@@ -428,6 +490,7 @@ describe('portal fields', () => {
       'outputLanguage',
       'facts',
       'copy',
+      'qaCards',
       'images',
       'withheld',
       'publicationChecklist',

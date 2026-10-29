@@ -81,12 +81,14 @@ describe('approvedPackContentSchema', () => {
     schemaVersion: 1,
     claimAuditArtifactId: uuid,
     finalDraftArtifactId: uuid,
+    finalQaArtifactId: null,
     integrityChecksArtifactId: null,
     outputLanguage: 'en',
     variants: [
       { kind: 'portal', segments: [] },
       { kind: 'social', segments: [] },
     ],
+    qaCards: [],
     removedClaimIds: [],
     images: [
       {
@@ -105,6 +107,26 @@ describe('approvedPackContentSchema', () => {
 
   it('accepts a consistent pack', () => {
     expect(approvedPackContentSchema.parse(pack)).toEqual(pack);
+  });
+
+  it('reads packs approved before Q&A cards existed, and keeps Q&A cards in card order', () => {
+    const { finalQaArtifactId: _f, qaCards: _q, ...old } = pack;
+    expect(approvedPackContentSchema.parse(old)).toEqual(pack);
+    const card = (n: number) => ({
+      card: n,
+      question: 'Is there a balcony?',
+      segments: [
+        { claimId: uuid, index: n, text: 'Yes.', factIds: ['f'], origin: 'unflagged' as const },
+      ],
+    });
+    const withQa = { ...pack, finalQaArtifactId: other, qaCards: [card(0), card(2)] };
+    expect(approvedPackContentSchema.safeParse(withQa).success).toBe(true);
+    expect(
+      approvedPackContentSchema.safeParse({ ...withQa, qaCards: [card(2), card(0)] }).success,
+    ).toBe(false);
+    expect(
+      approvedPackContentSchema.safeParse({ ...withQa, finalQaArtifactId: null }).success,
+    ).toBe(false);
   });
 
   it('publishes only accepted offered images, and keeps the variant order', () => {

@@ -38,6 +38,7 @@ checked), with cached input tokens billed at the full rate. Pinned versions: `ai
   | Photo classification, `low`, per photo: 2.0k in, 0.7–1.1k out  | $0.0056–0.0073, mean $0.0064 | ~4 s    |
   | Reconciliation fallback, `medium`: 4.8k in, 6.8k out           | $0.035                       | 22 s    |
   | Creative copy, `medium`: 4.7k in, 5.8–7.1k out (88% reasoning) | $0.031–0.036                 | ~30 s   |
+  | Buyer Q&A, `low`: 4.4–4.7k in, 2.1–3.5k out (68–78% reasoning) | $0.015–0.020                 | –       |
 
   A 1024×682 image costs about 870 input tokens, and a 2048×1364 image about 3,600.
 
@@ -46,7 +47,8 @@ checked), with cached input tokens billed at the full rate. Pinned versions: `ai
 - **Details:** [P1-01](#p1-01--meta-client-module),
   [P1-02](#p1-02--spark-13-text-vision-structured-output),
   [P1-03](#p1-03--wonder-10-cost-and-latency), [P2-07](#p2-07--fact-extraction),
-  [P2-08](#p2-08--vision-inventory), [P3-01](#p3-01--creative-copy).
+  [P2-08](#p2-08--vision-inventory), [P3-01](#p3-01--creative-copy),
+  [P3-03](#p3-03--buyer-qa-cards).
 
 ### Wonder 1.0 (`muse-wonder-1.0`)
 
@@ -2230,6 +2232,123 @@ changes (a live-call task with a budget).
 - Photo facts never support a number, even when the per-photo count happens to be equal.
 - A failed segment is kept and flagged for P3-06 and Gate 2, never dropped or regenerated in
   the creative step.
+
+## P3-03 — Buyer Q&A cards
+
+Design in [architecture.md §5 Buyer Q&A cards](./architecture.md#5-run-pipeline). Spark 1.3
+`low`, cap 8,000, strict `json_schema` (`qa_cards`), `QA_PROMPT_VERSION` 1, the copy's
+catalog (`VF01…`) as the `factIds` enum. Verification audits the answers in the same Wonder call
+as the copy (`VERIFICATION_PROMPT_VERSION` 2; the copy-only request is unchanged).
+
+### Request and response
+
+- Input: the copy input without `photos` (language, tone, market, catalog facts, revision).
+  4,419 input tokens on the recorded walkthrough (78 catalog facts), 4,697 in the P3-10 run,
+  similar on the real 20-photo set.
+- Output: `{ cards: [{ question, answer: [{ text, factIds }] }] }`. Strict mode accepted the
+  nested arrays and the enum; every answer parsed (`finishReason: stop`), keys alphabetical as
+  usual. No card was dropped by the code check in any recording (0 uncited, 0 invalid or
+  numbered questions, 0 duplicates, never more than 8 cards).
+
+### Measurements
+
+| Recording                                  | Tokens in / out (reasoning) | USD    | Cards | Answer segments | Validator |
+| ------------------------------------------ | --------------------------- | ------ | ----- | --------------- | --------- |
+| `p3-03/qa-en` (walkthrough, en)            | 4,419 / 2,411 (1,648)       | 0.0158 | 8     | 18              | pass      |
+| `p3-03/qa-nl` (walkthrough, nl)            | 4,419 / 3,476 (2,709)       | 0.0203 | 8     | 19              | pass      |
+| P3-10 run (synthetic, en, `--mode record`) | 4,697 / 2,107 (1,465)       | 0.0148 | 7     | 15              | pass      |
+| Real 20-photo set (`--mode live`, en)      | ledger                      | 0.0153 | 8     | 11              | pass      |
+
+- **Q&A costs ~$0.015–0.020 per run**, not the ~$0.01 extrapolated in P1-08: the input is the
+  full catalog (~4.4k tokens, like copy), and `low` still reasons ~1.5–2.7k tokens. Raising the
+  cap is not needed (max 3.5k of 8k).
+- **Audit share:** the joint audit sends ~1k more input tokens and returns flags only, so a
+  clean pass costs ~$0.005 more and a pass with Q&A flags ~$0.015 more (P3-10: $0.0416 for one
+  clean joint pass against $0.0259 copy-only; qa-clean-en pass 0: 4,673 in, 2,215 out with one
+  copy flag).
+- **Quality:** every recorded answer cites verified facts only and passed the claim validator;
+  numbers are the facts' values (92 m², 14 m², €165/€175, 1987, 2019, 10 minutes). No referral
+  filler, no "unknown" answer, no number in a question. Questions follow the facts (size,
+  layout, energy and heating, association costs, outdoor space, parking, surroundings);
+  several combine two topics ("How large is the living area and how many rooms does it
+  have?"), which the prompt allows.
+
+### Verification with Q&A (recorded scenarios)
+
+| Scenario                 | Pass 0 (audited)                                                                                                                                                                                 | Loop 1                                                          | USD (new calls) |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------- | --------------- |
+| `p3-06/qa-clean-en`      | 35 segments (17 copy + 18 Q&A): **0 Q&A flags**; 1 copy flag ("Parking is available" as an unstated status)                                                                                      | copy revised, cards carried; 1 segment re-audited, clean        | 0.1041          |
+| `p3-06/qa-en` (seeded)   | 35 segments: the validator's `8 m²`, and every seeded Q&A defect: the exclusionary question (flagged on its card's first answer, as instructed), the promise, the 8 m² again; plus the copy flag | copy and cards revised (1 Spark call each); 5 re-audited, clean | 0.1061          |
+| P3-10 run                | 32 segments (17 + 15): clean                                                                                                                                                                     | –                                                               | 0.0416          |
+| Real 20-photo set (live) | clean on Q&A; one copy loop                                                                                                                                                                      | –                                                               | (in the run)    |
+
+- The "Parking is available" copy flag is borderline and unstable: `loop-en` passed the same
+  segment on the same draft. Not a Q&A issue.
+- The Q&A revision (Spark `low`, 5.2k in, 1.7k out, $0.0136) fixed all three seeded defects in
+  one loop and kept the other cards byte-identical, so only their changed segments were
+  re-audited.
+
+### Decisions
+
+- **Questions are not claims:** no citations, no `claims` row, no claim validator. Code
+  requires a final `?` and no number at all (digits, number words, ordinals), and the verifier
+  applies the phrasing rubric to questions, flagging on the card's first answer segment. A
+  numbered question (e.g. "Is the bedroom on the first floor?") drops its card: nothing could
+  verify the number, and the card is self-contained.
+- **Quantity words and tag questions (review fix):** the number reader misses "one-bedroom",
+  "both", "double", "twin", "triple", "the sixties" and the Dutch "één", "enkel", "beide",
+  "dubbel", "driedubbel", "jaren zestig"; an explicit word list catches these (card dropped as
+  `numberInQuestion`), and a tag question ("…, doesn't it?", "…, toch?") is an invalid question.
+  Energy classes ("A+++") and vague quantities ("several") stay with the verifier.
+- **Removing a flagged Q&A answer at Gate 2 drops the whole card** (review fix): a question's
+  problem is flagged on the card's first answer and questions cannot be edited, so removing only
+  that answer would have published the question; the checklist counts the card's other claims as
+  removed too.
+- **Validator failures are kept** (as for copy) and revised by verification; cards that cannot
+  be published at all (uncited, invalid question, duplicate, beyond 8) are dropped in code.
+- **One joint verifier call** for copy and Q&A instead of a second call: the rubric and facts
+  prefix (~3k tokens of Wonder input) is paid once per pass.
+
+### Real 20-photo set (live, not committed)
+
+The local raw sample set (international market, invented form, TTS walkthrough; not in the
+repository), `--mode live`, 2026-10-29: completed in 222 s for $0.6222 (101 calls; vision
+$0.2743, verification $0.1010 with one copy revision loop, Q&A $0.0153). Gate 1: one conflict.
+Q&A: 8 cards, 11 answer segments, 0 dropped, 0 validator findings, 0 Q&A flags in either audit
+pass; all published. Topics: size, layout and rooms, construction year, heating, outdoor space,
+parking, kitchen equipment, location. Values from the run are deliberately not recorded here.
+
+### Replay and record
+
+```sh
+RECORD=1 node --env-file=.env node_modules/vitest/vitest.mjs run --project api qa-cards-en
+RECORD=1 node --env-file=.env node_modules/vitest/vitest.mjs run --project api qa-cards-nl
+RECORD=1 node --env-file=.env node_modules/vitest/vitest.mjs run --project api verification-qa-en
+RECORD=1 node --env-file=.env node_modules/vitest/vitest.mjs run --project api verification-qa-clean-en
+node --env-file=.env apps/api/src/cli/pipeline.ts fixtures/projects/synthetic-walkthrough \
+  --mode record --voice-memo data/p1-04/walkthrough-nl.m4a --force
+```
+
+The verification scenarios replay the `p3-03` cassettes (read-only includes); the engine-level
+verification test replays `p3-06/qa-clean-en`. The P3-10 record session served 57 requests from
+the cassette and sent 2 live (the Q&A call and the joint audit); the old copy-only audit
+interaction was dropped. The other P3-06 cassettes are unchanged: without Q&A the verifier
+request is byte-identical.
+
+### Live calls and cost (P3-03)
+
+| Session                                   | USD        |
+| ----------------------------------------- | ---------- |
+| `p3-03/qa-en`, `qa-nl` records            | 0.0361     |
+| `p3-06/qa-en` record (seeded)             | 0.1061     |
+| `p3-06/qa-clean-en` record                | 0.1041     |
+| P3-10 record (2 new calls)                | 0.0564     |
+| Real 20-photo set, `--mode live` (ledger) | 0.6222     |
+| **Total**                                 | **0.9249** |
+
+Budget 2.50 USD (stop at 2.00). Costs of the records are computed from the usage the cassettes
+store (price table, cached input at the full rate); every interaction in a fresh cassette is a
+new call. No `ERR_SSL_TOO_LONG` in these sessions.
 
 ## P3-04 — Staging variants
 
