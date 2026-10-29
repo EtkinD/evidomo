@@ -217,6 +217,9 @@ export function RunMonitorView({ monitor, runId }: { monitor: RunMonitorState; r
             Export ready: {run.export.fileCount} files
             {run.export.readyToPublish ? '' : ' (not yet ready to publish)'}.
           </span>
+          <Link href={`/runs/${runId}/pack`} className="btn btn-sm">
+            View pack
+          </Link>
         </div>
       )}
 

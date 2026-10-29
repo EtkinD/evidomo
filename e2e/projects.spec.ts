@@ -39,6 +39,13 @@ test('register, create a project, fill the fact form, and see what is still miss
   await expect(readiness.getByText(/Fill in the required fact: Energy label/)).toBeVisible();
   await expect(readiness.getByRole('button', { name: 'Start run' })).toBeDisabled();
 
+  // The access code field is always offered (the server ignores it when no code is configured).
+  // Starting a run would make model calls, so only the field itself is exercised here.
+  const accessCode = readiness.getByLabel('Access code');
+  await expect(accessCode).toHaveAttribute('type', 'password');
+  await readiness.getByRole('button', { name: 'Show access code' }).click();
+  await expect(accessCode).toHaveAttribute('type', 'text');
+
   // A bad value is refused before saving; a good one is saved and clears the fact from the list.
   await page.getByLabel(/Living area/).fill('-5');
   await page.getByRole('button', { name: 'Save facts' }).click();

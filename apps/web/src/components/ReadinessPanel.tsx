@@ -1,19 +1,32 @@
 import type { MarketForm, ProjectDetailResponse } from '@evidomo/shared';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useRef, useState } from 'react';
+import { useId, useRef, useState, useSyncExternalStore } from 'react';
+import {
+  describeAccessFailure,
+  humanizeWait,
+  readStoredAccessCode,
+  storeAccessCode,
+  type AccessFailure,
+} from '../lib/access-code';
 import { ApiRequestError } from '../lib/api';
 import { readinessMessage, runStatusBadge, runStatusLabel } from '../lib/project-view';
 import { useStartRun } from '../lib/projects';
 import { describeRequestFailure } from '../lib/request-failure';
+import { Field } from './FormField';
+
+const subscribeNever = (): (() => void) => () => undefined;
 
 type StartFailure =
+  | AccessFailure
   | { kind: 'not_ready' }
   | { kind: 'run_active' }
   | { kind: 'budget' }
   | { kind: 'message'; message: string };
 
 function describeStartFailure(error: unknown): StartFailure {
+  const access = describeAccessFailure(error);
+  if (access !== null) return access;
   if (error instanceof ApiRequestError) {
     if (error.code === 'not_ready') return { kind: 'not_ready' };
     if (error.code === 'run_active') return { kind: 'run_active' };
@@ -37,19 +50,30 @@ export function ReadinessPanel({ detail, market, hasUnsavedChanges }: ReadinessP
   const [failure, setFailure] = useState<StartFailure | null>(null);
   // A ref: two clicks in the same tick both see the mutation as idle.
   const starting = useRef(false);
+  const codeId = useId();
+  const [typedCode, setTypedCode] = useState<string | null>(null);
+  const [showCode, setShowCode] = useState(false);
+  // The server snapshot is empty, so hydration matches; the stored code appears right after.
+  const storedCode = useSyncExternalStore(subscribeNever, readStoredAccessCode, () => '');
+  const accessCode = typedCode ?? storedCode;
 
   function onStart(): void {
     if (starting.current || mutation.isPending || mutation.isSuccess || hasUnsavedChanges) return;
     starting.current = true;
     setFailure(null);
-    mutation.mutate(undefined, {
+    const code = accessCode.trim();
+    mutation.mutate(code === '' ? {} : { accessCode: code }, {
       // After success the guard stays on: the page is only waiting for the navigation.
       onSuccess: ({ run }) => {
+        if (code !== '') storeAccessCode(code);
         void router.push(`/runs/${run.id}`);
       },
       onError: (error) => {
         starting.current = false;
-        setFailure(describeStartFailure(error));
+        const next = describeStartFailure(error);
+        // A refused code is not worth remembering: the next visit would repeat the refusal.
+        if (next.kind === 'code_invalid') storeAccessCode('');
+        setFailure(next);
       },
     });
   }
@@ -115,11 +139,59 @@ export function ReadinessPanel({ detail, market, hasUnsavedChanges }: ReadinessP
             </span>
           </div>
         )}
+        {failure?.kind === 'code_rate_limited' && (
+          <div role="alert" className="alert alert-warning">
+            <span>Too many wrong codes, try again later.</span>
+          </div>
+        )}
+        {failure?.kind === 'run_limit' && (
+          <div role="alert" className="alert alert-info">
+            <span>
+              You have reached today&apos;s live run limit.
+              {failure.retryAfterSeconds !== null &&
+                ` You can start another in ${humanizeWait(failure.retryAfterSeconds)}.`}
+            </span>
+          </div>
+        )}
         {failure?.kind === 'message' && (
           <div role="alert" className="alert alert-error">
             <span>{failure.message}</span>
           </div>
         )}
+
+        <Field
+          id={codeId}
+          label="Access code"
+          hint="Live runs use paid model calls. If you were given a code, enter it; otherwise leave this empty."
+          error={failure?.kind === 'code_invalid' ? 'This access code is not valid.' : undefined}
+        >
+          {(control) => (
+            <div className="join w-full sm:max-w-sm">
+              <input
+                {...control}
+                type={showCode ? 'text' : 'password'}
+                className={`input join-item w-full ${failure?.kind === 'code_invalid' ? 'input-error' : ''}`}
+                value={accessCode}
+                autoComplete="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                onChange={(event) => {
+                  setTypedCode(event.target.value);
+                  if (failure?.kind === 'code_invalid') setFailure(null);
+                }}
+              />
+              <button
+                type="button"
+                className="btn join-item"
+                aria-pressed={showCode}
+                onClick={() => setShowCode((value) => !value)}
+              >
+                {showCode ? 'Hide' : 'Show'}
+                <span className="sr-only"> access code</span>
+              </button>
+            </div>
+          )}
+        </Field>
 
         <div className="flex flex-wrap items-center gap-3">
           <button
@@ -149,6 +221,12 @@ export function ReadinessPanel({ detail, market, hasUnsavedChanges }: ReadinessP
               <Link href={`/runs/${latestRun.id}`} className="link">
                 View latest run
               </Link>
+              {/* A completed run has stored its export; the pack page handles the rare gap. */}
+              {latestRun.status === 'completed' && (
+                <Link href={`/runs/${latestRun.id}/pack`} className="link">
+                  View pack
+                </Link>
+              )}
             </span>
           )}
         </div>

@@ -11,6 +11,7 @@ import {
   type ProjectDetailResponse,
   type ProjectListResponse,
   type PutFactFormRequest,
+  type StartRunRequest,
   type StartRunResponse,
   type UpdateProjectRequest,
 } from '@evidomo/shared';
@@ -116,13 +117,15 @@ export function useSaveFactForm(
   });
 }
 
-export function useStartRun(projectId: string): UseMutationResult<StartRunResponse, Error, void> {
+export function useStartRun(
+  projectId: string,
+): UseMutationResult<StartRunResponse, Error, StartRunRequest> {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: () =>
+    mutationFn: (request) =>
       apiJson(`/api/projects/${projectId}/runs`, startRunResponseSchema, {
         method: 'POST',
-        body: {},
+        body: request,
       }),
     // Returned, so the mutation stays pending until the refetch lands: success changes the lock
     // and the active run; not_ready and run_active mean our copy of the readiness was stale.
