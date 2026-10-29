@@ -8,7 +8,8 @@
       "Bash(npm audit fix --force *)",
       "Bash(git push *--force*)",
       "Bash(git push -f*)",
-      "Bash(git push * -f*)"
+      "Bash(git push * -f*)",
+      "Bash(git stash*)"
     ]
   },
   "hooks": {
@@ -20,6 +21,18 @@
             "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/npm-audit.ts\"",
             "timeout": 120
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/migration-approval.ts\"",
+            "timeout": 30
           }
         ]
       }
