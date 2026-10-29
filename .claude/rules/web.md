@@ -13,5 +13,7 @@ paths:
   - **daisyUI first:** pick a daisyUI component or modifier (`btn btn-primary`, `card`, `fieldset`, `alert alert-error`) before Tailwind utilities, and Tailwind utilities before raw CSS. Raw CSS goes only in `globals.css` (`@utility` or `@layer components`), with a comment saying why daisyUI and Tailwind cannot do it.
   - **Colours come from theme tokens only** (`bg-base-200`, `text-primary`, `text-base-content/70`, `border-base-300`). Never Tailwind palette colours (`text-red-600`), arbitrary colours (`bg-[#…]`), or inline `style` colours.
   - **The look lives in the `evidomo-light` and `evidomo-dark` daisyUI themes** in `globals.css`. Change a token there instead of overriding it per component, then run the skill's contrast check.
+- **Touch targets are at least 44 px** (`min-h-11`, and `inline-flex min-h-11 items-center` on text links), never bare `btn-sm` for an action on a phone. When a clicked control disappears, move focus to the card heading or a status line.
+- Check layout with tests and DOM measurements (overflow via `scrollWidth`, sizes via `boundingBox()`), not by viewing screenshots (token budget, see `task-protocol`).
 - Imports use bundler resolution: no `.ts`/`.tsx` extensions in import paths.
 - Only `NEXT_PUBLIC_*` variables reach the browser; they must never hold secrets.
