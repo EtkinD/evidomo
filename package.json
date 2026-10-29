@@ -16,6 +16,7 @@
     "dev:web": "npm run dev -w @evidomo/web",
     "dev:api": "npm run dev -w @evidomo/api",
     "dev:worker": "npm run dev:worker -w @evidomo/api",
+    "pipeline": "node --env-file-if-exists=.env apps/api/src/cli/pipeline.ts",
     "build": "npm run build --workspaces --if-present",
     "typecheck": "tsc --noEmit -p tsconfig.json && npm run typecheck --workspaces --if-present",
     "lint": "eslint .",

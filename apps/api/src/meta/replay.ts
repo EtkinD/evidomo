@@ -1,4 +1,6 @@
-// Test-only: imports `msw` (a dev dependency). Never import this from server or worker code.
+// Test and dev-tool only: imports `msw` (a dev dependency). Used by tests and by the headless
+// pipeline CLI (`apps/api/src/cli/`); never import this from server or worker code.
+import { access } from 'node:fs/promises';
 import { bypass, http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import { z } from 'zod';
@@ -47,6 +49,19 @@ export interface MetaReplayOptions {
    * neither repeats nor re-records the earlier step's call. Matched before `cassette`.
    */
   readonly include?: readonly string[];
+  /**
+   * Record mode only: serve requests the cassette already answers instead of calling the live
+   * API, record the rest, and write back only the interactions this session used. Re-running a
+   * long recording after a fix then pays only for the requests that changed. A missing cassette
+   * starts empty.
+   */
+  readonly extend?: boolean;
+  /**
+   * Called with every interaction before its response is returned to the SDK (replayed,
+   * included, or freshly recorded), so a caller can derive state from a response before the code
+   * under test sees it (e.g. register an image alias for what the code will send next).
+   */
+  readonly onInteraction?: (interaction: Interaction) => void | Promise<void>;
 }
 
 export interface MetaReplay {
@@ -55,11 +70,25 @@ export interface MetaReplay {
   readonly apiKey: string;
   /** Requests that had no fixture (replay) or went to a non-Meta host (both modes). */
   readonly unmatched: readonly string[];
+  /** Requests forwarded to the live API (record mode only; always 0 in replay mode). */
+  readonly liveRequestCount: number;
+  /** Requests answered from a cassette (the replayed one, an included one, or an extended one). */
+  readonly servedFromCassetteCount: number;
   start(): Promise<void>;
   /** Stops interception; in record mode, writes the cassette. */
   stop(): Promise<void>;
   /** Throws if any request was unmatched, even if the caller swallowed the SDK error. */
   assertAllMatched(): void;
+}
+
+async function fileExists(file: string): Promise<boolean> {
+  try {
+    await access(file);
+    return true;
+  } catch (error) {
+    if (error instanceof Error && 'code' in error && error.code === 'ENOENT') return false;
+    throw error;
+  }
 }
 
 const recordEnvSchema = z.object({ MODEL_API_KEY: z.string().min(1) });
@@ -95,6 +124,16 @@ export function createMetaReplay(options: MetaReplayOptions): MetaReplay {
     cassettePath(name, options.fixturesDir ?? META_FIXTURES_DIR),
   );
   const unmatched: string[] = [];
+  /** Keys used in this session; with `extend`, only these are written back. */
+  const used = new Set<string>();
+  let liveRequestCount = 0;
+  let servedFromCassetteCount = 0;
+
+  async function serve(interaction: Interaction, fromCassette: boolean): Promise<Response> {
+    if (fromCassette) servedFromCassetteCount += 1;
+    await options.onInteraction?.(interaction);
+    return responseFromInteraction(interaction);
+  }
 
   const metaHandler = http.all(`${origin}/*`, async ({ request }) => {
     const descriptor = await describeRequest(request.clone(), options.match);
@@ -102,10 +141,16 @@ export function createMetaReplay(options: MetaReplayOptions): MetaReplay {
 
     const fixed = included.get(key);
     if (fixed !== undefined) {
-      return responseFromInteraction(fixed);
+      return serve(fixed, true);
     }
 
     if (mode === 'record') {
+      const known = options.extend === true ? interactions.get(key) : undefined;
+      if (known !== undefined) {
+        used.add(key);
+        return serve(known, true);
+      }
+      liveRequestCount += 1;
       const live = await fetch(bypass(request));
       if (live.status < 200 || live.status > 299) {
         return live;
@@ -113,12 +158,13 @@ export function createMetaReplay(options: MetaReplayOptions): MetaReplay {
       const interaction = await interactionFromResponse(descriptor, live);
       // Identical requests replay the same response; the latest recording wins.
       interactions.set(key, interaction);
-      return responseFromInteraction(interaction);
+      used.add(key);
+      return serve(interaction, false);
     }
 
     const interaction = interactions.get(key);
     if (interaction !== undefined) {
-      return responseFromInteraction(interaction);
+      return serve(interaction, true);
     }
     const message =
       `No recorded Meta API fixture for ${key} in ${file}. ` +
@@ -143,6 +189,12 @@ export function createMetaReplay(options: MetaReplayOptions): MetaReplay {
     mode,
     apiKey,
     unmatched,
+    get liveRequestCount() {
+      return liveRequestCount;
+    },
+    get servedFromCassetteCount() {
+      return servedFromCassetteCount;
+    },
     async start() {
       if (started) throw new ReplayError('Meta replay is already started');
       for (const includedFile of includedFiles) {
@@ -151,7 +203,7 @@ export function createMetaReplay(options: MetaReplayOptions): MetaReplay {
           included.set(matchKey(interaction.request), interaction);
         }
       }
-      if (mode === 'replay') {
+      if (mode === 'replay' || (options.extend === true && (await fileExists(file)))) {
         const cassette = await readCassette(file);
         for (const interaction of cassette.interactions) {
           interactions.set(matchKey(interaction.request), interaction);
@@ -165,6 +217,11 @@ export function createMetaReplay(options: MetaReplayOptions): MetaReplay {
       server.close();
       started = false;
       if (mode === 'record') {
+        if (options.extend === true) {
+          for (const key of [...interactions.keys()]) {
+            if (!used.has(key)) interactions.delete(key);
+          }
+        }
         if (interactions.size === 0) {
           throw new ReplayError(`RECORD=1 captured no successful responses; ${file} not written`);
         }

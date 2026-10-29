@@ -206,6 +206,34 @@ export interface MatchOptions {
    * fixed by the test. Default: none (every file is matched by its SHA-256).
    */
   readonly ignoreFileContentFields?: readonly string[];
+  /**
+   * Stable names for images embedded in JSON bodies as `data:<type>;base64,...` URLs, looked up
+   * by the SHA-256 of the decoded bytes. A named image is hashed as its name instead of its
+   * bytes. This keys a cassette on the *source* of an image our own code re-encoded (sharp's
+   * mozjpeg output may differ between arm64 and x86-64, docs/model-notes.md "Cross-cutting
+   * gotchas"), e.g. the uploaded file behind a processed photo. Unnamed images are hashed as
+   * bytes. Default: none.
+   */
+  readonly imageAlias?: (sha256: string) => string | undefined;
+}
+
+const DATA_URL = /^data:([a-z]+\/[a-z0-9.+-]+);base64,([A-Za-z0-9+/]+={0,2})$/;
+
+/** Copies `value`, replacing data-URL images that `alias` names with `image-alias:<name>`. */
+function aliasImages(value: unknown, alias: (sha256: string) => string | undefined): unknown {
+  if (typeof value === 'string') {
+    const match = DATA_URL.exec(value);
+    if (match?.[2] === undefined) return value;
+    const name = alias(sha256(Buffer.from(match[2], 'base64')));
+    return name === undefined ? value : `image-alias:${match[1] ?? ''}:${name}`;
+  }
+  if (Array.isArray(value)) return value.map((item) => aliasImages(item, alias));
+  if (typeof value === 'object' && value !== null) {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, item]) => [key, aliasImages(item, alias)]),
+    );
+  }
+  return value;
 }
 
 /**
@@ -243,7 +271,9 @@ export async function normalizedBodyHash(
   const text = await request.text();
   if (contentType.includes('json') && text !== '') {
     try {
-      return sha256(canonicalJson(JSON.parse(text)));
+      const json: unknown = JSON.parse(text);
+      const { imageAlias } = options;
+      return sha256(canonicalJson(imageAlias === undefined ? json : aliasImages(json, imageAlias)));
     } catch (error) {
       throw new FixtureError(
         `Request to ${request.url} declares JSON but its body is not valid JSON`,

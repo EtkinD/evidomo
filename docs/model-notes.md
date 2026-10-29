@@ -2587,3 +2587,81 @@ RECORD=1 node --env-file=.env node_modules/vitest/vitest.mjs run --project api v
 Budget 1.00 USD (stop at 0.80). Costs from the price table ($4 / $20 per 1M on Wonder, $1.25 /
 $4.25 on Spark); Meta's billing dashboard was not checked. No call failed or was retried, and
 every recording was made once.
+
+## P3-10 — Headless pipeline CLI
+
+Design in [architecture.md §5 Headless pipeline CLI](./architecture.md#5-run-pipeline). The CLI
+runs the real engine, handlers, and gate services; this section records what the full-run
+recordings showed.
+
+### Demo project and recorded run
+
+- `fixtures/projects/synthetic-walkthrough/`: the 6 synthetic interiors plus their 5 harmless
+  edits (11 photos, the service minimum is 10; the window-removal edit is left out), the P1-04
+  walkthrough form with two **planted conflicts** (form `build_year` 1986 vs spoken 1987, form
+  `vve_monthly_contribution` 175 vs spoken 165), and a 1-second silent stand-in WAV. The TTS
+  walkthrough is not committed (P1-04), so the run was recorded from the local `say -v Xander`
+  file passed with `--voice-memo`; intake matches the audio by its fixed name.
+- Cassette `fixtures/meta/p3-10/synthetic-walkthrough.json` (72 interactions, 680 KB) and
+  `.files/` (the 3 Muse Image outputs, 1920×1280 JPEG, 1.5 MB). **The blobs are not downscaled**
+  (unlike P3-04): the integrity check's SAM responses describe boxes in the staged image's own
+  pixels, and the staged images' cassette names are derived from the output bytes, so a smaller
+  blob would fail both.
+- Outcome (deterministic in replay): Gate 1 has 3 conflicts: the two planted ones and a
+  **model-raised `other:bedroom_floor`** (the walkthrough says both bedrooms have laminate; the bedroom photos show carpet, which is
+  true of the synthetic `bedroom-empty` images). It is the same conflict P2-09 found and it recurred in the live smoke run: a
+  stable, correct reconciliation finding, not noise. The decisions file accepts the walkthrough's 1987, the default
+  `accept_form_else_reject` keeps the form's 175 and rejects the floor conflict (no
+  authoritative side). Staging furnished 3 photos, all passed the integrity check and were
+  accepted; verification ended `clean` after two revision loops; export `readyToPublish: true`.
+- Vision classified the empty `living-empty.jpg` as a bedroom (operation `furnish_bedroom`),
+  in both runs. An empty room has no furniture cues; Gate 2 is where an operator would catch it.
+
+### Recording findings
+
+- **`ERR_SSL_TOO_LONG` in record-mode passthrough recurred** (first seen in P3-04): undici
+  through MSW 3's socket interceptor, under 4–6 parallel requests, surfaced as `TypeError:
+terminated` and, after the SDK's retries, `AI_RetryError`. The first session's vision step
+  failed once and the engine retried it; verification hit it too and recovered. Live mode
+  (no MSW) had none in 79 calls. Mitigation: `extend` record mode (below); the root cause in MSW
+  is not investigated.
+- **Record sessions are resumable** (`createMetaReplay({ extend: true })`): requests the
+  cassette answers are served from it, only new ones go live, and only interactions used in the
+  session are written back. The first session stopped at Gate 1 (the default policy could not
+  decide the model's floor conflict, fixed by `accept_form_else_reject`); the second session
+  served the first four steps from the cassette (54 served, 26 live) and paid only for creative
+  onward. The ledger of a record session therefore over-reports spend (served responses are
+  metered again); the live spend is the ledger of a clean replay of the final cassette.
+- **Cross-architecture cassette keys:** every image in every recorded request carries an alias
+  (photos by source file hash, staged images by model output hash, see architecture §5), and
+  the run reported 0 unnamed images. The replay test passes on arm64; CI (x86-64) is the proof.
+
+### Live calls and cost (P3-10)
+
+| Session                      | Live requests | Ledger (USD) | Billed estimate (USD)                                                     |
+| ---------------------------- | ------------- | ------------ | ------------------------------------------------------------------------- |
+| Record 1 (stopped at Gate 1) | 54            | 0.3952       | 0.2933 (unique calls of intake → reconciliation) + responses lost to TLS  |
+| Record 2 (creative → export) | 26            | 0.6182       | 0.3250 (creative 0.0412, staging 0.0300, integrity 0.0525, verif. 0.2013) |
+| Live smoke (`--mode live`)   | 79            | 0.4655       | 0.4655                                                                    |
+| **Total**                    |               |              | **1.0837** measured; **≤ 1.1857** counting record 1's whole ledger        |
+
+Budget 2.00 USD (stop at 1.60). Responses lost to `ERR_SSL_TOO_LONG` report no usage, so
+whether Meta billed them is unknown; the upper bound treats record 1's in-session replays as
+billed, which over-counts. The live smoke run ran with `DAILY_BUDGET_USD=0.80` as a hard
+ceiling (the throwaway database holds only that run). Per-step live costs: intake 0.0085,
+extraction 0.0400, vision 0.1552 (11 photos), reconciliation 0.1025, creative 0.0307,
+staging 0.0300 (+0.0100 integrity retry), integrity 0.0725 (incl. the retry's edit),
+verification 0.0259 (one clean pass).
+
+Re-record (macOS, needs the local TTS file; ~$0.62; resumable):
+
+```sh
+say -v Xander -f fixtures/meta/p1-04/walkthrough-nl.txt -o data/p1-04/walkthrough-nl.aiff
+ffmpeg -i data/p1-04/walkthrough-nl.aiff -c:a aac -b:a 96k data/p1-04/walkthrough-nl.m4a
+node --env-file=.env apps/api/src/cli/pipeline.ts fixtures/projects/synthetic-walkthrough \
+  --mode record --voice-memo data/p1-04/walkthrough-nl.m4a --force
+```
+
+Delete the cassette first for a full re-recording; with it present, record mode only fills in
+requests that changed. A change to the Gate 1 decisions, the fact form, a photo, any prompt, or
+the definition's model settings changes later requests.

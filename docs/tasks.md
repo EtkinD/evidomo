@@ -151,7 +151,7 @@ The orchestrator (main session) delegates each task to its owner — see `.claud
 - [x] **P3-09 — Export**
   - Depends on: P3-08
   - Done when: a print-ready HTML pack and portal-fields JSON (schema in `packages/shared`) are produced deterministically from stored artifacts; exported images have faces/plates blurred.
-- [ ] **P3-10 — Headless pipeline CLI**
+- [x] **P3-10 — Headless pipeline CLI**
   - Depends on: P3-09
   - Done when: `npm run pipeline -- <project-dir>` runs the whole flow with scripted gate decisions, against live API or fixtures; in fixture mode it makes zero model calls.
 

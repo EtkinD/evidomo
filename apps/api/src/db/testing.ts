@@ -1,6 +1,7 @@
 // Integration-test support: a migrated PostgreSQL in a Testcontainers container, plus
 // builders for the parent rows most repository tests need. Imported only by
-// *.integration.test.ts files.
+// *.integration.test.ts files and by the headless pipeline CLI (`src/cli/`, which runs each
+// project on a throwaway database); never by the server or worker.
 import { fileURLToPath } from 'node:url';
 import { PostgreSqlContainer, type StartedPostgreSqlContainer } from '@testcontainers/postgresql';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';

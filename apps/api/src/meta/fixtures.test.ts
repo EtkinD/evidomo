@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { mkdtemp, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -95,6 +96,48 @@ describe('describeRequest', () => {
       await describeRequest(transcribeRequest(new Uint8Array([9]), 'p1-04.wav', ['VvE'])),
     ).not.toEqual(
       await describeRequest(transcribeRequest(new Uint8Array([1, 2, 3]), 'p1-04.wav', ['VvE'])),
+    );
+  });
+
+  it('can key data-URL images by a stable name instead of their bytes', async () => {
+    const body = (image: Buffer, prompt = 'segment'): string =>
+      JSON.stringify({
+        model: 'sam-3.1',
+        input: [
+          {
+            content: [
+              { type: 'input_text', text: prompt },
+              {
+                type: 'input_image',
+                image_url: `data:image/jpeg;base64,${image.toString('base64')}`,
+              },
+            ],
+          },
+        ],
+      });
+    const armBytes = Buffer.from('jpeg bytes as encoded on arm64');
+    const x86Bytes = Buffer.from('jpeg bytes as encoded on x86-64');
+    const names = new Map([
+      [createHash('sha256').update(armBytes).digest('hex'), 'photo:source-1'],
+      [createHash('sha256').update(x86Bytes).digest('hex'), 'photo:source-1'],
+    ]);
+    const match = { imageAlias: (sha256: string) => names.get(sha256) };
+
+    // Same source, different re-encoded bytes: same key.
+    expect(await describeRequest(jsonRequest(body(x86Bytes)), match)).toEqual(
+      await describeRequest(jsonRequest(body(armBytes)), match),
+    );
+    // The rest of the body still counts, and unnamed images are keyed by their bytes.
+    expect(await describeRequest(jsonRequest(body(armBytes, 'other')), match)).not.toEqual(
+      await describeRequest(jsonRequest(body(armBytes)), match),
+    );
+    const unnamed = Buffer.from('an image nobody named');
+    expect(await describeRequest(jsonRequest(body(unnamed)), match)).toEqual(
+      await describeRequest(jsonRequest(body(unnamed))),
+    );
+    // Without the option, image bytes are part of the key.
+    expect(await describeRequest(jsonRequest(body(x86Bytes)))).not.toEqual(
+      await describeRequest(jsonRequest(body(armBytes))),
     );
   });
 

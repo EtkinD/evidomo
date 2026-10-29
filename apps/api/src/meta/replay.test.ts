@@ -294,6 +294,73 @@ describe('Meta record/replay', () => {
     }
   });
 
+  it('extends a recording: serves what the cassette answers, records the rest, keeps only what was used', async () => {
+    const first = createMetaReplay({
+      cassette: 'extend',
+      mode: 'record',
+      baseURL,
+      fixturesDir,
+      env: { MODEL_API_KEY: SECRET },
+    });
+    await first.start();
+    await callBothSdks(first.apiKey, 'kept step');
+    await callBothSdks(first.apiKey, 'dropped step');
+    expect(first.liveRequestCount).toBe(4);
+    await first.stop();
+    hits.length = 0;
+
+    const seen: string[] = [];
+    const again = createMetaReplay({
+      cassette: 'extend',
+      mode: 'record',
+      baseURL,
+      fixturesDir,
+      env: { MODEL_API_KEY: SECRET },
+      extend: true,
+      onInteraction: (interaction) => {
+        seen.push(interaction.request.path);
+      },
+    });
+    await again.start();
+    await callBothSdks(again.apiKey, 'kept step');
+    expect(hits).toHaveLength(0);
+    await callBothSdks(again.apiKey, 'new step, longer');
+    expect(hits).toHaveLength(2);
+    expect([again.liveRequestCount, again.servedFromCassetteCount]).toEqual([2, 2]);
+    expect(seen).toHaveLength(4);
+    await again.stop();
+    // The unused "dropped step" interactions are gone; the kept and new ones remain.
+    expect((await readCassette(path.join(fixturesDir, 'extend.json'))).interactions).toHaveLength(
+      4,
+    );
+
+    // An extend session against a missing cassette starts empty.
+    const fresh = createMetaReplay({
+      cassette: 'extend-fresh',
+      mode: 'record',
+      baseURL,
+      fixturesDir,
+      env: { MODEL_API_KEY: SECRET },
+      extend: true,
+    });
+    await fresh.start();
+    await callBothSdks(fresh.apiKey, 'only step');
+    await fresh.stop();
+    expect(fresh.liveRequestCount).toBe(2);
+  });
+
+  it('counts no live requests in replay mode', async () => {
+    const player = createMetaReplay({ cassette: 'extend', mode: 'replay', baseURL, fixturesDir });
+    await player.start();
+    try {
+      await callBothSdks(player.apiKey, 'new step, longer');
+      expect([player.liveRequestCount, player.servedFromCassetteCount]).toEqual([0, 2]);
+      expect(hits).toHaveLength(0);
+    } finally {
+      await player.stop();
+    }
+  });
+
   it('refuses to start replay when the cassette is missing', async () => {
     const player = createMetaReplay({ cassette: 'missing', mode: 'replay', baseURL, fixturesDir });
     await expect(player.start()).rejects.toThrow(/Record it with RECORD=1/);
