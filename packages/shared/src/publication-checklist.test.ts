@@ -92,7 +92,11 @@ describe('publicationChecklistItemResultSchema', () => {
     expect(accepts({ ...phrasingItem, unresolvedClaimIds: [CLAIM] })).toBe(false);
     expect(accepts({ ...phrasingItem, audited: false })).toBe(false);
     expect(accepts({ ...phrasingItem, status: 'not_applicable' })).toBe(false);
-    expect(accepts({ ...phrasingItem, acceptedClaimIds: [CLAIM] })).toBe(true);
+    // An approved-as-written flag is an override, except where the category allows none.
+    const accepted = { ...phrasingItem, acceptedClaimIds: [CLAIM] };
+    expect(accepts({ ...accepted, category: 'investment_promise' })).toBe(true);
+    expect(accepts(accepted)).toBe(false);
+    expect(accepts({ ...accepted, status: 'fail' })).toBe(true);
   });
 
   it('refuses unknown rules, categories, and fields', () => {

@@ -316,6 +316,39 @@ describe('no_flagged_phrasing (international)', () => {
     });
   });
 
+  it('fails on an exclusionary flag approved as written, which no override can clear', () => {
+    const accepted = segment({ decision: 'accept' });
+    const removed = segment({ decision: 'remove' });
+    const result = item(international, 'no_exclusionary_language', {
+      copy: { segments: [accepted, removed] },
+      claimAudit: audit([
+        { category: 'exclusionary', claimId: accepted.claimId },
+        { category: 'exclusionary', claimId: removed.claimId },
+      ]),
+    });
+    expect(result).toMatchObject({
+      status: 'fail',
+      acceptedClaimIds: [accepted.claimId],
+      removedClaimIds: [removed.claimId],
+      unresolvedClaimIds: [],
+      detail:
+        '1 flagged segment was approved as written, which this category does not allow: edit or remove it.',
+    });
+
+    const open = segment();
+    expect(
+      item(international, 'no_exclusionary_language', {
+        copy: { segments: [accepted, open] },
+        claimAudit: audit([
+          { category: 'exclusionary', claimId: accepted.claimId },
+          { category: 'exclusionary', claimId: open.claimId },
+        ]),
+      }).detail,
+    ).toBe(
+      '1 flagged segment is undecided at Gate 2; 1 flagged segment was approved as written, which this category does not allow: edit or remove it.',
+    );
+  });
+
   it('fails while a flagged segment is undecided', () => {
     const open = segment();
     const removed = segment({ decision: 'remove' });

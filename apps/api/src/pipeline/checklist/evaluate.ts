@@ -2,6 +2,7 @@ import {
   CLAIM_AUDIT_VARIANTS,
   PUBLICATION_CHECKLIST_RULES_VERSION,
   STAGED_IMAGE_LABEL,
+  isOverridablePhrasingCategory,
   publicationChecklistResultSchema,
   type ClaimAuditCategory,
   type ClaimAuditFlag,
@@ -263,7 +264,11 @@ function evaluateNoFlaggedPhrasing(
     }
   }
 
-  if (unresolvedClaimIds.length > 0) {
+  // Approving as written is recorded either way; in a non-overridable category it fails the item.
+  const refusedOverrides = isOverridablePhrasingCategory(item.category)
+    ? 0
+    : base.acceptedClaimIds.length;
+  if (unresolvedClaimIds.length > 0 || refusedOverrides > 0) {
     const undecided = unresolvedClaimIds.length - outsideCopy;
     const parts = [
       undecided > 0
@@ -271,6 +276,9 @@ function evaluateNoFlaggedPhrasing(
         : null,
       outsideCopy > 0
         ? `${plural(outsideCopy, 'flag')} ${outsideCopy === 1 ? 'points' : 'point'} at a segment outside the final copy`
+        : null,
+      refusedOverrides > 0
+        ? `${plural(refusedOverrides, 'flagged segment')} ${refusedOverrides === 1 ? 'was' : 'were'} approved as written, which this category does not allow: edit or remove ${refusedOverrides === 1 ? 'it' : 'them'}`
         : null,
     ].filter((part) => part !== null);
     return {

@@ -1,6 +1,10 @@
 import { z } from 'zod';
 import { claimAuditVariantSchema } from './claim-audit.ts';
-import { phrasingCategorySchema, type PublicationChecklistItem } from './definitions.ts';
+import {
+  phrasingCategorySchema,
+  type PhrasingCategory,
+  type PublicationChecklistItem,
+} from './definitions.ts';
 
 // The publication checklist (docs/architecture.md §5, "Publication checklist (P3-07)"): the
 // market profile's `publication_checklist` evaluated against the pack as Gate 2 left it. Shared
@@ -12,9 +16,23 @@ import { phrasingCategorySchema, type PublicationChecklistItem } from './definit
  * Bumped when a rule's meaning changes, so a stored result says which semantics produced it.
  * v1: `fact_present` = a verified, non-photo fact on the profile measure; `staged_images_labeled`
  * = every approved staged image records the visible disclosure; `no_flagged_phrasing` = every
- * remaining flag of the category was decided at Gate 2.
+ * remaining flag of the category was decided at Gate 2, and approving one as written counts only
+ * outside `NON_OVERRIDABLE_PHRASING_CATEGORIES`.
  */
 export const PUBLICATION_CHECKLIST_RULES_VERSION = 1;
+
+/**
+ * Categories whose flag an operator cannot approve as written: `accept` at Gate 2 still records
+ * the decision, but the checklist item fails. Exclusionary listing copy carries legal
+ * (equal-treatment) risk, so a single click must not make the pack look ready to publish.
+ */
+export const NON_OVERRIDABLE_PHRASING_CATEGORIES = [
+  'exclusionary',
+] as const satisfies readonly PhrasingCategory[];
+
+export function isOverridablePhrasingCategory(category: PhrasingCategory): boolean {
+  return !NON_OVERRIDABLE_PHRASING_CATEGORIES.some((c) => c === category);
+}
 
 /**
  * - `pass`: the item holds for the pack.
@@ -73,7 +91,10 @@ const itemResultUnionSchema = z.discriminatedUnion('rule', [
     audited: z.boolean(),
     /** Claims with a remaining flag of the category and no Gate 2 decision. */
     unresolvedClaimIds: ids,
-    /** Flagged claims the operator approved as written (an override, shown in the pack). */
+    /**
+     * Flagged claims the operator approved as written (an override, shown in the pack). In a
+     * non-overridable category any entry fails the item.
+     */
     acceptedClaimIds: ids,
     /** Flagged claims the operator rewrote at Gate 2 (not re-audited). */
     editedClaimIds: ids,
@@ -108,7 +129,11 @@ function allowedStatuses(
       if (item.stagedArtifactIds.length === 0) return ['not_applicable'];
       return item.unlabeledArtifactIds.length > 0 ? ['fail'] : ['pass'];
     case 'no_flagged_phrasing':
-      return !item.audited || item.unresolvedClaimIds.length > 0 ? ['fail'] : ['pass'];
+      return !item.audited ||
+        item.unresolvedClaimIds.length > 0 ||
+        (item.acceptedClaimIds.length > 0 && !isOverridablePhrasingCategory(item.category))
+        ? ['fail']
+        : ['pass'];
     default: {
       const unreachable: never = item;
       throw new Error(`Unhandled checklist rule: ${JSON.stringify(unreachable)}`);
