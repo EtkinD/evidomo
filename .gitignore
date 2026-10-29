@@ -20,7 +20,7 @@ test-results/
 blob-report/
 
 # Local data
-uploads/
+/uploads/
 data/
 # Local copies of raw property samples (originals live outside the repo)
 /example-house-*/
