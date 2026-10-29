@@ -27,6 +27,7 @@ data/
 
 # Personal Claude Code settings and agent worktrees
 .claude/settings.local.json
+CLAUDE.local.md
 .claude/worktrees/
 
 # OS / editor
