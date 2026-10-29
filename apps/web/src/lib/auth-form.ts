@@ -137,12 +137,15 @@ export function describeAuthFailure(
         kind: 'message',
         message: 'The form could not be sent. Reload the page and try again.',
       };
-    // not_found, gate_not_open, fact_not_in_conflict: Gate 1 codes the auth endpoints never return.
+    // Gate codes (not_found, gate_not_open, fact_not_in_conflict, gate_decisions_pending,
+    // claim_edit_rejected) are never returned by the auth endpoints.
     case 'unauthenticated':
     case 'internal_error':
     case 'not_found':
     case 'gate_not_open':
     case 'fact_not_in_conflict':
+    case 'gate_decisions_pending':
+    case 'claim_edit_rejected':
     case null:
       return { kind: 'message', message: GENERIC_FAILURE };
     default: {

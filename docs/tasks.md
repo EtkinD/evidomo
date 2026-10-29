@@ -145,7 +145,7 @@ The orchestrator (main session) delegates each task to its owner — see `.claud
 - [x] **P3-07 — Publication checklist**
   - Depends on: P2-02, P3-06
   - Done when: checklist items are evaluated from the market profile (e.g., energy label present, staging disclosed) and shown in the pack.
-- [ ] **P3-08 — Gate 2 API**
+- [x] **P3-08 — Gate 2 API**
   - Depends on: P3-05, P3-06
   - Done when: each flag can be approved, edited, or removed and each staged image approved or rejected through the API; export is blocked until all are decided.
 - [ ] **P3-09 — Export**

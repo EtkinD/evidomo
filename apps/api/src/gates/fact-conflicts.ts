@@ -194,7 +194,8 @@ export function conflictDecision(
   return null;
 }
 
-function gateFact(fact: Fact): GateFact {
+/** A fact as the gate APIs return it (Gate 2 lists the facts its copy cites the same way). */
+export function gateFact(fact: Fact): GateFact {
   return {
     id: fact.id,
     key: fact.key,

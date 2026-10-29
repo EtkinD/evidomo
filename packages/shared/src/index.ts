@@ -17,4 +17,5 @@ export * from './copy.ts';
 export * from './claims.ts';
 export * from './claim-audit.ts';
 export * from './gates.ts';
+export * from './gate2.ts';
 export * from './integrity.ts';

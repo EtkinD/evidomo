@@ -53,14 +53,15 @@ export const gateOpenedPayloadSchema = z.strictObject({
 export type GateOpenedPayload = z.infer<typeof gateOpenedPayloadSchema>;
 
 /**
- * Appended once, when the last open item of a gate is decided, in the transaction that applies
- * the decisions and resumes the run. Counts only: never keys, values, or edited text.
+ * Appended once per gate, in the transaction that releases it and resumes the run: Gate 1 when
+ * its last conflict is decided, Gate 2 when the pack is approved. Counts and IDs only: never
+ * keys, values, copy, or edited text.
  */
-export const gateDecidedPayloadSchema = z.strictObject({
-  gate: gateSchema,
+export const factConflictsGateDecidedPayloadSchema = z.strictObject({
+  gate: z.literal('fact_conflicts'),
   /** The completed step whose `gate_after` is released. */
   stepId: z.string().min(1),
-  /** Gate 1: conflicts resolved by accepting a side, by an edited value, or by rejecting all. */
+  /** Conflicts resolved by accepting a side, by an edited value, or by rejecting all. */
   acceptedCount: z.int().nonnegative(),
   editedCount: z.int().nonnegative(),
   rejectedCount: z.int().nonnegative(),
@@ -69,6 +70,26 @@ export const gateDecidedPayloadSchema = z.strictObject({
   rejectedFactCount: z.int().nonnegative(),
   createdFactCount: z.int().nonnegative(),
 });
+
+export const claimAuditGateDecidedPayloadSchema = z.strictObject({
+  gate: z.literal('claim_audit'),
+  stepId: z.string().min(1),
+  /** The `approved_pack` artifact written in the same transaction. */
+  approvedPackArtifactId: z.uuid(),
+  flaggedClaimCount: z.int().nonnegative(),
+  acceptedClaimCount: z.int().nonnegative(),
+  editedClaimCount: z.int().nonnegative(),
+  removedClaimCount: z.int().nonnegative(),
+  offeredImageCount: z.int().nonnegative(),
+  acceptedImageCount: z.int().nonnegative(),
+  rejectedImageCount: z.int().nonnegative(),
+  warningCount: z.int().nonnegative(),
+});
+
+export const gateDecidedPayloadSchema = z.discriminatedUnion('gate', [
+  factConflictsGateDecidedPayloadSchema,
+  claimAuditGateDecidedPayloadSchema,
+]);
 export type GateDecidedPayload = z.infer<typeof gateDecidedPayloadSchema>;
 
 /** Appended after every metered model call, so the run monitor shows spend while a step runs. */

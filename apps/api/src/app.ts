@@ -6,6 +6,7 @@ import { createSessionMiddleware } from './auth/session.ts';
 import type { DbClient } from './db/client.ts';
 import type { DefinitionRegistry } from './definitions/loader.ts';
 import type { Env } from './env.ts';
+import { createClaimAuditGate } from './gates/claim-audit.ts';
 import { createFactConflictsGate } from './gates/fact-conflicts.ts';
 import { createGateRouter } from './gates/routes.ts';
 import { createErrorHandler } from './http/errors.ts';
@@ -75,7 +76,12 @@ export function createApp({ db, logger, config, runs }: AppDeps): Express {
   const session = createSessionMiddleware({ db: db.db, config: config.auth });
   app.use('/api/auth', createAuthRouter({ db: db.db, config: config.auth, logger, session }));
   const gate = createFactConflictsGate({ db: db.db, engine: runs.engine, markets: runs.markets });
-  app.use('/api/runs', createGateRouter({ gate, session, logger }));
+  const claimAudit = createClaimAuditGate({
+    db: db.db,
+    engine: runs.engine,
+    markets: runs.markets,
+  });
+  app.use('/api/runs', createGateRouter({ gate, claimAudit, session, logger }));
 
   app.use(createErrorHandler(logger));
 
