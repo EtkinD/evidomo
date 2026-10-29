@@ -205,6 +205,7 @@ export function inventoryEntry(input: {
             status: 'ok',
             subject: input.subject,
             otherSubject: null,
+            furnishing: null,
             summary: 'A synthetic room.',
             quality: 'good',
             qualityIssues: [],

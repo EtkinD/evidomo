@@ -56,6 +56,8 @@ export function inventoryPhoto(
       InventoryPhoto['classification'],
       { status: 'ok' }
     >['qualityIssues'];
+    /** Defaults to `empty`, the only state staging furnishes; null is unknown. */
+    readonly furnishing?: Extract<InventoryPhoto['classification'], { status: 'ok' }>['furnishing'];
     readonly coverRank?: number;
     readonly privacy?: InventoryPhoto['privacy']['status'];
     readonly classificationFailed?: boolean;
@@ -75,6 +77,7 @@ export function inventoryPhoto(
             status: 'ok',
             subject: overrides.subject ?? 'living_room',
             otherSubject: null,
+            furnishing: overrides.furnishing === undefined ? 'empty' : overrides.furnishing,
             summary: 'A synthetic room.',
             quality: overrides.quality ?? 'good',
             qualityIssues: overrides.qualityIssues ?? [],

@@ -6,16 +6,16 @@ import { describeRecordedVerification } from './recorded-verification.ts';
 //   RECORD=1 node --env-file=<repo>/.env node_modules/vitest/vitest.mjs run --project api verification-loop-nl
 // Structure, code checks, and the recorded outcome are asserted; wording is the models'.
 describeRecordedVerification('loop-nl', {
-  // Pass 0: "Grond in eigendom" (P3-01's risk phrase: ownership inferred from
-  // `ground_lease: false`) and "Open hoekkeuken" in the caption, which does not cite the
-  // kitchen-location fact; revision 1 rewrote both ("Geen erfpacht.") and their re-audit was clean.
+  // Pass 0: "appartement van 92 m²" in the opening and the caption states the area without its
+  // basis (woonoppervlakte, NEN 2580); revision 1 rewrote both segments with the basis and their
+  // re-audit was clean.
   stopReason: 'clean',
   flagsByPass: [
     [
-      ['verifier', 'claim_support'],
-      ['verifier', 'claim_support'],
+      ['verifier', 'area_basis'],
+      ['verifier', 'area_basis'],
     ],
     [],
   ],
-  auditedByPass: [22, 2],
+  auditedByPass: [18, 2],
 });

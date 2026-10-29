@@ -19,8 +19,10 @@ import { sampleStagingStep, STAGING_CASSETTE, STAGING_INCLUDED_CASSETTES } from 
 
 // Staging over the six synthetic interiors: their P2-08 inventory (replayed from its own
 // recordings, never re-sent) selects the photos, and each selected photo gets one tools-off
-// edit. The cap is raised to 5 so both operation kinds are recorded; the integration test runs
-// the step with the definition's cap of 3, whose edits are the first three of these.
+// edit. The cap is raised to 5 so both operation kinds are covered; the integration test runs
+// the step with the definition's cap of 3, whose edits are the first three of these. Since
+// vision prompt version 2, `dining-chairs` is judged furnished and no longer selected (staging
+// furnishes empty rooms only), so its recorded edit is used only by the integrity tests.
 // Record (docs/model-notes.md, P3-04; 5 edits, $0.05):
 //   RECORD=1 node --env-file=<repo>/.env node_modules/vitest/vitest.mjs run --project api staging.test
 // P3_04_EXPORT_DIR=<dir> writes each stored staged image there (also in replay).
@@ -28,6 +30,8 @@ import { sampleStagingStep, STAGING_CASSETTE, STAGING_INCLUDED_CASSETTES } from 
 // keep the repository small (model-notes P3-04), so assertions use aspect ratios, not pixels.
 
 const RECORD_CAP = 5;
+/** Photos the P2-08 inventory makes eligible: two empty rooms to furnish, two to declutter. */
+const EXPECTED_EDITS = 4;
 const replay = createMetaReplay({
   cassette: STAGING_CASSETTE,
   include: STAGING_INCLUDED_CASSETTES,
@@ -93,14 +97,17 @@ afterAll(async () => {
 });
 
 describe(`staging over the synthetic interiors (${replay.mode})`, () => {
-  it('selects by cover rank with one furnished photo per subject and declared operations', () => {
+  it('selects by cover rank, furnishes empty rooms only, and declares each operation', () => {
     expect(plan.requests.map((r) => [nameOf(r.materialId), r.coverRank, r.operation.id])).toEqual([
       ['living-empty', 1, 'furnish_living_room'],
-      ['dining-chairs', 2, 'furnish_dining_room'],
-      ['bedroom-empty', 3, 'furnish_bedroom'],
-      ['living-dining-cluttered', 4, 'declutter'],
+      ['living-dining-cluttered', 3, 'declutter'],
+      ['bedroom-empty', 4, 'furnish_bedroom'],
       ['kitchen-cluttered', 5, 'declutter'],
     ]);
+    const diningChairs = plan.photos.find(
+      (p) => p.status === 'skipped' && p.materialId === SAMPLE_MATERIAL_IDS['dining-chairs'],
+    );
+    expect(diningChairs).toMatchObject({ reason: 'room_not_empty', operation: null });
     const hallway = plan.photos.find(
       (p) => p.status === 'skipped' && p.materialId === SAMPLE_MATERIAL_IDS.hallway,
     );
@@ -108,7 +115,7 @@ describe(`staging over the synthetic interiors (${replay.mode})`, () => {
   });
 
   it('produces one staged image per edit, linked to its original and operation', async () => {
-    expect(outcomes).toHaveLength(RECORD_CAP);
+    expect(outcomes).toHaveLength(EXPECTED_EDITS);
     for (const [i, outcome] of outcomes.entries()) {
       const request = plan.requests[i];
       if (!outcome.ok) throw new Error(`edit ${i} failed: ${outcome.reason}`);
@@ -130,7 +137,7 @@ describe(`staging over the synthetic interiors (${replay.mode})`, () => {
   });
 
   it('meters one billed image per edit through the openai SDK', () => {
-    expect(usage.entries).toHaveLength(RECORD_CAP);
+    expect(usage.entries).toHaveLength(EXPECTED_EDITS);
     for (const entry of usage.entries) {
       expect(entry).toMatchObject({ sdk: 'openai', modelId: 'muse-image-1.0', images: 1 });
       expect(entry.estimatedCostUsd).toBeCloseTo(0.01, 10);

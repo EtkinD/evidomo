@@ -111,6 +111,7 @@ function inventoryWith(keys: readonly string[]) {
           status: 'ok' as const,
           subject: 'balcony' as const,
           otherSubject: null,
+          furnishing: null,
           summary: 'A balcony with a railing.',
           quality: 'good' as const,
           qualityIssues: [],

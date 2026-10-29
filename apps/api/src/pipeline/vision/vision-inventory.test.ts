@@ -111,6 +111,19 @@ describe(`vision inventory over the synthetic interiors (${replay.mode})`, () =>
     expect(['living_room', 'dining_room']).toContain(subject('living-dining-cluttered'));
   });
 
+  it('judges the furnishing state that staging relies on (empty rooms only are furnished)', () => {
+    const furnishing = (name: keyof typeof SAMPLE_MATERIAL_IDS): string | null => {
+      const c = photoOf(name).classification;
+      return c.status === 'ok' ? c.furnishing : 'failed';
+    };
+    expect(content.promptVersion).toBe(2);
+    expect(furnishing('living-empty')).toBe('empty');
+    expect(furnishing('bedroom-empty')).toBe('empty');
+    // A table with chairs, and a furnished room under clutter: never empty.
+    expect(['partly', 'furnished']).toContain(furnishing('dining-chairs'));
+    expect(['partly', 'furnished']).toContain(furnishing('living-dining-cluttered'));
+  });
+
   it('checks both privacy phrases on every photo and finds nothing (negative cases only)', () => {
     expect(content.privacyPhrases).toEqual(['person', 'license plate']);
     expect(content.counts.privacy).toEqual({ clear: 6, masked: 0, review: 0, failed: 0 });
@@ -189,6 +202,7 @@ describe(`vision inventory over the synthetic interiors (${replay.mode})`, () =>
           evidence: content.evidence,
           observations: content.photos.map((p) => ({
             subject: p.classification.status === 'ok' ? p.classification.subject : null,
+            furnishing: p.classification.status === 'ok' ? p.classification.furnishing : null,
             cover: p.classification.status === 'ok' ? p.classification.coverScore : null,
             objects: p.observations.map((o) => `${o.key}:${o.modelCount}:${o.evidence.status}`),
           })),

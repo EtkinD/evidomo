@@ -6,9 +6,9 @@ import { describeRecordedVerification } from './recorded-verification.ts';
 //   RECORD=1 node --env-file=<repo>/.env node_modules/vitest/vitest.mjs run --project api verification-loop-en
 // Structure, code checks, and the recorded outcome are asserted; wording is the models'.
 describeRecordedVerification('loop-en', {
-  // Pass 0: "a 6 m² external storage is included" (P3-01's risk phrase; "included" is not a
-  // fact); revision 1 rewrote that segment only and its re-audit was clean.
+  // Since the vision prompt version 2 re-recording, the en draft passed its first audit without
+  // a flag, so no revision was made (loop-nl and seeded-en still exercise the revision loop).
   stopReason: 'clean',
-  flagsByPass: [[['verifier', 'claim_support']], []],
-  auditedByPass: [17, 1],
+  flagsByPass: [[]],
+  auditedByPass: [17],
 });

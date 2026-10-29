@@ -14,6 +14,7 @@ function raw(overrides: Partial<RawPhotoClassification> = {}): RawPhotoClassific
   return {
     subject: 'living_room',
     otherSubject: null,
+    furnishing: 'furnished',
     summary: 'A bright living room.',
     quality: 'good',
     qualityIssues: [],
@@ -119,6 +120,42 @@ describe('normalizeClassification', () => {
         PRIVACY,
       ).otherSubject,
     ).toBe('Sunroom');
+  });
+
+  it('keeps the furnishing state of interior rooms, including other subjects', () => {
+    for (const state of ['empty', 'partly', 'furnished'] as const) {
+      const result = normalizeClassification(raw({ furnishing: state }), OBJECTS, PRIVACY);
+      expect(result.furnishing).toBe(state);
+      expect(result.repairs).toEqual([]);
+    }
+    expect(
+      normalizeClassification(
+        raw({ subject: 'other', otherSubject: 'Lower-level room', furnishing: 'empty' }),
+        OBJECTS,
+        PRIVACY,
+      ).furnishing,
+    ).toBe('empty');
+  });
+
+  it('stores furnishing as unknown when it is absent, invalid, or not applicable', () => {
+    const none = normalizeClassification(raw({ furnishing: null }), OBJECTS, PRIVACY);
+    expect(none.furnishing).toBeNull();
+    expect(none.repairs).toEqual([]);
+
+    // Never mapped to `empty`, and the photo still classifies.
+    const invalid = normalizeClassification(raw({ furnishing: 'bare' }), OBJECTS, PRIVACY);
+    expect(invalid.furnishing).toBeNull();
+    expect(invalid.repairs).toEqual(['furnishing']);
+
+    for (const subject of ['exterior', 'garden', 'balcony', 'floor_plan', 'document', 'view']) {
+      const result = normalizeClassification(
+        raw({ subject, furnishing: 'empty' }),
+        OBJECTS,
+        PRIVACY,
+      );
+      expect(result.furnishing).toBeNull();
+      expect(result.repairs).toEqual(['furnishing']);
+    }
   });
 
   it('keeps only configured privacy phrases and known quality issues', () => {

@@ -41,8 +41,8 @@ const responseBodySchema = z.object({
 
 /** Segments and number claims the validator reads in each recording (P3-02). */
 const RECORDED_NUMBER_COUNTS = {
-  en: { segments: 17, numbers: 15 },
-  nl: { segments: 22, numbers: 20 },
+  en: { segments: 17, numbers: 16 },
+  nl: { segments: 18, numbers: 19 },
 } as const satisfies Record<RecordedCopyLanguage, { segments: number; numbers: number }>;
 
 export function describeRecordedCopy(language: RecordedCopyLanguage): void {

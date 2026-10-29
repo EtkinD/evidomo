@@ -6,21 +6,22 @@ import { describeRecordedVerification } from './recorded-verification.ts';
 //   RECORD=1 node --env-file=<repo>/.env node_modules/vitest/vitest.mjs run --project api verification-seeded-en
 // Structure, code checks, and the recorded outcome are asserted; wording is the models'.
 describeRecordedVerification('seeded-en', {
-  // Pass 0: the validator's 8 m² finding, then the verifier caught every seeded defect (and also
-  // "perfect" as a superlative); revision 1 rewrote the five seeded segments and their re-audit
-  // was clean.
+  // Pass 0: the validator's 15 m² finding, then the verifier caught every seeded defect (also
+  // the 15 m², "perfect" as a superlative, and "Parking is available" in an unseeded segment as
+  // unsupported); revision 1 rewrote the six flagged segments and their re-audit was clean.
   stopReason: 'clean',
   flagsByPass: [
     [
       ['validator', 'claim_support'],
       ['verifier', 'unverifiable_superlative'],
+      ['verifier', 'investment_promise'],
+      ['verifier', 'area_basis'],
       ['verifier', 'claim_support'],
       ['verifier', 'unverifiable_superlative'],
       ['verifier', 'exclusionary'],
-      ['verifier', 'investment_promise'],
-      ['verifier', 'area_basis'],
+      ['verifier', 'claim_support'],
     ],
     [],
   ],
-  auditedByPass: [17, 5],
+  auditedByPass: [17, 6],
 });

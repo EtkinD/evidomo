@@ -19,11 +19,16 @@ export function buildPhotoSystemPrompt(
 
 Rules:
 1. subject: the main room or subject of the photo. Use "other" only when nothing fits, with otherSubject a short English name; otherwise otherSubject is null. floor_plan and document are for drawings, certificates, and paperwork.
-2. summary: one short factual English sentence about the room and its fixed features and finishes. Never describe people, faces, vehicles, number plates, or any visible text, and never guess an address, location, brand, size, measurement, or year.
-3. quality: "good" for a sharp, well-lit, level photo that could be published as is; "poor" when it should be retaken; otherwise "acceptable". qualityIssues lists every issue that applies (empty when there is none).
-4. coverScore: an integer from ${COVER_SCORE_RANGE.min} to ${COVER_SCORE_RANGE.max} for how well the photo would work as the listing's main photo. A bright, sharp, wide shot of the main living space or of the outside of the property scores high; bathrooms, toilets, storage, hallways, close-ups, documents, floor plans, and photos with quality issues score low.
-5. observations: every object from the list below that is clearly visible, once per object, with count = how many instances are visible in this photo and detail = a short factual phrase (no brands, sizes, or years). Also list other fixed features a buyer would ask about (for example built_in_wardrobe, skylight, wooden_floor) as object "${OTHER_OBJECT}" with otherObject a snake_case English name. Never list an object you cannot see, or one you only assume is behind a door or cabinet front. At most 15 observations.
-6. privacySubjects: each of the privacy subjects below that is visible anywhere in the photo, even partly, small, blurred, in a mirror or window reflection, on a screen, in a framed photo or poster, or outside through a window. When unsure, include it.
+2. furnishing: for a photo of an interior room, how much movable furniture is in it. Fixed installations never count as furniture: built-in wardrobes and cupboards, kitchen units and worktops, sanitary fittings, radiators, appliances, light fittings, curtains, and blinds.
+   - "empty": no movable furniture at all, and nothing else standing on the floor.
+   - "partly": some movable furniture or loose objects (for example a single chair, a bare mattress, boxes, or tools), but the room is not set up for its use.
+   - "furnished": the main furniture for the room's use is in place (for example a sofa, a bed, or a dining table with chairs).
+   When unsure between two values, choose the more furnished one. null for exteriors, balconies, terraces, gardens, views, floor plans, and documents.
+3. summary: one short factual English sentence about the room and its fixed features and finishes. Never describe people, faces, vehicles, number plates, or any visible text, and never guess an address, location, brand, size, measurement, or year.
+4. quality: "good" for a sharp, well-lit, level photo that could be published as is; "poor" when it should be retaken; otherwise "acceptable". qualityIssues lists every issue that applies (empty when there is none).
+5. coverScore: an integer from ${COVER_SCORE_RANGE.min} to ${COVER_SCORE_RANGE.max} for how well the photo would work as the listing's main photo. A bright, sharp, wide shot of the main living space or of the outside of the property scores high; bathrooms, toilets, storage, hallways, close-ups, documents, floor plans, and photos with quality issues score low.
+6. observations: every object from the list below that is clearly visible, once per object, with count = how many instances are visible in this photo and detail = a short factual phrase (no brands, sizes, or years). Also list other fixed features a buyer would ask about (for example built_in_wardrobe, skylight, wooden_floor) as object "${OTHER_OBJECT}" with otherObject a snake_case English name. Never list an object you cannot see, or one you only assume is behind a door or cabinet front. At most 15 observations.
+7. privacySubjects: each of the privacy subjects below that is visible anywhere in the photo, even partly, small, blurred, in a mirror or window reflection, on a screen, in a framed photo or poster, or outside through a window. When unsure, include it.
 
 Objects (id: what to look for):
 ${objects === '' ? '(none)' : objects}

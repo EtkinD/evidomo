@@ -1,9 +1,12 @@
 import {
   COVER_SCORE_RANGE,
+  FURNISHING_NOT_APPLICABLE_SUBJECTS,
+  furnishingStateSchema,
   photoQualityIssueSchema,
   photoQualityRatingSchema,
   photoSubjectSchema,
   type EvidenceObject,
+  type FurnishingState,
   type ObservationRejectionReason,
   type PhotoQualityIssue,
   type PhotoQualityRating,
@@ -41,6 +44,8 @@ export interface NormalizedObservation {
 export interface NormalizedClassification {
   readonly subject: PhotoSubject;
   readonly otherSubject: string | null;
+  /** Null when furnishing does not apply to the subject or the model gave no valid value. */
+  readonly furnishing: FurnishingState | null;
   readonly summary: string;
   readonly quality: PhotoQualityRating;
   readonly qualityIssues: readonly PhotoQualityIssue[];
@@ -103,6 +108,18 @@ export function normalizeClassification(
     otherSubject = name === '' ? null : name;
   } else if (raw.otherSubject !== null && raw.otherSubject.trim() !== '') {
     repairs.push('other_subject');
+  }
+
+  // Furnishing only gates staging, so a value outside the set makes it unknown (never `empty`)
+  // instead of failing the photo; a value on a subject it does not apply to is dropped.
+  let furnishing: FurnishingState | null = null;
+  if (raw.furnishing !== null) {
+    const parsed = furnishingStateSchema.safeParse(raw.furnishing);
+    if (!parsed.success || FURNISHING_NOT_APPLICABLE_SUBJECTS.has(subject.data)) {
+      repairs.push('furnishing');
+    } else {
+      furnishing = parsed.data;
+    }
   }
 
   let summary = clip(raw.summary, MAX_SUMMARY);
@@ -174,6 +191,7 @@ export function normalizeClassification(
   return {
     subject: subject.data,
     otherSubject,
+    furnishing,
     summary,
     quality: quality.data,
     qualityIssues: [...issues],

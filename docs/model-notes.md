@@ -2602,8 +2602,9 @@ recordings showed.
   `vve_monthly_contribution` 175 vs spoken 165), and a 1-second silent stand-in WAV. The TTS
   walkthrough is not committed (P1-04), so the run was recorded from the local `say -v Xander`
   file passed with `--voice-memo`; intake matches the audio by its fixed name.
-- Cassette `fixtures/meta/p3-10/synthetic-walkthrough.json` (72 interactions, 680 KB) and
-  `.files/` (the 3 Muse Image outputs, 1920×1280 JPEG, 1.5 MB). **The blobs are not downscaled**
+- Cassette `fixtures/meta/p3-10/synthetic-walkthrough.json` (72 interactions, 680 KB; 56 and
+  520 KB since the vision prompt version 2 re-recording) and `.files/` (the Muse Image outputs,
+  1920×1280 JPEG: 3 and 1.5 MB, now 1 and 0.5 MB). **The blobs are not downscaled**
   (unlike P3-04): the integrity check's SAM responses describe boxes in the staged image's own
   pixels, and the staged images' cassette names are derived from the output bytes, so a smaller
   blob would fail both.
@@ -2614,6 +2615,14 @@ recordings showed.
   `accept_form_else_reject` keeps the form's 175 and rejects the floor conflict (no
   authoritative side). Staging furnished 3 photos, all passed the integrity check and were
   accepted; verification ended `clean` after two revision loops; export `readyToPublish: true`.
+- **Since vision prompt version 2 (re-recorded 2026-10-29):** Gate 1 is unchanged (the same three
+  conflicts and decisions). Staging furnishes **one** photo: `living-empty` (`empty`, again
+  classified as a bedroom, `furnish_bedroom`; the same edit as before, served from the cassette),
+  which passed the integrity check and was accepted at Gate 2. `bedroom-empty` is
+  `subject_already_furnished`; `dining-chairs` and the four furnished or decluttered edits are
+  `room_not_empty` (the old recording staged `dining-chairs` and `living-empty.edit-add-sofa`, both
+  already furnished: the bug); the two cluttered originals need the disabled `declutter`.
+  Verification is `clean` in one pass; export `readyToPublish: true`.
 - Vision classified the empty `living-empty.jpg` as a bedroom (operation `furnish_bedroom`),
   in both runs. An empty room has no furniture cues; Gate 2 is where an operator would catch it.
 
@@ -2665,3 +2674,108 @@ node --env-file=.env apps/api/src/cli/pipeline.ts fixtures/projects/synthetic-wa
 Delete the cassette first for a full re-recording; with it present, record mode only fills in
 requests that changed. A change to the Gate 1 decisions, the fact form, a photo, any prompt, or
 the definition's model settings changes later requests.
+
+## Staging furnishes empty rooms only (vision prompt version 2)
+
+Decision (2026-10-29): v1 staging is "furnish only", and only rooms that are empty. A live run
+on a real 20-photo set (Pexels, not committed) furnished two already-furnished rooms: Muse
+Image swapped the existing sofa, rug, and dining set, because `operationFor` picked
+`furnish_<room>` for any living room, dining room, bedroom, or study, and the inventory had no
+emptiness signal. The synthetic interiors never exposed it: their furnish candidates were empty.
+Code: `packages/shared/src/vision.ts` (`FURNISHING_STATES`, `FURNISHING_NOT_APPLICABLE_SUBJECTS`),
+`apps/api/src/pipeline/vision/` (`prompt.ts`, `schema.ts`, `normalize.ts`),
+`apps/api/src/pipeline/staging/selection.ts`; design in
+[architecture.md §5](./architecture.md#5-run-pipeline).
+
+### Field and prompt
+
+- **Wire schema:** `furnishing: "empty" | "partly" | "furnished" | null` (nullable enum, sent as
+  `anyOf`, accepted by Meta strict mode), placed after `otherSubject`. `VISION_PROMPT_VERSION` 2.
+- **Prompt rule 2** (the old rules 2–6 are now 3–7, unchanged): "furnishing: for a photo of an
+  interior room, how much movable furniture is in it. Fixed installations never count as
+  furniture: built-in wardrobes and cupboards, kitchen units and worktops, sanitary fittings,
+  radiators, appliances, light fittings, curtains, and blinds. `empty`: no movable furniture at
+  all, and nothing else standing on the floor. `partly`: some movable furniture or loose objects
+  (for example a single chair, a bare mattress, boxes, or tools), but the room is not set up for
+  its use. `furnished`: the main furniture for the room's use is in place (for example a sofa, a
+  bed, or a dining table with chairs). When unsure between two values, choose the more furnished
+  one. null for exteriors, balconies, terraces, gardens, views, floor plans, and documents."
+- **Normalization:** furnishing is forced to null (repair `furnishing`) for `balcony`, `terrace`,
+  `garden`, `exterior`, `view`, `floor_plan`, `document`; `other` keeps the model's value (it may
+  be an interior). An out-of-set value becomes null instead of failing the photo (strict mode
+  already rejects it at the SDK; the code path is defensive).
+- **Stored inventory:** `classification.furnishing` is `.nullable().default(null)`, so inventories
+  stored with prompt version 1 parse with null (unknown). No migration: the inventory is JSON in
+  an artifact. Null is never read as `empty`.
+- **Staging:** a furnish operation needs `empty`. `partly` and `furnished` are skipped as
+  `room_not_empty`, null as `furnishing_unknown`, after the `operation_not_enabled` check and
+  never with another operation. Declutter is unchanged (still disabled in v1). Unskipped rooms
+  free the one-furnish-per-subject slot, so an empty view with a worse cover rank can be staged.
+
+### Measured: the real 20-photo set (live, `--mode live`, not committed)
+
+Every room the operator named was judged correctly. Staging selected only empty rooms.
+
+| Truth (photos)                   | Vision                  | Staging                                                       |
+| -------------------------------- | ----------------------- | ------------------------------------------------------------- |
+| empty carpeted bedroom (1)       | bedroom, empty          | **staged** `furnish_bedroom`                                  |
+| empty lower-level room (2 views) | living_room, empty (×2) | **staged** `furnish_living_room`; `subject_already_furnished` |
+| furnished living room (2)        | living_room, furnished  | `room_not_empty` (×2)                                         |
+| furnished dining room (1)        | dining_room, furnished  | `room_not_empty`                                              |
+| furnished bedrooms (4)           | bedroom, furnished (×4) | `room_not_empty` (×4)                                         |
+
+- Others: garage `partly`; 5 bathrooms, 2 kitchens, and a laundry room `empty` (their fittings
+  are fixed installations, as defined); balcony null. All `not_stageable` by subject. All 20
+  privacy `clear`.
+- Both edits passed the integrity check and were offered at Gate 2. The lower-level room is
+  staged as a living room; the second angle of it is held back by the one-per-subject rule,
+  which is the intended result (two independent furnishings of one room would contradict).
+- Run: $0.5905, 95 calls, 193 s; vision $0.2740 for 20 photos ($0.0137 per photo with privacy).
+
+### Re-recordings and what changed
+
+The vision request body changed, so every cassette downstream of a vision call changed. Costs
+from the price table (cached input at the full rate); "billed" counts every request a record
+session sent.
+
+| Cassette                              | Billed (USD)   | Outcome change against the old recording                                                                                                                                                                                                                                |
+| ------------------------------------- | -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `p2-08/vision-inventory`              | 0.0542         | 6 Spark ($0.0392) + 6 privacy SAM re-sent ($0.015). Furnishing: living-empty, bedroom-empty, hallway, kitchen `empty`; dining-chairs, living-dining-cluttered `furnished`.                                                                                              |
+| `p2-09/reconciliation-wonder`         | 0.0820         | Same single model conflict (`other:bedroom_floor`, now against `other:carpeted_floor`).                                                                                                                                                                                 |
+| `p2-09/reconciliation-spark-fallback` | 0.0509         | Fallback path unchanged.                                                                                                                                                                                                                                                |
+| `p3-01/copy-en`, `copy-nl`            | 0.0358, 0.0306 | Both pass the validator with 0 findings (en 17 segments / 16 numbers; nl 18 / 19).                                                                                                                                                                                      |
+| `p3-06/loop-en`                       | 0.0337         | **Clean on the first pass** (no flag, no revision); before: one flag ("included") and one loop.                                                                                                                                                                         |
+| `p3-06/loop-nl`                       | 0.0858         | Two `area_basis` flags (92 m² without its basis, portal and caption), one revision, clean re-audit; before: two `claim_support` flags.                                                                                                                                  |
+| `p3-06/seeded-en`                     | 0.0949         | Defects re-targeted to the new draft's sentences; all five caught in pass 0 (plus "perfect" and "Parking is available"), one revision, clean.                                                                                                                           |
+| `p3-06/clean-en`                      | 0              | The en draft needs no cleaning, so `CLEAN_EN_EDITS` is empty and its request is byte-identical to loop-en's first pass; the cassette holds that same recorded response.                                                                                                 |
+| `p3-04/staging`, `p3-05/integrity`    | 0              | Not re-recorded: the new selection (living-empty, living-dining-cluttered, bedroom-empty, kitchen-cluttered) only drops dining-chairs, whose edit stays for the integrity tests.                                                                                        |
+| `p3-10/synthetic-walkthrough`         | 0.2641         | Resumable record session: 11 vision Spark + creative Spark ($0.1182), reconciliation + verification Wonder ($0.1459); intake, extraction, every SAM call, and the one edit served. Gate 1 same; 1 staged image instead of 3; verification clean in 1 pass instead of 3. |
+
+- **Classification drift on the synthetic six** (old → new): living-empty cover score 8 → 7;
+  living-dining-cluttered `living_room` 6 → `dining_room` 7; the rest identical in subject,
+  quality, issues, and score. Cover ranks: bedroom-empty 3 → 4, living-dining-cluttered 4 → 3.
+  `other` names drifted (`carpet_floor` → `carpeted_floor`, `herringbone_wooden_floor` →
+  `wooden_floor`, `kitchen_cabinets` → `fitted_kitchen_cabinets`, `countertop` dropped). Window
+  and radiator counts and every SAM evidence request unchanged (replayed from P1-05).
+- **Tests re-targeted** to the new recordings: the engine-level verification test now runs its
+  detailed revision case on nl (the recording that loops) and asserts the clean single pass on
+  en; the Gate 2 API test's synthetic flags moved to the new en draft's segments (parking at 12,
+  the energy-label sentence at 1, whose removal now also warns for `build_year`, optional).
+
+### Live calls and cost (this change)
+
+| Session                                     | USD        |
+| ------------------------------------------- | ---------- |
+| Real-set run (ledger)                       | 0.5905     |
+| p2-08 record                                | 0.0542     |
+| p2-09 records (Wonder, Spark fallback)      | 0.1329     |
+| p3-01 records (en, nl)                      | 0.0664     |
+| p3-06 records (loop-en, loop-nl, seeded-en) | 0.2144     |
+| p3-10 record (new interactions)             | 0.2641     |
+| **Total**                                   | **1.3225** |
+
+Budget 1.50 USD, raised to 2.00 for the P3-10 re-recording (stop at 1.90). The P3-10 record
+session hit the known `ERR_SSL_TOO_LONG` record-mode error on 4 vision requests (18 live
+requests, 14 recorded); the SDK retried them within the same execution. Those 4 report no
+usage, so whether Meta billed them is unknown (at most ~$0.03 more). The session's ledger
+($0.4253) over-reports, because served responses are metered again.

@@ -320,7 +320,7 @@ describe('reconciliation step', () => {
     });
     expect(conflict?.sides.map((side) => [side.key, side.sourceKinds])).toEqual([
       ['other:bedroom_floor', ['transcript_turn']],
-      ['other:carpet_floor', ['photo_region']],
+      ['other:carpeted_floor', ['photo_region']],
     ]);
     for (const id of conflict?.factIds ?? []) {
       expect(facts.find((fact) => fact.id === id)?.status).toBe('conflicted');
@@ -331,11 +331,11 @@ describe('reconciliation step', () => {
       ['reconciliation', 'completed', [sheetArtifact?.id, conflictsArtifact?.id], null],
     ]);
 
-    // One Wonder call: 7,066 in + 3,405 out.
+    // One Wonder call: 7,035 in + 2,695 out.
     const usage = await listUsageForRun(testDb.db, run.id);
     expect(
       usage.map((u) => [u.modelId, u.inputTokens, u.outputTokens, u.estimatedCostUsd]),
-    ).toEqual([['muse-wonder-1.0', 7066, 3405, '0.09636400']]);
+    ).toEqual([['muse-wonder-1.0', 7035, 2695, '0.08204000']]);
 
     const events = await listRunEvents(testDb.db, run.id);
     expect(events.map((e) => e.type)).toEqual([

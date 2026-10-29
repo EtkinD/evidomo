@@ -85,9 +85,9 @@ import { CLAIM_AUDIT_GATE_STEP_ID } from './claim-audit.ts';
 // `integrity_checks` record (passed, passed on retry, fallback) built with the real comparison.
 //
 // The recorded draft's segments used here: 0 "…offers 92 m² of living space." (living area),
-// 2 "It has energy label B." (the portal's only energy-label segment), 13 "Parking …, and a 6 m²
-// external storage is included." (the claim P3-06's verifier flags). Portal is 0–13, social
-// 14–16.
+// 1 "It was built in 1987 and has energy label B." (the portal's only energy-label segment),
+// 12 "Parking is available in front of the door …" (the claim P3-06's seeded-en verifier flagged:
+// "available" is not a fact). Portal is 0–13, social 14–16.
 
 const logger = createLogger({ LOG_LEVEL: 'warn', NODE_ENV: 'test' });
 const PASSWORD = 'correct horse battery staple';
@@ -541,19 +541,19 @@ const FULL_SCENARIO: Scenario = {
       problem: 'The number 92 is not stated by any cited fact.',
     },
     {
-      index: 2,
+      index: 1,
       category: 'unverifiable_superlative',
       problem: 'Synthetic flag on the energy label sentence.',
-      suggestion: 'It has energy label B.',
+      suggestion: 'It was built in 1987 and has energy label B.',
     },
     {
-      index: 13,
+      index: 12,
       category: 'claim_support',
-      problem: '"included" is not stated by any cited fact.',
-      suggestion: 'Parking is in front of the door without paid parking; there is a 6 m² storage.',
+      problem: '"available" is not stated by any cited fact.',
+      suggestion: 'Parking is in front of the door with no paid parking.',
     },
     {
-      index: 13,
+      index: 12,
       category: 'investment_promise',
       problem: 'Synthetic second flag on the parking sentence.',
     },
@@ -690,9 +690,9 @@ describe('Gate 2 API', () => {
     ]);
 
     // One entry per flagged claim, every flag of the claim on it.
-    const parking = segmentAt(gate, 13);
-    expect(parking).toMatchObject({ position: 13, paragraph: 2, decision: null });
-    expect(parking.text).toContain('included');
+    const parking = segmentAt(gate, 12);
+    expect(parking).toMatchObject({ position: 12, paragraph: 2, decision: null });
+    expect(parking.text).toContain('available');
     expect(parking.flags.map((f) => [f.source, f.category])).toEqual([
       ['verifier', 'claim_support'],
       ['verifier', 'investment_promise'],
@@ -764,8 +764,8 @@ describe('Gate 2 API', () => {
     if (stored === undefined) throw new Error('no stored images');
     const gate = await getGate(run.id);
     const living = segmentAt(gate, 0);
-    const label = segmentAt(gate, 2);
-    const parking = segmentAt(gate, 13);
+    const label = segmentAt(gate, 1);
+    const parking = segmentAt(gate, 12);
     const [passedImage, retryImage] = gate.images.map((i) => i.artifactId);
     if (passedImage === undefined || retryImage === undefined) throw new Error('no images');
 
@@ -784,31 +784,31 @@ describe('Gate 2 API', () => {
     // An edit must pass the claim validator against the claim's own citations.
     const invalid = await decideClaim(run.id, parking.claimId, {
       choice: 'edit',
-      text: 'Parking is in front of the door, and there is an external storage of about 8 m².',
+      text: 'Parking is in front of the door, and a supermarket is about 8 minutes away.',
     });
     expect([invalid.status, errorCode(invalid)]).toEqual([400, 'claim_edit_rejected']);
     const findings = apiErrorSchema.parse(invalid.body).findings ?? [];
     expect(findings.map((f) => f.code)).toEqual(
       expect.arrayContaining(['approximate_number', 'number_not_in_facts']),
     );
-    expect(findings.every((f) => f.segmentIndex === 13 && f.variant === 'portal')).toBe(true);
-    expect(segmentAt(await getGate(run.id), 13).decision).toBeNull();
+    expect(findings.every((f) => f.segmentIndex === 12 && f.variant === 'portal')).toBe(true);
+    expect(segmentAt(await getGate(run.id), 12).decision).toBeNull();
 
     const editedText =
-      'Parking is in front of the door without paid parking, and there is a 6 m² external storage.';
+      'Parking is in front of the door with no paid parking, and a supermarket and a primary school are within walking distance.';
     const edited = parsed(
       await decideClaim(run.id, parking.claimId, {
         choice: 'edit',
         text: `  ${editedText.replace(' and ', '\n and  ')}  `,
       }),
     );
-    expect(segmentAt(edited, 13).decision).toMatchObject({ choice: 'edit', text: editedText });
+    expect(segmentAt(edited, 12).decision).toMatchObject({ choice: 'edit', text: editedText });
     // The draft itself is unchanged: the edit lives in the decision.
-    expect(segmentAt(edited, 13).text).toBe(parking.text);
+    expect(segmentAt(edited, 12).text).toBe(parking.text);
 
-    // remove: the portal's only energy-label segment, so the UI is warned
+    // remove: the portal's only energy-label and build-year segment, so the UI is warned (energy label required, build year optional)
     const removed = parsed(await decideClaim(run.id, label.claimId, { choice: 'remove' }));
-    expect(segmentAt(removed, 2).decision?.choice).toBe('remove');
+    expect(segmentAt(removed, 1).decision?.choice).toBe('remove');
     expect(removed.warnings).toEqual([
       {
         kind: 'market_fact_unmentioned',
@@ -817,13 +817,20 @@ describe('Gate 2 API', () => {
         required: true,
         removedClaimIds: [label.claimId],
       },
+      {
+        kind: 'market_fact_unmentioned',
+        variant: 'portal',
+        factKey: 'build_year',
+        required: false,
+        removedClaimIds: [label.claimId],
+      },
     ]);
     // changed while open: accepting it clears the warning; removing it again restores it
     const changed = parsed(await decideClaim(run.id, label.claimId, { choice: 'accept' }));
     expect(changed.warnings).toEqual([]);
     expect(
       parsed(await decideClaim(run.id, label.claimId, { choice: 'remove' })).warnings,
-    ).toHaveLength(1);
+    ).toHaveLength(2);
 
     // images: accept one, reject the other, then change the rejection back and forth
     expect(parsed(await decideImage(run.id, passedImage, { choice: 'accept' })).openCount).toBe(1);
@@ -893,17 +900,17 @@ describe('Gate 2 API', () => {
     });
     const [portal, socialVariant] = pack.variants;
     expect(portal?.segments.map((s) => s.index)).toEqual([
-      0, 1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
+      0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
     ]);
     expect(portal?.segments.find((s) => s.index === 0)?.origin).toBe('accepted');
-    expect(portal?.segments.find((s) => s.index === 13)).toMatchObject({
+    expect(portal?.segments.find((s) => s.index === 12)).toMatchObject({
       origin: 'edited',
       text: editedText,
       factIds: parking.factIds,
     });
-    expect(portal?.segments.find((s) => s.index === 1)).toMatchObject({
+    expect(portal?.segments.find((s) => s.index === 2)).toMatchObject({
       origin: 'unflagged',
-      text: segmentAt(gate, 1).text,
+      text: segmentAt(gate, 2).text,
     });
     expect(socialVariant?.segments.map((s) => s.origin)).toEqual([
       'unflagged',
@@ -944,12 +951,12 @@ describe('Gate 2 API', () => {
         offeredImageCount: 2,
         acceptedImageCount: 1,
         rejectedImageCount: 1,
-        warningCount: 1,
+        warningCount: 2,
       },
     ]);
     // No copy text in the event log.
     const events = JSON.stringify((await listRunEvents(testDb.db, run.id)).map((e) => e.payload));
-    expect(events).not.toMatch(/Parking|storage|energy label|included/i);
+    expect(events).not.toMatch(/Parking|supermarket|energy label|available/i);
 
     // Released: decisions and the approval are final.
     const late = await decideClaim(run.id, label.claimId, { choice: 'accept' });
@@ -960,7 +967,7 @@ describe('Gate 2 API', () => {
     expect([again.status, errorCode(again)]).toEqual([409, 'gate_not_open']);
     const after = await getGate(run.id);
     expect(after).toMatchObject({ state: 'released', runStatus: 'completed', openCount: 0 });
-    expect(segmentAt(after, 13).decision?.choice).toBe('edit');
+    expect(segmentAt(after, 12).decision?.choice).toBe('edit');
   });
 
   it('still waits for an explicit approval when there is nothing to decide', async () => {
@@ -1004,11 +1011,11 @@ describe('Gate 2 API', () => {
 
   it('serializes concurrent decisions and resumes exactly once on concurrent approvals', async () => {
     const run = await gate2Run({
-      flags: [{ index: 13, category: 'claim_support', problem: '"included" is not stated.' }],
+      flags: [{ index: 12, category: 'claim_support', problem: '"available" is not stated.' }],
       images: [{ outcome: 'passed', operationId: 'furnish_living_room' }],
     });
     const gate = await getGate(run.id);
-    const parking = segmentAt(gate, 13);
+    const parking = segmentAt(gate, 12);
     const image = gate.images[0]?.artifactId ?? '';
 
     // The last two decisions at once: both recorded, neither resumes.
@@ -1040,11 +1047,11 @@ describe('Gate 2 API', () => {
 
   it('requires a session, hides other users’ runs, and refuses cross-origin and non-JSON writes', async () => {
     const run = await gate2Run({
-      flags: [{ index: 13, category: 'claim_support', problem: '"included" is not stated.' }],
+      flags: [{ index: 12, category: 'claim_support', problem: '"available" is not stated.' }],
       images: [{ outcome: 'passed', operationId: 'furnish_living_room' }],
     });
     const gate = await getGate(run.id);
-    const claimId = segmentAt(gate, 13).claimId;
+    const claimId = segmentAt(gate, 12).claimId;
     const image = gate.images[0]?.artifactId ?? '';
     const anonymous = request(app);
 

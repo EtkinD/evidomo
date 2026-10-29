@@ -98,6 +98,7 @@ const SAM_USAGE = {
 
 interface Answer {
   subject?: string;
+  furnishing?: string | null;
   coverScore?: number;
   quality?: string;
   observations?: { object: string; otherObject: string | null; count: number; detail: string }[];
@@ -108,6 +109,7 @@ function sparkAnswer(answer: Answer): string {
   return JSON.stringify({
     subject: answer.subject ?? 'living_room',
     otherSubject: null,
+    furnishing: answer.furnishing === undefined ? 'empty' : answer.furnishing,
     summary: 'Empty room with a window.',
     quality: answer.quality ?? 'good',
     qualityIssues: [],
@@ -244,6 +246,31 @@ describe('runVisionInventory (stubbed fetch)', () => {
     const person = content.photos[0]?.privacy.phrases[0];
     expect(person?.status === 'checked' && person.regions[0]?.mask).toEqual(MASK.mask);
     expect(content.counts.privacyRegions).toBe(1);
+  });
+
+  it('stores the furnishing state, null where it does not apply, and the prompt version', async () => {
+    const photos = samples.slice(0, 3);
+    const answers: Answer[] = [
+      { subject: 'living_room', furnishing: 'partly' },
+      { subject: 'exterior', furnishing: 'empty' },
+      { subject: 'bedroom', furnishing: null },
+    ];
+    stubMeta(photos, (index, request) =>
+      request.model.startsWith('muse') ? spark(answers[index] ?? {}) : sam(''),
+    );
+    const { content } = await inventory(photos);
+    expect(content.promptVersion).toBe(2);
+    expect(
+      content.photos.map((p) =>
+        p.classification.status === 'ok'
+          ? [p.classification.furnishing, p.classification.repairs]
+          : null,
+      ),
+    ).toEqual([
+      ['partly', []],
+      [null, ['furnishing']],
+      [null, []],
+    ]);
   });
 
   it('stores a failed classification without a cover rank and still checks privacy', async () => {

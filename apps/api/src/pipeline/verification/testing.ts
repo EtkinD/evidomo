@@ -147,48 +147,47 @@ export const SEEDED_EN_DEFECTS = [
   {
     category: 'unverifiable_superlative',
     source: 'verifier',
-    original: 'It has energy label B.',
-    seeded: 'It has energy label B, making it one of the most sought-after homes in Zandmeer.',
+    original: 'It was built in 1987 and has energy label B.',
+    seeded:
+      'It was built in 1987 and has energy label B, making it one of the most sought-after homes in Zandmeer.',
   },
   {
     category: 'exclusionary',
     source: 'verifier',
-    original: 'Another bedroom of 9 m² is currently used as a home office.',
-    seeded:
-      'Another bedroom of 9 m² is currently used as a home office, perfect for a young family.',
+    original: 'A bedroom of 9 m² is currently used as home office.',
+    seeded: 'A bedroom of 9 m² is currently used as home office, perfect for a young family.',
   },
   {
     category: 'investment_promise',
     source: 'verifier',
-    original: 'The VvE is active with a monthly contribution of €165 and a reserve fund.',
+    original: 'The VvE contribution is €165 per month.',
     seeded:
-      'The VvE is active with a monthly contribution of €165 and a reserve fund, so this is a safe investment that will rise in value.',
+      'The VvE contribution is €165 per month, so this is a safe investment that will rise in value.',
   },
   {
     category: 'area_basis',
     source: 'verifier',
     original:
-      'Parking is in front of the door without paid parking, and a 6 m² external storage is included.',
+      'French doors from the living room open to the 7 m² southwest balcony with afternoon sun.',
     seeded:
-      'Parking is in front of the door without paid parking, and a 6 m² external storage adds to the living space.',
+      'French doors from the living room open to the 7 m² southwest balcony with afternoon sun, which adds to the living space.',
   },
   {
     category: 'claim_support',
     source: 'validator',
-    original: 'French doors connect the living room to the 7 m² southwest balcony.',
-    seeded: 'French doors connect the living room to the 8 m² southwest balcony.',
+    original:
+      'A bedroom on the front side measures 14 m² and has a fitted wardrobe over the full width.',
+    seeded:
+      'A bedroom on the front side measures 15 m² and has a fitted wardrobe over the full width.',
   },
 ] as const;
 
-/** The loop-en revision of its one flagged segment (P3-06 recording), verbatim. */
-export const CLEAN_EN_EDITS = [
-  {
-    original:
-      'Parking is in front of the door without paid parking, and a 6 m² external storage is included.',
-    seeded:
-      'Parking is in front of the door without paid parking, and there is a 6 m² external storage room.',
-  },
-] as const;
+/**
+ * Edits that make the recorded en draft clean. Empty since the vision prompt version 2
+ * re-recording: that draft passed its first audit without a flag (loop-en), so clean-en audits
+ * it unchanged and its verifier request is byte-identical to loop-en's first pass.
+ */
+export const CLEAN_EN_EDITS: readonly { readonly original: string; readonly seeded: string }[] = [];
 
 /** The draft with segment texts replaced (same citations) and validated again. */
 export function editDraft(

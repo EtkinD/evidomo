@@ -97,11 +97,40 @@ describe('headless pipeline CLI, fixture mode', () => {
         origin: 'default_policy',
       },
     ]);
-    // Gate 2: every staged image the integrity check offered was accepted by the default.
+    // Staging furnishes empty rooms only: the furnished edits and the furnished dining room are
+    // skipped, the cluttered rooms need the disabled `declutter`, and the empty living room
+    // (classified as a bedroom in this recording) takes the one furnish per subject.
+    const photo = (name: string) => summary.photos.find((p) => p.photo === name);
+    expect(photo('living-empty.jpg')).toMatchObject({
+      subject: 'bedroom',
+      furnishing: 'empty',
+      staging: { status: 'staged', operationId: 'furnish_bedroom', reason: null },
+    });
+    expect(photo('bedroom-empty.jpg')?.staging).toMatchObject({
+      status: 'skipped',
+      reason: 'subject_already_furnished',
+    });
+    for (const name of [
+      'dining-chairs.jpg',
+      'living-empty.edit-add-sofa.jpg',
+      'bedroom-empty.edit-add-bed.jpg',
+      'dining-chairs.edit-replace-chairs.jpg',
+      'living-dining-cluttered.edit-declutter-table.jpg',
+    ]) {
+      expect(photo(name)?.furnishing, name).not.toBe('empty');
+      expect(photo(name)?.staging, name).toMatchObject({
+        status: 'skipped',
+        reason: 'room_not_empty',
+      });
+    }
+    expect(summary.photos).toHaveLength(11);
+    expect(
+      summary.photos.filter((p) => p.staging?.status === 'staged').map((p) => p.photo),
+    ).toEqual(['living-empty.jpg']);
+
+    // Gate 2: the staged image the integrity check offered was accepted by the default.
     expect(summary.claimAudit?.images.map((i) => [i.photo, i.choice, i.origin])).toEqual([
       ['living-empty.jpg', 'accept', 'default_policy'],
-      ['dining-chairs.jpg', 'accept', 'default_policy'],
-      ['living-empty.edit-add-sofa.jpg', 'accept', 'default_policy'],
     ]);
     expect(summary.unusedDecisions).toEqual([]);
 
@@ -123,7 +152,7 @@ describe('headless pipeline CLI, fixture mode', () => {
       status: 'verified',
       value: 1987,
     });
-    expect(fields.images.filter((i) => i.kind === 'staged')).toHaveLength(3);
+    expect(fields.images.filter((i) => i.kind === 'staged')).toHaveLength(1);
     const html = await readFile(path.join(outDir, 'listing-pack.html'), 'utf8');
     expect(html).toContain('Virtually staged');
     const written: unknown = JSON.parse(await readFile(path.join(outDir, SUMMARY_FILE), 'utf8'));

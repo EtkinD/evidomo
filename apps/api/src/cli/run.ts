@@ -5,7 +5,11 @@ import path from 'node:path';
 import {
   EXPORT_MANIFEST_ARTIFACT_KIND,
   exportManifestContentSchema,
+  PHOTO_INVENTORY_ARTIFACT_KIND,
+  photoInventoryContentSchema,
   portalFieldsSchema,
+  STAGED_IMAGES_ARTIFACT_KIND,
+  stagedImagesContentSchema,
   usdAmountSchema,
   type ServiceDefinition,
 } from '@evidomo/shared';
@@ -42,7 +46,7 @@ import { cliServiceRegistry } from './definition.ts';
 import { createFixtureImageAliases, type FixtureImageAliases } from './image-aliases.ts';
 import { ingestPhoto, ingestVoiceMemo } from './ingest.ts';
 import { loadProject, withVoiceMemo, type Project } from './project.ts';
-import type { PipelineMode, PipelineSummary, StepSummary } from './summary.ts';
+import type { PhotoSummary, PipelineMode, PipelineSummary, StepSummary } from './summary.ts';
 import { usd } from './summary.ts';
 
 // The headless pipeline (P3-10, docs/architecture.md §5 "Headless pipeline CLI"): one project
@@ -159,6 +163,48 @@ function eventLine(type: string, payload: Record<string, unknown>): string | und
   }
 }
 
+/** Reads one artifact kind of the run; none or several give null (the step did not finish). */
+async function singleContent(
+  db: TestDatabase['db'],
+  runId: string,
+  kind: string,
+): Promise<unknown> {
+  const rows = await listArtifacts(db, runId, { kind });
+  return rows.length === 1 ? rows[0]?.content : null;
+}
+
+/** Vision's classification and staging's outcome per photo, by project file name. */
+async function photoSummaries(
+  db: TestDatabase['db'],
+  runId: string,
+  photoNames: ReadonlyMap<string, string>,
+): Promise<PhotoSummary[]> {
+  const inventoryContent = await singleContent(db, runId, PHOTO_INVENTORY_ARTIFACT_KIND);
+  if (inventoryContent === null) return [];
+  const inventory = photoInventoryContentSchema.parse(inventoryContent);
+  const stagedContent = await singleContent(db, runId, STAGED_IMAGES_ARTIFACT_KIND);
+  const staged = stagedContent === null ? null : stagedImagesContentSchema.parse(stagedContent);
+  return inventory.photos.map((photo) => {
+    const c = photo.classification;
+    const outcome = staged?.photos.find((o) => o.materialId === photo.materialId);
+    return {
+      photo: photoNames.get(photo.materialId) ?? photo.materialId,
+      subject: c.status === 'ok' ? c.subject : null,
+      furnishing: c.status === 'ok' ? c.furnishing : null,
+      coverRank: c.status === 'ok' ? c.coverRank : null,
+      privacy: photo.privacy.status,
+      staging:
+        outcome === undefined
+          ? null
+          : {
+              status: outcome.status,
+              operationId: outcome.operationId,
+              reason: outcome.status === 'staged' ? null : outcome.reason,
+            },
+    };
+  });
+}
+
 async function buildSummary(
   db: TestDatabase['db'],
   run: Run,
@@ -172,6 +218,7 @@ async function buildSummary(
     exported: PipelineSummary['export'];
     replay: MetaReplay | undefined;
     aliases: FixtureImageAliases;
+    photoNames: ReadonlyMap<string, string>;
   },
 ): Promise<PipelineSummary> {
   const rows = await listRunSteps(db, run.id);
@@ -211,6 +258,7 @@ async function buildSummary(
     failureReason: run.failureReason ?? context.scriptFailure,
     durationMs: Date.now() - context.startedAt,
     steps,
+    photos: await photoSummaries(db, run.id, context.photoNames),
     factConflicts: context.gates.factConflicts,
     claimAudit: context.gates.claimAudit,
     unusedDecisions: context.gates.unused,
@@ -490,6 +538,7 @@ export async function runPipeline(options: RunPipelineOptions): Promise<Pipeline
       exported,
       replay,
       aliases,
+      photoNames,
     });
     await writeFile(
       path.join(options.outDir, SUMMARY_FILE),

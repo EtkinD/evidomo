@@ -170,6 +170,96 @@ describe('planStaging', () => {
     ]);
   });
 
+  it('furnishes empty rooms only: occupied and unknown rooms are skipped, never re-assigned', () => {
+    const furnishedLiving = inventoryPhoto({
+      subject: 'living_room',
+      furnishing: 'furnished',
+      coverRank: 1,
+    });
+    const partlyDining = inventoryPhoto({
+      subject: 'dining_room',
+      furnishing: 'partly',
+      coverRank: 2,
+    });
+    const unknownStudy = inventoryPhoto({ subject: 'study', furnishing: null, coverRank: 3 });
+    const emptyBedroom = inventoryPhoto({ subject: 'bedroom', furnishing: 'empty', coverRank: 4 });
+    const plan = planStaging(
+      { photos: [furnishedLiving, partlyDining, unknownStudy, emptyBedroom] },
+      10,
+      FURNISH_ONLY,
+    );
+    expect(plan.requests.map((r) => [r.materialId, r.operation.id])).toEqual([
+      [emptyBedroom.materialId, 'furnish_bedroom'],
+    ]);
+    expect(plan.eligibleCount).toBe(1);
+    expect(plan.photos.slice(0, 3)).toEqual([
+      {
+        status: 'skipped',
+        materialId: furnishedLiving.materialId,
+        reason: 'room_not_empty',
+        operation: null,
+      },
+      {
+        status: 'skipped',
+        materialId: partlyDining.materialId,
+        reason: 'room_not_empty',
+        operation: null,
+      },
+      {
+        status: 'skipped',
+        materialId: unknownStudy.materialId,
+        reason: 'furnishing_unknown',
+        operation: null,
+      },
+    ]);
+  });
+
+  it('lets an occupied room free its subject for an empty view with a worse cover rank', () => {
+    // The furnished better-ranked view is not eligible, so it cannot take the one furnish slot
+    // per subject from the empty one.
+    const furnished = inventoryPhoto({ subject: 'bedroom', furnishing: 'furnished', coverRank: 1 });
+    const empty = inventoryPhoto({ subject: 'bedroom', furnishing: 'empty', coverRank: 2 });
+    const plan = planStaging({ photos: [furnished, empty] }, 10, FURNISH_ONLY);
+    expect(plan.requests.map((r) => r.materialId)).toEqual([empty.materialId]);
+  });
+
+  it('still declutters a cluttered furnished room when declutter is enabled', () => {
+    const cluttered = inventoryPhoto({
+      subject: 'living_room',
+      furnishing: 'furnished',
+      qualityIssues: ['cluttered'],
+    });
+    const kitchen = inventoryPhoto({
+      subject: 'kitchen',
+      furnishing: null,
+      qualityIssues: ['personal_items'],
+    });
+    const both = planStaging({ photos: [cluttered, kitchen] }, 10, BOTH_KINDS);
+    expect(both.requests.map((r) => r.operation.id)).toEqual(['declutter', 'declutter']);
+    // With furnish only, the disabled kind is reported first, not the furnishing state.
+    const furnishOnly = planStaging({ photos: [cluttered] }, 10, FURNISH_ONLY);
+    expect(furnishOnly.photos[0]).toMatchObject({ reason: 'operation_not_enabled' });
+  });
+
+  it('checks the furnishing state after privacy and quality', () => {
+    const plan = planStaging(
+      {
+        photos: [
+          inventoryPhoto({ furnishing: 'furnished', privacy: 'review' }),
+          inventoryPhoto({ furnishing: 'furnished', quality: 'poor' }),
+          inventoryPhoto({ subject: 'hallway', furnishing: 'furnished' }),
+        ],
+      },
+      10,
+      FURNISH_ONLY,
+    );
+    expect(plan.photos.map((p) => (p.status === 'skipped' ? p.reason : p.status))).toEqual([
+      'privacy_review',
+      'poor_quality',
+      'not_stageable',
+    ]);
+  });
+
   it('plans nothing when the cap is 0', () => {
     const plan = planStaging({ photos: [inventoryPhoto(), inventoryPhoto()] }, 0, BOTH_KINDS);
     expect(plan.requests).toEqual([]);

@@ -52,6 +52,11 @@ export type StagingOperation = z.infer<typeof stagingOperationSchema>;
  * - `not_stageable`: no declared operation fits its subject (exteriors, plans, hallways, ...);
  * - `operation_not_enabled`: the fitting operation's kind is not in the step's `operation_kinds`
  *   (v1 enables `furnish` only, so cluttered rooms are not staged at all);
+ * - `room_not_empty`: the fitting operation furnishes, but vision judged the room `partly`
+ *   furnished or `furnished`; furnishing it would replace what is there (staging is "furnish
+ *   empty rooms only", and an occupied room is never given another operation);
+ * - `furnishing_unknown`: the fitting operation furnishes, but the inventory has no furnishing
+ *   state (no valid model value, or an inventory from before prompt version 2): not `empty`;
  * - `subject_already_furnished`: a better-ranked photo of the same subject is furnished already
  *   (two independently furnished views of one room would contradict each other);
  * - `cap_reached`: eligible, but `max_staged_images` was reached.
@@ -64,6 +69,8 @@ export const STAGING_SKIP_REASONS = [
   'poor_quality',
   'not_stageable',
   'operation_not_enabled',
+  'room_not_empty',
+  'furnishing_unknown',
   'subject_already_furnished',
   'cap_reached',
 ] as const;

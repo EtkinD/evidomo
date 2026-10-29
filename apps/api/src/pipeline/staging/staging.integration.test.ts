@@ -194,7 +194,7 @@ describe('staging step', () => {
       maxStagedImages: 3,
       operationKinds: ['furnish', 'declutter'],
       inventoryArtifactId: inventory?.id,
-      counts: { photos: 6, eligible: 5, requested: 3, staged: 3, failed: 0, skipped: 3 },
+      counts: { photos: 6, eligible: 4, requested: 3, staged: 3, failed: 0, skipped: 3 },
     });
     expect(
       manifest.photos.map((p) => [
@@ -205,11 +205,11 @@ describe('staging step', () => {
       ]),
     ).toEqual([
       [idOf('living-empty'), 'staged', 'furnish_living_room', null],
-      [idOf('living-dining-cluttered'), 'skipped', 'declutter', 'cap_reached'],
+      [idOf('living-dining-cluttered'), 'staged', 'declutter', null],
       [idOf('kitchen-cluttered'), 'skipped', 'declutter', 'cap_reached'],
       [idOf('bedroom-empty'), 'staged', 'furnish_bedroom', null],
       [idOf('hallway'), 'skipped', null, 'not_stageable'],
-      [idOf('dining-chairs'), 'staged', 'furnish_dining_room', null],
+      [idOf('dining-chairs'), 'skipped', null, 'room_not_empty'],
     ]);
 
     // Done when: every staged image is labeled and linked to its original.
@@ -278,7 +278,7 @@ describe('staging step', () => {
       artifactId: manifestArtifact?.id,
       cap: 3,
       photoCount: 6,
-      eligibleCount: 5,
+      eligibleCount: 4,
       requestedCount: 3,
       stagedCount: 3,
       failedCount: 0,

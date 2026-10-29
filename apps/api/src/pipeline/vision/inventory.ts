@@ -446,6 +446,7 @@ export async function runVisionInventory(
         status: 'ok',
         subject: value.subject,
         otherSubject: value.otherSubject,
+        furnishing: value.furnishing,
         summary: value.summary,
         quality: value.quality,
         qualityIssues: [...value.qualityIssues],

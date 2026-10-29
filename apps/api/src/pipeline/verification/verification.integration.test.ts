@@ -174,8 +174,10 @@ afterAll(async () => {
 });
 
 describe('verification step', () => {
+  // The recorded nl draft loops once (two area_basis flags, one revision, a clean re-audit); the
+  // recorded en draft is clean on its first pass (docs/model-notes.md, P3-06).
   it('audits the copy, stores the revision and every verdict, and stops at Gate 2 even when clean', async () => {
-    const run = await seedVerificationRun();
+    const run = await seedVerificationRun({ outputLanguage: 'nl' });
 
     await engine.startRun(run.id);
     const paused = await waitForStatus(run.id, 'awaiting_gate');
@@ -196,7 +198,7 @@ describe('verification step', () => {
     expect(moreAudits).toEqual([]);
     const audit = claimAuditContentSchema.parse(auditArtifact?.content);
     expect(audit).toMatchObject({
-      outputLanguage: 'en',
+      outputLanguage: 'nl',
       market: { id: 'nl', version: 1 },
       maxRevisionLoops: 2,
       stopReason: 'clean',
@@ -213,42 +215,41 @@ describe('verification step', () => {
       'exclusionary',
       'area_basis',
     ]);
+    // Portal segment 0 and the caption's first segment (15) state 92 m² without its basis.
+    const flagged = new Set([0, 15]);
     const [first, second] = audit.passes;
-    expect(first?.flags).toHaveLength(1);
-    const flag = first?.flags[0];
-    expect(flag).toMatchObject({
-      source: 'verifier',
-      category: 'claim_support',
-      code: null,
-      artifactId: drafts[0]?.id,
-      variant: 'portal',
-      segment: 13,
-      segmentIndex: 13,
-      carried: false,
-    });
-    expect(second).toMatchObject({ auditedSegments: 1, carriedSegments: 16, flags: [] });
+    expect(
+      first?.flags.map((f) => [f.source, f.category, f.code, f.variant, f.segmentIndex, f.carried]),
+    ).toEqual([
+      ['verifier', 'area_basis', null, 'portal', 0, false],
+      ['verifier', 'area_basis', null, 'social', 15, false],
+    ]);
+    expect(first?.flags.every((f) => f.artifactId === drafts[0]?.id)).toBe(true);
+    expect(second).toMatchObject({ auditedSegments: 2, carriedSegments: 16, flags: [] });
 
-    // Verdicts on every claim of both drafts; the flagged claim is the one the flag points at.
+    // Verdicts on every claim of both drafts; the flagged claims are the ones the flags point at.
     const initialClaims = await listClaims(testDb.db, drafts[0]?.id ?? '');
-    expect(flag?.claimId).toBe(initialClaims.find((c) => c.segmentIndex === 13)?.id);
+    expect(first?.flags.map((f) => f.claimId)).toEqual(
+      [0, 15].map((index) => initialClaims.find((c) => c.segmentIndex === index)?.id),
+    );
     expect(initialClaims.map((c) => c.verifierVerdict)).toEqual(
-      initialClaims.map((c) => (c.segmentIndex === 13 ? 'unsupported' : 'supported')),
+      initialClaims.map((c) => (flagged.has(c.segmentIndex) ? 'flagged' : 'supported')),
     );
     const flaggedDetails = claimVerifierDetailsSchema.parse(
-      initialClaims.find((c) => c.segmentIndex === 13)?.verifierDetails,
+      initialClaims.find((c) => c.segmentIndex === 0)?.verifierDetails,
     );
     expect(flaggedDetails).toMatchObject({
       auditArtifactId: auditArtifact?.id,
       pass: 0,
       carried: false,
-      flags: [{ category: 'claim_support' }],
+      flags: [{ category: 'area_basis' }],
     });
     const revisedClaims = await listClaims(testDb.db, drafts[1]?.id ?? '');
     expect(revisedClaims.every((c) => c.verifierVerdict === 'supported')).toBe(true);
     expect(revisedClaims.every((c) => c.validatorResult === 'pass')).toBe(true);
     expect(
       revisedClaims.map((c) => claimVerifierDetailsSchema.parse(c.verifierDetails).carried),
-    ).toEqual(revisedClaims.map((c) => c.segmentIndex !== 13));
+    ).toEqual(revisedClaims.map((c) => !flagged.has(c.segmentIndex)));
 
     // Step output, usage (Wonder, Spark, Wonder for verification), and count-only events.
     const steps = await listRunSteps(testDb.db, run.id);
@@ -295,28 +296,42 @@ describe('verification step', () => {
     });
     // No copy text, problem, or suggestion in any event.
     const serialized = JSON.stringify(events.map((e) => e.payload));
-    expect(serialized).not.toMatch(/included|storage|Zandmeer|m²|claim_support/i);
+    expect(serialized).not.toMatch(/woonoppervlakte|NEN 2580|Zandmeer|m²|area_basis/i);
   });
 
-  it('audits and revises Dutch copy', async () => {
-    const run = await seedVerificationRun({ outputLanguage: 'nl' });
+  it('stops after one audit, without a revision, when the English copy is clean', async () => {
+    const run = await seedVerificationRun();
     await engine.startRun(run.id);
     await waitForStatus(run.id, 'awaiting_gate');
     replay.assertAllMatched();
 
+    const drafts = await listArtifacts(testDb.db, run.id, { kind: LISTING_COPY_ARTIFACT_KIND });
+    expect(drafts.map((d) => d.stepId)).toEqual(['creative']);
     const [auditArtifact] = await listArtifacts(testDb.db, run.id, {
       kind: CLAIM_AUDIT_ARTIFACT_KIND,
     });
     const audit = claimAuditContentSchema.parse(auditArtifact?.content);
-    expect(audit).toMatchObject({ outputLanguage: 'nl', stopReason: 'clean', remainingFlags: [] });
+    expect(audit).toMatchObject({
+      outputLanguage: 'en',
+      stopReason: 'clean',
+      initialDraftArtifactId: drafts[0]?.id,
+      finalDraftArtifactId: drafts[0]?.id,
+      remainingFlags: [],
+      counts: { passes: 1, revisions: 0, verifierCalls: 1, remainingFlags: 0 },
+    });
     expect(audit.passes.map((p) => [p.revision, p.flags.length, p.auditedSegments])).toEqual([
-      [0, 2, 22],
-      [1, 0, 2],
+      [0, 0, 17],
+    ]);
+    const claims = await listClaims(testDb.db, drafts[0]?.id ?? '');
+    expect(claims.every((c) => c.verifierVerdict === 'supported')).toBe(true);
+    const usage = await listUsageForRun(testDb.db, run.id);
+    expect(usage.filter((u) => u.stepId === 'verification').map((u) => u.modelId)).toEqual([
+      'muse-wonder-1.0',
     ]);
   });
 
   it('stores the flags that remain for Gate 2 when no revision loop is left', async () => {
-    const run = await seedVerificationRun({ service: noLoops });
+    const run = await seedVerificationRun({ service: noLoops, outputLanguage: 'nl' });
     await engine.startRun(run.id);
     const paused = await waitForStatus(run.id, 'awaiting_gate');
     replay.assertAllMatched();
@@ -336,24 +351,26 @@ describe('verification step', () => {
       counts: {
         passes: 1,
         revisions: 0,
-        remainingFlags: 1,
-        remainingVerifierFlags: 1,
-        flaggedClaims: 1,
+        remainingFlags: 2,
+        remainingVerifierFlags: 2,
+        flaggedClaims: 2,
       },
     });
-    const [remaining, ...others] = audit.remainingFlags;
-    expect(others).toEqual([]);
-    expect(remaining).toMatchObject({
-      source: 'verifier',
-      category: 'claim_support',
-      claimId: claims.find((c) => c.segmentIndex === 13)?.id,
-    });
-    expect(remaining?.problem).toContain('included');
-    expect(remaining?.suggestion).not.toBeNull();
+    expect(
+      audit.remainingFlags.map((f) => [f.source, f.category, f.claimId, f.suggestion !== null]),
+    ).toEqual(
+      [0, 15].map((index) => [
+        'verifier',
+        'area_basis',
+        claims.find((c) => c.segmentIndex === index)?.id,
+        true,
+      ]),
+    );
+    for (const flag of audit.remainingFlags) expect(flag.problem).toContain('92 m²');
     const events = await listRunEvents(testDb.db, run.id);
     expect(
       claimsAuditedPayloadSchema.parse(events.find((e) => e.type === 'claims_audited')?.payload),
-    ).toMatchObject({ stopReason: 'loop_limit', remainingFlagCount: 1, flaggedClaimCount: 1 });
+    ).toMatchObject({ stopReason: 'loop_limit', remainingFlagCount: 2, flaggedClaimCount: 2 });
   });
 
   it('fails without a model call when the verified facts changed after the copy was written', async () => {

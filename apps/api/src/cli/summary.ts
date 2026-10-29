@@ -1,4 +1,14 @@
-import type { ClaimAuditStopReason, ChecklistItemStatus, RunStatus } from '@evidomo/shared';
+import type {
+  ClaimAuditStopReason,
+  ChecklistItemStatus,
+  FurnishingState,
+  PhotoSubject,
+  PrivacyStatus,
+  RunStatus,
+  StagingFailureReason,
+  StagingOperationId,
+  StagingSkipReason,
+} from '@evidomo/shared';
 import type { DecisionOrigin } from './decisions.ts';
 
 // What the CLI reports about a run: printed for the operator and written as `summary.json`.
@@ -15,6 +25,22 @@ export interface StepSummary {
   readonly costUsd: string;
 }
 
+/** One project photo: what vision decided and what staging did with it. */
+export interface PhotoSummary {
+  readonly photo: string;
+  /** Null when the classification failed. */
+  readonly subject: PhotoSubject | null;
+  readonly furnishing: FurnishingState | null;
+  readonly coverRank: number | null;
+  readonly privacy: PrivacyStatus;
+  /** Null when the staging step stored no manifest (not reached or failed). */
+  readonly staging: {
+    readonly status: 'staged' | 'failed' | 'skipped';
+    readonly operationId: StagingOperationId | null;
+    readonly reason: StagingSkipReason | StagingFailureReason | null;
+  } | null;
+}
+
 export interface PipelineSummary {
   readonly runId: string;
   readonly mode: PipelineMode;
@@ -25,6 +51,8 @@ export interface PipelineSummary {
   readonly failureReason: string | null;
   readonly durationMs: number;
   readonly steps: readonly StepSummary[];
+  /** In inventory (upload) order; empty when the vision inventory was not stored. */
+  readonly photos: readonly PhotoSummary[];
   readonly factConflicts: {
     readonly conflictCount: number;
     /** Every conflict at the gate, decided or not (`K01 energy_label`). */
@@ -120,6 +148,25 @@ export function formatSummary(summary: PipelineSummary): string {
       step.attempts === 0 ? '' : `  attempts ${step.attempts}, executions ${step.executions}`;
     lines.push(
       `  ${pad(step.stepId, width)}${pad(step.status, 12)}${pad(usd(step.costUsd), 10)}${attempts}`,
+    );
+  }
+
+  lines.push('', 'Photos (vision, staging)');
+  if (summary.photos.length === 0) lines.push('  no inventory');
+  const nameWidth = Math.max(...summary.photos.map((p) => p.photo.length), 4) + 2;
+  for (const p of summary.photos) {
+    const classified =
+      p.subject === null
+        ? 'classification failed'
+        : `${p.subject}, ${p.furnishing ?? 'furnishing n/a'}, rank ${String(p.coverRank)}`;
+    const staging =
+      p.staging === null
+        ? 'staging n/a'
+        : [p.staging.status, p.staging.operationId, p.staging.reason]
+            .filter((part) => part !== null)
+            .join(' ');
+    lines.push(
+      `  ${pad(p.photo, nameWidth)}${pad(classified, 40)}privacy ${p.privacy}; ${staging}`,
     );
   }
 

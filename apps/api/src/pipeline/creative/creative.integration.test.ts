@@ -215,11 +215,11 @@ describe('creative step', () => {
       outputArtifactIds: [artifact?.id],
     });
 
-    // One Spark call: 4,739 in + 5,843 out.
+    // One Spark call: 4,648 in + 7,064 out.
     const usage = await listUsageForRun(testDb.db, run.id);
     expect(
       usage.map((u) => [u.modelId, u.inputTokens, u.outputTokens, u.estimatedCostUsd]),
-    ).toEqual([['muse-spark-1.3', 4739, 5843, '0.03075650']]);
+    ).toEqual([['muse-spark-1.3', 4648, 7064, '0.03583200']]);
 
     const events = await listRunEvents(testDb.db, run.id);
     const summary = copyGeneratedPayloadSchema.parse(

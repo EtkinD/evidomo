@@ -64,6 +64,33 @@ export const PHOTO_QUALITY_ISSUES = [
 export const photoQualityIssueSchema = z.enum(PHOTO_QUALITY_ISSUES);
 export type PhotoQualityIssue = z.infer<typeof photoQualityIssueSchema>;
 
+/**
+ * How furnished an interior room is with movable furniture, as Spark judged it:
+ * - `empty`: no movable furniture and no loose objects standing in the room; fixed installations,
+ *   built-ins (wardrobes, kitchen units), sanitary fittings, radiators, appliances, light
+ *   fittings, and window coverings do not count;
+ * - `partly`: some movable furniture or loose objects, but the room is not set up for its use;
+ * - `furnished`: the main furniture for the room's use is in place.
+ * Staging furnishes `empty` rooms only (docs/architecture.md §5, Staging).
+ */
+export const FURNISHING_STATES = ['empty', 'partly', 'furnished'] as const;
+export const furnishingStateSchema = z.enum(FURNISHING_STATES);
+export type FurnishingState = z.infer<typeof furnishingStateSchema>;
+
+/**
+ * Subjects that are not an interior room, so furnishing does not apply and is stored as null
+ * whatever the model answered. `other` is not listed: it may be an interior room.
+ */
+export const FURNISHING_NOT_APPLICABLE_SUBJECTS: ReadonlySet<PhotoSubject> = new Set<PhotoSubject>([
+  'balcony',
+  'terrace',
+  'garden',
+  'exterior',
+  'view',
+  'floor_plan',
+  'document',
+]);
+
 /** Inclusive bounds of the per-photo cover suitability score. */
 export const COVER_SCORE_RANGE = { min: 1, max: 10 } as const;
 
@@ -148,6 +175,12 @@ const classificationSchema = z.discriminatedUnion('status', [
     subject: photoSubjectSchema,
     /** Short English name when `subject` is `other`, else null. */
     otherSubject: text(60).nullable(),
+    /**
+     * Null when unknown: furnishing does not apply to the subject
+     * (`FURNISHING_NOT_APPLICABLE_SUBJECTS`), the model gave none, or the inventory predates the
+     * field (prompt version 1, read as null). Null is never treated as `empty`.
+     */
+    furnishing: furnishingStateSchema.nullable().default(null),
     summary: text(300),
     quality: photoQualityRatingSchema,
     qualityIssues: z.array(photoQualityIssueSchema),

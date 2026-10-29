@@ -1,4 +1,5 @@
 import {
+  FURNISHING_STATES,
   PHOTO_QUALITY_ISSUES,
   PHOTO_QUALITY_RATINGS,
   PHOTO_SUBJECTS,
@@ -12,8 +13,11 @@ import { z } from 'zod';
 
 /** Structured-output name sent to the API (part of the fixture's request hash). */
 export const PHOTO_CLASSIFICATION_OUTPUT_NAME = 'photo_inventory';
-/** Bumped whenever the prompt or output schema changes meaning; stored in the artifact. */
-export const VISION_PROMPT_VERSION = 1;
+/**
+ * Bumped whenever the prompt or output schema changes meaning; stored in the artifact.
+ * 2: `furnishing` (empty / partly / furnished) for interior rooms.
+ */
+export const VISION_PROMPT_VERSION = 2;
 
 /** The model's object ID for anything outside the market's evidence objects. */
 export const OTHER_OBJECT = 'other';
@@ -58,6 +62,10 @@ export function buildPhotoOutputSchema(
       .string()
       .nullable()
       .describe('short English name when subject is "other", else null'),
+    furnishing: z
+      .enum(FURNISHING_STATES)
+      .nullable()
+      .describe('movable furniture in an interior room; null for exteriors, plans, documents'),
     summary: z.string().describe('one short factual English sentence'),
     quality: z.enum(PHOTO_QUALITY_RATINGS),
     qualityIssues: z.array(z.enum(PHOTO_QUALITY_ISSUES)),
@@ -78,6 +86,7 @@ export type PhotoOutputSchema = ReturnType<typeof buildPhotoOutputSchema>;
 export interface RawPhotoClassification {
   readonly subject: string;
   readonly otherSubject: string | null;
+  readonly furnishing: string | null;
   readonly summary: string;
   readonly quality: string;
   readonly qualityIssues: readonly string[];

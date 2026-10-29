@@ -26,6 +26,10 @@ import {
 // 4. The operation's kind must be in the step's `operation_kinds`. A photo whose fitting
 //    operation is disabled is skipped, never given another operation: furnishing a cluttered
 //    room would stage around the clutter.
+// 5. A furnish operation needs a room vision judged `empty`. A `partly` furnished or
+//    `furnished` room is skipped (`room_not_empty`), and so is one without a furnishing state
+//    (`furnishing_unknown`): the furnish edit replaces the furniture that is there, which
+//    misrepresents the room (a live run swapped a real sofa, rug, and dining set).
 // Then across photos, best cover rank first: at most one furnished photo per subject (two
 // independently furnished views of one room would show different furniture), and at most
 // `maxStagedImages` edits.
@@ -102,6 +106,12 @@ function assess(
   const operation = operationFor(classification.subject, classification.qualityIssues);
   if (operation === undefined) return { ok: false, reason: 'not_stageable' };
   if (!operationKinds.has(operation.kind)) return { ok: false, reason: 'operation_not_enabled' };
+  if (operation.kind === 'furnish' && classification.furnishing !== 'empty') {
+    return {
+      ok: false,
+      reason: classification.furnishing === null ? 'furnishing_unknown' : 'room_not_empty',
+    };
+  }
   return {
     ok: true,
     subject: classification.subject,
