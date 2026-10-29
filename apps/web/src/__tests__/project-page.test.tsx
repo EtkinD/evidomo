@@ -32,7 +32,7 @@ function change(label: string | RegExp, value: string): void {
 }
 
 describe('project page header and materials', () => {
-  it('shows the title, market, language, and read-only material counts', async () => {
+  it('shows the title, market, language, material counts, and the way to capture', async () => {
     await openPage();
 
     expect(screen.getByRole('heading', { level: 1, name: 'Alder Falls Cottage 4' })).toBeDefined();
@@ -40,10 +40,11 @@ describe('project page header and materials', () => {
     const materials = screen.getByRole('region', { name: 'Materials' });
     expect(within(materials).getByText('1 added (3 to 30 needed)')).toBeDefined();
     expect(within(materials).getByText('Not recorded yet')).toBeDefined();
-    // A placeholder, not a dead link or a disabled button.
-    expect(within(materials).getByText('Coming soon')).toBeDefined();
-    expect(within(materials).queryByRole('button')).toBeNull();
-    expect(within(materials).queryByRole('link')).toBeNull();
+    expect(
+      within(materials)
+        .getByRole('link', { name: 'Add photos and walkthrough' })
+        .getAttribute('href'),
+    ).toBe(`/projects/${PROJECT_ID}/capture`);
   });
 
   it('reports a missing project', async () => {

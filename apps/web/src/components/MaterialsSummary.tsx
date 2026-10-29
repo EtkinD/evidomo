@@ -1,7 +1,14 @@
 import type { ProjectReadiness } from '@evidomo/shared';
+import Link from 'next/link';
 
-/** Read-only counts. The capture flow (photos, voice walkthrough) arrives with P4-03. */
-export function MaterialsSummary({ readiness }: { readiness: ProjectReadiness }) {
+/** Counts, and the way into the capture screen (photos and the voice walkthrough). */
+export function MaterialsSummary({
+  projectId,
+  readiness,
+}: {
+  projectId: string;
+  readiness: ProjectReadiness;
+}) {
   const { photos, voiceMemo } = readiness;
   return (
     <section aria-labelledby="materials-heading" className="card bg-base-100 shadow-sm">
@@ -19,14 +26,9 @@ export function MaterialsSummary({ readiness }: { readiness: ProjectReadiness })
           <dd>{voiceMemo.present ? 'Recorded' : 'Not recorded yet'}</dd>
         </dl>
         <div>
-          {/* Text and a badge, not a disabled button: the capture screen does not exist yet. */}
-          <p className="flex items-center gap-2 font-medium">
-            Capture
-            <span className="badge badge-outline">Coming soon</span>
-          </p>
-          <p className="mt-1 text-sm text-base-content/70">
-            Taking photos and recording the walkthrough will be available here.
-          </p>
+          <Link href={`/projects/${projectId}/capture`} className="btn btn-outline h-12">
+            {readiness.inputsLocked ? 'View photos and walkthrough' : 'Add photos and walkthrough'}
+          </Link>
         </div>
       </div>
     </section>

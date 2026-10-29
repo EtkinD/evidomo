@@ -4,6 +4,7 @@ import {
   type ApiValidationIssue,
   type FactFormFieldProblem,
   type ReadinessItem,
+  type UploadRejectionCode,
 } from '@evidomo/shared';
 
 /** The part of a zod schema the client needs; keeps the web app off a direct zod dependency. */
@@ -24,6 +25,8 @@ export class ApiRequestError extends Error {
   readonly missing: readonly ReadinessItem[];
   /** Seconds from the `Retry-After` header, when present and valid. */
   readonly retryAfterSeconds: number | null;
+  /** `upload_rejected` only: why the file was refused. */
+  readonly reason: UploadRejectionCode | null;
 
   constructor(init: {
     status: number;
@@ -32,6 +35,7 @@ export class ApiRequestError extends Error {
     fields?: Readonly<Record<string, FactFormFieldProblem>>;
     missing?: readonly ReadinessItem[];
     retryAfterSeconds?: number | null;
+    reason?: UploadRejectionCode | null;
   }) {
     super(`API request failed with ${init.status} (${init.code ?? 'unrecognised body'})`);
     this.status = init.status;
@@ -40,6 +44,7 @@ export class ApiRequestError extends Error {
     this.fields = init.fields ?? {};
     this.missing = init.missing ?? [];
     this.retryAfterSeconds = init.retryAfterSeconds ?? null;
+    this.reason = init.reason ?? null;
   }
 }
 
@@ -66,6 +71,24 @@ export function parseRetryAfter(value: string | null, now: number = Date.now()):
   return Math.max(0, Math.ceil((date - now) / 1000));
 }
 
+/** Builds the typed error from a non-2xx status, its (already parsed) body, and `Retry-After`. */
+export function apiRequestErrorFrom(
+  status: number,
+  body: unknown,
+  retryAfter: string | null,
+): ApiRequestError {
+  const parsed = apiErrorSchema.safeParse(body);
+  return new ApiRequestError({
+    status,
+    code: parsed.success ? parsed.data.error : null,
+    issues: parsed.success ? (parsed.data.issues ?? []) : [],
+    fields: parsed.success ? (parsed.data.fields ?? {}) : {},
+    missing: parsed.success ? (parsed.data.missing ?? []) : [],
+    retryAfterSeconds: parseRetryAfter(retryAfter),
+    reason: parsed.success ? (parsed.data.reason ?? null) : null,
+  });
+}
+
 async function toApiRequestError(response: Response): Promise<ApiRequestError> {
   let body: unknown = undefined;
   try {
@@ -73,15 +96,7 @@ async function toApiRequestError(response: Response): Promise<ApiRequestError> {
   } catch {
     // Not JSON (a proxy or gateway error page): the status still tells the caller enough.
   }
-  const parsed = apiErrorSchema.safeParse(body);
-  return new ApiRequestError({
-    status: response.status,
-    code: parsed.success ? parsed.data.error : null,
-    issues: parsed.success ? (parsed.data.issues ?? []) : [],
-    fields: parsed.success ? (parsed.data.fields ?? {}) : {},
-    missing: parsed.success ? (parsed.data.missing ?? []) : [],
-    retryAfterSeconds: parseRetryAfter(response.headers.get('Retry-After')),
-  });
+  return apiRequestErrorFrom(response.status, body, response.headers.get('Retry-After'));
 }
 
 type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';

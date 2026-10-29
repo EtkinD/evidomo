@@ -67,7 +67,7 @@ const ProjectPage: NextPageWithAuth = () => {
           market={market.data?.market}
           hasUnsavedChanges={factsUnsaved || detailsUnsaved}
         />
-        <MaterialsSummary readiness={detail.readiness} />
+        <MaterialsSummary projectId={detail.project.id} readiness={detail.readiness} />
 
         <section aria-labelledby="facts-heading" className="card bg-base-100 shadow-sm">
           <div className="card-body gap-4">
