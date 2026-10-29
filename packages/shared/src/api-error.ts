@@ -44,6 +44,11 @@ export const apiErrorCodeSchema = z.enum([
   'not_ready',
   'run_active',
   'daily_budget_reached',
+  // Starting a live run: the access code is missing or wrong (403; same answer for both).
+  'access_code_invalid',
+  // Starting a live run: this account or this IP used its run starts for the window (429 with
+  // `Retry-After`). Wrong access codes are throttled with `rate_limited` instead.
+  'run_limit_reached',
   'internal_error',
 ]);
 

@@ -12,6 +12,7 @@ import {
   marketListResponseSchema,
   projectDetailResponseSchema,
   projectListResponseSchema,
+  projectMaterialFileUrl,
   serviceResponseSchema,
   startRunResponseSchema,
   UPLOAD_LIMITS,
@@ -21,7 +22,7 @@ import {
   type UploadLimits,
 } from '@evidomo/shared';
 import { sql } from 'drizzle-orm';
-import type { Express } from 'express';
+import type { Express, RequestHandler } from 'express';
 import { PgBoss } from 'pg-boss';
 import sharp from 'sharp';
 import request from 'supertest';
@@ -43,6 +44,7 @@ import { RUN_STEP_QUEUE } from '../runs/queue.ts';
 import { createLocalStorage } from '../storage/local.ts';
 import type { Storage } from '../storage/storage.ts';
 import type { UploadSlotLimits } from '../upload/slots.ts';
+import { createRunStartGuards } from './run-start-guards.ts';
 
 // The project and input API (P4-02 … P4-04) through HTTP, against PostgreSQL (Testcontainers),
 // local storage in a temp directory, the real media processing, and the real run engine with a
@@ -101,6 +103,7 @@ function buildApp(
     storage?: Storage;
     logger?: Logger;
     uploadSlots?: UploadSlotLimits;
+    runStartGuards?: RequestHandler[];
   } = {},
 ) {
   const env = loadEnv({
@@ -121,6 +124,7 @@ function buildApp(
       uploadTempDir,
       // Above the default per-user cap, so the race tests can send several uploads at once.
       uploadSlots: options.uploadSlots ?? { perUser: 4, total: 8 },
+      ...(options.runStartGuards === undefined ? {} : { runStartGuards: options.runStartGuards }),
     },
   });
 }
@@ -198,6 +202,22 @@ const NEW_PROJECT: CreateProjectRequest = {
 
 function errorOf(response: request.Response) {
   return apiErrorSchema.parse(response.body);
+}
+
+/** Supertest buffers binary bodies only with a parser; this one keeps the raw bytes. */
+function binary(test: request.Test): request.Test {
+  return test.buffer(true).parse((res, done) => {
+    const chunks: Buffer[] = [];
+    res.on('data', (chunk: Buffer) => chunks.push(chunk));
+    res.on('end', () => {
+      done(null, Buffer.concat(chunks));
+    });
+  });
+}
+
+function bodyBytes(response: request.Response): Buffer {
+  if (!Buffer.isBuffer(response.body)) throw new Error('Expected a binary body');
+  return response.body;
 }
 
 async function createProject(as: Operator = owner): Promise<ProjectDetailResponse> {
@@ -647,6 +667,52 @@ describe('photo uploads', () => {
     expect([response.status, errorOf(response).error]).toEqual([409, 'photo_limit_reached']);
     expect((await getProject(project.id)).readiness.photos.count).toBe(30);
   });
+
+  it('serves a stored photo to its owner only, with the private file headers', async () => {
+    const { project } = await createProject();
+    const uploaded = await uploadPhoto(project.id, await tinyJpeg(42));
+    const { material } = uploadMaterialResponseSchema.parse(uploaded.body);
+    const [row] = await listMaterials(testDb.db, project.id);
+    if (row === undefined) throw new Error('no material row');
+    const url = projectMaterialFileUrl(project.id, material.id);
+
+    const response = await binary(owner.agent.get(url));
+    expect(response.status).toBe(200);
+    expect(response.headers).toMatchObject({
+      'content-type': 'image/jpeg',
+      'cache-control': 'private, no-cache, no-transform',
+      etag: `"${row.sha256}"`,
+      'x-content-type-options': 'nosniff',
+      'cross-origin-resource-policy': 'same-origin',
+      'content-disposition': `inline; filename="photo-${material.id}.jpg"`,
+      'accept-ranges': 'bytes',
+    });
+    expect(
+      Buffer.compare(bodyBytes(response), await readFile(path.join(storageDir, row.storageKey))),
+    ).toBe(0);
+
+    const revalidated = await owner.agent.get(url).set('If-None-Match', `"${row.sha256}"`);
+    expect(revalidated.status).toBe(304);
+    const download = await owner.agent.get(
+      projectMaterialFileUrl(project.id, material.id, { download: true }),
+    );
+    expect(download.headers['content-disposition']).toBe(
+      `attachment; filename="photo-${material.id}.jpg"`,
+    );
+    expect((await owner.agent.get(`${url}?download=yes`)).status).toBe(400);
+    expect((await owner.agent.get(projectMaterialFileUrl(project.id, 'nope'))).status).toBe(400);
+
+    // Another user's project, another project's material, and an unknown ID are all 404.
+    expect((await stranger.agent.get(url)).status).toBe(404);
+    const other = await createProject();
+    expect(
+      (await owner.agent.get(projectMaterialFileUrl(other.project.id, material.id))).status,
+    ).toBe(404);
+    expect((await owner.agent.get(projectMaterialFileUrl(project.id, randomUUID()))).status).toBe(
+      404,
+    );
+    expect((await request(app).get(url)).status).toBe(401);
+  });
 });
 
 describe.skipIf(!runFfmpegTests)('voice memo uploads', () => {
@@ -673,6 +739,29 @@ describe.skipIf(!runFfmpegTests)('voice memo uploads', () => {
       uploadMaterialResponseSchema.parse(second.body).material.id,
     ]);
     expect(await storedFiles()).not.toContain(firstRow.storageKey);
+  });
+
+  it('serves the stored memo with Range support for playback before a run', async () => {
+    const { project } = await createProject();
+    const { material } = uploadMaterialResponseSchema.parse(
+      (await uploadMemo(project.id, await tone(2))).body,
+    );
+    const url = projectMaterialFileUrl(project.id, material.id);
+    const full = await binary(owner.agent.get(url));
+    expect(full.status).toBe(200);
+    expect(full.headers['content-type']).toBe('audio/wav');
+    const bytes = bodyBytes(full);
+    expect(bytes.subarray(0, 4).toString('latin1')).toBe('RIFF');
+
+    const partial = await binary(owner.agent.get(url).set('Range', 'bytes=4-11'));
+    expect(partial.status).toBe(206);
+    expect(partial.headers['content-range']).toBe(`bytes 4-11/${bytes.length}`);
+    expect(Buffer.compare(bodyBytes(partial), bytes.subarray(4, 12))).toBe(0);
+    const beyond = await owner.agent.get(url).set('Range', `bytes=${bytes.length}-`);
+    expect([beyond.status, beyond.headers['content-range']]).toEqual([
+      416,
+      `bytes */${bytes.length}`,
+    ]);
   });
 
   it('keeps exactly one memo when two uploads race', async () => {
@@ -812,6 +901,50 @@ describe.skipIf(!runFfmpegTests)('POST /api/projects/:projectId/runs', () => {
     const response = await agent.post(`/api/projects/${project.id}/runs`).send({});
     expect([response.status, errorOf(response).error]).toEqual([409, 'daily_budget_reached']);
     expect((await getProject(project.id)).latestRun).toBeNull();
+  });
+
+  it('requires the access code and applies the run limits in front of the real route (P4-10)', async () => {
+    const accessCode = 'synthetic-integration-code';
+    const guarded = buildApp({
+      runStartGuards: createRunStartGuards({
+        accessCode,
+        limits: {
+          perAccount: { limit: 1, windowMs: 86_400_000 },
+          perIp: { limit: 10, windowMs: 86_400_000 },
+          accessCodeFailuresPerIp: { limit: 10, windowMs: 3_600_000 },
+        },
+        logger,
+      }),
+    });
+    const agent = await loginOn(guarded, owner);
+    const start = (projectId: string, body?: object) => {
+      const test = agent.post(`/api/projects/${projectId}/runs`);
+      return body === undefined ? test : test.send(body);
+    };
+
+    // Not ready: the guards pass, the route refuses, and the allowance is not used.
+    const draft = await createProject();
+    const notReady = await start(draft.project.id, { accessCode });
+    expect([notReady.status, errorOf(notReady).error]).toEqual([409, 'not_ready']);
+
+    const { project } = await readyProject();
+    for (const body of [undefined, {}, { accessCode: 'not-the-code' }]) {
+      const refused = await start(project.id, body);
+      expect([refused.status, errorOf(refused).error]).toEqual([403, 'access_code_invalid']);
+    }
+    expect((await getProject(project.id)).latestRun).toBeNull();
+
+    const started = await start(project.id, { accessCode });
+    expect(started.status).toBe(201);
+    const runId = startRunResponseSchema.parse(started.body).run.id;
+    expect(await stepJobCount(runId)).toBe(1);
+
+    // The account's one start is used: the next ready project is refused before the route.
+    const second = await readyProject();
+    const limited = await start(second.project.id, { accessCode });
+    expect([limited.status, errorOf(limited).error]).toEqual([429, 'run_limit_reached']);
+    expect(Number(limited.headers['retry-after'])).toBeGreaterThan(86_000);
+    expect((await getProject(second.project.id)).latestRun).toBeNull();
   });
 });
 

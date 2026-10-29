@@ -1,6 +1,7 @@
 import { compareDecimalStrings, usdAmountSchema } from '@evidomo/shared';
 import type { Executor } from '../db/client.ts';
 import { getCostUsdSince, getRunCostUsd } from '../db/repositories/usage.ts';
+import { DEMO_OWNER_EMAIL } from '../demo/owner.ts';
 
 // Budget caps are checked before every model call. The check reads committed ledger rows; it
 // does not reserve the next call's cost (that cost is only known after the call returns), so
@@ -73,7 +74,10 @@ export async function checkBudget(db: Executor, input: BudgetCheckInput): Promis
   }
 
   const { start, end } = utcDayWindow(input.now);
-  const dailySpentUsd = await getCostUsdSince(db, start, end);
+  // Replayed demo runs bill nothing, so they never use up the live budget (docs §10).
+  const dailySpentUsd = await getCostUsdSince(db, start, end, {
+    excludeOwnerEmail: DEMO_OWNER_EMAIL,
+  });
   if (compareDecimalStrings(dailySpentUsd, dailyCapUsd) >= 0) {
     throw new BudgetExceededError('daily', dailyCapUsd, dailySpentUsd);
   }

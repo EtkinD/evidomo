@@ -20,7 +20,7 @@ import { requireJsonBody } from '../http/guards.ts';
 import type { Logger } from '../logger.ts';
 import { clearSessionCookieOptions, sessionCookieOptions, type AuthConfig } from './config.ts';
 import { hashPassword, verifyAgainstDummy, verifyPassword } from './password.ts';
-import { createFixedWindowLimiter, type FixedWindowLimiter } from './rate-limit.ts';
+import { createFixedWindowLimiter, ipRateLimitKey, type FixedWindowLimiter } from './rate-limit.ts';
 import {
   currentUser,
   optionalUser,
@@ -53,8 +53,8 @@ export function createAuthRouter({ db, config, logger, session }: AuthRouterDeps
 
   function limitByIp(limiter: FixedWindowLimiter, name: LimiterName): RequestHandler {
     return (req, res, next) => {
-      // `req.ip` honours the narrowly configured `trust proxy` (one hop: Caddy).
-      const decision = limiter.consume(req.ip ?? 'unknown');
+      // `req.ip` honours the narrowly configured `trust proxy` (one hop: Caddy); IPv6 by /64.
+      const decision = limiter.consume(ipRateLimitKey(req.ip));
       if (!decision.allowed) {
         rejectRateLimited(res, name, decision.retryAfterSeconds);
         return;

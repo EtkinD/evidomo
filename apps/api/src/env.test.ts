@@ -23,6 +23,10 @@ describe('loadEnv', () => {
       APP_ORIGIN: DEFAULT_DEV_APP_ORIGIN,
       SESSION_TTL_DAYS: DEFAULT_SESSION_TTL_DAYS,
       TRUST_PROXY_HOPS: 0,
+      RUN_STARTS_PER_ACCOUNT_PER_DAY: 3,
+      RUN_STARTS_PER_IP_PER_DAY: 5,
+      ACCESS_CODE_FAILURES_PER_IP_PER_HOUR: 10,
+      DEMO_RUN_IDS: [],
     });
   });
 
@@ -204,6 +208,95 @@ describe('loadEnv', () => {
           /SESSION_TTL_DAYS/,
         );
       }
+    });
+  });
+
+  describe('live-run access control and demo runs', () => {
+    const DATABASE_URL = 'postgres://u:p@localhost:5432/db';
+    const production = {
+      DATABASE_URL,
+      NODE_ENV: 'production',
+      MODEL_API_KEY: 'test-key',
+      DAILY_BUDGET_USD: '20',
+      STORAGE_DIR: '/data',
+      APP_ORIGIN: 'https://evidomo.example',
+    };
+    const CODE = 'a-synthetic-test-code';
+
+    it('makes LIVE_RUN_ACCESS_CODE optional outside production and for non-API processes', () => {
+      expect(loadEnv({ DATABASE_URL }, 'api').LIVE_RUN_ACCESS_CODE).toBeUndefined();
+      expect(
+        loadEnv({ DATABASE_URL, LIVE_RUN_ACCESS_CODE: '' }).LIVE_RUN_ACCESS_CODE,
+      ).toBeUndefined();
+      expect(loadEnv(production).LIVE_RUN_ACCESS_CODE).toBeUndefined();
+      expect(loadEnv(production, 'worker').LIVE_RUN_ACCESS_CODE).toBeUndefined();
+    });
+
+    it('requires LIVE_RUN_ACCESS_CODE for the API in production', () => {
+      expect(() => loadEnv(production, 'api')).toThrow(/LIVE_RUN_ACCESS_CODE is required/);
+      expect(
+        loadEnv({ ...production, LIVE_RUN_ACCESS_CODE: CODE }, 'api').LIVE_RUN_ACCESS_CODE,
+      ).toBe(CODE);
+    });
+
+    it('rejects short codes and codes with surrounding whitespace', () => {
+      for (const value of ['short-code', ` ${CODE}`, `${CODE}\n`, 'x'.repeat(257)]) {
+        expect(() => loadEnv({ DATABASE_URL, LIVE_RUN_ACCESS_CODE: value })).toThrow(
+          /LIVE_RUN_ACCESS_CODE/,
+        );
+      }
+    });
+
+    it('never puts the code into the error message', () => {
+      let message = '';
+      try {
+        loadEnv({ DATABASE_URL, LIVE_RUN_ACCESS_CODE: ' secret-value-1234' });
+      } catch (error) {
+        message = error instanceof EnvError ? error.message : 'unexpected error';
+      }
+      expect(message).toContain('LIVE_RUN_ACCESS_CODE');
+      expect(message).not.toContain('secret-value');
+    });
+
+    it('lets the demo seed run in production without MODEL_API_KEY', () => {
+      const { MODEL_API_KEY: _unused, ...withoutKey } = production;
+      expect(() => loadEnv(withoutKey)).toThrow(/MODEL_API_KEY/);
+      expect(() => loadEnv(withoutKey, 'api')).toThrow(/MODEL_API_KEY/);
+      expect(loadEnv(withoutKey, 'demo-seed').MODEL_API_KEY).toBeUndefined();
+    });
+
+    it('coerces the run-start limits and bounds them', () => {
+      const env = loadEnv({
+        DATABASE_URL,
+        RUN_STARTS_PER_ACCOUNT_PER_DAY: '1',
+        RUN_STARTS_PER_IP_PER_DAY: '20',
+        ACCESS_CODE_FAILURES_PER_IP_PER_HOUR: '',
+      });
+      expect(env.RUN_STARTS_PER_ACCOUNT_PER_DAY).toBe(1);
+      expect(env.RUN_STARTS_PER_IP_PER_DAY).toBe(20);
+      expect(env.ACCESS_CODE_FAILURES_PER_IP_PER_HOUR).toBe(10);
+      for (const value of ['0', '-1', '1.5', 'many', '10001']) {
+        expect(() => loadEnv({ DATABASE_URL, RUN_STARTS_PER_IP_PER_DAY: value })).toThrow(
+          /RUN_STARTS_PER_IP_PER_DAY/,
+        );
+      }
+    });
+
+    it('parses DEMO_RUN_IDS as a deduplicated, lower-cased list of UUIDs', () => {
+      const a = '3BFCF0BB-5581-4E10-8691-6CC7A8E66DCF';
+      const b = '9c1f0a52-7a43-4b8e-9d0e-2f1e3c4b5a69';
+      expect(
+        loadEnv({ DATABASE_URL, DEMO_RUN_IDS: ` ${a}, ${b},,${a.toLowerCase()} ` }).DEMO_RUN_IDS,
+      ).toEqual([a.toLowerCase(), b]);
+      expect(loadEnv({ DATABASE_URL, DEMO_RUN_IDS: '' }).DEMO_RUN_IDS).toEqual([]);
+      expect(() => loadEnv({ DATABASE_URL, DEMO_RUN_IDS: `${a},not-a-uuid` })).toThrow(
+        /DEMO_RUN_IDS/,
+      );
+      const many = Array.from(
+        { length: 21 },
+        (_, i) => `00000000-0000-4000-8000-${String(i).padStart(12, '0')}`,
+      );
+      expect(() => loadEnv({ DATABASE_URL, DEMO_RUN_IDS: many.join(',') })).toThrow(/DEMO_RUN_IDS/);
     });
   });
 });

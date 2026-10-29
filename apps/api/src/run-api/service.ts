@@ -1,4 +1,6 @@
 import {
+  demoExportFileUrl,
+  demoRunExportResponseSchema,
   EXPORT_MANIFEST_ARTIFACT_KIND,
   PHOTO_INVENTORY_ARTIFACT_KIND,
   TRANSCRIPT_ARTIFACT_KIND,
@@ -23,7 +25,7 @@ import { getFactsByIds } from '../db/repositories/facts.ts';
 import { getProjectMaterial, type Material } from '../db/repositories/materials.ts';
 import { getProjectForOwner } from '../db/repositories/projects.ts';
 import { listRunSteps, type RunStep } from '../db/repositories/run-steps.ts';
-import { getRunForOwner, listRunsForProject, type Run } from '../db/repositories/runs.ts';
+import { getRun, getRunForOwner, listRunsForProject, type Run } from '../db/repositories/runs.ts';
 import { getRunCostUsd, getRunStepCostsUsd, getRunsCostUsd } from '../db/repositories/usage.ts';
 import { DefinitionNotFoundError, type DefinitionRegistry } from '../definitions/loader.ts';
 import { MAX_STEP_EXECUTIONS } from '../runs/queue.ts';
@@ -134,7 +136,8 @@ const MATERIAL_EXTENSIONS: Readonly<Record<string, 'jpg' | 'wav'>> = {
   'audio/wav': 'wav',
 };
 
-function servableMaterial(material: Material | undefined): ServableMaterial | undefined {
+/** A `ready` material with a servable type (JPEG photo, WAV memo), else undefined. */
+export function servableMaterial(material: Material | undefined): ServableMaterial | undefined {
   if (material === undefined || material.status !== 'ready') return undefined;
   const extension = MATERIAL_EXTENSIONS[material.mimeType];
   return extension === undefined ? undefined : { material, extension };
@@ -172,8 +175,16 @@ export type FactMaskResult =
   | { readonly kind: 'no_mask'; readonly skipped: number }
   | { readonly kind: 'rendered'; readonly layer: Extract<MaskLayerResult, { kind: 'rendered' }> };
 
+/** Whose URLs the export manifest links to: the owner's run API or the public demo API. */
+export type ExportLinks = 'owner' | 'demo';
+
 export interface RunApiService {
   snapshot(userId: string, runId: string): Promise<RunSnapshot | undefined>;
+  /**
+   * The snapshot of a run the caller has already resolved without an owner (the public demo
+   * API's allow-list); undefined once the run is gone.
+   */
+  runSnapshot(runId: string): Promise<RunSnapshot | undefined>;
   listProjectRuns(userId: string, projectId: string): Promise<RunSummary[] | undefined>;
   ownedRun(userId: string, runId: string): Promise<Run | undefined>;
   material(run: Run, materialId: string): Promise<ServableMaterial | undefined>;
@@ -182,8 +193,8 @@ export interface RunApiService {
   /** The fact's mask identity (one indexed read), before anything is decoded. */
   factMaskSource(run: Run, factId: string): Promise<FactMaskSource | undefined>;
   renderFactMask(run: Run, source: FactMaskSource): Promise<FactMaskResult>;
-  /** `undefined` when the run has no export yet. */
-  exportManifest(run: Run): Promise<RunExportResponse | undefined>;
+  /** `undefined` when the run has no export yet. File links default to the owner's API. */
+  exportManifest(run: Run, links?: ExportLinks): Promise<RunExportResponse | undefined>;
   exportFile(run: Run, artifactId: string): Promise<ServableExportFile | undefined>;
 }
 
@@ -193,64 +204,72 @@ export function createRunApiService({ db, services }: RunApiServiceDeps): RunApi
     return artifact?.runId === run.id ? artifact : undefined;
   }
 
-  return {
-    async snapshot(userId, runId) {
-      // One snapshot: the steps, costs, and `lastEventSeq` describe the same instant, so a client
-      // that opens the stream at `lastEventSeq` neither misses nor double-counts a change.
-      return db.transaction(
-        async (tx) => {
-          const run = await getRunForOwner(tx, runId, userId);
-          if (run === undefined) return undefined;
-          const service = serviceOf(services, run);
-          const rows = await listRunSteps(tx, run.id);
-          const stepCosts = await getRunStepCostsUsd(tx, run.id);
-          const totalUsd = await getRunCostUsd(tx, run.id);
-          const stored = await loadRunExport(tx, run.id);
+  /**
+   * One snapshot: the steps, costs, and `lastEventSeq` describe the same instant, so a client
+   * that opens the stream at `lastEventSeq` neither misses nor double-counts a change.
+   */
+  function readSnapshot(
+    load: (tx: Executor) => Promise<Run | undefined>,
+  ): Promise<RunSnapshot | undefined> {
+    return db.transaction(
+      async (tx) => {
+        const run = await load(tx);
+        if (run === undefined) return undefined;
+        const service = serviceOf(services, run);
+        const rows = await listRunSteps(tx, run.id);
+        const stepCosts = await getRunStepCostsUsd(tx, run.id);
+        const totalUsd = await getRunCostUsd(tx, run.id);
+        const stored = await loadRunExport(tx, run.id);
 
-          const attemptsByStep = new Map<string, RunStep[]>();
-          for (const row of rows) {
-            const list = attemptsByStep.get(row.stepId) ?? [];
-            list.push(row);
-            attemptsByStep.set(row.stepId, list);
-          }
-          const definitionSteps = service?.steps ?? [];
-          const known = new Set(definitionSteps.map((step) => step.id));
-          const steps = [
-            ...definitionSteps.map((step) =>
-              stepSnapshot(
-                step.id,
-                step,
-                attemptsByStep.get(step.id) ?? [],
-                stepCosts.get(step.id) ?? ZERO_USD,
-              ),
+        const attemptsByStep = new Map<string, RunStep[]>();
+        for (const row of rows) {
+          const list = attemptsByStep.get(row.stepId) ?? [];
+          list.push(row);
+          attemptsByStep.set(row.stepId, list);
+        }
+        const definitionSteps = service?.steps ?? [];
+        const known = new Set(definitionSteps.map((step) => step.id));
+        const steps = [
+          ...definitionSteps.map((step) =>
+            stepSnapshot(
+              step.id,
+              step,
+              attemptsByStep.get(step.id) ?? [],
+              stepCosts.get(step.id) ?? ZERO_USD,
             ),
-            ...[...attemptsByStep.entries()]
-              .filter(([stepId]) => !known.has(stepId))
-              .map(([stepId, attempts]) =>
-                stepSnapshot(stepId, undefined, attempts, stepCosts.get(stepId) ?? ZERO_USD),
-              ),
-          ];
+          ),
+          ...[...attemptsByStep.entries()]
+            .filter(([stepId]) => !known.has(stepId))
+            .map(([stepId, attempts]) =>
+              stepSnapshot(stepId, undefined, attempts, stepCosts.get(stepId) ?? ZERO_USD),
+            ),
+        ];
 
-          return runSnapshotSchema.parse({
-            ...summaryOf(run, totalUsd),
-            updatedAt: run.updatedAt.toISOString(),
-            lastEventSeq: run.lastEventSeq,
-            costCapUsd: service?.budget.max_cost_usd_per_run ?? null,
-            maxExecutionsPerAttempt: MAX_STEP_EXECUTIONS,
-            steps,
-            export:
-              stored === undefined
-                ? null
-                : {
-                    manifestArtifactId: stored.artifact.id,
-                    readyToPublish: stored.manifest.readyToPublish,
-                    fileCount: stored.manifest.files.length,
-                  },
-          } satisfies RunSnapshot);
-        },
-        { isolationLevel: 'repeatable read', accessMode: 'read only' },
-      );
-    },
+        return runSnapshotSchema.parse({
+          ...summaryOf(run, totalUsd),
+          updatedAt: run.updatedAt.toISOString(),
+          lastEventSeq: run.lastEventSeq,
+          costCapUsd: service?.budget.max_cost_usd_per_run ?? null,
+          maxExecutionsPerAttempt: MAX_STEP_EXECUTIONS,
+          steps,
+          export:
+            stored === undefined
+              ? null
+              : {
+                  manifestArtifactId: stored.artifact.id,
+                  readyToPublish: stored.manifest.readyToPublish,
+                  fileCount: stored.manifest.files.length,
+                },
+        } satisfies RunSnapshot);
+      },
+      { isolationLevel: 'repeatable read', accessMode: 'read only' },
+    );
+  }
+
+  return {
+    snapshot: (userId, runId) => readSnapshot((tx) => getRunForOwner(tx, runId, userId)),
+
+    runSnapshot: (runId) => readSnapshot((tx) => getRun(tx, runId)),
 
     async listProjectRuns(userId, projectId) {
       const project = await getProjectForOwner(db, projectId, userId);
@@ -320,11 +339,13 @@ export function createRunApiService({ db, services }: RunApiServiceDeps): RunApi
         : { kind: 'rendered', layer };
     },
 
-    async exportManifest(run) {
+    async exportManifest(run, links = 'owner') {
       const stored = await loadRunExport(db, run.id);
       if (stored === undefined) return undefined;
       const { manifest } = stored;
-      return runExportResponseSchema.parse({
+      const fileUrl = links === 'owner' ? runExportFileUrl : demoExportFileUrl;
+      const schema = links === 'owner' ? runExportResponseSchema : demoRunExportResponseSchema;
+      return schema.parse({
         runId: run.id,
         manifestArtifactId: stored.artifact.id,
         approvedPackArtifactId: manifest.approvedPackArtifactId,
@@ -332,8 +353,8 @@ export function createRunApiService({ db, services }: RunApiServiceDeps): RunApi
         counts: manifest.counts,
         files: manifest.files.map((file) => ({
           ...file,
-          url: runExportFileUrl(run.id, file.artifactId),
-          downloadUrl: runExportFileUrl(run.id, file.artifactId, { download: true }),
+          url: fileUrl(run.id, file.artifactId),
+          downloadUrl: fileUrl(run.id, file.artifactId, { download: true }),
         })),
       } satisfies RunExportResponse);
     },

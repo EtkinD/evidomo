@@ -62,3 +62,27 @@ COPY apps/api/drizzle apps/api/drizzle
 WORKDIR /app/apps/api
 USER node
 CMD ["node", "/app/node_modules/drizzle-kit/bin.cjs", "migrate"]
+
+# One-off demo seed (`npm run demo:seed`, docs/architecture.md sections 11 and 13): replays a
+# fixture project through the real pipeline into the deployment's database and storage. It needs
+# MSW (an api devDependency), ffmpeg, and the committed fixtures, none of which belong in the
+# runtime image. Run it through the compose `demo-seed` service (tools profile), never as a
+# long-running service; it gets no MODEL_API_KEY.
+FROM manifests AS demo-seed
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ffmpeg \
+    && rm -rf /var/lib/apt/lists/* \
+    && mkdir -p /data \
+    && chown node:node /data
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --include=dev --ignore-scripts --workspace @evidomo/api
+COPY packages/shared/src packages/shared/src
+COPY apps/api/src apps/api/src
+COPY apps/api/drizzle apps/api/drizzle
+COPY definitions definitions
+# Synthetic demo project, its synthetic photos, and the recorded run (cassette) it replays.
+COPY fixtures fixtures
+ENV NODE_ENV=production
+WORKDIR /app/apps/api
+USER node
+CMD ["node", "src/cli/demo-seed.ts"]

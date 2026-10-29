@@ -75,6 +75,11 @@ export interface FactConflictsGateDeps {
 export interface FactConflictsGate {
   /** The gate as the run's owner sees it; `run_not_found` for anyone else. */
   get(userId: string, runId: string): Promise<FactConflictsGateResponse>;
+  /**
+   * The gate of a run the caller has already resolved and may read (the public demo API's
+   * allow-list); read-only, nothing is checked against a user.
+   */
+  view(run: Run): Promise<FactConflictsGateResponse>;
   /** Decides one conflict; resumes the run when it was the last open one. */
   decide(
     userId: string,
@@ -425,6 +430,10 @@ export function createFactConflictsGate(deps: FactConflictsGateDeps): FactConfli
     async get(userId, runId) {
       const run = await getRunForOwner(db, runId, userId);
       if (run === undefined) throw new FactConflictsGateError('run_not_found');
+      return buildResponse(run, await loadGate(db, run));
+    },
+
+    async view(run) {
       return buildResponse(run, await loadGate(db, run));
     },
 

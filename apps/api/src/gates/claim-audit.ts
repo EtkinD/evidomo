@@ -103,6 +103,12 @@ export interface ClaimAuditGateDeps {
 export interface ClaimAuditGate {
   /** The gate as the run's owner sees it; `run_not_found` for anyone else. */
   get(userId: string, runId: string): Promise<ClaimAuditGateResponse>;
+  /**
+   * The gate of a run the caller has already resolved and may read (the public demo API's
+   * allow-list); read-only. The response still names the approver (`approval.decidedBy`): a
+   * public caller must drop it.
+   */
+  view(run: Run): Promise<ClaimAuditGateResponse>;
   /** Decides one flagged claim (all of its flags). Never resumes the run. */
   decideClaim(
     userId: string,
@@ -862,6 +868,10 @@ export function createClaimAuditGate(deps: ClaimAuditGateDeps): ClaimAuditGate {
     async get(userId, runId) {
       const run = await getRunForOwner(db, runId, userId);
       if (run === undefined) throw new ClaimAuditGateError('run_not_found');
+      return buildResponse(run, await loadGate(db, run), markets);
+    },
+
+    async view(run) {
       return buildResponse(run, await loadGate(db, run), markets);
     },
 

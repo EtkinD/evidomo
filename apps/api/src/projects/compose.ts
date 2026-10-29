@@ -31,7 +31,7 @@ export interface AppProjectDeps {
   uploadTempDir?: string;
   /** In-flight uploads per user and per process; defaults to 2 and 6. */
   uploadSlots?: UploadSlotLimits;
-  /** P4-10's seam: access code and run limits, run before a run is started. */
+  /** Access code and run limits (`createRunStartGuards`, P4-10), run before a run starts. */
   runStartGuards?: readonly RequestHandler[];
 }
 
@@ -73,6 +73,7 @@ export function createProjectApiRouter(deps: ProjectApiDeps): Router {
     ...(deps.uploadLimits === undefined ? {} : { limits: deps.uploadLimits }),
     tempDir: createUploadTempDir(deps.uploadTempDir),
     slots: createUploadSlots(deps.uploadSlots ?? DEFAULT_UPLOAD_SLOT_LIMITS),
+    storage,
   });
   return createProjectRouter({
     projects,

@@ -5,6 +5,9 @@ import { createAuthRouter } from './auth/routes.ts';
 import { createSessionMiddleware } from './auth/session.ts';
 import type { DbClient } from './db/client.ts';
 import type { DefinitionRegistry } from './definitions/loader.ts';
+import { createDemoReplayStreams, type DemoReplayOptions } from './demo/replay.ts';
+import { createDemoRouter, type DemoCachePolicy } from './demo/routes.ts';
+import { createDemoRuns } from './demo/runs.ts';
 import { createDefinitionRouter } from './definitions/routes.ts';
 import type { Env } from './env.ts';
 import { createClaimAuditGate } from './gates/claim-audit.ts';
@@ -12,6 +15,7 @@ import { createFactConflictsGate } from './gates/fact-conflicts.ts';
 import { createGateRouter } from './gates/routes.ts';
 import { createErrorHandler } from './http/errors.ts';
 import { rejectCrossOrigin } from './http/guards.ts';
+import type { RateLimit } from './auth/rate-limit.ts';
 import type { Logger } from './logger.ts';
 import { createProjectApiRouter, type AppProjectDeps } from './projects/compose.ts';
 import type { RunEngine } from './runs/engine.ts';
@@ -49,6 +53,16 @@ export interface AppRunDeps {
   eventStream?: RunEventStreamOptions;
 }
 
+/** The public demo API (P4-09): which runs it serves and its limits. */
+export interface AppDemoDeps {
+  /** `DEMO_RUN_IDS`: these runs become public (when they exist and completed). */
+  runIds: readonly string[];
+  replay?: DemoReplayOptions;
+  /** Every demo request per client IP; defaults to `DEFAULT_DEMO_REQUEST_LIMIT`. */
+  requestLimit?: RateLimit;
+  cache?: DemoCachePolicy;
+}
+
 export interface AppDeps {
   db: Pick<DbClient, 'ping' | 'db'>;
   logger: Logger;
@@ -57,9 +71,11 @@ export interface AppDeps {
   /** Uploaded materials and generated files: written by uploads, read by evidence and export. */
   storage: Storage;
   projects: AppProjectDeps;
+  /** Without it the demo API serves no run (every demo route answers 404). */
+  demo?: AppDemoDeps;
 }
 
-export function createApp({ db, logger, config, runs, storage, projects }: AppDeps): Express {
+export function createApp({ db, logger, config, runs, storage, projects, demo }: AppDeps): Express {
   const app = express();
   app.disable('x-powered-by');
   // A hop count, not `true`: only the entry Caddy appends is believed, so a client cannot
@@ -97,8 +113,9 @@ export function createApp({ db, logger, config, runs, storage, projects }: AppDe
     markets: runs.markets,
   });
   const runApi = createRunApiService({ db: db.db, services: runs.services });
+  const eventSource = createRunEventSource(db.db);
   const streams = createRunEventStreams({
-    source: createRunEventSource(db.db),
+    source: eventSource,
     logger,
     ...(runs.eventStream === undefined ? {} : { options: runs.eventStream }),
     ...(runs.shutdownSignal === undefined ? {} : { shutdownSignal: runs.shutdownSignal }),
@@ -108,6 +125,26 @@ export function createApp({ db, logger, config, runs, storage, projects }: AppDe
   app.use('/api/runs', createRunApiRouter({ service: runApi, streams, storage, session, logger }));
   app.use('/api/projects', createProjectRunsRouter({ service: runApi, session }));
   app.use('/api/runs', createGateRouter({ gate, claimAudit, session, logger }));
+  // Public and read-only: no session, its own per-IP limit (docs/architecture.md §5 "Demo API").
+  app.use(
+    '/api/demo/runs',
+    createDemoRouter({
+      runs: createDemoRuns({ db: db.db, runIds: demo?.runIds ?? [] }),
+      service: runApi,
+      gate,
+      claimAudit,
+      replay: createDemoReplayStreams({
+        source: eventSource,
+        logger,
+        ...(demo?.replay === undefined ? {} : { options: demo.replay }),
+        ...(runs.shutdownSignal === undefined ? {} : { shutdownSignal: runs.shutdownSignal }),
+      }),
+      storage,
+      logger,
+      ...(demo?.requestLimit === undefined ? {} : { requestLimit: demo.requestLimit }),
+      ...(demo?.cache === undefined ? {} : { cache: demo.cache }),
+    }),
+  );
   app.use('/api', createDefinitionRouter({ definitions: projects.definitions, session }));
   app.use(
     '/api/projects',

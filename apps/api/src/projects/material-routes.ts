@@ -13,9 +13,9 @@ import {
 } from '@evidomo/shared';
 import { currentUser } from '../auth/session.ts';
 import type { Executor } from '../db/client.ts';
-import { listMaterials, type Material } from '../db/repositories/materials.ts';
+import { getProjectMaterial, listMaterials, type Material } from '../db/repositories/materials.ts';
 import { getProjectForOwner } from '../db/repositories/projects.ts';
-import { sendValidationError } from '../http/errors.ts';
+import { sendError, sendValidationError } from '../http/errors.ts';
 import type { Logger } from '../logger.ts';
 import { UploadRejectedError } from '../media/upload-error.ts';
 import {
@@ -31,6 +31,10 @@ import {
   UploadBodyTooLargeError,
 } from '../upload/receive.ts';
 import type { UploadSlots } from '../upload/slots.ts';
+import { disposition, materialFile } from '../run-api/routes.ts';
+import { sendStoredFile } from '../run-api/send-file.ts';
+import { servableMaterial } from '../run-api/service.ts';
+import type { Storage } from '../storage/storage.ts';
 import { ProjectRequestError, type ProjectService } from './projects.ts';
 import { sendProjectError } from './routes.ts';
 import { materialView } from './views.ts';
@@ -45,6 +49,8 @@ export interface MaterialRouterDeps {
   readonly tempDir: () => Promise<string>;
   /** In-flight upload slots, taken before the body is received. */
   readonly slots: UploadSlots;
+  /** Stored materials, served by `GET /:materialId/file`. */
+  readonly storage: Storage;
 }
 
 /** Seconds a client should wait after `too_many_uploads`; an upload rarely takes longer. */
@@ -81,7 +87,9 @@ function conflictBody(reason: Exclude<UploadConflictReason, 'project_not_found'>
  * - `POST /photos` (`image/jpeg|png|webp|heic|heif`) → 201 `{ material }`, appended last;
  * - `PUT /voice-memo` (the audio types in `VOICE_MEMO_UPLOAD_CONTENT_TYPES`) → 200 `{ material }`,
  *   replacing any earlier memo;
- * - `DELETE /:materialId` → 204.
+ * - `DELETE /:materialId` → 204;
+ * - `GET /:materialId/file[?download=1]` → the stored file (owner-only, Range-capable), served
+ *   like the run-scoped material route, so capture can show it before any run exists.
  */
 export function createMaterialRouter(deps: MaterialRouterDeps): Router {
   const { db, projects, processUpload, logger } = deps;
@@ -224,6 +232,34 @@ export function createMaterialRouter(deps: MaterialRouterDeps): Router {
       maxBytes: limits.voiceMemoMaxBytes,
       successStatus: 200,
     });
+  });
+
+  router.get('/:materialId/file', async (req, res) => {
+    const fileDisposition = disposition(req, res);
+    if (fileDisposition === undefined) return;
+    const params = materialParamsSchema.safeParse(req.params);
+    if (!params.success) {
+      sendValidationError(res, params.error);
+      return;
+    }
+    const { projectId, materialId } = params.data;
+    // Another user's project and another project's material are both 404, never 403.
+    if ((await getProjectForOwner(db, projectId, currentUser(req).id)) === undefined) {
+      sendError(res, 404, 'not_found');
+      return;
+    }
+    const servable = servableMaterial(await getProjectMaterial(db, projectId, materialId));
+    if (servable === undefined) {
+      sendError(res, 404, 'not_found');
+      return;
+    }
+    await sendStoredFile(
+      req,
+      res,
+      deps.storage,
+      materialFile(servable, fileDisposition, { kind: 'private' }),
+      logger,
+    );
   });
 
   router.delete('/:materialId', async (req, res) => {

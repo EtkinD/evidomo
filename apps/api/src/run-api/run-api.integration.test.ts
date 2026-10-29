@@ -823,6 +823,7 @@ describe('evidence files', () => {
     expect(unsatisfiable.status).toBe(416);
     expect(unsatisfiable.get('content-range')).toBe(`bytes */${memo.byteLength}`);
     expect(apiErrorSchema.parse(unsatisfiable.body).error).toBe('range_not_satisfiable');
+    expect(unsatisfiable.get('cache-control')).toBe('no-store');
   });
 
   it('serves a transcript’s voice memo for turn playback, Range-capable', async () => {

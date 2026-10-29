@@ -5,7 +5,7 @@
 #
 # Variables are interpolated from the env file into each service's `environment` explicitly
 # (no `env_file:`), so every service sees only what it needs. MODEL_API_KEY reaches api and
-# worker only, never web or caddy.
+# worker only, never web, caddy, or demo-seed; LIVE_RUN_ACCESS_CODE reaches api only.
 
 # Distinct from the local dev project (docker-compose.yml at the root), so volumes never collide.
 name: evidomo-prod
@@ -70,6 +70,18 @@ services:
     environment:
       <<: *app-env
       PORT: 4000
+      # Api only (the worker never starts runs): the access code for live runs (P4-10).
+      # Required, so compose refuses to start the stack without it. Generate one with
+      # `openssl rand -base64 18`; never commit it.
+      LIVE_RUN_ACCESS_CODE: ${LIVE_RUN_ACCESS_CODE:?set LIVE_RUN_ACCESS_CODE in the env file}
+      # Optional; empty means the default (3 and 5 run starts per 24 h, 10 wrong codes per hour).
+      RUN_STARTS_PER_ACCOUNT_PER_DAY: ${RUN_STARTS_PER_ACCOUNT_PER_DAY:-}
+      RUN_STARTS_PER_IP_PER_DAY: ${RUN_STARTS_PER_IP_PER_DAY:-}
+      ACCESS_CODE_FAILURES_PER_IP_PER_HOUR: ${ACCESS_CODE_FAILURES_PER_IP_PER_HOUR:-}
+      # Completed demo runs served publicly without login (P4-09); empty serves none.
+      DEMO_RUN_IDS: ${DEMO_RUN_IDS:-}
+      # Proxies trusted for the client IP (rate limits). Empty means 1 in production: Caddy.
+      TRUST_PROXY_HOPS: ${TRUST_PROXY_HOPS:-}
     volumes:
       - storage:/data
     networks: [edge, backend]
@@ -129,6 +141,30 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER:-evidomo}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in the env file}@postgres:5432/${POSTGRES_DB:-evidomo}
+    networks: [backend]
+
+  # One-off: docker compose -f infra/compose.yaml --env-file infra/.env --profile tools run --rm demo-seed
+  # Seeds a public demo run from the committed synthetic fixtures (zero model calls) and prints
+  # its ID for DEMO_RUN_IDS. Run migrations first. No MODEL_API_KEY on purpose.
+  demo-seed:
+    profiles: [tools]
+    build:
+      context: ..
+      dockerfile: apps/api/Dockerfile
+      target: demo-seed
+    image: evidomo-demo-seed:latest
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      DATABASE_URL: postgres://${POSTGRES_USER:-evidomo}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in the env file}@postgres:5432/${POSTGRES_DB:-evidomo}
+      DAILY_BUDGET_USD: ${DAILY_BUDGET_USD:-}
+      STORAGE_DIR: /data
+      APP_ORIGIN: ${APP_ORIGIN:-}
+    volumes:
+      - storage:/data
     networks: [backend]
 
 networks:

@@ -22,8 +22,8 @@ export interface ProjectRouterDeps {
   /** The material routes (raw upload bodies), mounted before the JSON body guard. */
   readonly materials: Router;
   /**
-   * Middleware run before a run is started, after authentication. P4-10 puts the access code
-   * check and the per-IP and per-account run limits here; empty until then.
+   * Middleware run before a run is started, after authentication: the access code and the
+   * per-account and per-IP run limits (`createRunStartGuards`, P4-10). None when omitted.
    */
   readonly runStartGuards?: readonly RequestHandler[];
 }

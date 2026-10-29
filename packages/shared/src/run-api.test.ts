@@ -7,6 +7,7 @@ import {
   runExportFileUrl,
   runFactMaskUrl,
   runMaterialFileUrl,
+  projectMaterialFileUrl,
   runStreamEventSchema,
   runTranscriptAudioUrl,
 } from './run-api.ts';
@@ -52,6 +53,12 @@ describe('runEventCursorSchema', () => {
 
 describe('URL builders', () => {
   it('spell out the evidence and export URL scheme', () => {
+    expect(projectMaterialFileUrl(uuid, other)).toBe(
+      `/api/projects/${uuid}/materials/${other}/file`,
+    );
+    expect(projectMaterialFileUrl(uuid, '../x', { download: true })).toBe(
+      `/api/projects/${uuid}/materials/..%2Fx/file?download=1`,
+    );
     expect(runEventsUrl(uuid)).toBe(`/api/runs/${uuid}/events`);
     expect(runEventsUrl(uuid, 7)).toBe(`/api/runs/${uuid}/events?after=7`);
     expect(runMaterialFileUrl(uuid, other)).toBe(`/api/runs/${uuid}/materials/${other}/file`);

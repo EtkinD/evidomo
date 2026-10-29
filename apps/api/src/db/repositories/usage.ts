@@ -2,7 +2,7 @@ import { usdAmountSchema } from '@evidomo/shared';
 import { and, eq, gte, inArray, lt, sql, type SQL } from 'drizzle-orm';
 import { z } from 'zod';
 import type { Executor } from '../client.ts';
-import { usageLedger } from '../schema.ts';
+import { projects, runs, usageLedger, users } from '../schema.ts';
 import { returnedRow } from './rows.ts';
 
 export type UsageEntry = typeof usageLedger.$inferSelect;
@@ -69,11 +69,30 @@ export async function getRunStepCostUsd(
 
 /**
  * Total estimated cost of all calls recorded at or after `since` and, when given, before
- * `until` (exclusive), e.g. one UTC day for the global daily cap.
+ * `until` (exclusive), e.g. one UTC day for the global daily cap. `excludeOwnerEmail` leaves out
+ * the calls of runs whose project belongs to that user (the demo owner's replayed runs); calls
+ * without a run (`run_id` null: outside runs, or of a deleted project) always count.
  */
-export async function getCostUsdSince(db: Executor, since: Date, until?: Date): Promise<string> {
+export async function getCostUsdSince(
+  db: Executor,
+  since: Date,
+  until?: Date,
+  options: { excludeOwnerEmail?: string } = {},
+): Promise<string> {
   const from = gte(usageLedger.createdAt, since);
-  return sumCost(db, until === undefined ? from : and(from, lt(usageLedger.createdAt, until)));
+  const excluded =
+    options.excludeOwnerEmail === undefined
+      ? undefined
+      : sql`not exists (
+          select 1 from ${runs}
+          join ${projects} on ${projects.id} = ${runs.projectId}
+          join ${users} on ${users.id} = ${projects.ownerId}
+          where ${runs.id} = ${usageLedger.runId} and ${users.email} = ${options.excludeOwnerEmail}
+        )`;
+  return sumCost(
+    db,
+    and(from, until === undefined ? undefined : lt(usageLedger.createdAt, until), excluded),
+  );
 }
 
 const costText = sql<string>`coalesce(sum(${usageLedger.estimatedCostUsd}), 0)::numeric(20, 8)::text`;

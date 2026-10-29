@@ -22,4 +22,5 @@ export * from './gate2.ts';
 export * from './integrity.ts';
 export * from './export.ts';
 export * from './run-api.ts';
+export * from './demo.ts';
 export * from './projects.ts';

@@ -6,7 +6,15 @@ import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { deleteProject } from '../db/repositories/projects.ts';
 import { getCostUsdSince, getRunCostUsd, listUsageForRun } from '../db/repositories/usage.ts';
 import { usageLedger } from '../db/schema.ts';
-import { seedRunWithParents, startTestDatabase, type TestDatabase } from '../db/testing.ts';
+import { createUser } from '../db/repositories/users.ts';
+import {
+  seedProject,
+  seedRun,
+  seedRunWithParents,
+  startTestDatabase,
+  type TestDatabase,
+} from '../db/testing.ts';
+import { DEMO_OWNER_EMAIL } from '../demo/owner.ts';
 import { createMetaClients } from '../meta/clients.ts';
 import { createMetaReplay } from '../meta/replay.ts';
 import type { UsageEntry } from '../meta/usage.ts';
@@ -300,6 +308,52 @@ describe('daily window', () => {
     await expect(
       checkBudget(testDb.db, { dailyCapUsd: '0', now: new Date('2099-03-11T00:00:00.000Z') }),
     ).rejects.toMatchObject({ kind: 'daily', limitUsd: '0', spentUsd: '0.00000000' });
+  });
+});
+
+describe('demo runs and the daily cap', () => {
+  it('leaves replayed demo runs out of the daily total; other runs and run-less calls count', async () => {
+    const day = new Date('2099-04-01T12:00:00.000Z');
+    const demoOwner = await createUser(testDb.db, {
+      email: DEMO_OWNER_EMAIL,
+      passwordHash: 'not-a-login',
+    });
+    const demoRun = await seedRun(testDb.db, (await seedProject(testDb.db, demoOwner.id)).id);
+    const { run: liveRun } = await seedRunWithParents(testDb.db);
+    const insert = (runId: string | null, cost: string) =>
+      testDb.db.insert(usageLedger).values({
+        runId,
+        modelId: 'fake-llm',
+        estimatedCostUsd: cost,
+        latencyMs: 1,
+        createdAt: day,
+      });
+    await insert(demoRun.id, '0.90');
+    await insert(liveRun.id, '0.03');
+    await insert(null, '0.02');
+
+    const { start, end } = utcDayWindow(day);
+    // The ledger still holds everything (spend reports must filter demo usage themselves).
+    expect(await getCostUsdSince(testDb.db, start, end)).toBe('0.95000000');
+    expect(
+      await getCostUsdSince(testDb.db, start, end, { excludeOwnerEmail: DEMO_OWNER_EMAIL }),
+    ).toBe('0.05000000');
+    // The demo's 0.90 does not use up a 0.10 live budget, and the live 0.05 still counts.
+    await expect(checkBudget(testDb.db, { dailyCapUsd: '0.10', now: day })).resolves.toMatchObject({
+      dailySpentUsd: '0.05000000',
+    });
+    await expect(checkBudget(testDb.db, { dailyCapUsd: '0.05', now: day })).rejects.toMatchObject({
+      kind: 'daily',
+      spentUsd: '0.05000000',
+    });
+    // The demo run's own cap is unaffected: it sees all of its spend.
+    await expect(
+      checkBudget(testDb.db, {
+        dailyCapUsd: '9999',
+        now: day,
+        run: { runId: demoRun.id, capUsd: '0.50' },
+      }),
+    ).rejects.toMatchObject({ kind: 'run', spentUsd: '0.90000000' });
   });
 });
 

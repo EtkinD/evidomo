@@ -23,18 +23,33 @@ export interface StoredFileResponse {
   readonly rangeable: boolean;
   /** Extra headers, e.g. the export's CSP. */
   readonly headers?: Readonly<Record<string, string>>;
+  /** Defaults to `private` (owner-only files). */
+  readonly cache?: FileCachePolicy;
 }
+
+/**
+ * How browsers may keep a file: `private` revalidates every use (owner-only material, so the
+ * ownership check runs each time); `public` (the demo API's synthetic runs) may be reused for
+ * `maxAgeSeconds` without asking, then revalidated against the ETag.
+ */
+export type FileCachePolicy =
+  { readonly kind: 'private' } | { readonly kind: 'public'; readonly maxAgeSeconds: number };
+
+const PRIVATE: FileCachePolicy = { kind: 'private' };
 
 const SAFE_FILE_NAME = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
 
 /** Headers every evidence and export file response carries (also 304s). */
-export function setPrivateFileHeaders(res: Response, options: { noTransform: boolean }): void {
-  // `no-cache`, not `max-age`: the browser revalidates (cheap 304s against the ETag), so the
-  // ownership check runs on every use and a deleted project's files stop being served.
-  res.set(
-    'Cache-Control',
-    options.noTransform ? 'private, no-cache, no-transform' : 'private, no-cache',
-  );
+export function setFileHeaders(
+  res: Response,
+  options: { noTransform: boolean; cache?: FileCachePolicy | undefined },
+): void {
+  const cache = options.cache ?? PRIVATE;
+  // Private: `no-cache`, not `max-age`: the browser revalidates (cheap 304s against the ETag),
+  // so the ownership check runs on every use and a deleted project's files stop being served.
+  const base =
+    cache.kind === 'private' ? 'private, no-cache' : `public, max-age=${cache.maxAgeSeconds}`;
+  res.set('Cache-Control', options.noTransform ? `${base}, no-transform` : base);
   res.set('X-Content-Type-Options', 'nosniff');
   // Same-origin web app only; another site cannot embed customer material.
   res.set('Cross-Origin-Resource-Policy', 'same-origin');
@@ -86,7 +101,7 @@ export async function sendStoredFile(
   }
 
   if (etagMatches(req.get('if-none-match'), quotedEtag)) {
-    setPrivateFileHeaders(res, { noTransform: file.rangeable });
+    setFileHeaders(res, { noTransform: file.rangeable, cache: file.cache });
     res.set('ETag', quotedEtag);
     res.status(304).end();
     return;
@@ -99,7 +114,9 @@ export async function sendStoredFile(
       : ({ kind: 'full' } as const);
 
   if (outcome.kind === 'unsatisfiable') {
-    setPrivateFileHeaders(res, { noTransform: file.rangeable });
+    setFileHeaders(res, { noTransform: file.rangeable, cache: file.cache });
+    // An error for this one request, not the file: no cache (private or public) may keep it.
+    res.set('Cache-Control', 'no-store');
     res.set('Content-Range', `bytes */${sizeBytes}`);
     sendError(res, 416, 'range_not_satisfiable');
     return;
@@ -119,7 +136,7 @@ export async function sendStoredFile(
     }
   }
 
-  setPrivateFileHeaders(res, { noTransform: file.rangeable });
+  setFileHeaders(res, { noTransform: file.rangeable, cache: file.cache });
   res.set('ETag', quotedEtag);
   res.set('Content-Type', file.contentType);
   res.set('Content-Disposition', `${file.disposition}; filename="${file.fileName}"`);

@@ -142,6 +142,21 @@ export function runExportFileUrl(
   );
 }
 
+/**
+ * A project's stored material (photo JPEG or voice memo WAV) before or without a run: the
+ * capture screen's thumbnails and memo playback. Owner-only, Range-capable.
+ */
+export function projectMaterialFileUrl(
+  projectId: string,
+  materialId: string,
+  options: { download?: boolean } = {},
+): string {
+  return withDownload(
+    `/api/projects/${pathSegment(projectId)}/materials/${pathSegment(materialId)}/file`,
+    options.download,
+  );
+}
+
 /** `GET` a project's runs, newest first (`projectRunsResponseSchema`). */
 export function projectRunsUrl(projectId: string): string {
   return `/api/projects/${pathSegment(projectId)}/runs`;
@@ -330,22 +345,31 @@ export type RunStreamEnd = z.infer<typeof runStreamEndSchema>;
 
 const manifestFileSchema = exportManifestContentSchema.shape.files.element;
 
-export const runExportFileSchema = z.strictObject({
-  ...manifestFileSchema.shape,
-  /** Inline (the HTML renders, images display); the JSON is always an attachment. */
-  url: z.string().startsWith('/api/runs/'),
-  /** `Content-Disposition: attachment` with `fileName`. */
-  downloadUrl: z.string().startsWith('/api/runs/'),
-});
-export type RunExportFile = z.infer<typeof runExportFileSchema>;
+/**
+ * The export response with its file links under `urlPrefix`: the owner's API (`/api/runs/`) and
+ * the public demo API (`/api/demo/runs/`, `demoRunExportResponseSchema`) share the shape.
+ */
+export function runExportResponseSchemaFor(urlPrefix: string) {
+  const file = z.strictObject({
+    ...manifestFileSchema.shape,
+    /** Inline (the HTML renders, images display); the JSON is always an attachment. */
+    url: z.string().startsWith(urlPrefix),
+    /** `Content-Disposition: attachment` with `fileName`. */
+    downloadUrl: z.string().startsWith(urlPrefix),
+  });
+  return z.strictObject({
+    runId: z.uuid(),
+    manifestArtifactId: z.uuid(),
+    approvedPackArtifactId: z.uuid(),
+    readyToPublish: z.boolean(),
+    counts: exportManifestContentSchema.shape.counts,
+    files: z.array(file).min(2),
+  });
+}
 
 /** `GET /api/runs/:runId/export`: the stored manifest, files in order (HTML, JSON, images). */
-export const runExportResponseSchema = z.strictObject({
-  runId: z.uuid(),
-  manifestArtifactId: z.uuid(),
-  approvedPackArtifactId: z.uuid(),
-  readyToPublish: z.boolean(),
-  counts: exportManifestContentSchema.shape.counts,
-  files: z.array(runExportFileSchema).min(2),
-});
+export const runExportResponseSchema = runExportResponseSchemaFor('/api/runs/');
 export type RunExportResponse = z.infer<typeof runExportResponseSchema>;
+
+export const runExportFileSchema = runExportResponseSchema.shape.files.element;
+export type RunExportFile = z.infer<typeof runExportFileSchema>;

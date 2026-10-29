@@ -4,10 +4,11 @@ import { createDbClient } from './db/client.ts';
 import { bootDefinitions } from './definitions/boot.ts';
 import { loadEnv } from './env.ts';
 import { createLogger } from './logger.ts';
+import { createRunStartGuards, runStartLimitsFromEnv } from './projects/run-start-guards.ts';
 import { createRunEngine } from './runs/engine.ts';
 import { createLocalStorage } from './storage/local.ts';
 
-const env = loadEnv();
+const env = loadEnv(process.env, 'api');
 const logger = createLogger(env);
 // Before the pool and the port: an invalid definition must stop the process, not a later run.
 const registry = await bootDefinitions({ dir: env.DEFINITIONS_DIR, logger });
@@ -56,7 +57,17 @@ try {
       shutdownSignal: streamShutdown.signal,
     },
     storage,
-    projects: { definitions: registry, dailyCapUsd: env.DAILY_BUDGET_USD },
+    projects: {
+      definitions: registry,
+      dailyCapUsd: env.DAILY_BUDGET_USD,
+      // P4-10: the access code (when configured) and the run start limits.
+      runStartGuards: createRunStartGuards({
+        accessCode: env.LIVE_RUN_ACCESS_CODE,
+        limits: runStartLimitsFromEnv(env),
+        logger,
+      }),
+    },
+    demo: { runIds: env.DEMO_RUN_IDS },
   });
 } catch (error) {
   // E.g. the pinned service (listing-launch v1) is missing or cannot be captured.
@@ -75,7 +86,15 @@ const server = app.listen(env.PORT, (error) => {
     logger.fatal({ err: error }, 'api failed to start');
     process.exit(1);
   }
-  logger.info({ port: env.PORT }, 'api listening');
+  // Whether the code is set and how many demo runs are listed, never the code itself.
+  logger.info(
+    {
+      port: env.PORT,
+      liveRunAccessCode: env.LIVE_RUN_ACCESS_CODE !== undefined,
+      demoRuns: env.DEMO_RUN_IDS.length,
+    },
+    'api listening',
+  );
 });
 
 async function shutdown(signal: NodeJS.Signals): Promise<void> {

@@ -52,9 +52,15 @@ describe('project API contracts', () => {
     expect(putFactFormRequestSchema.safeParse({ values: many }).success).toBe(false);
   });
 
-  it('takes an empty run start body for now', () => {
+  it('takes an empty run start body or an access code', () => {
     expect(startRunRequestSchema.safeParse({}).success).toBe(true);
-    expect(startRunRequestSchema.safeParse({ accessCode: 'x' }).success).toBe(false);
+    expect(startRunRequestSchema.parse({ accessCode: '  open sesame \n' })).toEqual({
+      accessCode: 'open sesame',
+    });
+    for (const accessCode of ['', '   ', 'x'.repeat(257), 42]) {
+      expect(startRunRequestSchema.safeParse({ accessCode }).success).toBe(false);
+    }
+    expect(startRunRequestSchema.safeParse({ accessCode: 'x', extra: true }).success).toBe(false);
   });
 
   it('carries the typed details of project errors', () => {

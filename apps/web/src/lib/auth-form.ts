@@ -155,6 +155,8 @@ export function describeAuthFailure(
     case 'not_ready':
     case 'run_active':
     case 'daily_budget_reached':
+    case 'access_code_invalid':
+    case 'run_limit_reached':
     case null:
       return { kind: 'message', message: GENERIC_FAILURE };
     default: {

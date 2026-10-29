@@ -304,8 +304,18 @@ export const projectReadinessSchema = z.strictObject({
 });
 export type ProjectReadiness = z.infer<typeof projectReadinessSchema>;
 
-/** `POST /api/projects/:projectId/runs`. Empty for now; P4-10 adds the access code. */
-export const startRunRequestSchema = z.strictObject({});
+/** Longest access code the API compares (both sides are hashed, so length leaks nothing). */
+export const ACCESS_CODE_MAX_LENGTH = 256;
+
+/**
+ * `POST /api/projects/:projectId/runs` (empty body or no body when no access code is configured).
+ * `accessCode` is required when the server has `LIVE_RUN_ACCESS_CODE` set (the public
+ * deployment): a missing or wrong code answers 403 `access_code_invalid`. Surrounding whitespace
+ * is trimmed (pasted codes); the comparison is otherwise exact.
+ */
+export const startRunRequestSchema = z.strictObject({
+  accessCode: z.string().trim().min(1).max(ACCESS_CODE_MAX_LENGTH).optional(),
+});
 export type StartRunRequest = z.infer<typeof startRunRequestSchema>;
 
 /** 201 from `POST /api/projects/:projectId/runs`. */

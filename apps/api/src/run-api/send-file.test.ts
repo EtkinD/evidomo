@@ -78,6 +78,28 @@ describe('sendStoredFile', () => {
     expect(unsatisfiable.status).toBe(416);
     expect(unsatisfiable.get('content-range')).toBe('bytes */10');
     expect(unsatisfiable.get('content-disposition')).toBeUndefined();
+    expect(unsatisfiable.get('cache-control')).toBe('no-store');
+  });
+
+  it('never lets a 416 be cached, also for public files', async () => {
+    const app = express();
+    app.get('/public', async (req, res) => {
+      await sendStoredFile(
+        req,
+        res,
+        working,
+        { ...file, cache: { kind: 'public', maxAgeSeconds: 3600 } },
+        logger,
+      );
+    });
+    const ok = await request(app).get('/public').set('Range', 'bytes=0-1');
+    expect([ok.status, ok.get('cache-control')]).toEqual([
+      206,
+      'public, max-age=3600, no-transform',
+    ]);
+    const unsatisfiable = await request(app).get('/public').set('Range', 'bytes=99-');
+    expect([unsatisfiable.status, unsatisfiable.get('cache-control')]).toEqual([416, 'no-store']);
+    expect(unsatisfiable.get('content-range')).toBe('bytes */10');
   });
 });
 

@@ -8,6 +8,7 @@
     "dev:worker": "node --watch --env-file-if-exists=../../.env src/worker.ts",
     "start": "node src/server.ts",
     "start:worker": "node src/worker.ts",
+    "demo:seed": "node src/cli/demo-seed.ts",
     "typecheck": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate"
