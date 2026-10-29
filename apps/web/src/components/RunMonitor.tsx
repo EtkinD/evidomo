@@ -1,6 +1,7 @@
 import type { RunSnapshot, RunStepSnapshot, RunStepViewStatus } from '@evidomo/shared';
 import Link from 'next/link';
 import { ApiRequestError } from '../lib/api';
+import { conflictsPageHref } from '../lib/fact-conflicts';
 import { withNext } from '../lib/next-path';
 import { costShare, formatDuration, formatUsd, gateLabel } from '../lib/run-monitor';
 import type { RunMonitor as RunMonitorState, StreamState } from '../lib/use-run-monitor';
@@ -100,7 +101,7 @@ function CostCard({ run }: { run: RunSnapshot }) {
   );
 }
 
-function GateNotice({ gate }: { gate: NonNullable<RunSnapshot['gate']> }) {
+function GateNotice({ gate, runId }: { gate: NonNullable<RunSnapshot['gate']>; runId: string }) {
   return (
     <div
       role="region"
@@ -109,9 +110,15 @@ function GateNotice({ gate }: { gate: NonNullable<RunSnapshot['gate']> }) {
     >
       <div className="flex flex-wrap items-center gap-2">
         <h2 className="font-semibold">{gateLabel(gate)}</h2>
-        <span className="badge badge-outline">Review screen coming soon</span>
+        {gate === 'fact_conflicts' ? (
+          <Link href={conflictsPageHref(runId)} className="btn btn-primary min-h-11">
+            Review conflicts
+          </Link>
+        ) : (
+          // The Gate 2 page arrives with P4-07; plain text avoids a dead link.
+          <span className="badge badge-outline">Review screen coming soon</span>
+        )}
       </div>
-      {/* The gate pages arrive with P4-06 and P4-07; plain text avoids a dead link. */}
       <p className="text-sm text-base-content/70">
         The run is paused until you finish this review.
       </p>
@@ -210,7 +217,9 @@ export function RunMonitorView({ monitor, runId }: { monitor: RunMonitorState; r
           </div>
         </div>
       )}
-      {run.status === 'awaiting_gate' && run.gate !== null && <GateNotice gate={run.gate} />}
+      {run.status === 'awaiting_gate' && run.gate !== null && (
+        <GateNotice gate={run.gate} runId={runId} />
+      )}
       {run.export !== null && (
         <div role="status" className="alert alert-success">
           <span>

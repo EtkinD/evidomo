@@ -228,8 +228,9 @@ describe('run monitor', () => {
     });
     const region = await screen.findByRole('region', { name: 'Review needed' });
     expect(within(region).getByText('Gate 1: resolve fact conflicts')).toBeDefined();
-    expect(within(region).getByText('Review screen coming soon')).toBeDefined();
-    expect(within(region).queryByRole('link')).toBeNull();
+    expect(
+      within(region).getByRole('link', { name: 'Review conflicts' }).getAttribute('href'),
+    ).toBe(`/runs/${RUN_ID}/conflicts`);
     expect(within(region).queryByRole('button')).toBeNull();
 
     act(() => {
