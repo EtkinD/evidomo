@@ -167,6 +167,22 @@ describe('createLocalStorage', () => {
     await expect(storage.get('dir')).rejects.toThrow(StorageNotFoundError);
   });
 
+  it('reads an inclusive byte range and reports the stored size', async () => {
+    await storage.put('r/x.bin', new TextEncoder().encode('0123456789'));
+
+    expect(await storage.stat('r/x.bin')).toEqual({ sizeBytes: 10 });
+    expect(await text(await storage.get('r/x.bin', { range: { start: 2, end: 5 } }))).toBe('2345');
+    expect(await text(await storage.get('r/x.bin', { range: { start: 9, end: 9 } }))).toBe('9');
+    await expect(storage.get('r/x.bin', { range: { start: 5, end: 4 } })).rejects.toThrow(
+      RangeError,
+    );
+    await expect(storage.get('r/x.bin', { range: { start: -1, end: 4 } })).rejects.toThrow(
+      RangeError,
+    );
+    await expect(storage.stat('r/missing.bin')).rejects.toThrow(StorageNotFoundError);
+    await expect(storage.stat('r')).rejects.toThrow(StorageNotFoundError);
+  });
+
   it('never touches paths outside the root', async () => {
     const outside = path.join(path.dirname(root), `outside-${randomUUID()}`);
     await writeFile(outside, 'secret');
@@ -174,6 +190,7 @@ describe('createLocalStorage', () => {
       const traversal = `../${path.basename(outside)}`;
       await expect(storage.get(traversal)).rejects.toThrow(InvalidStorageKeyError);
       await expect(storage.exists(traversal)).rejects.toThrow(InvalidStorageKeyError);
+      await expect(storage.stat(traversal)).rejects.toThrow(InvalidStorageKeyError);
       await expect(storage.delete(traversal)).rejects.toThrow(InvalidStorageKeyError);
       await expect(storage.put(traversal, Buffer.from('x'))).rejects.toThrow(
         InvalidStorageKeyError,

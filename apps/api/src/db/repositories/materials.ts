@@ -75,3 +75,16 @@ export async function setMaterialStatus(
   if (!row) throw new NotFoundError('material', materialId);
   return toMaterial(row);
 }
+
+/** The material if it belongs to `projectId`; undefined for another project's ID. */
+export async function getProjectMaterial(
+  db: Executor,
+  projectId: string,
+  materialId: string,
+): Promise<Material | undefined> {
+  const [row] = await db
+    .select()
+    .from(materials)
+    .where(and(eq(materials.projectId, projectId), eq(materials.id, materialId)));
+  return row && toMaterial(row);
+}

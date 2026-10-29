@@ -1,5 +1,5 @@
 import { usdAmountSchema } from '@evidomo/shared';
-import { and, eq, gte, lt, sql, type SQL } from 'drizzle-orm';
+import { and, eq, gte, inArray, lt, sql, type SQL } from 'drizzle-orm';
 import { z } from 'zod';
 import type { Executor } from '../client.ts';
 import { usageLedger } from '../schema.ts';
@@ -74,4 +74,35 @@ export async function getRunStepCostUsd(
 export async function getCostUsdSince(db: Executor, since: Date, until?: Date): Promise<string> {
   const from = gte(usageLedger.createdAt, since);
   return sumCost(db, until === undefined ? from : and(from, lt(usageLedger.createdAt, until)));
+}
+
+const costText = sql<string>`coalesce(sum(${usageLedger.estimatedCostUsd}), 0)::numeric(20, 8)::text`;
+
+/** Cost per step of a run (exact decimal strings); calls outside a step are under `null`. */
+export async function getRunStepCostsUsd(
+  db: Executor,
+  runId: string,
+): Promise<Map<string | null, string>> {
+  const rows = await db
+    .select({ stepId: usageLedger.stepId, total: costText })
+    .from(usageLedger)
+    .where(eq(usageLedger.runId, runId))
+    .groupBy(usageLedger.stepId);
+  return new Map(rows.map((row) => [row.stepId, row.total]));
+}
+
+/** Total cost of each of several runs; runs without ledger rows are absent from the map. */
+export async function getRunsCostUsd(
+  db: Executor,
+  runIds: readonly string[],
+): Promise<Map<string, string>> {
+  if (runIds.length === 0) return new Map();
+  const rows = await db
+    .select({ runId: usageLedger.runId, total: costText })
+    .from(usageLedger)
+    .where(inArray(usageLedger.runId, [...runIds]))
+    .groupBy(usageLedger.runId);
+  const costs = new Map<string, string>();
+  for (const row of rows) if (row.runId !== null) costs.set(row.runId, row.total);
+  return costs;
 }

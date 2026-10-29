@@ -47,6 +47,7 @@ import { getRun, type Run } from '../db/repositories/runs.ts';
 import { seedProject, seedRun, startTestDatabase, type TestDatabase } from '../db/testing.ts';
 import { loadDefinitions, type DefinitionRegistry } from '../definitions/loader.ts';
 import { loadEnv } from '../env.ts';
+import { unusedStorage } from '../http/testing.ts';
 import { createLogger } from '../logger.ts';
 import { createMetaClients } from '../meta/clients.ts';
 import { createMetaReplay, REPLAY_PLACEHOLDER_API_KEY } from '../meta/replay.ts';
@@ -696,7 +697,7 @@ beforeAll(async () => {
     db: testDb.client,
     logger,
     config: appConfigFromEnv(env),
-    runs: { engine, markets: definitions },
+    runs: { engine, markets: definitions, services: definitions, storage: unusedStorage() },
   });
   owner = await signUp();
   stranger = await signUp();

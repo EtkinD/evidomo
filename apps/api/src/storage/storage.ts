@@ -14,6 +14,12 @@ export interface StoredObject {
   readonly sha256: string;
 }
 
+/** Inclusive byte offsets: `{ start: 0, end: 0 }` is the first byte. */
+export interface ByteRange {
+  readonly start: number;
+  readonly end: number;
+}
+
 /**
  * Where uploaded materials and generated artifacts live (docs/architecture.md section 2).
  * Implementations must make `put` atomic (a key is either absent or complete) and `delete`
@@ -22,8 +28,13 @@ export interface StoredObject {
 export interface Storage {
   /** Writes the object, replacing any existing one, and returns what was written. */
   put(key: StorageKey, body: Uint8Array | Readable): Promise<StoredObject>;
-  /** Opens the object for reading. Throws `StorageNotFoundError` when it does not exist. */
-  get(key: StorageKey): Promise<Readable>;
+  /**
+   * Opens the object for reading, optionally only `range` (inclusive byte offsets, as in an HTTP
+   * `Range`). Throws `StorageNotFoundError` when it does not exist.
+   */
+  get(key: StorageKey, options?: { readonly range?: ByteRange }): Promise<Readable>;
+  /** The stored object's size. Throws `StorageNotFoundError` when it does not exist. */
+  stat(key: StorageKey): Promise<{ readonly sizeBytes: number }>;
   /** Removes the object. Idempotent: deleting a missing key succeeds. */
   delete(key: StorageKey): Promise<void>;
   exists(key: StorageKey): Promise<boolean>;

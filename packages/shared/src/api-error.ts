@@ -24,6 +24,12 @@ export const apiErrorCodeSchema = z.enum([
   'gate_decisions_pending',
   // Gate 2: an edited claim fails the claim validator; `findings` says why.
   'claim_edit_rejected',
+  // Run API: the run has no stored export yet (the export step has not completed).
+  'export_not_ready',
+  // A `Range` request that starts at or beyond the end of the file (416, `Content-Range: */size`).
+  'range_not_satisfiable',
+  // Run API: the user already has the maximum number of open event streams.
+  'too_many_streams',
   'internal_error',
 ]);
 

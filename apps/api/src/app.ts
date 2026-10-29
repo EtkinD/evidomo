@@ -13,6 +13,11 @@ import { createErrorHandler } from './http/errors.ts';
 import { rejectCrossOrigin } from './http/guards.ts';
 import type { Logger } from './logger.ts';
 import type { RunEngine } from './runs/engine.ts';
+import { createRunEventSource } from './run-api/event-source.ts';
+import { createRunEventStreams, type RunEventStreamOptions } from './run-api/event-stream.ts';
+import { createProjectRunsRouter, createRunApiRouter } from './run-api/routes.ts';
+import { createRunApiService } from './run-api/service.ts';
+import type { Storage } from './storage/storage.ts';
 
 export interface AppConfig {
   auth: AuthConfig;
@@ -35,6 +40,13 @@ export interface AppRunDeps {
   /** Gate decisions resume the run in their own transaction (no workers in the API process). */
   engine: Pick<RunEngine, 'resumeAfterGate'>;
   markets: Pick<DefinitionRegistry, 'getMarket'>;
+  /** The run snapshot lists the definition's steps and its cost cap. */
+  services: Pick<DefinitionRegistry, 'getService'>;
+  /** Evidence and export files (read only). */
+  storage: Storage;
+  /** Aborted on shutdown: open event streams end so the HTTP server can close. */
+  shutdownSignal?: AbortSignal;
+  eventStream?: RunEventStreamOptions;
 }
 
 export interface AppDeps {
@@ -81,6 +93,20 @@ export function createApp({ db, logger, config, runs }: AppDeps): Express {
     engine: runs.engine,
     markets: runs.markets,
   });
+  const runApi = createRunApiService({ db: db.db, services: runs.services });
+  const streams = createRunEventStreams({
+    source: createRunEventSource(db.db),
+    logger,
+    ...(runs.eventStream === undefined ? {} : { options: runs.eventStream }),
+    ...(runs.shutdownSignal === undefined ? {} : { shutdownSignal: runs.shutdownSignal }),
+  });
+  // Before the gate router: its `router.use` (session, JSON guard, no-store) would otherwise run
+  // on every run API request too. These routes guard themselves per route.
+  app.use(
+    '/api/runs',
+    createRunApiRouter({ service: runApi, streams, storage: runs.storage, session, logger }),
+  );
+  app.use('/api/projects', createProjectRunsRouter({ service: runApi, session }));
   app.use('/api/runs', createGateRouter({ gate, claimAudit, session, logger }));
 
   app.use(createErrorHandler(logger));

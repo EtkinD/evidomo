@@ -104,8 +104,18 @@ export function createLocalStorage(options: LocalStorageOptions): Storage {
       return { key, sizeBytes, sha256: hash.digest('hex') } satisfies StoredObject;
     },
 
-    async get(key) {
+    async get(key, options = {}) {
       const target = pathFor(key);
+      const { range } = options;
+      if (
+        range !== undefined &&
+        (!Number.isSafeInteger(range.start) ||
+          !Number.isSafeInteger(range.end) ||
+          range.start < 0 ||
+          range.end < range.start)
+      ) {
+        throw new RangeError('Invalid byte range');
+      }
       let handle;
       try {
         handle = await open(target, 'r');
@@ -120,7 +130,22 @@ export function createLocalStorage(options: LocalStorageOptions): Storage {
         throw error;
       }
       // The stream owns the handle from here and closes it on end or error.
-      return handle.createReadStream();
+      return range === undefined
+        ? handle.createReadStream()
+        : handle.createReadStream({ start: range.start, end: range.end });
+    },
+
+    async stat(key) {
+      const target = pathFor(key);
+      let stats;
+      try {
+        stats = await stat(target);
+      } catch (error) {
+        if (hasCode(error, 'ENOENT', 'ENOTDIR')) throw new StorageNotFoundError(key);
+        throw error;
+      }
+      if (!stats.isFile()) throw new StorageNotFoundError(key);
+      return { sizeBytes: stats.size };
     },
 
     async delete(key) {

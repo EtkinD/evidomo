@@ -5,6 +5,7 @@ import { bootDefinitions } from './definitions/boot.ts';
 import { loadEnv } from './env.ts';
 import { createLogger } from './logger.ts';
 import { createRunEngine } from './runs/engine.ts';
+import { createLocalStorage } from './storage/local.ts';
 
 const env = loadEnv();
 const logger = createLogger(env);
@@ -39,11 +40,19 @@ try {
   process.exit(1);
 }
 
+// Ends open run event streams on shutdown; otherwise `server.close()` waits for them forever.
+const streamShutdown = new AbortController();
 const app = createApp({
   db: dbClient,
   logger,
   config: appConfigFromEnv(env),
-  runs: { engine, markets: registry },
+  runs: {
+    engine,
+    markets: registry,
+    services: registry,
+    storage: createLocalStorage({ rootDir: env.STORAGE_DIR }),
+    shutdownSignal: streamShutdown.signal,
+  },
 });
 
 const server = app.listen(env.PORT, (error) => {
@@ -57,7 +66,8 @@ const server = app.listen(env.PORT, (error) => {
 async function shutdown(signal: NodeJS.Signals): Promise<void> {
   logger.info({ signal }, 'api shutting down');
   // In-flight requests finish (and commit their enqueues) before pg-boss and the pool close.
-  await new Promise<void>((resolve) => {
+  // Event streams never finish on their own: end them (browsers reconnect with Last-Event-ID).
+  const closed = new Promise<void>((resolve) => {
     server.close((error) => {
       if (error) {
         logger.error({ err: error }, 'error while closing http server');
@@ -65,6 +75,8 @@ async function shutdown(signal: NodeJS.Signals): Promise<void> {
       resolve();
     });
   });
+  streamShutdown.abort();
+  await closed;
   try {
     await boss.stop({ graceful: true, timeout: 5000 });
   } catch (error) {
