@@ -22,6 +22,8 @@ blob-report/
 # Local data
 uploads/
 data/
+# Local copies of raw property samples (originals live outside the repo)
+/example-house-*/
 
 # Personal Claude Code settings and agent worktrees
 .claude/settings.local.json
