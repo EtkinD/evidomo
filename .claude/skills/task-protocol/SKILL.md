@@ -36,6 +36,14 @@ If the task cannot be finished within these limits, stop and report what blocks 
 - Live Meta API calls follow the brief's budget and stop line exactly. After each live session, report the actual new spend. In record mode the usage ledger also meters responses replayed from the cassette, so its total over-counts.
 - Re-recorded fixtures replace stale ones. Delete `.files/` blobs nothing references any more.
 
+## Images and screenshots (token budget)
+
+Every image you open costs thousands of tokens. A few careless reads can exhaust the session's usage limit for every agent.
+
+- Never open full-resolution images. Downscale first, to a long edge of 800 px or less (`sips -Z 800 <in> --out <scratch>/<name>`), and never open raw property samples at all.
+- Do not iterate on layout with screenshots. Check it with tests and DOM queries instead: roles and names, `scrollWidth <= clientWidth` for overflow, and Playwright `boundingBox()` for tap-target size.
+- Produce only the screenshots the brief asks for. When the brief does not specify, that means at most 4: the changed screens, mobile, light and dark. Prefer viewport shots to full-page ones; a full-page mobile shot can be thousands of pixels tall. Save them to the scratchpad and list their paths. Do not open them; the orchestrator sends them to `media-inspector`. If you must look, open one downscaled copy.
+
 ## Verify before reporting
 
 Run the narrowest relevant checks first, then the broader ones:

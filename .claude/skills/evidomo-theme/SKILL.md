@@ -99,7 +99,7 @@ When the user comments on the look or feel:
 
 1. Add a dated entry to the log below, in the user's terms, with what it changes.
 2. Apply it at the lowest level that covers it: a theme token first, then a rule or recipe here, then the component.
-3. Run the contrast check and the web tests, and take light and dark screenshots of the affected screens for the user.
+3. Run the contrast check and the web tests, and take light and dark screenshots of the affected screens for the user. Save them without opening them; `media-inspector` reviews downscaled copies (see `task-protocol`, Images and screenshots).
 
 ## Design decisions
 

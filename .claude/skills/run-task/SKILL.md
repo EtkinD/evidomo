@@ -56,7 +56,7 @@ Do not raise the default for routine work.
 ## 3. Review the result
 
 - Read the agent's report and the actual diff (`git status`, `git diff`). Do not trust the summary alone.
-- For a large diff (roughly 1,000 changed lines or more, or several areas), first have the `code-reviewer` agent review it, then check its findings yourself. Look at sample outputs (HTML, images) through the `media-inspector` agent or downscaled copies, never full-resolution files.
+- For a large diff (roughly 1,000 changed lines or more, or several areas), first have the `code-reviewer` agent review it, then check its findings yourself. Look at sample outputs (HTML, images) through the `media-inspector` agent or downscaled copies, never full-resolution files. Ask implementing agents for at most 4 screenshots (changed screens, mobile, light and dark) unless more are needed, and send them to `media-inspector` in one batch.
 - Check that nothing from the raw samples, no secret, and no incidental reformatting entered the diff.
 - Re-run verification yourself: the relevant test project, then `npm run lint`, `npm run typecheck`, `npm test`. Add `npm run test:e2e` if UI flows changed.
 - If dependencies changed, run `npm run audit:deps`.
