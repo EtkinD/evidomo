@@ -293,9 +293,11 @@ describe('createLocalStorage', () => {
     ]) {
       await utimes(path.join(root, relative), old, old);
     }
-    const newest = (await stat(path.join(root, `projects/${id}/runs/r/artifacts/new.jpg`))).mtime;
+    // From `mtimeMs` like the implementation: `stat().mtime` may round the fractional
+    // millisecond the other way, which made this flaky.
+    const { mtimeMs } = await stat(path.join(root, `projects/${id}/runs/r/artifacts/new.jpg`));
     expect((await storage.lastModified(projectStoragePrefix(id)))?.getTime()).toBe(
-      newest.getTime(),
+      new Date(mtimeMs).getTime(),
     );
   });
 
