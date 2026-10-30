@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { useState } from 'react';
-import { Lockup } from '../../logo';
+import { Logo } from '../../../components/brand/Logo';
 import { CheckIcon, ApprovedImage, SampleShell, Sample } from '../../samples/parts';
 
 const CONTAINER = 'mx-auto w-full max-w-6xl px-4';
@@ -17,7 +17,7 @@ function Nav() {
           aria-label="Evidomo, home"
           className="inline-flex min-h-11 items-center"
         >
-          <Lockup />
+          <Logo />
         </Link>
         <nav aria-label="Main" className="flex flex-wrap items-center gap-1">
           <a href="#h-how-1" className="btn btn-ghost hidden min-h-11 md:inline-flex">
@@ -345,7 +345,7 @@ function Footer() {
         className={`${CONTAINER} flex flex-col gap-6 py-10 md:flex-row md:items-start md:justify-between`}
       >
         <div className="flex flex-col gap-2">
-          <Lockup />
+          <Logo />
           <p className="max-w-xs text-sm text-base-content/70">
             Evidence-linked listing packs for estate agents. Synthetic sample content.
           </p>

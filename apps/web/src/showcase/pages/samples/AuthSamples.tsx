@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { useId } from 'react';
-import { Lockup } from '../../logo';
+import { Logo } from '../../../components/brand/Logo';
 import { SampleShell, Sample } from '../../samples/parts';
 
 function LoginCard() {
@@ -11,7 +11,7 @@ function LoginCard() {
       <div className="card w-full max-w-sm border border-base-300 bg-base-100 shadow-sm">
         <form className="card-body gap-5" noValidate onSubmit={(event) => event.preventDefault()}>
           <div className="flex flex-col items-center gap-2 text-center">
-            <Lockup markClass="size-12" textClass="text-3xl" />
+            <Logo size="lg" />
             <h2 className="card-title text-2xl">Log in</h2>
             <p className="text-sm text-base-content/70">Back to your listing packs.</p>
           </div>

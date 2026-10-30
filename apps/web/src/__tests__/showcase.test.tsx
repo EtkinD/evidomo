@@ -176,16 +176,35 @@ describe('pages render their specimen IDs in the product theme', () => {
     expect(document.querySelectorAll('article[lang="en"]')).toHaveLength(1);
   });
 
-  it('logo: H-LOGO-1 on light and dark, with favicon sizes and the app tile', () => {
+  it('logo: H-LOGO-1 as the product component and the committed static files', () => {
     missing();
     renderPage(<LogoPage />);
     const figure = screen.getByRole('figure', { name: /H-LOGO-1/ });
-    expect(figure.querySelectorAll('[data-theme="evidomo-light"]')).toHaveLength(1);
-    expect(figure.querySelectorAll('[data-theme="evidomo-dark"]')).toHaveLength(1);
+    expect(figure.querySelectorAll('[data-theme="evidomo-light"]').length).toBeGreaterThan(0);
+    expect(figure.querySelectorAll('[data-theme="evidomo-dark"]').length).toBeGreaterThan(0);
+    // The product component: the lockup text is live, the mark alone has the name.
+    expect(within(figure).getAllByText('Evidomo').length).toBeGreaterThanOrEqual(4);
+    expect(within(figure).getAllByRole('img', { name: 'Evidomo' })).toHaveLength(2);
     for (const px of ['16 px', '24 px', '32 px', '48 px']) {
-      expect(within(figure).getAllByText(px)).toHaveLength(2);
+      expect(within(figure).getByText(px)).toBeDefined();
     }
-    expect(within(figure).getAllByText('App tile')).toHaveLength(2);
+    const sources = within(figure)
+      .getAllByRole('img')
+      .map((img) => img.getAttribute('src'))
+      .filter((src) => src !== null);
+    for (const file of [
+      '/favicon.svg',
+      '/favicon.ico',
+      '/apple-touch-icon.png',
+      '/icon-192.png',
+      '/icon-512.png',
+      '/icon-maskable-512.png',
+      '/brand/evidomo-lockup-light.svg',
+      '/brand/evidomo-lockup-dark.svg',
+      '/og.png',
+    ]) {
+      expect(sources).toContain(file);
+    }
     expect(screen.queryByText(/H-LOGO-[23]|B3-LOGO/)).toBeNull();
   });
 

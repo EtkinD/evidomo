@@ -2,14 +2,14 @@ import Link from 'next/link';
 import { SHAPE, THEME_NAMES, type Mode } from '../palettes';
 import { SUB_PAGES } from '../sections';
 import { Candidate, ShowcaseShell } from '../ui';
-import { Lockup } from '../logo';
+import { Logo } from '../../components/brand/Logo';
 import { SampleScope } from '../samples/parts';
 
 function ThemeSpecimen({ mode }: { mode: Mode }) {
   return (
     <SampleScope mode={mode} className="flex flex-col gap-4 rounded-box border border-base-300 p-4">
       <span className="font-mono text-xs text-base-content/70">{THEME_NAMES[mode]}</span>
-      <Lockup markClass="size-10" textClass="text-2xl" />
+      <Logo />
       <div className="flex flex-wrap gap-2" aria-hidden>
         {[
           'bg-primary',

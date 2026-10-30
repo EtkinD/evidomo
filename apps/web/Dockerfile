@@ -40,6 +40,8 @@ ENV NODE_ENV=production \
 COPY --from=prod-deps /app /app
 COPY apps/web/next.config.ts apps/web/
 COPY --from=build /app/apps/web/.next apps/web/.next
+# Static files (icons, manifest, OG image) are served by `next start` from public/.
+COPY --from=build /app/apps/web/public apps/web/public
 # Build output stays root-owned; only Next's runtime cache directory is writable.
 RUN mkdir -p apps/web/.next/cache && chown node:node apps/web/.next/cache
 WORKDIR /app/apps/web

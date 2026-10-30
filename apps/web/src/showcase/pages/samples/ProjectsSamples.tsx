@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Lockup } from '../../logo';
+import { Logo } from '../../../components/brand/Logo';
 import { CheckIcon, ApprovedImage, SampleShell, Sample } from '../../samples/parts';
 
 function AccountMenu() {
@@ -41,7 +41,7 @@ function SignedInHeader() {
           aria-label="Evidomo, home"
           className="inline-flex min-h-11 items-center"
         >
-          <Lockup markClass="size-8" textClass="text-xl" />
+          <Logo size="sm" />
         </Link>
         <nav aria-label="Account" className="flex items-center gap-1">
           <Link

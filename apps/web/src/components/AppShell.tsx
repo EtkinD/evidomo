@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { useLogout, useMe } from '../lib/auth';
+import { Logo } from './brand/Logo';
 
 function AccountControls() {
   const me = useMe();
@@ -53,8 +54,8 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="flex min-h-dvh flex-col">
       <header className="navbar border-b border-base-300 bg-base-100 px-4">
         <div className="navbar-start">
-          <Link href="/" className="text-lg font-bold">
-            Evidomo
+          <Link href="/" className="inline-flex min-h-11 items-center">
+            <Logo size="sm" />
           </Link>
         </div>
         <nav aria-label="Account" className="navbar-end">

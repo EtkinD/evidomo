@@ -1,6 +1,7 @@
 import { QueryClientProvider } from '@tanstack/react-query';
 import type { AppProps } from 'next/app';
 import { Newsreader, Source_Sans_3 } from 'next/font/google';
+import Head from 'next/head';
 import { useState } from 'react';
 import { AppShell } from '../components/AppShell';
 import { AuthGate } from '../components/AuthGate';
@@ -25,6 +26,11 @@ const newsreader = Newsreader({
   variable: '--font-newsreader',
 });
 
+// Optional production origin (non-secret, inlined at build time). Open Graph images should be
+// absolute URLs; without it the path stays relative.
+const SITE_ORIGIN = (process.env['NEXT_PUBLIC_SITE_ORIGIN'] ?? '').replace(/\/+$/, '');
+const OG_IMAGE = `${SITE_ORIGIN}/og.png`;
+
 type AppPropsWithAuth = AppProps & { Component: NextPageWithAuth };
 
 export default function App({ Component, pageProps }: AppPropsWithAuth) {
@@ -33,6 +39,23 @@ export default function App({ Component, pageProps }: AppPropsWithAuth) {
 
   return (
     <QueryClientProvider client={queryClient}>
+      {/* Keyed defaults: a page's own <Head> can replace any of them. */}
+      <Head>
+        <meta key="og:site_name" property="og:site_name" content="Evidomo" />
+        <meta key="og:type" property="og:type" content="website" />
+        <meta key="og:title" property="og:title" content="Evidomo" />
+        <meta key="og:description" property="og:description" content="Evidence for every home." />
+        <meta key="og:image" property="og:image" content={OG_IMAGE} />
+        <meta key="og:image:width" property="og:image:width" content="1200" />
+        <meta key="og:image:height" property="og:image:height" content="630" />
+        <meta
+          key="og:image:alt"
+          property="og:image:alt"
+          content="Evidomo: evidence for every home."
+        />
+        <meta key="twitter:card" name="twitter:card" content="summary_large_image" />
+        <meta key="twitter:image" name="twitter:image" content={OG_IMAGE} />
+      </Head>
       {/* The font variables must be defined above every element that uses them. */}
       <div className={`${sourceSans.variable} ${newsreader.variable} font-sans`}>
         {Component.bare ? (
