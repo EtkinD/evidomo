@@ -257,7 +257,7 @@ Design decisions are made in a dev-only showcase, and only what the founder appr
 
 ## Phase 6 — Release
 
-- [ ] **P6-01 — README**
+- [x] **P6-01 — README**
   - Depends on: P5-01
   - Done when: README covers what the product does, that it was built during the hackathon (Oct 26 – Nov 4, 2026), architecture overview, Meta models used per step, eval results, setup instructions, and license.
 - [ ] **P6-02 — Demo video**
