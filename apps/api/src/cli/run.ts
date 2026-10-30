@@ -32,8 +32,20 @@ import { readAll } from '../pipeline/vision/handler.ts';
 import { createLocalStorage } from '../storage/local.ts';
 import type { Storage } from '../storage/storage.ts';
 import type { FixtureImageAliases } from './image-aliases.ts';
-import { executePipeline, type GateRecords } from './execute.ts';
+import { executePipeline, type GateRecords, type PipelineExecution } from './execute.ts';
 import { loadProject, withVoiceMemo, type Project } from './project.ts';
+import {
+  factConflictsForPath,
+  pathEntries,
+  pathFromDecisions,
+  formatPathPlan,
+  formatRecordedPaths,
+  readRecordedPaths,
+  recordedPathsFile,
+  recordGate1,
+  snapshotConflicts,
+  type PathEntry,
+} from './recorded-paths.ts';
 import type { PhotoSummary, PipelineMode, PipelineSummary, StepSummary } from './summary.ts';
 
 // The headless pipeline (P3-10, docs/architecture.md §5 "Headless pipeline CLI"): one project
@@ -53,6 +65,12 @@ export interface RunPipelineOptions {
   readonly decisionsPath?: string;
   /** Replaces the project's `fixture` cassette (fixtures and record modes). */
   readonly cassette?: string;
+  /**
+   * Decide Gate 1 as this recorded-paths ID (`recorded-paths.ts`, e.g. `2-x-1`) instead of the
+   * decisions file's Gate 1 section. Needs the cassette's paths file, which a record session
+   * that reached Gate 1 writes.
+   */
+  readonly gate1Path?: string;
   /** `MODEL_API_KEY` (live and record) and `DAILY_BUDGET_USD`. */
   readonly env: NodeJS.ProcessEnv;
   readonly logger: Logger;
@@ -295,6 +313,85 @@ async function writeExport(
   };
 }
 
+/** `--list-paths`: the cassette's Gate 1 options and every path, recorded or missing. */
+export async function listRecordedPaths(
+  projectDir: string,
+  cassetteOverride: string | undefined,
+  decisionsPath: string | undefined,
+  definitionsDir?: string,
+): Promise<string[]> {
+  const definitions = await loadDefinitions(definitionsDir);
+  const project = await loadProject(
+    projectDir,
+    definitions,
+    (id, version) => definitions.getService(id, version),
+    decisionsPath,
+  );
+  const cassette = cassetteOverride ?? project.fixture;
+  if (cassette === null) {
+    throw new PipelineUsageError('The project has no cassette: set "fixture" or pass --cassette');
+  }
+  const file = recordedPathsFile(cassettePath(cassette, project.fixturesDir));
+  const paths = await readRecordedPaths(file);
+  if (paths === undefined) {
+    throw new PipelineUsageError(
+      `No recorded paths at ${file}; a record session that reaches Gate 1 writes it`,
+    );
+  }
+  return [file, ...formatRecordedPaths(paths), '', 'Recording order:', ...formatPathPlan(paths)];
+}
+
+/**
+ * Record mode: writes Gate 1's conflicts to the cassette's paths file once the run reached the
+ * gate, and the path it took once it completed (a run that failed later recorded only part of
+ * its path, so it is not listed).
+ */
+async function recordPaths(
+  execution: PipelineExecution,
+  context: {
+    file: string;
+    cassette: string;
+    fromProjectDecisions: boolean;
+    progress: (line: string) => void;
+  },
+): Promise<void> {
+  const { gate1, run, replay } = execution;
+  const completed = run.status === 'completed';
+  if (gate1 === null && !completed) return;
+  const conflicts = gate1 === null ? [] : snapshotConflicts(gate1.conflicts);
+  let decisions: PathEntry[] | null = completed && gate1 === null ? [] : null;
+  if (completed && gate1 !== null && gate1.applied !== null) {
+    decisions = pathFromDecisions(gate1.conflicts, gate1.applied);
+    if (decisions === null) {
+      context.progress('Gate 1 path not listed: an edit decision cannot be pre-recorded');
+    }
+  }
+  const result = await recordGate1({
+    file: context.file,
+    cassette: context.cassette,
+    conflicts,
+    path:
+      decisions === null
+        ? undefined
+        : {
+            decisions,
+            fromProjectDecisions: context.fromProjectDecisions,
+            recordedAt: new Date().toISOString(),
+            liveRequests: replay?.liveRequestCount ?? 0,
+          },
+  });
+  if (result.dropped.length > 0) {
+    context.progress(
+      `Gate 1 changed since the earlier recordings; dropped paths ${result.dropped.join(', ')}`,
+    );
+  }
+  context.progress(
+    result.pathId === null
+      ? `Gate 1 conflicts written to ${context.file}`
+      : `Gate 1 path ${result.pathId} recorded in ${context.file}`,
+  );
+}
+
 /**
  * Runs one project end to end and returns its summary (also written to `outDir/summary.json`).
  * Throws before the run for invalid input (`ProjectDirError`, `PipelineUsageError`,
@@ -318,10 +415,31 @@ export async function runPipeline(options: RunPipelineOptions): Promise<Pipeline
       `${mode} mode needs a cassette: set "fixture" in project.json or pass --cassette`,
     );
   }
-  if (mode === 'fixtures' && cassette !== null && !(await exists(cassettePath(cassette)))) {
+  const cassetteFile = cassette === null ? null : cassettePath(cassette, project.fixturesDir);
+  if (mode === 'fixtures' && cassetteFile !== null && !(await exists(cassetteFile))) {
     throw new PipelineUsageError(
-      `No recorded run at ${cassettePath(cassette)}; record one with --mode record or use --mode live`,
+      `No recorded run at ${cassetteFile}; record one with --mode record or use --mode live`,
     );
+  }
+  const pathsFile = cassetteFile === null ? null : recordedPathsFile(cassetteFile);
+  const recordedPaths = pathsFile === null ? undefined : await readRecordedPaths(pathsFile);
+  if (options.gate1Path !== undefined) {
+    if (recordedPaths === undefined) {
+      throw new PipelineUsageError(
+        `--gate1-path needs the cassette's recorded paths file${pathsFile === null ? '' : ` (${pathsFile})`}; ` +
+          'record the run to Gate 1 first with --mode record',
+      );
+    }
+    let entries;
+    try {
+      entries = pathEntries(recordedPaths.conflicts, options.gate1Path);
+    } catch (error) {
+      throw new PipelineUsageError(error instanceof Error ? error.message : String(error));
+    }
+    project = {
+      ...project,
+      decisions: { ...project.decisions, factConflicts: factConflictsForPath(entries) },
+    };
   }
   const apiKey = env['MODEL_API_KEY'];
   if (mode === 'live' && (apiKey === undefined || apiKey === '')) {
@@ -344,6 +462,10 @@ export async function runPipeline(options: RunPipelineOptions): Promise<Pipeline
       definitions,
       mode,
       cassette,
+      fixturesDir: project.fixturesDir,
+      // A cassette with recorded Gate 1 paths holds them all: a session follows one path, and
+      // pruning to what it used would drop the others.
+      retainUnused: recordedPaths !== undefined,
       apiKey,
       env,
       dailyCapUsd: dailyCap.data,
@@ -358,6 +480,14 @@ export async function runPipeline(options: RunPipelineOptions): Promise<Pipeline
       },
     });
     const { run } = execution;
+    if (mode === 'record' && cassette !== null && pathsFile !== null) {
+      await recordPaths(execution, {
+        file: pathsFile,
+        cassette,
+        fromProjectDecisions: options.gate1Path === undefined,
+        progress,
+      });
+    }
     const exported =
       run.status === 'completed' ? await writeExport(db, storage, run.id, options.outDir) : null;
     const summary = await buildSummary(db, run, project.service, {

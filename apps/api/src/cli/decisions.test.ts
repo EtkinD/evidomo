@@ -155,6 +155,33 @@ describe('planFactConflictDecisions', () => {
     expect(byValue.decisions[0]?.label).toBe('accept side (1987)');
   });
 
+  it('accepts a side by its 1-based position as Gate 1 lists them, even when values tie', () => {
+    const sameValue = conflict('K01', 'build_year', [
+      [fact(1, 'transcript_turn', 1987)],
+      [fact(2, 'transcript_turn', 1987)],
+    ]);
+    const plan = planFactConflictDecisions(
+      gate1([sameValue]),
+      file({
+        factConflicts: {
+          default: 'fail',
+          decisions: [{ key: 'build_year', choice: 'accept', side: { position: 2 } }],
+        },
+      }).factConflicts,
+    );
+    expect(plan.decisions[0]?.request).toEqual({ choice: 'accept', factId: uuid(2) });
+    expect(plan.decisions[0]?.label).toBe('accept side 2 (1987)');
+    const beyond = file({
+      factConflicts: {
+        default: 'fail',
+        decisions: [{ key: 'build_year', choice: 'accept', side: { position: 3 } }],
+      },
+    }).factConflicts;
+    expect(() => planFactConflictDecisions(gate1([sameValue]), beyond)).toThrow(
+      /has 2 sides, not a side 3/,
+    );
+  });
+
   it('passes edits through the gate request schema', () => {
     const plan = planFactConflictDecisions(
       gate1([buildYear]),

@@ -18,6 +18,7 @@ import {
   type Interaction,
   type MatchOptions,
 } from './fixtures.ts';
+import { REPLAY_MISS_HEADER, REPLAY_MISS_VALUE } from './service-errors.ts';
 
 export type ReplayMode = 'record' | 'replay';
 
@@ -56,6 +57,13 @@ export interface MetaReplayOptions {
    * starts empty.
    */
   readonly extend?: boolean;
+  /**
+   * With `extend`: write back every interaction of the cassette, not only those this session
+   * used. A cassette holding several recorded Gate 1 paths (`apps/api/src/cli/recorded-paths.ts`)
+   * needs this: each session follows one path, and pruning would drop the others. Stale
+   * interactions then stay until the cassette is deleted and re-recorded.
+   */
+  readonly retainUnused?: boolean;
   /**
    * Called with every interaction before its response is returned to the SDK (replayed,
    * included, or freshly recorded), so a caller can derive state from a response before the code
@@ -172,8 +180,12 @@ export function createMetaReplay(options: MetaReplayOptions): MetaReplay {
     unmatched.push(message);
     return HttpResponse.json(
       { error: { message, type: 'fixture_not_found', code: 'fixture_not_found' } },
-      // 404 is non-retryable in both SDKs; the header makes it explicit for the openai SDK.
-      { status: 404, headers: { 'x-should-retry': 'false' } },
+      // 404 is non-retryable in both SDKs; `x-should-retry` makes it explicit for the openai SDK,
+      // and the miss header lets the run engine name the cause (`runs/steps.ts`).
+      {
+        status: 404,
+        headers: { 'x-should-retry': 'false', [REPLAY_MISS_HEADER]: REPLAY_MISS_VALUE },
+      },
     );
   });
 
@@ -217,7 +229,7 @@ export function createMetaReplay(options: MetaReplayOptions): MetaReplay {
       server.close();
       started = false;
       if (mode === 'record') {
-        if (options.extend === true) {
+        if (options.extend === true && options.retainUnused !== true) {
           for (const key of [...interactions.keys()]) {
             if (!used.has(key)) interactions.delete(key);
           }

@@ -10,6 +10,14 @@ import { cassettePath } from '../meta/fixtures.ts';
 import type { Storage } from '../storage/storage.ts';
 import { executePipeline, type StoppedAtGate } from './execute.ts';
 import { loadProject } from './project.ts';
+import {
+  defaultPath,
+  factConflictsForPath,
+  pathEntries,
+  readRecordedPaths,
+  recordedPathsFile,
+  type RecordedPathsFile,
+} from './recorded-paths.ts';
 import { DEV_SEED_BOSS_SCHEMA_PREFIX, dropBossSchema } from './seed.ts';
 
 // `npm run dev:seed` (docs/architecture.md §5 "Development seed"): a fixture project through the
@@ -84,6 +92,11 @@ export interface SeedDevRunOptions {
   readonly nodeEnv: string | undefined;
   readonly timeoutMs?: number;
   readonly definitionsDir?: string;
+  /**
+   * For `gate2` and `completed`: decide Gate 1 as this recorded path (`recorded-paths.ts`)
+   * instead of the default (the path recorded from the decisions file).
+   */
+  readonly path?: string;
 }
 
 export interface DevSeedResult {
@@ -98,6 +111,10 @@ export interface DevSeedResult {
   readonly cassette: string;
   /** What waits at the gate; null for `completed`. */
   readonly stopped: StoppedAtGate | null;
+  /** The cassette's recorded Gate 1 paths; null when it has no paths file (one scripted path). */
+  readonly recordedPaths: RecordedPathsFile | null;
+  /** The recorded path Gate 1 was decided by (`gate2`, `completed`); null otherwise. */
+  readonly path: string | null;
   /** Usage ledger rows of the run: each one a call answered from the cassette. */
   readonly calls: number;
   readonly servedFromCassette: number;
@@ -107,6 +124,40 @@ export interface DevSeedResult {
 }
 
 const DEFAULT_TIMEOUT_MS = 30 * 60 * 1000;
+
+/**
+ * The recorded path a `gate2` or `completed` seed decides Gate 1 by: `requested`, else the
+ * default path; null for `gate1` and for a cassette without recorded paths (the decisions file
+ * decides, as before). Throws `DevSeedError` for a path that was not recorded.
+ */
+function choosePath(
+  recorded: RecordedPathsFile | null,
+  stopAt: DevStopPoint,
+  requested: string | undefined,
+): string | null {
+  if (stopAt === 'gate1') {
+    if (requested !== undefined) {
+      throw new DevSeedError(
+        '--path decides Gate 1, so it applies to --stop-at gate2 or completed',
+      );
+    }
+    return null;
+  }
+  if (recorded === null) {
+    if (requested !== undefined) {
+      throw new DevSeedError('--path needs recorded Gate 1 paths; this cassette has none');
+    }
+    return null;
+  }
+  const ids = recorded.paths.map((p) => p.id);
+  if (requested === undefined) return defaultPath(recorded)?.id ?? null;
+  if (!ids.includes(requested)) {
+    throw new DevSeedError(
+      `Gate 1 path "${requested}" was not recorded; recorded paths: ${ids.join(', ') || 'none'}`,
+    );
+  }
+  return requested;
+}
 
 /**
  * Seeds one run for the account with `ownerEmail` and returns where it was left. Throws
@@ -128,20 +179,31 @@ export async function seedDevRun(options: SeedDevRunOptions): Promise<DevSeedRes
   if (cassette === null) {
     throw new DevSeedError(`${project.dir} has no "fixture" cassette; the seed replays one`);
   }
+  const cassetteFile = cassettePath(cassette, project.fixturesDir);
   try {
-    await access(cassettePath(cassette));
+    await access(cassetteFile);
   } catch {
-    throw new DevSeedError(`No recorded run at ${cassettePath(cassette)}`);
+    throw new DevSeedError(`No recorded run at ${cassetteFile}`);
   }
+  const recordedPaths = (await readRecordedPaths(recordedPathsFile(cassetteFile))) ?? null;
+  const path = choosePath(recordedPaths, stopAt, options.path);
+  const decisions =
+    path === null || recordedPaths === null
+      ? project.decisions
+      : {
+          ...project.decisions,
+          factConflicts: factConflictsForPath(pathEntries(recordedPaths.conflicts, path)),
+        };
 
   const bossSchema = `${DEV_SEED_BOSS_SCHEMA_PREFIX}${randomBytes(6).toString('hex')}`;
   let execution;
   try {
     execution = await executePipeline({
-      project,
+      project: { ...project, decisions },
       definitions,
       mode: 'fixtures',
       cassette,
+      fixturesDir: project.fixturesDir,
       // Never a real key: replay sends its placeholder, and no live client is built.
       apiKey: undefined,
       env: {},
@@ -176,6 +238,8 @@ export async function seedDevRun(options: SeedDevRunOptions): Promise<DevSeedRes
     gate: run.gate,
     cassette,
     stopped: execution.stoppedAt,
+    recordedPaths,
+    path,
     calls: usage.length,
     servedFromCassette: replay.servedFromCassetteCount,
     liveRequests: replay.liveRequestCount,

@@ -2,6 +2,7 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 import { loadDefinitions } from '../../definitions/loader.ts';
 import { createMetaClients } from '../../meta/clients.ts';
+import { isReplayMiss, REPLAY_MISS_HEADER, REPLAY_MISS_VALUE } from '../../meta/service-errors.ts';
 import { createInMemoryUsageRecorder } from '../../meta/usage.ts';
 import { NonRetryableStepError, type StepConfig } from '../../runs/steps.ts';
 import { BudgetExceededError } from '../../usage/budget.ts';
@@ -55,7 +56,9 @@ function responseBody(model: string, text: string, incomplete = false) {
   };
 }
 
-type Reply = { kind: 'json'; body: unknown } | { kind: 'status'; status: number };
+type Reply =
+  | { kind: 'json'; body: unknown }
+  | { kind: 'status'; status: number; headers?: Record<string, string> };
 const ok = (model: string): Reply => ({
   kind: 'json',
   body: responseBody(model, JSON.stringify(ANSWER)),
@@ -83,7 +86,7 @@ function stubMeta(route: (model: string) => Reply): { model: string; effort: str
         ? Response.json(reply.body)
         : Response.json(
             { error: { message: 'stubbed', type: 'server_error' } },
-            { status: reply.status },
+            { status: reply.status, headers: reply.headers ?? {} },
           ),
     );
   });
@@ -197,6 +200,22 @@ describe('reconciliation fallback', () => {
       ['muse-wonder-1.0', 3000],
       ['muse-spark-1.3', 3000],
     ]);
+  });
+
+  it('does not fall back when the development replay has no recording', async () => {
+    // The fallback's request is not recorded either; the step must fail with the replay's reason.
+    const sent = stubMeta(() => ({
+      kind: 'status',
+      status: 404,
+      headers: { [REPLAY_MISS_HEADER]: REPLAY_MISS_VALUE },
+    }));
+    const error: unknown = await reconcileWithFallback(
+      { clients, meter: passThrough },
+      buildReconciliationRequests(step, INPUT),
+    ).catch((e: unknown) => e);
+    expect(isReplayMiss(error)).toBe(true);
+    expect(modelFailureClass(error)).toBeUndefined();
+    expect(sent.map((s) => s.model)).toEqual(['muse-wonder-1.0']);
   });
 
   it('does not fall back on budget errors or an aborted step', async () => {

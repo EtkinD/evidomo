@@ -2,6 +2,7 @@ import type { MetaReasoningEffort, ReconciliationModelRun } from '@evidomo/share
 import { APICallError, generateText, NoObjectGeneratedError, Output, RetryError } from 'ai';
 import type { MetaClients } from '../../meta/clients.ts';
 import { metaProviderOptions } from '../../meta/options.ts';
+import { isReplayMiss } from '../../meta/service-errors.ts';
 import { NonRetryableStepError, type StepConfig, type StepLedger } from '../../runs/steps.ts';
 import type { ReconciliationInput } from './schema.ts';
 import { reconciliationStepOutputSchema, type ReconciliationStepOutput } from './schema.ts';
@@ -91,6 +92,9 @@ export async function callReconciliation(
  */
 export function modelFailureClass(error: unknown, signal?: AbortSignal): string | undefined {
   if (signal?.aborted === true) return undefined;
+  // The development replay has no recording: the fallback (or a revision loop that would end
+  // as `revision_failed`) has none either, and the step must fail with that reason.
+  if (isReplayMiss(error)) return undefined;
   if (RetryError.isInstance(error)) {
     // `abort` means the caller's signal, which is never the model's fault.
     if (error.reason === 'abort') return undefined;

@@ -10,7 +10,7 @@ import {
 } from '@evidomo/shared';
 import { z } from 'zod';
 import type { DefinitionRegistry } from '../definitions/loader.ts';
-import { cassettePath } from '../meta/fixtures.ts';
+import { cassettePath, META_FIXTURES_DIR } from '../meta/fixtures.ts';
 import { FactFormError, factFormToCandidates } from '../pipeline/extraction/form.ts';
 import { decisionsFileSchema, type DecisionsFile } from './decisions.ts';
 
@@ -50,7 +50,12 @@ export const projectFileSchema = z.strictObject({
   photos: z.array(relativePath).min(1).max(100),
   /** The voice walkthrough (any accepted audio format), or null when the service allows none. */
   voiceMemo: relativePath.nullable(),
-  /** Cassette of a recorded run under `fixtures/meta/`, required by `--mode fixtures`. */
+  /**
+   * Directory holding `fixture`, relative to the project directory; may point outside the
+   * repository (recordings of raw samples must never be committed). Default: `fixtures/meta/`.
+   */
+  fixtureDir: relativePath.optional(),
+  /** Cassette of a recorded run under `fixtureDir`, required by `--mode fixtures`. */
   fixture: z
     .string()
     .nullable()
@@ -83,6 +88,8 @@ export interface Project {
   readonly photos: readonly ProjectPhoto[];
   readonly voiceMemoPath: string | null;
   readonly fixture: string | null;
+  /** Absolute directory of `fixture`: `fixtureDir` resolved, or the repository's `fixtures/meta`. */
+  readonly fixturesDir: string;
   readonly decisions: DecisionsFile;
 }
 
@@ -250,6 +257,8 @@ export async function loadProject(
     photos,
     voiceMemoPath,
     fixture: spec.fixture,
+    fixturesDir:
+      spec.fixtureDir === undefined ? META_FIXTURES_DIR : path.resolve(dir, spec.fixtureDir),
     decisions,
   };
 }

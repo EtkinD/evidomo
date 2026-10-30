@@ -4,6 +4,7 @@ import type { Run } from '../db/repositories/runs.ts';
 import { DefinitionNotFoundError } from '../definitions/loader.ts';
 import type { Logger } from '../logger.ts';
 import type { MetaClients } from '../meta/clients.ts';
+import { isReplayMiss, isTransientStatus, modelServiceStatus } from '../meta/service-errors.ts';
 import { BudgetExceededError, type BudgetStatus } from '../usage/budget.ts';
 import { InvalidBudgetCapError, UnpricedModelError, UnpricedUsageError } from '../usage/ledger.ts';
 
@@ -115,26 +116,44 @@ export class StepRetryError extends Error {
 }
 
 /**
+ * The reason stored when the development replay (`npm run dev:worker:replay`, `dev:seed`) has no
+ * recording for a request: the run took a path nobody recorded, most often other Gate 1
+ * decisions. A retry would miss again.
+ */
+export const REPLAY_MISS_REASON =
+  'Development replay has no recording for this model request: the run took a path that was ' +
+  'not pre-recorded (e.g. other Gate 1 decisions). Decide Gate 1 as one of the recorded paths ' +
+  'listed by dev:seed.';
+
+/**
  * Budget, budget-configuration, and pricing errors would fail the same way again (and a retry
- * could spend more), so they fail the run at once, as do explicit non-retryable step errors.
- * Everything else, including timeouts, interruptions, and unknown errors, is transient: the
- * attempt is retried once.
+ * could spend more), so they fail the run at once, as do explicit non-retryable step errors, a
+ * development replay without a recording, and model-service responses with a permanent 4xx
+ * status (anything but 408, 409, and 429). Everything else, including 408/409/429/5xx after the
+ * SDK's own retries, network errors, timeouts, interruptions, and unknown errors, is transient:
+ * the attempt is retried once.
  */
 export function isRetryableStepError(error: unknown): boolean {
-  return !(
+  if (
     error instanceof BudgetExceededError ||
     error instanceof InvalidBudgetCapError ||
     error instanceof UnpricedModelError ||
     error instanceof UnpricedUsageError ||
     error instanceof NonRetryableStepError ||
     error instanceof DefinitionNotFoundError
-  );
+  ) {
+    return false;
+  }
+  if (isReplayMiss(error)) return false;
+  const status = modelServiceStatus(error);
+  return status === undefined || isTransientStatus(status);
 }
 
 /**
  * A description of a step failure that is safe to store, show, and log. Messages are used only
- * for errors whose text this codebase controls; any other error (SDK errors can carry request
- * bodies, validation errors can quote model output) is reduced to its class name.
+ * for errors whose text this codebase controls; a model-service error is reduced to its HTTP
+ * status, and any other error (SDK errors can carry request bodies, validation errors can quote
+ * model output) to its class name.
  */
 export function describeStepError(error: unknown): string {
   if (
@@ -151,6 +170,10 @@ export function describeStepError(error: unknown): string {
   if (error instanceof UnpricedUsageError) {
     return `Model usage could not be priced (${error.problems.map((p) => p.modelId).join(', ')})`;
   }
+  if (isReplayMiss(error)) return REPLAY_MISS_REASON;
+  // The status only: SDK messages and response bodies can quote the request.
+  const status = modelServiceStatus(error);
+  if (status !== undefined) return `The model service returned HTTP ${status}`;
   if (error instanceof Error) return `Unexpected ${error.name}`;
   return 'Unexpected non-error failure';
 }

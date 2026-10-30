@@ -17,10 +17,11 @@ import {
   seedDevRun,
   type DevSeedResult,
 } from './dev-seed-run.ts';
+import { formatRecordedPaths, RecordedPathsError } from './recorded-paths.ts';
 import { InputRejectedError } from './ingest.ts';
 import { ProjectDirError } from './project.ts';
 
-// `npm run dev:seed -- --owner <email> [--stop-at gate1|gate2|completed] [project-dir]`
+// `npm run dev:seed -- --owner <email> [--stop-at gate1|gate2|completed] [--path <id>] [project-dir]`
 // (docs/architecture.md §5 "Development seed"). Exit codes: 0 the run was seeded (IDs and URLs
 // are printed); 1 the run did not end where asked; 2 invalid invocation, environment, account,
 // or project input, or production (nothing was run).
@@ -30,7 +31,7 @@ const USAGE = `Usage: npm run dev:seed -- --owner <email> [options] [project-dir
 Puts a fixture project (default: fixtures/projects/synthetic-walkthrough) through the real
 pipeline in fixture mode for an existing local account, against DATABASE_URL and STORAGE_DIR,
 and leaves the run at a chosen point. Zero model calls: every Meta request is answered from the
-project's cassette. Development only; refuses NODE_ENV=production. Needs migrations, ffmpeg, and
+project's cassette (under the project's "fixtureDir", default fixtures/meta/). Development only; refuses NODE_ENV=production. Needs migrations, ffmpeg, and
 an account registered in the web app (the seed creates none and never touches passwords).
 
 Options:
@@ -38,6 +39,8 @@ Options:
   --stop-at <point>      gate1: waiting at Gate 1, every conflict open
                          gate2: Gate 1 decided as scripted, waiting at Gate 2
                          completed: both gates decided as scripted, exported (default)
+  --path <id>            gate2/completed: decide Gate 1 as this recorded path (e.g. 2-x-1)
+                         instead of the default one; "--stop-at gate1" lists them
   --timeout-minutes <n>  give up after n minutes (default 30)
   --verbose              log at info level
   --help                 show this help
@@ -51,6 +54,7 @@ const DEFAULT_PROJECT = path.join(REPO_ROOT, 'fixtures', 'projects', 'synthetic-
 const argsSchema = z.object({
   owner: z.string().trim().min(3).max(320).optional(),
   'stop-at': z.enum(DEV_STOP_POINTS).default('completed'),
+  path: z.string().trim().min(1).max(200).optional(),
   'timeout-minutes': z.coerce
     .number()
     .positive()
@@ -110,6 +114,7 @@ function report(result: DevSeedResult, origin: string): string {
     `  project:   ${result.projectId} (${result.projectTitle})`,
     `  owner:     ${result.ownerEmail}`,
     `  state:     ${stateLine(result)}`,
+    ...(result.path === null ? [] : [`  gate 1:    decided as recorded path ${result.path}`]),
     `  calls:     ${result.calls} metered, ${result.servedFromCassette} from the cassette, ${result.liveRequests} live`,
     `  cost:      ${result.costUsd} USD as if live (nothing billed)`,
     '',
@@ -117,7 +122,19 @@ function report(result: DevSeedResult, origin: string): string {
     ...urlLines(result, origin),
   ];
   const stopped = result.stopped;
-  if (stopped?.gate === 'fact_conflicts') {
+  if (stopped?.gate === 'fact_conflicts' && result.recordedPaths !== null) {
+    lines.push(
+      '',
+      'To continue from the web app with zero model calls, run',
+      `  npm run dev:worker:replay${result.projectDir === DEFAULT_PROJECT ? '' : ` -- ${result.projectDir}`}`,
+      '(not dev:worker) and decide Gate 1 as one of the recorded paths below. A path ID gives',
+      'one choice per conflict, in order: the side number to accept, or x to reject every side.',
+      'Any other combination (or an edit) has no recording: the next step fails at once with',
+      '"Development replay has no recording ...", still with zero live calls.',
+      '',
+      ...formatRecordedPaths(result.recordedPaths),
+    );
+  } else if (stopped?.gate === 'fact_conflicts') {
     lines.push(
       '',
       'To continue from the web app with zero model calls, run "npm run dev:worker:replay"',
@@ -153,6 +170,7 @@ async function main(): Promise<void> {
       options: {
         owner: { type: 'string' },
         'stop-at': { type: 'string' },
+        path: { type: 'string' },
         'timeout-minutes': { type: 'string' },
         verbose: { type: 'boolean' },
         help: { type: 'boolean' },
@@ -193,6 +211,7 @@ async function main(): Promise<void> {
       projectDir,
       ownerEmail,
       stopAt: options.data['stop-at'],
+      ...(options.data.path === undefined ? {} : { path: options.data.path }),
       db: dbClient.db,
       connectionString: env.DATABASE_URL,
       storage: createLocalStorage({ rootDir: env.STORAGE_DIR }),
@@ -209,7 +228,8 @@ async function main(): Promise<void> {
       error instanceof ProductionRefusedError ||
       error instanceof ProjectDirError ||
       error instanceof InputRejectedError ||
-      error instanceof DefinitionError
+      error instanceof DefinitionError ||
+      error instanceof RecordedPathsError
     ) {
       fail(error.message, 2);
     }

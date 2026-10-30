@@ -7,7 +7,8 @@ import { createLogger } from '../logger.ts';
 import { ScriptedDecisionError } from './decisions.ts';
 import { InputRejectedError } from './ingest.ts';
 import { ProjectDirError } from './project.ts';
-import { PipelineUsageError, runPipeline } from './run.ts';
+import { RecordedPathsError } from './recorded-paths.ts';
+import { listRecordedPaths, PipelineUsageError, runPipeline } from './run.ts';
 import { formatSummary } from './summary.ts';
 
 // `npm run pipeline -- <project-dir> [options]` (docs/architecture.md §5 "Headless pipeline CLI").
@@ -28,6 +29,10 @@ Options:
   --voice-memo <file>            use this voice memo instead of the project's
   --decisions <file>             use this decisions file instead of <project-dir>/decisions.json
   --cassette <name>              use this cassette instead of the project's "fixture"
+  --gate1-path <id>              decide Gate 1 as this recorded-paths ID (e.g. 2-x-1) instead of
+                                 the decisions file; record mode then records that path
+  --list-paths                   print every Gate 1 path of the cassette, recorded or missing,
+                                 in recording order, and exit (runs nothing)
   --timeout-minutes <n>          give up after n minutes (default 30)
   --verbose                      log at info level
   --help                         show this help`;
@@ -41,6 +46,8 @@ const argsSchema = z.object({
   'voice-memo': z.string().min(1).optional(),
   decisions: z.string().min(1).optional(),
   cassette: z.string().min(1).optional(),
+  'gate1-path': z.string().min(1).max(200).optional(),
+  'list-paths': z.boolean().default(false),
   'timeout-minutes': z.coerce
     .number()
     .positive()
@@ -67,6 +74,8 @@ async function main(): Promise<void> {
         'voice-memo': { type: 'string' },
         decisions: { type: 'string' },
         cassette: { type: 'string' },
+        'gate1-path': { type: 'string' },
+        'list-paths': { type: 'boolean' },
         'timeout-minutes': { type: 'string' },
         verbose: { type: 'boolean' },
         help: { type: 'boolean' },
@@ -100,6 +109,12 @@ async function main(): Promise<void> {
     NODE_ENV: 'development',
   });
   try {
+    if (args['list-paths']) {
+      process.stdout.write(
+        `${(await listRecordedPaths(projectDir, args.cassette, args.decisions === undefined ? undefined : resolve(args.decisions))).join('\n')}\n`,
+      );
+      return;
+    }
     const summary = await runPipeline({
       projectDir,
       mode: args.mode,
@@ -108,6 +123,7 @@ async function main(): Promise<void> {
       ...(args['voice-memo'] === undefined ? {} : { voiceMemo: resolve(args['voice-memo']) }),
       ...(args.decisions === undefined ? {} : { decisionsPath: resolve(args.decisions) }),
       ...(args.cassette === undefined ? {} : { cassette: args.cassette }),
+      ...(args['gate1-path'] === undefined ? {} : { gate1Path: args['gate1-path'] }),
       env: process.env,
       logger,
       timeoutMs: args['timeout-minutes'] * 60_000,
@@ -123,7 +139,8 @@ async function main(): Promise<void> {
       error instanceof ProjectDirError ||
       error instanceof PipelineUsageError ||
       error instanceof InputRejectedError ||
-      error instanceof DefinitionError
+      error instanceof DefinitionError ||
+      error instanceof RecordedPathsError
     ) {
       fail(error.message, 2);
     }

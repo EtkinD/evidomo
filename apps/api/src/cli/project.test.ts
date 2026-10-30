@@ -1,10 +1,11 @@
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import type { ServiceDefinition } from '@evidomo/shared';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { loadDefinitions, type DefinitionRegistry } from '../definitions/loader.ts';
-import { loadProject, ProjectDirError } from './project.ts';
+import { META_FIXTURES_DIR } from '../meta/fixtures.ts';
+import { loadProject, ProjectDirError, projectFileSchema } from './project.ts';
 
 const DEMO_PROJECT = path.resolve(
   import.meta.dirname,
@@ -50,6 +51,36 @@ describe('loadProject', () => {
     expect(project.photos).toHaveLength(11);
     expect(project.voiceMemoPath).toMatch(/voice-memo-standin\.wav$/);
     expect(project.fixture).toBe('p3-10/synthetic-walkthrough');
+    expect(project.fixturesDir).toBe(META_FIXTURES_DIR);
+  });
+
+  it('resolves fixtureDir against the project directory, so a cassette can live outside the repo', async () => {
+    const spec = projectFileSchema.parse(
+      JSON.parse(await readFile(path.join(DEMO_PROJECT, 'project.json'), 'utf8')),
+    );
+    const dir = await mkdtemp(path.join(scratch, 'external-'));
+    const photos = spec.photos.map((photo) =>
+      path.relative(dir, path.resolve(DEMO_PROJECT, photo)),
+    );
+    await writeFile(
+      path.join(dir, 'project.json'),
+      JSON.stringify({
+        ...spec,
+        photos,
+        voiceMemo: path.relative(dir, path.join(DEMO_PROJECT, 'voice-memo-standin.wav')),
+        fixtureDir: '../recordings',
+        fixture: 'run',
+      }),
+    );
+    await writeFile(path.join(dir, 'decisions.json'), JSON.stringify(validDecisions));
+    const project = await loadProject(dir, definitions, getService);
+    expect(project.fixturesDir).toBe(path.resolve(dir, '../recordings'));
+    expect(project.fixture).toBe('run');
+
+    const absolute = await writeProject({ ...spec, photos, fixtureDir: '/abs' }, validDecisions);
+    await expect(loadProject(absolute, definitions, getService)).rejects.toThrow(
+      /fixtureDir: must be relative to the project directory/,
+    );
   });
 
   it('reports every problem at once, naming files and fields', async () => {

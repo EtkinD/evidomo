@@ -26,10 +26,15 @@ export const DECISIONS_FORMAT_VERSION = 1;
 const scalar = z.union([z.number(), z.string().trim().min(1).max(300), z.boolean()]);
 const factKey = z.string().min(1).max(80);
 
-/** Which side of a conflict to accept: the one holding a fact from this source, or this value. */
+/**
+ * Which side of a conflict to accept: the one holding a fact from this source, the one with this
+ * value, or the side at this 1-based position as Gate 1 lists them (the order is stable for a
+ * replayed run; recorded Gate 1 paths use it, `recorded-paths.ts`).
+ */
 const sideSelectorSchema = z.union([
   z.strictObject({ source: z.enum(['form', 'transcript', 'photo']) }),
   z.strictObject({ value: scalar }),
+  z.strictObject({ position: z.int().min(1).max(20) }),
 ]);
 export type SideSelector = z.infer<typeof sideSelectorSchema>;
 
@@ -181,6 +186,16 @@ function acceptSide(
 }
 
 function selectSide(conflict: GateConflict, selector: SideSelector): GateConflict['sides'][number] {
+  if ('position' in selector) {
+    const side = conflict.sides[selector.position - 1];
+    if (side === undefined) {
+      throw new ScriptedDecisionError(
+        `Conflict ${conflict.id} (${conflict.key}) has ${conflict.sides.length} sides, not a ` +
+          `side ${selector.position}. Sides: ${conflict.sides.map(describeValue).join(' | ')}`,
+      );
+    }
+    return side;
+  }
   const matches =
     'source' in selector
       ? conflict.sides.filter((side) => side.sourceKinds.includes(SOURCE_KINDS[selector.source]))
@@ -204,7 +219,12 @@ function scriptedConflictDecision(
   switch (entry.choice) {
     case 'accept': {
       const side = selectSide(conflict, entry.side);
-      const label = 'source' in entry.side ? `${entry.side.source} side` : 'side';
+      const label =
+        'source' in entry.side
+          ? `${entry.side.source} side`
+          : 'position' in entry.side
+            ? `side ${entry.side.position}`
+            : 'side';
       return acceptSide(conflict, side, label, 'decisions_file');
     }
     case 'edit':

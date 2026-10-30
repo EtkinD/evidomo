@@ -2978,3 +2978,68 @@ subjects with only palette, mood, and light moved. 26 planned images.
   regenerated. Both canal-room heroes show generic, out-of-focus gabled facades across the water
   through the windows (invented, not a recognisable building); "limewashed brick" in B2 came out
   sage-tinted.
+
+## Recorded Gate 1 paths for development replays
+
+Design in [architecture.md §5 "Recorded Gate 1 paths" and "Development seed"](./architecture.md#5-run-pipeline)
+and the step error rules in §9. Code: `apps/api/src/cli/recorded-paths.ts`,
+`apps/api/src/meta/service-errors.ts`, `project.json` `fixtureDir`. Recorded on a real 20-photo
+stock set (not committed; cassette, blobs, and paths file in a recordings directory next to the
+sample, outside the repository).
+
+### What a path costs (measured, 2026-10-30)
+
+The set's Gate 1 had **one conflict** (a form value against the walkthrough, two sides), so
+the option space is 3 paths (accept side 1, accept side 2, reject) and the full product was
+recorded. Unit costs from the price table; "live" counts requests the session sent.
+
+| Session                                       | Live requests | New spend (USD)                                                                               |
+| --------------------------------------------- | ------------- | --------------------------------------------------------------------------------------------- |
+| Base, intake → reconciliation, stop at Gate 1 | 88 (75 kept)  | 0.3753 (extraction 0.0254, vision 0.2740, reconciliation 0.0705, intake)                      |
+| Default path (decisions file: form side)      | 19            | ≤ 0.1848 (creative 0.0373, Q&A 0.0131, staging 0.0200, integrity 0.0550, verification 0.0594) |
+| Path 2 (walkthrough side)                     | 4             | 0.1082 (creative 0.0410, Q&A 0.0143, verification 0.0529)                                     |
+| Path x (reject)                               | 6             | 0.1376 (creative 0.0252, Q&A 0.0134, verification 0.0990, two audit passes)                   |
+| **Total**                                     |               | **0.8059** measured; ≤ ~1.10 counting the 15 lost responses (below)                           |
+
+- **Per additional path: ~0.11–0.14 USD** (creative, Q&A cards, verification; one more audit
+  pass costs ~0.05). Staging and integrity do not depend on facts, so their requests are shared
+  by every path and recorded once with the first path (~0.075 here). Everything before Gate 1
+  (~0.38 for 20 photos) is recorded once.
+- **`ERR_SSL_TOO_LONG` recurred** in record mode (P3-10): 13 of 88 base requests and 1 per path
+  session were lost and retried by the SDK; they report no usage, so whether Meta billed them is
+  unknown (upper bound ~0.29 USD for the 15, priced as the most expensive call of their step).
+- **Integrity retries in record mode are not real retries.** A failed integrity check repeats
+  the identical edit request; in an `extend` session the cassette already holds it, so the retry
+  is served the same failed image and the photo falls back to its original. Replays are
+  consistent with that; a live run would get a fresh edit. Pre-existing behaviour, not changed.
+- **Replay checks (zero live calls):** each path through `npm run pipeline -- <dir> --gate1-path
+<id>` with Gate 2 decided the other way (the offered staged image rejected, flagged claims
+  accepted; the set had none): all three completed, 99–101 calls from the cassette, 0 live,
+  0 unmatched, 0 unnamed images, no staged file in the export. Gate 2 decisions are free, as
+  designed. An edit at Gate 1 failed `creative` after one execution with the replay reason.
+  `dev:seed` (gate1, gate2 `--path 2`, completed default and `--path x`) and
+  `dev:worker:replay` (Gate 1 decided as path 2 through the gate services, Gate 2 rejected, run
+  completed; then an edit, failing at once) on a throwaway database: 0 live.
+
+### Recording a set (reproducible)
+
+```sh
+# 1. To Gate 1 only: a decisions file whose factConflicts.default is "fail".
+node --env-file=.env apps/api/src/cli/pipeline.ts <recordings-dir> --mode record \
+  --decisions <recordings-dir>/decisions.stop-at-gate1.json --out <scratch>/base
+# 2. The options and the recording order.
+node apps/api/src/cli/pipeline.ts <recordings-dir> --list-paths
+# 3. The default path, then every other path (pre-gate requests come from the cassette).
+node --env-file=.env apps/api/src/cli/pipeline.ts <recordings-dir> --mode record --out <scratch>/p1
+node --env-file=.env apps/api/src/cli/pipeline.ts <recordings-dir> --mode record --gate1-path 2 --out <scratch>/p2
+```
+
+A change to a prompt, the definition's model settings, the fact form, or a photo invalidates
+every path: delete the cassette, its `.files/`, and its `.paths.json`, then record again
+(with a paths file present, record mode keeps every interaction, so stale ones would stay).
+
+### Live calls and cost (this change)
+
+Budget 5.00 USD (stop at 4.00). Spent **0.8059 USD** measured (ledger of the live requests;
+the record sessions' ledgers, 0.3753 + 0.5601 + 0.5584 + 0.5879, also meter responses served
+from the cassette and over-count), at most ~1.10 USD with the lost responses.

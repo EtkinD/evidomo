@@ -113,10 +113,11 @@ export async function seedDemoRun(options: SeedDemoRunOptions): Promise<DemoSeed
   if (cassette === null) {
     throw new DemoSeedError(`${project.dir} has no "fixture" cassette; the seed replays one`);
   }
+  const cassetteFile = cassettePath(cassette, project.fixturesDir);
   try {
-    await access(cassettePath(cassette));
+    await access(cassetteFile);
   } catch {
-    throw new DemoSeedError(`No recorded run at ${cassettePath(cassette)}`);
+    throw new DemoSeedError(`No recorded run at ${cassetteFile}`);
   }
 
   const owner = await ensureDemoOwner(db);
@@ -128,6 +129,7 @@ export async function seedDemoRun(options: SeedDemoRunOptions): Promise<DemoSeed
       definitions,
       mode: 'fixtures',
       cassette,
+      fixturesDir: project.fixturesDir,
       // Never a real key: replay sends its placeholder, and no live client is built.
       apiKey: undefined,
       env: {},

@@ -1,4 +1,4 @@
-import type { Gate } from '@evidomo/shared';
+import type { Gate, GateConflict } from '@evidomo/shared';
 import { PgBoss } from 'pg-boss';
 import type { Database } from '../db/client.ts';
 import { createProject } from '../db/repositories/projects.ts';
@@ -19,6 +19,7 @@ import {
   planClaimAuditDecisions,
   planFactConflictDecisions,
   ScriptedDecisionError,
+  type PlannedConflictDecision,
 } from './decisions.ts';
 import { createFixtureImageAliases, type FixtureImageAliases } from './image-aliases.ts';
 import { ingestPhoto, ingestVoiceMemo } from './ingest.ts';
@@ -55,6 +56,13 @@ export interface ExecutePipelineOptions {
   readonly mode: PipelineMode;
   /** Required by fixtures and record modes. */
   readonly cassette: string | null;
+  /** Directory of `cassette` (default `fixtures/meta/`). */
+  readonly fixturesDir?: string;
+  /**
+   * Record mode: keep every interaction of the cassette, not only this session's (a cassette
+   * holding several recorded Gate 1 paths, `recorded-paths.ts`).
+   */
+  readonly retainUnused?: boolean;
   /** `MODEL_API_KEY` for live and record mode; never used in fixture mode. */
   readonly apiKey: string | undefined;
   /** Record mode reads its settings from here. */
@@ -97,6 +105,14 @@ export interface PipelineExecution {
   readonly gates: GateRecords;
   /** Set when the run was left at `stopAtGate`. */
   readonly stoppedAt: StoppedAtGate | null;
+  /**
+   * Gate 1 as the run reached it (sides in gate order), and the decisions applied there (null
+   * when none were, e.g. the run stopped at the gate); null when the run never reached Gate 1.
+   */
+  readonly gate1: {
+    readonly conflicts: readonly GateConflict[];
+    readonly applied: readonly PlannedConflictDecision[] | null;
+  } | null;
   /** Set in fixtures and record modes; stopped, its counters final. */
   readonly replay: MetaReplay | undefined;
   readonly aliases: FixtureImageAliases;
@@ -176,9 +192,11 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
     if (mode !== 'live' && cassette !== null) {
       replay = createMetaReplay({
         cassette,
+        ...(options.fixturesDir === undefined ? {} : { fixturesDir: options.fixturesDir }),
         mode: mode === 'record' ? 'record' : 'replay',
         env,
         extend: mode === 'record',
+        retainUnused: options.retainUnused === true,
         match: fixtureMatchOptions(aliases),
         onInteraction: aliases.onInteraction,
       });
@@ -249,6 +267,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
     const gates: GateRecords = { factConflicts: null, claimAudit: null, unused: [] };
     let scriptFailure: string | null = null;
     let stoppedAt: StoppedAtGate | null = null;
+    let gate1: PipelineExecution['gate1'] = null;
     const run = await driveRun(created.id, {
       db,
       timeoutMs: options.timeoutMs,
@@ -257,6 +276,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
       async onStop(gateName) {
         if (gateName === 'fact_conflicts') {
           const gate = await factGate.get(user.id, created.id);
+          gate1 = { conflicts: gate.conflicts, applied: null };
           const conflicts = gate.conflicts.map((c) => `${c.id} ${c.key}`);
           gates.factConflicts = { conflictCount: gate.conflictCount, conflicts, decisions: [] };
           let scriptedDecisions: string[] | null = null;
@@ -283,6 +303,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
       },
       async onFactConflicts() {
         const gate = await factGate.get(user.id, created.id);
+        gate1 = { conflicts: gate.conflicts, applied: null };
         gates.factConflicts = {
           conflictCount: gate.conflictCount,
           conflicts: gate.conflicts.map((c) => `${c.id} ${c.key}`),
@@ -296,6 +317,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
               throw describeGateError(error);
             });
         }
+        gate1 = { conflicts: gate.conflicts, applied: plan.decisions };
         gates.factConflicts = {
           ...gates.factConflicts,
           decisions: plan.decisions.map((d) => ({
@@ -359,7 +381,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
     if (run.status === 'completed' && gates.factConflicts === null) {
       gates.factConflicts = { conflictCount: 0, conflicts: [], decisions: [] };
     }
-    return { run, scriptFailure, gates, stoppedAt, replay, aliases, photoNames };
+    return { run, scriptFailure, gates, stoppedAt, gate1, replay, aliases, photoNames };
   } finally {
     await boss?.stop({ graceful: false }).catch((error: unknown) => {
       logger.error({ err: error }, 'error while stopping pg-boss');

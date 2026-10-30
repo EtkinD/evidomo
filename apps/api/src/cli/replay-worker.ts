@@ -19,8 +19,10 @@ import { loadProject } from './project.ts';
 // `npm run dev:worker:replay` (docs/architecture.md §5 "Development seed"): the development
 // worker for runs made by `npm run dev:seed`. It registers the production step handlers, but its
 // Meta clients can only talk to the project's cassette through MSW, with a placeholder key: a
-// request the cassette does not hold fails the step, and any other host gets a network error.
-// So a run continued after a gate decision makes zero live calls.
+// request the cassette does not hold fails the step at once (non-retryable, with the
+// `REPLAY_MISS_REASON` of `runs/steps.ts`), and any other host gets a network error. So a run
+// continued after a gate decision makes zero live calls. A cassette may hold several recorded
+// Gate 1 paths (`recorded-paths.ts`); the worker serves whichever the decisions lead to.
 //
 // This is a separate entry from `worker.ts` on purpose: it imports MSW (a dev dependency that
 // the production image does not contain), refuses NODE_ENV=production, and needs the committed
@@ -40,6 +42,8 @@ export interface ReplayWorker {
   readonly runtime: WorkerRuntime;
   readonly replay: MetaReplay;
   readonly cassette: string;
+  /** The cassette's file (under the project's `fixtureDir`, default `fixtures/meta/`). */
+  readonly cassetteFile: string;
   /** Stops the worker, then the replay (requests of in-flight steps need it until they settle). */
   shutdown(): Promise<void>;
 }
@@ -77,10 +81,11 @@ export async function startReplayWorker(options: ReplayWorkerOptions): Promise<R
   if (cassette === null) {
     throw new DevSeedError(`${project.dir} has no "fixture" cassette; the worker replays one`);
   }
+  const cassetteFile = cassettePath(cassette, project.fixturesDir);
   try {
-    await access(cassettePath(cassette));
+    await access(cassetteFile);
   } catch {
-    throw new DevSeedError(`No recorded run at ${cassettePath(cassette)}`);
+    throw new DevSeedError(`No recorded run at ${cassetteFile}`);
   }
 
   const aliases = createFixtureImageAliases();
@@ -88,6 +93,7 @@ export async function startReplayWorker(options: ReplayWorkerOptions): Promise<R
   // Replay mode is fixed here; there is no flag, and the real MODEL_API_KEY is never read.
   const replay = createMetaReplay({
     cassette,
+    fixturesDir: project.fixturesDir,
     mode: 'replay',
     match: fixtureMatchOptions(aliases),
     onInteraction: aliases.onInteraction,
@@ -124,6 +130,7 @@ export async function startReplayWorker(options: ReplayWorkerOptions): Promise<R
     runtime,
     replay,
     cassette,
+    cassetteFile,
     shutdown() {
       stopping ??= stop();
       return stopping;

@@ -7,6 +7,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { createMetaClients } from './clients.ts';
 import { readCassette } from './fixtures.ts';
 import { createMetaReplay, REPLAY_PLACEHOLDER_API_KEY, replayModeFromEnv } from './replay.ts';
+import { isReplayMiss, modelServiceStatus } from './service-errors.ts';
 import { createInMemoryUsageRecorder } from './usage.ts';
 
 // A local stand-in for the Meta API exercises record mode end to end without spending credit.
@@ -347,6 +348,77 @@ describe('Meta record/replay', () => {
     await callBothSdks(fresh.apiKey, 'only step');
     await fresh.stop();
     expect(fresh.liveRequestCount).toBe(2);
+  });
+
+  it('holds several recorded paths in one cassette when unused interactions are retained', async () => {
+    // Path A: a shared step, then A's own step. Recorded first.
+    const recordPath = async (step: string): Promise<[string, string]> => {
+      const recorder = createMetaReplay({
+        cassette: 'multi-path',
+        mode: 'record',
+        baseURL,
+        fixturesDir,
+        env: { MODEL_API_KEY: SECRET },
+        extend: true,
+        retainUnused: true,
+      });
+      await recorder.start();
+      await callBothSdks(recorder.apiKey, 'shared step before the gate');
+      const answer = await callBothSdks(recorder.apiKey, step);
+      await recorder.stop();
+      return answer;
+    };
+    const answerA = await recordPath('path A after the gate');
+    expect(hits).toHaveLength(4);
+    hits.length = 0;
+    // Path B: the shared step comes from the cassette; only B's step goes live, and A's
+    // interactions, unused in this session, stay.
+    const answerB = await recordPath('path B after the gate, a longer prompt');
+    expect(hits).toHaveLength(2);
+    hits.length = 0;
+    const cassette = await readCassette(path.join(fixturesDir, 'multi-path.json'));
+    expect(cassette.interactions).toHaveLength(6);
+
+    // Each decision set replays its own responses, offline.
+    const player = createMetaReplay({
+      cassette: 'multi-path',
+      mode: 'replay',
+      baseURL,
+      fixturesDir,
+    });
+    await player.start();
+    try {
+      await callBothSdks(player.apiKey, 'shared step before the gate');
+      expect(await callBothSdks(player.apiKey, 'path A after the gate')).toEqual(answerA);
+      expect(await callBothSdks(player.apiKey, 'path B after the gate, a longer prompt')).toEqual(
+        answerB,
+      );
+      player.assertAllMatched();
+
+      // A path nobody recorded: a 404 the run engine recognizes as a replay miss, no retry.
+      const clients = createMetaClients({
+        apiKey: player.apiKey,
+        baseURL,
+        usage: createInMemoryUsageRecorder(),
+      });
+      const viaAiSdk: unknown = await generateText({
+        model: clients.languageModel(MODEL),
+        prompt: 'path C after the gate',
+        ...clients.aiSdkCallOptions(),
+      }).catch((error: unknown) => error);
+      const viaOpenAI: unknown = await clients.openai.responses
+        .create({ model: MODEL, input: 'path C after the gate' })
+        .catch((error: unknown) => error);
+      for (const error of [viaAiSdk, viaOpenAI]) {
+        expect(isReplayMiss(error)).toBe(true);
+        expect(modelServiceStatus(error)).toBe(404);
+      }
+      expect(player.unmatched).toHaveLength(2);
+      expect(player.liveRequestCount).toBe(0);
+      expect(hits).toHaveLength(0);
+    } finally {
+      await player.stop();
+    }
   });
 
   it('counts no live requests in replay mode', async () => {

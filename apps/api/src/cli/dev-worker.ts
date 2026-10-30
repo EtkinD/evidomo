@@ -22,7 +22,8 @@ fixtures/projects/synthetic-walkthrough), so continuing a run after a gate decis
 model calls. Use it instead of "npm run dev:worker", never beside it: both would work the same
 queue. Development only; refuses NODE_ENV=production.
 
-Only decisions the recording holds can be replayed: decide Gate 1 as "npm run dev:seed" prints.`;
+Only decisions the recording holds can be replayed: decide Gate 1 as one of the recorded paths
+"npm run dev:seed" prints. Any other decision fails the next step at once, with no live call.`;
 
 const REPO_ROOT = fileURLToPath(new URL('../../../../', import.meta.url));
 const DEFAULT_PROJECT = path.join(REPO_ROOT, 'fixtures', 'projects', 'synthetic-walkthrough');
@@ -72,7 +73,7 @@ async function main(): Promise<void> {
     });
     shutdownOnSignals({ engine: worker.runtime.engine, shutdown: () => worker.shutdown() }, logger);
     process.stderr.write(
-      `Replay worker started: cassette ${worker.cassette}, zero live model calls (Ctrl-C to stop)\n`,
+      `Replay worker started: cassette ${worker.cassetteFile}, zero live model calls (Ctrl-C to stop)\n`,
     );
   } catch (error) {
     if (error instanceof ProjectDirError || error instanceof DefinitionError) {
