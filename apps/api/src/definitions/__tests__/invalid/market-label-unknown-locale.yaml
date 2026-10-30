@@ -1,0 +1,23 @@
+# Test fixture: a minimal market profile with a translation in a language the web does not ship
+# (de) and a Dutch label that is not a string.
+market:
+  id: broken
+  version: 1
+  name: Broken fixture
+  source_languages: [en]
+  output_languages: [en]
+  default_output_language: en
+  units: { area: m2 }
+  area_bases:
+    - { id: net_internal, label: Net internal floor area }
+  facts:
+    - key: living_area
+      label: Living area
+      labels:
+        de: Wohnfläche
+        nl: 92
+      type: area
+      basis: net_internal
+      required: true
+  publication_checklist: []
+  flagged_phrasing: [exclusionary]

@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 import {
   apiErrorSchema,
   authUserResponseSchema,
+  localizedLabel,
   marketFormResponseSchema,
   marketListResponseSchema,
   projectDetailResponseSchema,
@@ -310,6 +311,7 @@ describe('GET /api/markets and /api/services', () => {
           id: 'nl',
           version: 1,
           name: 'Netherlands',
+          names: { tr: 'Hollanda', nl: 'Nederland', it: 'Paesi Bassi', es: 'Países Bajos' },
           outputLanguages: ['en', 'nl'],
           defaultOutputLanguage: 'en',
         },
@@ -322,6 +324,20 @@ describe('GET /api/markets and /api/services', () => {
     expect(market.facts.filter((fact) => fact.required).map((fact) => fact.key)).toEqual([
       'energy_label',
       'living_area',
+    ]);
+    // Translations travel with the English source, so the web picks one per UI language.
+    const living = market.facts.find((fact) => fact.key === 'living_area');
+    expect(living?.label).toBe('Living area (woonoppervlakte)');
+    expect(living ? localizedLabel(living, 'tr') : undefined).toBe('Yaşam alanı (woonoppervlakte)');
+    expect(living ? localizedLabel(living, 'nl') : undefined).toBe('Woonoppervlakte');
+    expect(localizedLabel({ label: market.name, labels: market.names }, 'es')).toBe('Países Bajos');
+    const international = marketFormResponseSchema.parse(
+      (await owner.agent.get('/api/markets/international/1')).body,
+    ).market;
+    const type = international.facts.find((fact) => fact.key === 'property_type');
+    expect(type?.type === 'enum' ? type.options.map((option) => option.labels.it) : []).toEqual([
+      'Appartamento',
+      'Casa',
     ]);
   });
 

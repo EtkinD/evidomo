@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { beforeAll, describe, expect, it } from 'vitest';
 import {
+  localizedLabel,
   marketFormResponseSchema,
   projectReadinessSchema,
   serviceResponseSchema,
@@ -22,12 +23,14 @@ import {
 } from './views.ts';
 
 let nl: MarketProfile;
+let international: MarketProfile;
 let service: ServiceDefinition;
 let capture: CaptureInputs;
 
 beforeAll(async () => {
   const definitions = await loadDefinitions();
   nl = definitions.getMarket('nl', 1);
+  international = definitions.getMarket('international', 1);
   service = definitions.getService('listing-launch', 1);
   capture = captureInputs(service);
 });
@@ -103,10 +106,15 @@ describe('marketForm', () => {
     expect(view.facts.find((fact) => fact.key === 'living_area')).toEqual({
       key: 'living_area',
       label: 'Living area (woonoppervlakte)',
+      labels: nl.facts.find((fact) => fact.key === 'living_area')?.labels,
       required: true,
       type: 'area',
       unit: 'm2',
-      basis: { id: 'NEN2580', label: nl.area_bases[0]?.label },
+      basis: {
+        id: 'NEN2580',
+        label: nl.area_bases[0]?.label,
+        labels: nl.area_bases[0]?.labels,
+      },
     });
     expect(view.facts.find((fact) => fact.key === 'build_year')).toMatchObject({
       type: 'integer',
@@ -123,6 +131,74 @@ describe('marketForm', () => {
       expect(serialized).not.toContain(internal);
     }
     expect(serialized).not.toContain('meterkast');
+  });
+});
+
+describe('marketForm translated labels', () => {
+  it('sends the English source and every translation of the market, fields, bases, and options', () => {
+    const view = marketForm(international);
+    expect(marketFormResponseSchema.parse({ market: view }).market).toEqual(view);
+    expect(view.name).toBe('International');
+    expect(view.names).toEqual({
+      tr: 'Uluslararası',
+      nl: 'Internationaal',
+      it: 'Internazionale',
+      es: 'Internacional',
+    });
+    expect(view.areaBases[0]?.labels.nl).toMatch(/^Netto binnenoppervlakte/);
+    expect(view.facts.find((fact) => fact.key === 'living_area')).toMatchObject({
+      label: 'Living area',
+      labels: {
+        tr: 'Yaşam alanı',
+        nl: 'Woonoppervlakte',
+        it: 'Superficie abitabile',
+        es: 'Superficie habitable',
+      },
+    });
+    const type = view.facts.find((fact) => fact.key === 'property_type');
+    expect(type).toMatchObject({
+      type: 'enum',
+      values: ['apartment', 'house'],
+      options: [
+        {
+          value: 'apartment',
+          label: 'Apartment',
+          labels: { tr: 'Daire', nl: 'Appartement', it: 'Appartamento', es: 'Apartamento' },
+        },
+        {
+          value: 'house',
+          label: 'House',
+          labels: { tr: 'Ev', nl: 'Huis', it: 'Casa', es: 'Casa' },
+        },
+      ],
+    });
+  });
+
+  it('shows an option without a label as its value, with no translations (energy classes)', () => {
+    const energy = marketForm(nl).facts.find((fact) => fact.key === 'energy_label');
+    expect(energy?.type === 'enum' ? energy.options.slice(0, 2) : []).toEqual([
+      { value: 'A++++', label: 'A++++', labels: {} },
+      { value: 'A+++', label: 'A+++', labels: {} },
+    ]);
+  });
+
+  it('sends empty maps for a profile without translations, so the web falls back to English', () => {
+    const plain: MarketProfile = {
+      ...international,
+      names: undefined,
+      area_bases: international.area_bases.map(({ labels: _labels, ...basis }) => basis),
+      facts: international.facts.map((fact) => {
+        const { labels: _labels, ...rest } = fact;
+        return rest;
+      }),
+    };
+    const view = marketForm(plain);
+    expect(view.names).toEqual({});
+    expect(view.areaBases.every((basis) => Object.keys(basis.labels).length === 0)).toBe(true);
+    expect(view.facts.every((fact) => Object.keys(fact.labels).length === 0)).toBe(true);
+    for (const fact of view.facts) {
+      expect(localizedLabel(fact, 'tr')).toBe(fact.label);
+    }
   });
 });
 

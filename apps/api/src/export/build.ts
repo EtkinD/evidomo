@@ -219,7 +219,7 @@ async function evaluateChecklist(
       ),
       claimDecisions,
     });
-    return evaluatePublicationChecklist(input);
+    return evaluatePublicationChecklist(input, { language: pack.outputLanguage });
   } catch (error) {
     if (error instanceof PublicationChecklistInputError) {
       // The loader's messages name IDs and counts only.
@@ -482,7 +482,7 @@ export async function buildRunExport(
 
   let portalFacts: PortalFields['facts'];
   try {
-    portalFacts = buildPortalFacts(market, facts, inventory.content);
+    portalFacts = buildPortalFacts(market, facts, inventory.content, pack.content.outputLanguage);
   } catch (error) {
     if (error instanceof CopyCatalogError) {
       throw new NonRetryableStepError(`The verified facts cannot be exported: ${error.message}`, {

@@ -5,6 +5,7 @@ import {
   type FactFormField,
   type FactFormValues,
   type JsonObject,
+  type LabelTranslations,
   type MarketForm,
   type MarketProfile,
   type MarketSummary,
@@ -34,21 +35,43 @@ export function marketSummary(market: MarketProfile): MarketSummary {
     id: market.id,
     version: market.version,
     name: market.name,
+    names: { ...market.names },
     outputLanguages: [...market.output_languages],
     defaultOutputLanguage: market.default_output_language,
   };
 }
 
+function areaBasisView(basis: MarketProfile['area_bases'][number]): {
+  id: string;
+  label: string;
+  labels: LabelTranslations;
+} {
+  return { id: basis.id, label: basis.label, labels: { ...basis.labels } };
+}
+
 function factField(market: MarketProfile, fact: MarketProfile['facts'][number]): FactFormField {
-  const common = { key: fact.key, label: fact.label, required: fact.required };
+  const common = {
+    key: fact.key,
+    label: fact.label,
+    labels: { ...fact.labels },
+    required: fact.required,
+  };
   switch (fact.type) {
     case 'enum':
-      return { ...common, type: 'enum', values: [...fact.values] };
+      return {
+        ...common,
+        type: 'enum',
+        values: [...fact.values],
+        options: fact.values.map((value) => {
+          const option = fact.option_labels?.[value];
+          return { value, label: option?.label ?? value, labels: { ...option?.labels } };
+        }),
+      };
     case 'area': {
       const basis = market.area_bases.find((candidate) => candidate.id === fact.basis);
       // The schema refuses an area fact whose basis is not listed, so this is a loader bug.
       if (basis === undefined) throw new Error(`Area basis ${fact.basis} missing in ${market.id}`);
-      return { ...common, type: 'area', unit: market.units.area, basis: { ...basis } };
+      return { ...common, type: 'area', unit: market.units.area, basis: areaBasisView(basis) };
     }
     case 'volume':
       if (market.units.volume === undefined) {
@@ -72,7 +95,7 @@ export function marketForm(market: MarketProfile): MarketForm {
     ...marketSummary(market),
     currency: market.currency ?? null,
     units: { area: market.units.area, volume: market.units.volume ?? null },
-    areaBases: market.area_bases.map((basis) => ({ id: basis.id, label: basis.label })),
+    areaBases: market.area_bases.map(areaBasisView),
     facts: market.facts.map((fact) => factField(market, fact)),
   };
 }

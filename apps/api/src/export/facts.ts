@@ -1,5 +1,6 @@
 import {
   FACT_SOURCE_KINDS,
+  localizedLabel,
   type FactSourceKind,
   type MarketFact,
   type MarketProfile,
@@ -53,6 +54,7 @@ function profileField(
   market: MarketProfile,
   marketFact: MarketFact,
   facts: readonly Fact[],
+  language: string,
 ): PortalProfileField {
   const carrying = profileFieldFacts(market, marketFact, facts);
   // Facts are scalars, so the JSON text identifies a value exactly (92 ≠ "92").
@@ -61,7 +63,7 @@ function profileField(
   const value = status === 'verified' ? (carrying[0]?.value ?? null) : null;
   const common = {
     key: marketFact.key,
-    label: marketFact.label,
+    label: localizedLabel(marketFact, language),
     required: marketFact.required,
     status,
     sources: sourcesOf(carrying),
@@ -83,7 +85,10 @@ function profileField(
         type: 'area',
         value: typeof value === 'number' ? value : null,
         unit: market.units.area,
-        basis: { id: marketFact.basis, label: basis?.label ?? marketFact.basis },
+        basis: {
+          id: marketFact.basis,
+          label: basis === undefined ? marketFact.basis : localizedLabel(basis, language),
+        },
       };
     }
     case 'volume':
@@ -128,15 +133,20 @@ function profileField(
 /**
  * Builds `facts` of the portal fields from the run's verified facts. `other:` facts are grouped
  * like the copy catalog (key + value + unit + basis); photo facts become presences without any
- * number. Throws `CopyCatalogError` for facts the catalog refuses (an opinion).
+ * number. Throws `CopyCatalogError` for facts the catalog refuses (an opinion). Profile field
+ * and basis labels are in the pack's output language when the profile translates them (English
+ * otherwise); values are never translated.
  */
 export function buildPortalFacts(
   market: MarketProfile,
   facts: readonly Fact[],
   inventory: CopyInventoryView | null,
+  language = 'en',
 ): PortalFields['facts'] {
   const verified = facts.filter((fact) => fact.status === 'verified');
-  const profile = market.facts.map((marketFact) => profileField(market, marketFact, verified));
+  const profile = market.facts.map((marketFact) =>
+    profileField(market, marketFact, verified, language),
+  );
   const other: PortalOtherFact[] = [];
   const presences: PortalPresence[] = [];
   if (verified.length > 0) {

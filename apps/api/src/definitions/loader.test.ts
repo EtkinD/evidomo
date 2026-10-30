@@ -173,6 +173,26 @@ describe('invalid definition files', () => {
     ]);
   });
 
+  it('reject a translation in an unknown language or of the wrong type, located at the key', async () => {
+    const source = await readInvalid('market-label-unknown-locale.yaml');
+    expect(issuesOf(parseMarketProfile(source, 'markets/x.yaml'))).toEqual([
+      {
+        file: 'markets/x.yaml',
+        line: 18,
+        column: 13,
+        path: 'market.facts[0].labels.nl',
+        message: 'Invalid input: expected string, received number',
+      },
+      {
+        file: 'markets/x.yaml',
+        line: 17,
+        column: 9,
+        path: 'market.facts[0].labels',
+        message: 'Unrecognized key: "de"',
+      },
+    ]);
+  });
+
   it('reject a publication checklist rule the evaluator does not implement, at boot', async () => {
     const nl = await readFile(path.join(DEFAULT_DEFINITIONS_DIR, 'markets/nl.v1.yaml'), 'utf8');
     const source = nl.replace('rule: staged_images_labeled', 'rule: photos_watermarked');

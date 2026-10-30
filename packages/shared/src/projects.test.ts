@@ -3,10 +3,47 @@ import { apiErrorSchema } from './api-error.ts';
 import {
   createProjectRequestSchema,
   definitionParamsSchema,
+  marketFormResponseSchema,
   putFactFormRequestSchema,
   startRunRequestSchema,
   updateProjectRequestSchema,
 } from './projects.ts';
+
+describe('market form response labels', () => {
+  const legacy = {
+    market: {
+      id: 'nl',
+      version: 1,
+      name: 'Netherlands',
+      outputLanguages: ['en', 'nl'],
+      defaultOutputLanguage: 'en',
+      currency: 'EUR',
+      units: { area: 'm2', volume: 'm3' },
+      areaBases: [{ id: 'NEN2580', label: 'NEN 2580' }],
+      facts: [
+        {
+          key: 'energy_label',
+          label: 'Energy label',
+          required: true,
+          type: 'enum',
+          values: ['A', 'B'],
+        },
+      ],
+    },
+  };
+
+  it('still parses a response without translation maps, reading them as empty', () => {
+    const { market } = marketFormResponseSchema.parse(legacy);
+    expect(market.names).toEqual({});
+    expect(market.areaBases[0]?.labels).toEqual({});
+    expect(market.facts[0]).toMatchObject({ labels: {}, options: [] });
+  });
+
+  it('rejects a translation map with an unknown language', () => {
+    const bad = { market: { ...legacy.market, names: { de: 'Niederlande' } } };
+    expect(marketFormResponseSchema.safeParse(bad).success).toBe(false);
+  });
+});
 
 describe('project API contracts', () => {
   it('parses definition path parameters strictly', () => {

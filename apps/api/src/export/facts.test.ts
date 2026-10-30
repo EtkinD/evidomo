@@ -105,6 +105,26 @@ describe('buildPortalFacts', () => {
     });
   });
 
+  it('labels fields and bases in the output language, with English as the fallback', () => {
+    const facts = [form('living_area', 92, 'm2', 'NEN2580')];
+    const dutch = buildPortalFacts(nl, facts, inventory, 'nl').profile;
+    const living = field(dutch, 'living_area');
+    expect(living).toMatchObject({ label: 'Woonoppervlakte', value: 92 });
+    expect(living.type === 'area' ? living.basis.label : '').toContain(
+      'NEN 2580-gebruiksoppervlakte',
+    );
+    for (const language of ['en', 'de', 'tr']) {
+      const profile = buildPortalFacts(nl, facts, inventory, language).profile;
+      // `tr` is translated by the profile, but never used by the pack: only the output language is.
+      expect(field(profile, 'build_year').label).toBe(
+        language === 'tr' ? 'Yapım yılı (bouwjaar)' : 'Build year (bouwjaar)',
+      );
+    }
+    expect(buildPortalFacts(nl, facts, inventory).profile).toEqual(
+      buildPortalFacts(nl, facts, inventory, 'en').profile,
+    );
+  });
+
   it('publishes no value for several different values or values off the profile measure', () => {
     const a = form('living_area', 92, 'm2', 'NEN2580');
     const b = form('living_area', 95, 'm2', 'NEN2580');

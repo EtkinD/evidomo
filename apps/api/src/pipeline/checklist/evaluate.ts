@@ -3,6 +3,7 @@ import {
   PUBLICATION_CHECKLIST_RULES_VERSION,
   STAGED_IMAGE_LABEL,
   isOverridablePhrasingCategory,
+  localizedLabel,
   publicationChecklistResultSchema,
   type ClaimAuditCategory,
   type ClaimAuditFlag,
@@ -341,8 +342,15 @@ function evaluateItem(
  */
 export function evaluatePublicationChecklist(
   input: PublicationChecklistInput,
+  /** Item labels come in this language when the profile translates them (`detail` stays English). */
+  options: { readonly language?: string } = {},
 ): PublicationChecklistResult {
-  const items = input.market.publication_checklist.map((item) => evaluateItem(item, input));
+  const items = input.market.publication_checklist.map((item) => {
+    const result = evaluateItem(item, input);
+    return options.language === undefined
+      ? result
+      : { ...result, label: localizedLabel(item, options.language) };
+  });
   const of = (status: PublicationChecklistItemResult['status']) =>
     items.filter((item) => item.status === status).length;
   const fail = of('fail');

@@ -2,6 +2,7 @@ import {
   PHRASING_CATEGORIES,
   STAGED_IMAGE_LABEL,
   isOverridablePhrasingCategory,
+  localizedLabel,
   phrasingCategorySchema,
   withDisplayUnit,
   type ClaimAuditCategory,
@@ -353,8 +354,13 @@ function renderRefused(decisions: Gate2Decisions, t: PackStrings): string {
 
 function renderWarnings(input: ListingPackHtmlInput, t: PackStrings): string {
   if (input.warnings.length === 0) return '';
-  const label = (key: string): string =>
-    input.market.facts.find((fact) => fact.key === key)?.label ?? humanizeKey(key);
+  const marketFact = (key: string) => input.market.facts.find((fact) => fact.key === key);
+  const label = (key: string): string => {
+    const fact = marketFact(key);
+    return fact === undefined
+      ? humanizeKey(key)
+      : localizedLabel(fact, input.fields.outputLanguage);
+  };
   const items = input.warnings
     .map((warning) => {
       switch (warning.kind) {
@@ -441,6 +447,10 @@ const EVIDOMO_MARK =
 export function renderListingPackHtml(input: ListingPackHtmlInput): string {
   const { fields } = input;
   const t = packStrings(fields.outputLanguage);
+  const marketName = localizedLabel(
+    { label: input.market.name, labels: input.market.names },
+    fields.outputLanguage,
+  );
   return [
     '<!doctype html>',
     `<html lang="${esc(fields.outputLanguage)}">`,
@@ -455,7 +465,7 @@ export function renderListingPackHtml(input: ListingPackHtmlInput): string {
     '<body>',
     '<main>',
     `<header><p class="agency">${esc(input.office.agencyName)}</p><h1>${esc(input.title)}</h1>` +
-      `<p class="meta">${esc(t.approved(formatApprovedAt(fields.approvedAt)))} · ${esc(t.market(input.market.name))}</p></header>`,
+      `<p class="meta">${esc(t.approved(formatApprovedAt(fields.approvedAt)))} · ${esc(t.market(marketName))}</p></header>`,
     renderNotice(input, t),
     `<section id="copy"><h2>${esc(t.copyTitle)}</h2>` +
       renderVariant(fields.copy.portal, t.portalTitle, t) +

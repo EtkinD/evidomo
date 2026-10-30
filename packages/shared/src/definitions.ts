@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { compareDecimalStrings } from './decimal.ts';
 import { gateSchema, usdAmountSchema } from './domain.ts';
+import { labelTranslationsSchema } from './labels.ts';
 import { findModelPrice, PRICE_TABLE } from './prices.ts';
 import { metaReasoningEffortSchema } from './reasoning.ts';
 import {
@@ -433,12 +434,18 @@ const areaBasisIdSchema = z
   .regex(/^[A-Za-z][A-Za-z0-9_]*$/, 'Expected an area basis ID such as "NEN2580"')
   .max(64);
 
-export const areaBasisSchema = z.strictObject({ id: areaBasisIdSchema, label: labelSchema });
+export const areaBasisSchema = z.strictObject({
+  id: areaBasisIdSchema,
+  label: labelSchema,
+  labels: labelTranslationsSchema.optional(),
+});
 export type AreaBasis = z.infer<typeof areaBasisSchema>;
 
 const factCommon = {
   key: keySchema,
   label: labelSchema,
+  /** Translations of `label` (docs/architecture.md §7); display only, never sent to a model. */
+  labels: labelTranslationsSchema.optional(),
   /** Required facts must be filled in the fact form before a run starts. */
   required: z.boolean().default(false),
 };
@@ -450,6 +457,17 @@ export const marketFactSchema = z.discriminatedUnion('type', [
     ...factCommon,
     type: z.literal('enum'),
     values: z.array(z.string().trim().min(1).max(40)).min(2),
+    /**
+     * Display labels of options, by value (a subset of `values`): the English label and its
+     * translations. Options without an entry are shown as their value, which suits codes such as
+     * the energy classes `A++` and `B`. The stored and submitted value is always the value.
+     */
+    option_labels: z
+      .record(
+        z.string(),
+        z.strictObject({ label: labelSchema, labels: labelTranslationsSchema.optional() }),
+      )
+      .optional(),
   }),
   z.strictObject({
     ...factCommon,
@@ -471,7 +489,12 @@ export const marketFactSchema = z.discriminatedUnion('type', [
 export type MarketFact = z.infer<typeof marketFactSchema>;
 export type MarketFactType = MarketFact['type'];
 
-const checklistCommon = { id: keySchema, label: labelSchema };
+const checklistCommon = {
+  id: keySchema,
+  label: labelSchema,
+  /** Translations of `label`; the pack shows the one for its output language. */
+  labels: labelTranslationsSchema.optional(),
+};
 
 export const publicationChecklistItemSchema = z.discriminatedUnion('rule', [
   /** The fact has a verified value in the pack. */
@@ -509,6 +532,8 @@ export const marketProfileSchema = z
     id: definitionIdSchema,
     version: definitionVersionSchema,
     name: labelSchema,
+    /** Translations of `name`. */
+    names: labelTranslationsSchema.optional(),
     source_languages: z.array(languageCodeSchema).min(1),
     output_languages: z.array(languageCodeSchema).min(1),
     default_output_language: languageCodeSchema,
@@ -557,6 +582,15 @@ export const marketProfileSchema = z
       switch (fact.type) {
         case 'enum':
           checkUnique(ctx, fact.values, (v) => ['facts', i, 'values', v], 'enum value');
+          for (const value of Object.keys(fact.option_labels ?? {})) {
+            if (!fact.values.includes(value)) {
+              ctx.addIssue({
+                code: 'custom',
+                path: ['facts', i, 'option_labels', value],
+                message: `Option label for "${value}", which is not one of the values`,
+              });
+            }
+          }
           break;
         case 'area':
           if (!bases.includes(fact.basis)) {

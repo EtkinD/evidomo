@@ -6,8 +6,9 @@ import type {
 } from '@evidomo/shared';
 
 // The HTML pack's fixed wording, in the market output languages of v1 (`en`, `nl`); other
-// languages fall back to English. Market labels, checklist details, and the "Virtually staged"
-// label come from their own sources and are not translated here.
+// languages fall back to English. Market labels come from the profile (translated there, picked
+// by output language); checklist details and the "Virtually staged" label come from their own
+// sources and are not translated here.
 
 export interface PackStrings {
   readonly packTitle: string;

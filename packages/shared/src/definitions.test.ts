@@ -315,6 +315,48 @@ describe('marketProfileSchema', () => {
   });
 });
 
+describe('marketProfileSchema translated labels', () => {
+  it('accepts translations on the name, facts, enum options, bases, and checklist items', () => {
+    const market = validMarket();
+    Object.assign(market, { names: { nl: 'Nederland' } });
+    Object.assign(market.facts[0] ?? {}, {
+      labels: { tr: 'Enerji sınıfı' },
+      option_labels: { A: { label: 'Class A', labels: { tr: 'A sınıfı' } }, B: { label: 'B' } },
+    });
+    Object.assign(market.facts[1] ?? {}, { labels: { nl: 'Woonoppervlakte', es: 'Superficie' } });
+    Object.assign(market.publication_checklist[1] ?? {}, { labels: { it: 'Etichettato' } });
+    const parsed = marketProfileSchema.parse(market);
+    expect(parsed.names).toEqual({ nl: 'Nederland' });
+    expect(parsed.facts[1]?.labels).toEqual({ nl: 'Woonoppervlakte', es: 'Superficie' });
+    expect(parsed.publication_checklist[1]?.labels).toEqual({ it: 'Etichettato' });
+  });
+
+  it('stays valid without any translation (the format is backward compatible)', () => {
+    const parsed = marketProfileSchema.parse(validMarket());
+    expect(parsed.names).toBeUndefined();
+    expect(parsed.facts[0]?.labels).toBeUndefined();
+  });
+
+  it('rejects an unknown locale and wrong types', () => {
+    const market = validMarket();
+    Object.assign(market.facts[1] ?? {}, { labels: { de: 'Wohnfläche', nl: 92 } });
+    Object.assign(market.area_bases ?? {}, { 0: { id: 'NEN2580', label: 'NEN', labels: 'nl' } });
+    expect(messages(marketProfileSchema.safeParse(market))).toEqual([
+      'area_bases.0.labels: Invalid input: expected object, received string',
+      'facts.1.labels.nl: Invalid input: expected string, received number',
+      'facts.1.labels: Unrecognized key: "de"',
+    ]);
+  });
+
+  it('rejects option labels for values that do not exist', () => {
+    const market = validMarket();
+    Object.assign(market.facts[0] ?? {}, { option_labels: { Z: { label: 'Z' } } });
+    expect(messages(marketProfileSchema.safeParse(market))).toEqual([
+      'facts.0.option_labels.Z: Option label for "Z", which is not one of the values',
+    ]);
+  });
+});
+
 describe('marketProfileSchema transcription keywords', () => {
   it('defaults to an empty list', () => {
     expect(marketProfileSchema.parse(validMarket()).transcription_keywords).toEqual([]);

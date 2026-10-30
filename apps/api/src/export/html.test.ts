@@ -156,19 +156,26 @@ const IMAGES: PortalImage[] = [
   },
 ];
 
-function checklist(facts: readonly Fact[]): PublicationChecklistResult {
-  return evaluatePublicationChecklist({
-    market: nl,
-    facts,
-    copy: { segments: [] },
-    claimAudit: null,
-    stagedImages: [
-      { artifactId: STAGED, disclosure: { label: STAGED_IMAGE_LABEL, visibleLabelRequired: true } },
-    ],
-  });
+function checklist(facts: readonly Fact[], language = 'en'): PublicationChecklistResult {
+  return evaluatePublicationChecklist(
+    {
+      market: nl,
+      facts,
+      copy: { segments: [] },
+      claimAudit: null,
+      stagedImages: [
+        {
+          artifactId: STAGED,
+          disclosure: { label: STAGED_IMAGE_LABEL, visibleLabelRequired: true },
+        },
+      ],
+    },
+    { language },
+  );
 }
 
 function fields(options: { energyLabel?: boolean; language?: string } = {}): PortalFields {
+  const language = options.language ?? 'en';
   const facts = [
     verified('living_area', 92.5, 'm2', 'NEN2580'),
     verified('build_year', 1932),
@@ -177,9 +184,9 @@ function fields(options: { energyLabel?: boolean; language?: string } = {}): Por
   ];
   return composePortalFields({
     runId: RUN,
-    pack: { artifactId: randomUUID(), content: pack({ outputLanguage: options.language ?? 'en' }) },
+    pack: { artifactId: randomUUID(), content: pack({ outputLanguage: language }) },
     market: nl,
-    facts: buildPortalFacts(nl, facts, null),
+    facts: buildPortalFacts(nl, facts, null, language),
     images: IMAGES,
     withheld: [
       {
@@ -190,7 +197,7 @@ function fields(options: { energyLabel?: boolean; language?: string } = {}): Por
         reason: 'privacy_review',
       },
     ],
-    checklist: checklist(facts),
+    checklist: checklist(facts, language),
   });
 }
 
@@ -420,6 +427,19 @@ describe('renderListingPackHtml', () => {
     expect(html).toContain('<html lang="nl">');
     expect(html).toContain('Nog niet klaar voor publicatie');
     expect(html).toContain('<td>92,5 m²</td>');
+  });
+
+  it('shows profile labels in the output language and keeps English for the source language', () => {
+    const dutch = renderListingPackHtml(input(fields({ language: 'nl' })));
+    expect(dutch).toContain('<th scope="row">Woonoppervlakte</th>');
+    expect(dutch).toContain('<th scope="row">Energielabel</th>');
+    expect(dutch).toContain('NEN 2580-gebruiksoppervlakte');
+    expect(dutch).toContain('Markt: Nederland');
+    expect(dutch).not.toContain('Living area');
+    // The profile's English label is the source text: the English pack is unchanged by labels.
+    const english = renderListingPackHtml(input(fields()));
+    expect(english).toContain('<th scope="row">Living area (woonoppervlakte)</th>');
+    expect(english).toContain('Market: Netherlands');
   });
 
   it('renders the approved Q&A cards escaped, and names an accepted answer as an override', () => {

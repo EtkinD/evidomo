@@ -108,6 +108,33 @@ describe('the real checklists', () => {
   });
 });
 
+describe('checklist item labels', () => {
+  it('are the English source by default and follow the requested language', () => {
+    const labels = (language?: string) =>
+      evaluatePublicationChecklist(input(nl), language === undefined ? {} : { language }).items.map(
+        (i) => i.label,
+      );
+    const english = ['The energy label class is shown in the listing'];
+    expect(labels().slice(0, 1)).toEqual(english);
+    expect(labels('en').slice(0, 1)).toEqual(english);
+    expect(labels('nl')).toEqual([
+      'De energielabelklasse staat in de advertentie',
+      'Elke virtueel gestylede afbeelding is als zodanig gemarkeerd',
+    ]);
+    // A language the profile does not translate reads English.
+    expect(labels('de')).toEqual(labels());
+  });
+
+  it('change nothing but the label', () => {
+    const plain = evaluatePublicationChecklist(input(nl));
+    const dutch = evaluatePublicationChecklist(input(nl), { language: 'nl' });
+    expect(dutch.summary).toEqual(plain.summary);
+    expect(dutch.items.map(({ label: _label, ...rest }) => rest)).toEqual(
+      plain.items.map(({ label: _label, ...rest }) => rest),
+    );
+  });
+});
+
 describe('fact_present (nl energy_label_shown)', () => {
   it('passes with a verified value, and records whether the copy cites it', () => {
     const label = fact();

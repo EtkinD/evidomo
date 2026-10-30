@@ -3,10 +3,19 @@
 # Generic residential facts in metric units. Every area states its measurement basis, so a
 # figure measured inside the walls is never mistaken for a contradiction with a gross figure.
 # Published versions are immutable: a change goes into international.v2.yaml.
+#
+# Translated labels: `labels` (and `names`, `option_labels`) carry tr, nl, it, and es text for the
+# web UI and the pack. The English `label` stays the source the pipeline reads; a missing
+# translation falls back to English. They are display-only, so adding one changes no run.
 market:
   id: international
   version: 1
   name: International
+  names:
+    tr: Uluslararası
+    nl: Internationaal
+    it: Internazionale
+    es: Internacional
 
   source_languages: [en]
   output_languages: [en]
@@ -19,67 +28,157 @@ market:
   area_bases:
     - id: net_internal
       label: Net internal floor area (usable floor space inside the walls, as stated by the agent)
+      labels:
+        tr: Net iç alan (duvarların içinde kalan kullanılabilir zemin alanı, emlakçı beyanına göre)
+        nl: Netto binnenoppervlakte (bruikbare vloeroppervlakte binnen de muren, zoals opgegeven door de makelaar)
+        it: Superficie interna netta (superficie calpestabile all'interno dei muri, come dichiarata dall'agente)
+        es: Superficie útil interior (superficie utilizable dentro de los muros, según indica el agente)
     - id: registered_plot
       label: Plot size as recorded in the land register
+      labels:
+        tr: Tapu sicilinde kayıtlı parsel büyüklüğü
+        nl: Perceelgrootte zoals geregistreerd in het kadaster
+        it: Superficie del lotto come risulta dal catasto
+        es: Superficie de la parcela según consta en el registro de la propiedad
 
   facts:
     - key: property_type
       label: Property type
+      labels:
+        tr: Gayrimenkul türü
+        nl: Woningtype
+        it: Tipologia di immobile
+        es: Tipo de inmueble
       type: enum
       values: [apartment, house]
+      option_labels:
+        apartment:
+          label: Apartment
+          labels:
+            tr: Daire
+            nl: Appartement
+            it: Appartamento
+            es: Apartamento
+        house:
+          label: House
+          labels:
+            tr: Ev
+            nl: Huis
+            it: Casa
+            es: Casa
       required: true
     - key: living_area
       label: Living area
+      labels:
+        tr: Yaşam alanı
+        nl: Woonoppervlakte
+        it: Superficie abitabile
+        es: Superficie habitable
       type: area
       basis: net_internal
       required: true
     - key: plot_area
       label: Plot area
+      labels:
+        tr: Parsel alanı
+        nl: Perceeloppervlakte
+        it: Superficie del lotto
+        es: Superficie de la parcela
       type: area
       basis: registered_plot
     - key: rooms
       label: Rooms
+      labels:
+        tr: Oda sayısı
+        nl: Aantal kamers
+        it: Numero di locali
+        es: Número de estancias
       type: integer
       min: 1
       max: 100
       required: true
     - key: bedrooms
       label: Bedrooms
+      labels:
+        tr: Yatak odası sayısı
+        nl: Aantal slaapkamers
+        it: Numero di camere da letto
+        es: Número de dormitorios
       type: integer
       min: 0
       max: 50
     - key: bathrooms
       label: Bathrooms
+      labels:
+        tr: Banyo sayısı
+        nl: Aantal badkamers
+        it: Numero di bagni
+        es: Número de baños
       type: integer
       min: 0
       max: 50
     - key: floors
       label: Floors in the property
+      labels:
+        tr: Mülkteki kat sayısı
+        nl: Aantal verdiepingen van de woning
+        it: Numero di piani dell'immobile
+        es: Número de plantas del inmueble
       type: integer
       min: 1
       max: 20
     - key: build_year
       label: Build year
+      labels:
+        tr: Yapım yılı
+        nl: Bouwjaar
+        it: Anno di costruzione
+        es: Año de construcción
       type: integer
       min: 1000
       max: 2100
     - key: outdoor_space
       label: Private outdoor space (garden, balcony, or terrace)
+      labels:
+        tr: Özel dış mekân (bahçe, balkon veya teras)
+        nl: Privé-buitenruimte (tuin, balkon of terras)
+        it: Spazio esterno privato (giardino, balcone o terrazza)
+        es: Espacio exterior privado (jardín, balcón o terraza)
       type: boolean
     - key: parking
       label: Private parking
+      labels:
+        tr: Özel otopark
+        nl: Eigen parkeerplaats
+        it: Posto auto privato
+        es: Plaza de aparcamiento privada
       type: boolean
 
   publication_checklist:
     - id: staging_disclosed
       label: Every virtually staged image is labeled as such
+      labels:
+        tr: Sanal olarak döşenen her görsel bu şekilde etiketlenmiştir
+        nl: Elke virtueel gestylede afbeelding is als zodanig gemarkeerd
+        it: Ogni immagine con home staging virtuale è etichettata come tale
+        es: Cada imagen con home staging virtual está etiquetada como tal
       rule: staged_images_labeled
     - id: no_exclusionary_language
       label: No exclusionary phrasing remains
+      labels:
+        tr: Dışlayıcı ifade kalmamıştır
+        nl: Er blijven geen uitsluitende formuleringen over
+        it: Non rimangono formulazioni discriminatorie
+        es: No queda ninguna formulación excluyente
       rule: no_flagged_phrasing
       category: exclusionary
     - id: no_investment_promises
       label: No price-appreciation or investment promises remain
+      labels:
+        tr: Değer artışı veya yatırım vaadi kalmamıştır
+        nl: Er blijven geen beloften over prijsstijging of beleggingsrendement over
+        it: Non rimangono promesse di rivalutazione o di rendimento dell'investimento
+        es: No quedan promesas de revalorización ni de rentabilidad de la inversión
       rule: no_flagged_phrasing
       category: investment_promise
 

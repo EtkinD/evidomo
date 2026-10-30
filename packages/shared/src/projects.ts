@@ -14,6 +14,7 @@ import {
   projectStatusSchema,
   runStatusSchema,
 } from './domain.ts';
+import { labelTranslationsSchema } from './labels.ts';
 import { materialFailureReasonSchema } from './materials.ts';
 
 // Project and input API contracts (docs/architecture.md §8 "Project and input API"): the market
@@ -44,10 +45,16 @@ export const definitionParamsSchema = z.strictObject({
     .transform(Number),
 });
 
+// A response that predates the maps (a stored fixture, an older server) still parses: a missing
+// map reads as "no translations" and the client shows the English source.
+const translationsSchema = labelTranslationsSchema.default({});
+
 export const marketSummarySchema = z.strictObject({
   id: definitionIdSchema,
   version: definitionVersionSchema,
   name: z.string(),
+  /** Translations of `name` by UI language; `{}` when there are none (see `localizedLabel`). */
+  names: translationsSchema,
   outputLanguages: z.array(languageCodeSchema).min(1),
   defaultOutputLanguage: languageCodeSchema,
 });
@@ -57,9 +64,31 @@ export type MarketSummary = z.infer<typeof marketSummarySchema>;
 export const marketListResponseSchema = z.strictObject({ markets: z.array(marketSummarySchema) });
 export type MarketListResponse = z.infer<typeof marketListResponseSchema>;
 
-const areaBasisViewSchema = z.strictObject({ id: z.string(), label: z.string() });
+/**
+ * Every `label` is the English source text; `labels` holds its translations by UI language (an
+ * empty object when there are none). `localizedLabel(source, locale)` picks one and falls back to
+ * English (docs/architecture.md §7, "Translated labels").
+ */
+const areaBasisViewSchema = z.strictObject({
+  id: z.string(),
+  label: z.string(),
+  labels: translationsSchema,
+});
 
-const fieldCommon = { key: z.string(), label: z.string(), required: z.boolean() };
+const fieldCommon = {
+  key: z.string(),
+  label: z.string(),
+  labels: translationsSchema,
+  required: z.boolean(),
+};
+
+/** An enum option: the submitted `value` and its display label (the value itself when unlabeled). */
+const enumOptionViewSchema = z.strictObject({
+  value: z.string(),
+  label: z.string(),
+  labels: translationsSchema,
+});
+export type EnumOptionView = z.infer<typeof enumOptionViewSchema>;
 
 /**
  * One fact form field, generated from a market fact. Validation rules (enforced by the server on
@@ -71,7 +100,16 @@ const fieldCommon = { key: z.string(), label: z.string(), required: z.boolean() 
  * - `boolean`: `true` or `false`.
  */
 export const factFormFieldSchema = z.discriminatedUnion('type', [
-  z.strictObject({ ...fieldCommon, type: z.literal('enum'), values: z.array(z.string()).min(2) }),
+  z.strictObject({
+    ...fieldCommon,
+    type: z.literal('enum'),
+    values: z.array(z.string()).min(2),
+    /**
+     * `values` in the same order, with display labels. Empty only in a response that predates
+     * options: the client then shows the values.
+     */
+    options: z.array(enumOptionViewSchema).default([]),
+  }),
   z.strictObject({
     ...fieldCommon,
     type: z.literal('area'),
