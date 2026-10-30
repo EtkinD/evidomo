@@ -169,22 +169,22 @@ The orchestrator (main session) delegates each task to its owner — see `.claud
 - [x] **P4-04 — Fact form**
   - Depends on: P2-02, P4-02
   - Done when: the form is generated from the market profile schema with validation and required fields.
-- [ ] **P4-05 — Run monitor**
+- [x] **P4-05 — Run monitor**
   - Depends on: P2-03
   - Done when: step progress and running cost update live over SSE.
-- [ ] **P4-06 — Gate 1 UI**
+- [x] **P4-06 — Gate 1 UI**
   - Depends on: P2-10, P4-05
   - Done when: each conflict shows both values with their evidence (form value, transcript turn with audio playback, photo) and can be resolved in one action.
 - [ ] **P4-07 — Review workspace (Gate 2)**
   - Depends on: P3-08, P4-05
   - Done when: flagged claims can be approved/edited/removed; clicking any claim shows its evidence (form field, transcript turn, or photo with mask overlay); staged images are compared side by side with originals.
-- [ ] **P4-08 — Pack viewer and export**
+- [x] **P4-08 — Pack viewer and export**
   - Depends on: P3-09
   - Done when: the pack renders in the browser, prints cleanly to PDF, and the JSON downloads.
 - [ ] **P4-09 — Demo replay mode**
   - Depends on: P4-05 … P4-08
   - Done when: a stored completed run replays from `run_events` with original timing at a public URL, without login and without model calls.
-- [ ] **P4-10 — Live-run access control**
+- [x] **P4-10 — Live-run access control**
   - Depends on: P4-01, P2-04
   - Done when: starting a live run requires an access code; per-IP and per-account rate limits apply; the global daily cap is enforced.
 
