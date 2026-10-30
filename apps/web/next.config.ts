@@ -32,9 +32,9 @@ export function pageExtensionsFor(phase: string): string[] {
     : DEFAULT_PAGE_EXTENSIONS;
 }
 
-// The showcase's candidate themes (src/styles/showcase.css) are global CSS, which Next only
+// The showcase's utility stylesheet (src/styles/showcase.css) is global CSS, which Next only
 // accepts from `_app`. `_app` imports the `showcase-styles` alias; production builds resolve it to
-// an empty file, so none of the candidate CSS is emitted.
+// an empty file, so none of the showcase CSS is emitted.
 export function showcaseStylesFor(phase: string): string {
   return phase === PHASE_DEVELOPMENT_SERVER
     ? './src/styles/showcase.css'

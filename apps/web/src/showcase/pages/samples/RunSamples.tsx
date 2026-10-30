@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { CheckIcon, ComboShell, Sample } from '../../combo/parts';
+import { CheckIcon, SampleShell, Sample } from '../../samples/parts';
 
 type StepStatus = 'done' | 'running' | 'paused' | 'waiting';
 
@@ -123,9 +123,12 @@ function Cost() {
       aria-labelledby="cost-title"
       className="flex flex-col gap-2 rounded-box border border-base-300 bg-base-100 p-4"
     >
-      <h3 id="cost-title" className="text-lg font-semibold">
-        Cost so far
-      </h3>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h3 id="cost-title" className="text-lg font-semibold">
+          Cost so far
+        </h3>
+        <span className="badge badge-outline">Visible in development only</span>
+      </div>
       <p className="text-3xl font-bold">
         $0.84 <span className="text-base font-normal text-base-content/70">of the $2.00 cap</span>
       </p>
@@ -161,7 +164,7 @@ function Paused() {
         last decision.
       </p>
       <div>
-        <Link href="/showcase/combo/review" className="btn btn-primary min-h-11">
+        <Link href="/showcase/samples/review" className="btn btn-primary min-h-11">
           Resolve conflicts
         </Link>
       </div>
@@ -196,12 +199,15 @@ function RunPage() {
   );
 }
 
-export function ComboRunPage() {
+export function SampleRunPage() {
   return (
-    <ComboShell title="Combination: run monitor">
-      <Sample id="H-RUN-1" title="Run monitor: steps, live cost, paused for review">
+    <SampleShell title="Sample: run monitor">
+      <Sample
+        id="H-RUN-1"
+        title="Run monitor: steps, paused for review (cost figures, here and per step, are visible in development only)"
+      >
         <RunPage />
       </Sample>
-    </ComboShell>
+    </SampleShell>
   );
 }

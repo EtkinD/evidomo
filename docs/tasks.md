@@ -194,10 +194,10 @@ The orchestrator (main session) delegates each task to its owner — see `.claud
 
 Design decisions are made in a dev-only showcase, and only what the founder approves there enters the design language (recorded in the `evidomo-theme` skill). Model-generated images are made with Muse Image tools off (no image or web search), so no third-party content enters the repository.
 
-- [ ] **P4B-01 — Design showcase**
+- [x] **P4B-01 — Design showcase**
   - Depends on: —
   - Done when: a `/showcase` area that exists only on the dev server (absent from production builds) presents three design directions across sub-pages for colour palettes, typography, logo, UI elements, and imagery/landing drafts, light and dark; Muse concept images are generated with tools off within the phase budget; exploration assets stay out of git.
-- [ ] **P4B-02 — Design language decision**
+- [x] **P4B-02 — Design language decision**
   - Depends on: P4B-01
   - Done when: the founder's showcase feedback is recorded in the `evidomo-theme` decision log, the chosen palette and typography are the `evidomo-light`/`evidomo-dark` tokens (contrast check passes), and the showcase's rejected candidates are removed.
 - [ ] **P4B-03 — Logo and brand assets**

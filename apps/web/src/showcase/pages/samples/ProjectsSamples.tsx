@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import { ChosenLockup } from '../../combo/logos';
-import { CheckIcon, ComboImage, ComboShell, Sample } from '../../combo/parts';
+import { Lockup } from '../../logo';
+import { CheckIcon, ApprovedImage, SampleShell, Sample } from '../../samples/parts';
 
 function AccountMenu() {
   return (
@@ -18,12 +18,12 @@ function AccountMenu() {
       <ul className="menu dropdown-content z-10 mt-1 w-56 rounded-box border border-base-300 bg-base-100 p-2 shadow-sm">
         <li className="menu-title truncate">agent@example.test</li>
         <li>
-          <Link href="/showcase/combo/projects" className="min-h-11!">
+          <Link href="/showcase/samples/projects" className="min-h-11!">
             Your projects
           </Link>
         </li>
         <li>
-          <Link href="/showcase/combo/auth" className="min-h-11!">
+          <Link href="/showcase/samples/auth" className="min-h-11!">
             Log out
           </Link>
         </li>
@@ -37,15 +37,15 @@ function SignedInHeader() {
     <header className="border-b border-base-300 bg-base-100">
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-2 px-4 py-2">
         <Link
-          href="/showcase/combo/landing"
+          href="/showcase/samples/landing"
           aria-label="Evidomo, home"
           className="inline-flex min-h-11 items-center"
         >
-          <ChosenLockup markClass="size-8" textClass="text-xl" />
+          <Lockup markClass="size-8" textClass="text-xl" />
         </Link>
         <nav aria-label="Account" className="flex items-center gap-1">
           <Link
-            href="/showcase/combo/projects"
+            href="/showcase/samples/projects"
             aria-current="page"
             className="btn btn-ghost min-h-11 font-semibold underline"
           >
@@ -139,7 +139,7 @@ function ProjectList() {
             <h2 className="text-3xl font-bold tracking-tight">Your projects</h2>
             <p className="text-base-content/70">Signed in as agent@example.test</p>
           </div>
-          <Link href="/showcase/combo/project" className="btn btn-primary min-h-11">
+          <Link href="/showcase/samples/project" className="btn btn-primary min-h-11">
             New project
           </Link>
         </div>
@@ -157,7 +157,7 @@ function ProjectList() {
                 <p className="text-sm">{project.meta}</p>
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="text-sm text-base-content/70">{project.updated}</p>
-                  <Link href="/showcase/combo/project" className="btn btn-outline min-h-11">
+                  <Link href="/showcase/samples/project" className="btn btn-outline min-h-11">
                     {project.action}
                     <span className="sr-only">: {project.title}</span>
                   </Link>
@@ -182,14 +182,14 @@ function EmptyState() {
         <div className="card border border-base-300 bg-base-100">
           <div className="card-body items-center gap-3 text-center">
             <div className="w-40 sm:w-52">
-              <ComboImage image="illustration" aspect="aspect-square" className="rounded-box" />
+              <ApprovedImage image="illustration" aspect="aspect-square" className="rounded-box" />
             </div>
             <h3 className="card-title text-2xl">No projects yet</h3>
             <p className="max-w-md text-base-content/70">
               A project holds one property: its photos, voice walkthrough, and listing pack. Start
               one when you are at the door.
             </p>
-            <Link href="/showcase/combo/project" className="btn btn-primary min-h-11">
+            <Link href="/showcase/samples/project" className="btn btn-primary min-h-11">
               New project
             </Link>
           </div>
@@ -199,9 +199,9 @@ function EmptyState() {
   );
 }
 
-export function ComboProjectsPage() {
+export function SampleProjectsPage() {
   return (
-    <ComboShell title="Combination: app shell and projects">
+    <SampleShell title="Sample: app shell and projects">
       <Sample id="H-SHELL-1" title="Signed-in header with account menu (tap the account button)">
         <div className="min-h-64">
           <SignedInHeader />
@@ -213,6 +213,6 @@ export function ComboProjectsPage() {
       <Sample id="H-EMPTY-1" title="Empty state with B2-ILL-1">
         <EmptyState />
       </Sample>
-    </ComboShell>
+    </SampleShell>
   );
 }

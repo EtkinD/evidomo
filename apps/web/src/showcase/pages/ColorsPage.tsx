@@ -1,6 +1,7 @@
 import { AA_TEXT, contrastRatio, oklchToHex } from '../contrast';
-import { PALETTES, THEME_NAMES, type DirectionId, type Mode } from '../palettes';
-import { Candidate, DirectionScope, EachDirection, ShowcaseShell } from '../ui';
+import { PALETTE, SHAPE, THEME_NAMES, type Mode } from '../palettes';
+import { SampleScope } from '../samples/parts';
+import { Candidate, ShowcaseShell } from '../ui';
 
 // Literal class names so Tailwind can see them.
 const ROLES = [
@@ -19,8 +20,8 @@ const ROLES = [
 
 type PairRow = { label: string; ratio: number };
 
-function pairsFor(direction: DirectionId, mode: Mode): PairRow[] {
-  const p = PALETTES[direction][mode];
+function pairsFor(mode: Mode): PairRow[] {
+  const p = PALETTE[mode];
   const rows: PairRow[] = [
     { label: 'Body text on base 100', ratio: contrastRatio(p['base-content'], p['base-100']) },
     { label: 'Body text on base 200', ratio: contrastRatio(p['base-content'], p['base-200']) },
@@ -57,25 +58,13 @@ function pairsFor(direction: DirectionId, mode: Mode): PairRow[] {
   return rows;
 }
 
-function PaletteCandidate({
-  direction,
-  mode,
-  id,
-}: {
-  direction: DirectionId;
-  mode: Mode;
-  id: string;
-}) {
-  const palette = PALETTES[direction][mode];
-  const rows = pairsFor(direction, mode);
+function PaletteSpecimen({ mode, id }: { mode: Mode; id: string }) {
+  const palette = PALETTE[mode];
+  const rows = pairsFor(mode);
   const worst = Math.min(...rows.map((row) => row.ratio));
   return (
-    <Candidate id={id} title={`${THEME_NAMES[direction][mode]} palette`}>
-      <DirectionScope
-        direction={direction}
-        mode={mode}
-        className="flex flex-col gap-4 rounded-box p-3"
-      >
+    <Candidate id={id} title={`${THEME_NAMES[mode]} palette`}>
+      <SampleScope mode={mode} className="flex flex-col gap-4 rounded-box p-3">
         <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
           {ROLES.map(({ role, label, swatch }) => (
             <li
@@ -83,7 +72,7 @@ function PaletteCandidate({
               className={`flex min-h-24 flex-col justify-between rounded-field border border-base-300 p-2 text-sm ${swatch}`}
             >
               <span className="font-medium">{label}</span>
-              <span className="sc-mono text-xs">{oklchToHex(palette[role])}</span>
+              <span className="font-mono text-xs">{oklchToHex(palette[role])}</span>
             </li>
           ))}
         </ul>
@@ -107,14 +96,14 @@ function PaletteCandidate({
                   <th scope="row" className="font-normal">
                     {row.label}
                   </th>
-                  <td className="sc-mono">{row.ratio.toFixed(2)}:1</td>
+                  <td className="font-mono">{row.ratio.toFixed(2)}:1</td>
                   <td>{row.ratio >= AA_TEXT ? 'Pass' : 'Fail'}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-      </DirectionScope>
+      </SampleScope>
     </Candidate>
   );
 }
@@ -122,14 +111,33 @@ function PaletteCandidate({
 export function ColorsPage() {
   return (
     <ShowcaseShell title="Colours">
-      <EachDirection
-        render={(direction) => (
-          <div className="grid gap-4 lg:grid-cols-2">
-            <PaletteCandidate direction={direction} mode="light" id={`${direction}-COL-1`} />
-            <PaletteCandidate direction={direction} mode="dark" id={`${direction}-COL-2`} />
-          </div>
-        )}
-      />
+      <div className="flex flex-col gap-4">
+        <div className="grid gap-4 lg:grid-cols-2">
+          <PaletteSpecimen mode="light" id="H-COL-1" />
+          <PaletteSpecimen mode="dark" id="H-COL-2" />
+        </div>
+        <Candidate id="H-SHAPE-1" title="Shape and density tokens (both themes)">
+          <ul className="grid gap-2 sm:grid-cols-3">
+            {[
+              { token: '--radius-selector', value: SHAPE.radiusSelector, cls: 'rounded-selector' },
+              { token: '--radius-field', value: SHAPE.radiusField, cls: 'rounded-field' },
+              { token: '--radius-box', value: SHAPE.radiusBox, cls: 'rounded-box' },
+            ].map((shape) => (
+              <li
+                key={shape.token}
+                className={`flex flex-col gap-1 border border-base-300 bg-base-200 p-3 ${shape.cls}`}
+              >
+                <code className="font-mono text-sm">{shape.token}</code>
+                <span className="font-mono text-sm text-base-content/70">{shape.value}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="text-sm text-base-content/70">
+            Border 1px, <code className="font-mono">--depth</code> 0 (flat, no depth shadows),{' '}
+            <code className="font-mono">--noise</code> 0.
+          </p>
+        </Candidate>
+      </div>
     </ShowcaseShell>
   );
 }

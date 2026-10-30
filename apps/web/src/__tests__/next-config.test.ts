@@ -37,7 +37,7 @@ describe('page extensions (dev-only showcase routes)', () => {
 });
 
 describe('showcase stylesheet alias', () => {
-  it('resolves to the candidate themes on the dev server only', () => {
+  it('resolves to the showcase stylesheet on the dev server only', () => {
     expect(nextConfig(PHASE_DEVELOPMENT_SERVER).turbopack?.resolveAlias).toEqual({
       'showcase-styles': './src/styles/showcase.css',
     });

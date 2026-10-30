@@ -1,12 +1,17 @@
 import Link from 'next/link';
 import { useState, type ReactNode } from 'react';
-import { assetUrl, useAssetManifest, type AssetItem } from '../assets';
+import {
+  APPROVED_IMAGES,
+  assetUrl,
+  useAssetManifest,
+  type ApprovedImageKey,
+  type AssetItem,
+} from '../assets';
 import { useMode } from '../mode';
-import { COMBO_THEME_NAMES, type Mode } from '../palettes';
+import { THEME_NAMES, type Mode } from '../palettes';
 import { NotGenerated, ShowcaseShell } from '../ui';
-import { LogoSwitch } from './logos';
 
-export const COMBO_PAGES = [
+export const SAMPLE_PAGES = [
   {
     slug: 'landing',
     label: 'Landing',
@@ -35,8 +40,11 @@ export const COMBO_PAGES = [
   { slug: 'auth', label: 'Log in', summary: 'The log in card with the logo.' },
 ] as const;
 
-/** Applies the combination theme (`combo-light` / `combo-dark`) and fonts to a subtree. */
-export function ComboScope({
+/**
+ * Pins a subtree to the light or dark product theme (the page's own mode when none is given). The
+ * `data-sample` marker lets tests find one themed view.
+ */
+export function SampleScope({
   mode: forced,
   className = '',
   children,
@@ -48,9 +56,9 @@ export function ComboScope({
   const { mode } = useMode();
   return (
     <div
-      data-theme={COMBO_THEME_NAMES[forced ?? mode]}
-      data-direction="combo"
-      className={`sc-body bg-base-100 text-base-content ${className}`}
+      data-theme={THEME_NAMES[forced ?? mode]}
+      data-sample
+      className={`bg-base-100 text-base-content ${className}`}
     >
       {children}
     </div>
@@ -81,35 +89,35 @@ export function Sample({
         <code className="badge badge-neutral font-mono">{id}</code>
         <span className="text-sm text-base-content/70">{title}</span>
       </div>
-      <ComboScope {...(mode === undefined ? {} : { mode })} className={className}>
+      <SampleScope {...(mode === undefined ? {} : { mode })} className={className}>
         {children}
-      </ComboScope>
+      </SampleScope>
     </section>
   );
 }
 
-/** Frame of the combo sample pages: the showcase shell, the logo switch, and the sample links. */
-export function ComboShell({ title, children }: { title: string; children: ReactNode }) {
+/** Frame of the sample pages: the showcase shell and the links between samples. */
+export function SampleShell({ title, children }: { title: string; children: ReactNode }) {
   return (
     <ShowcaseShell
       title={title}
       wide
       intro={
-        <div className="mb-4 flex flex-col gap-3">
-          <nav aria-label="Combination samples">
+        <div className="mb-4">
+          <nav aria-label="Samples">
             <ul className="flex flex-wrap gap-x-1">
               <li>
                 <Link
-                  href="/showcase/combo"
+                  href="/showcase/samples"
                   className="inline-flex min-h-11 items-center px-2 underline"
                 >
                   Overview
                 </Link>
               </li>
-              {COMBO_PAGES.map((page) => (
+              {SAMPLE_PAGES.map((page) => (
                 <li key={page.slug}>
                   <Link
-                    href={`/showcase/combo/${page.slug}`}
+                    href={`/showcase/samples/${page.slug}`}
                     className="inline-flex min-h-11 items-center px-2 underline"
                   >
                     {page.label}
@@ -118,7 +126,6 @@ export function ComboShell({ title, children }: { title: string; children: React
               ))}
             </ul>
           </nav>
-          <LogoSwitch />
         </div>
       }
     >
@@ -127,42 +134,23 @@ export function ComboShell({ title, children }: { title: string; children: React
   );
 }
 
-export const COMBO_IMAGES = {
-  hero: {
-    id: 'B2-HERO-1',
-    alt: 'A bright, empty canal-house living room with a limewashed brick wall and oak floor',
-  },
-  floor: {
-    id: 'B2-INT-1',
-    alt: 'Morning light across an oak herringbone floor that meets clay kitchen tiles',
-  },
-  fireplace: {
-    id: 'B2-INT-2',
-    alt: 'A limewashed brick fireplace with an oak mantel and a small plant',
-  },
-  illustration: {
-    id: 'B2-ILL-1',
-    alt: 'A rounded house with its front door open and a potted plant by the step',
-  },
-} as const;
-
-export type ComboImageKey = keyof typeof COMBO_IMAGES;
-
-type ComboItem =
+type ApprovedItem =
   | { readonly state: 'loading' }
   | { readonly state: 'missing' }
   | { readonly state: 'ready'; readonly item: AssetItem };
 
-function useComboItem(key: ComboImageKey): ComboItem {
+function useApprovedItem(key: ApprovedImageKey): ApprovedItem {
   const query = useAssetManifest();
   if (query.isPending) return { state: 'loading' };
   if (query.data?.status !== 'ready') return { state: 'missing' };
-  const item = query.data.manifest.items.find((candidate) => candidate.id === COMBO_IMAGES[key].id);
+  const item = query.data.manifest.items.find(
+    (candidate) => candidate.id === APPROVED_IMAGES[key].id,
+  );
   return item === undefined ? { state: 'missing' } : { state: 'ready', item };
 }
 
-/** One of the four chosen Muse images, in a fixed-ratio box so nothing shifts while it loads. */
-export function ComboImage({
+/** One of the four approved images, in a fixed-ratio box so nothing shifts while it loads. */
+export function ApprovedImage({
   image,
   aspect = 'aspect-3/2',
   className = '',
@@ -170,7 +158,7 @@ export function ComboImage({
   position = '',
   alt,
 }: {
-  image: ComboImageKey;
+  image: ApprovedImageKey;
   aspect?: string;
   className?: string;
   fit?: string;
@@ -178,21 +166,21 @@ export function ComboImage({
   position?: string;
   alt?: string;
 }) {
-  const state = useComboItem(image);
+  const state = useApprovedItem(image);
   const [failed, setFailed] = useState(false);
   const frame = `${aspect} w-full overflow-hidden bg-base-200 ${className}`;
   if (state.state === 'loading') return <div className={frame} aria-hidden />;
   if (state.state === 'missing' || failed) {
     return (
-      <NotGenerated what={COMBO_IMAGES[image].id} className={`${aspect} w-full ${className}`} />
+      <NotGenerated what={APPROVED_IMAGES[image].id} className={`${aspect} w-full ${className}`} />
     );
   }
   return (
     <div className={frame}>
-      {/* eslint-disable-next-line @next/next/no-img-element -- local exploration asset, not optimised on purpose */}
+      {/* eslint-disable-next-line @next/next/no-img-element -- local dev-only asset, not optimised on purpose */}
       <img
         src={assetUrl(state.item)}
-        alt={alt ?? COMBO_IMAGES[image].alt}
+        alt={alt ?? APPROVED_IMAGES[image].alt}
         width={state.item.width}
         height={state.item.height}
         loading="lazy"
@@ -204,9 +192,9 @@ export function ComboImage({
   );
 }
 
-/** The URL of a chosen image for places that need a string (evidence photos), or null. */
-export function useComboImageUrl(image: ComboImageKey): string | null {
-  const state = useComboItem(image);
+/** The URL of an approved image for places that need a string (evidence photos), or null. */
+export function useApprovedImageUrl(image: ApprovedImageKey): string | null {
+  const state = useApprovedItem(image);
   return state.state === 'ready' ? assetUrl(state.item) : null;
 }
 

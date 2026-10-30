@@ -1,61 +1,68 @@
 import Link from 'next/link';
-import { DIRECTIONS, SUB_PAGES } from '../directions';
-import { useMode } from '../mode';
-import { DirectionScope, ShowcaseShell } from '../ui';
+import { SHAPE, THEME_NAMES, type Mode } from '../palettes';
+import { SUB_PAGES } from '../sections';
+import { Candidate, ShowcaseShell } from '../ui';
+import { Lockup } from '../logo';
+import { SampleScope } from '../samples/parts';
+
+function ThemeSpecimen({ mode }: { mode: Mode }) {
+  return (
+    <SampleScope mode={mode} className="flex flex-col gap-4 rounded-box border border-base-300 p-4">
+      <span className="font-mono text-xs text-base-content/70">{THEME_NAMES[mode]}</span>
+      <Lockup markClass="size-10" textClass="text-2xl" />
+      <div className="flex flex-wrap gap-2" aria-hidden>
+        {[
+          'bg-primary',
+          'bg-secondary',
+          'bg-accent',
+          'bg-neutral',
+          'bg-base-200',
+          'bg-base-300',
+        ].map((cls) => (
+          <span key={cls} className={`size-10 rounded-field border border-base-300 ${cls}`} />
+        ))}
+      </div>
+      <h3 className="text-3xl font-bold tracking-tight">Every claim, linked to its evidence</h3>
+      <p>
+        Source Sans 3 for reading: the living area is 118 m² (Wohnfläche), the energy label is B.
+      </p>
+      <div className="flex flex-wrap items-center gap-2">
+        <button type="button" className="btn btn-primary min-h-11">
+          Primary
+        </button>
+        <button type="button" className="btn btn-outline min-h-11">
+          Outline
+        </button>
+        <span className="badge badge-success">Verified</span>
+        <span className="badge badge-secondary">Needs review</span>
+        <span className="badge badge-error">Conflict</span>
+      </div>
+    </SampleScope>
+  );
+}
 
 export function IndexPage() {
-  const { mode } = useMode();
   return (
-    <ShowcaseShell title="Design directions">
+    <ShowcaseShell title="Design language">
       <section
-        aria-labelledby="how-to"
+        aria-labelledby="about"
         className="mb-8 rounded-box border border-base-300 bg-base-100 p-4"
       >
-        <h2 id="how-to" className="text-xl font-semibold">
-          How to give feedback
+        <h2 id="about" className="text-xl font-semibold">
+          The approved language
         </h2>
         <p className="mt-2">
-          Every candidate carries a stable ID in the form{' '}
-          <code className="font-mono">B2-COL-2</code> (direction, area, number). Write feedback by
-          ID, for example &ldquo;B2-COL-2 keep, B3-TYPE-1 too sharp, B-BTN-1 keep with rounder
-          corners&rdquo;. Use the Light/Dark switch above; it applies to every sub-page. This area
-          exists on the dev server only.
+          Hearth Clay colours (light and dark), Hearth Canal type (Newsreader for headings, Source
+          Sans 3 for text) and sharper shapes (radius {SHAPE.radiusSelector} / {SHAPE.radiusField} /{' '}
+          {SHAPE.radiusBox}), the H-LOGO-1 mark, and four images. This is the living reference of
+          the product theme: every page here renders with <code>{THEME_NAMES.light}</code> or{' '}
+          <code>{THEME_NAMES.dark}</code>, switched with the Light/Dark control above. Specimens
+          carry a stable ID such as <code className="font-mono">H-LOGO-1</code>; use it when giving
+          feedback. This area exists on the dev server only.
         </p>
       </section>
 
-      <section aria-labelledby="directions" className="mb-8">
-        <h2 id="directions" className="mb-3 text-xl font-semibold">
-          Three Hearth studies
-        </h2>
-        <ul className="grid gap-4 md:grid-cols-3">
-          {DIRECTIONS.map((direction) => (
-            <li key={direction.id}>
-              <DirectionScope
-                direction={direction.id}
-                mode={mode}
-                className="flex h-full flex-col gap-3 rounded-box border border-base-300 p-4"
-              >
-                <h3 className="sc-display text-2xl font-bold">
-                  <span className="sc-mono">{direction.id}</span> {direction.name}
-                </h3>
-                <p className="font-medium text-primary">{direction.tagline}</p>
-                <p className="text-base-content/70">{direction.mood}</p>
-                <div className="flex gap-2" aria-hidden>
-                  <span className="size-8 rounded-field bg-primary" />
-                  <span className="size-8 rounded-field bg-secondary" />
-                  <span className="size-8 rounded-field bg-accent" />
-                  <span className="size-8 rounded-field border border-base-300 bg-base-200" />
-                </div>
-                <p className="sc-mono text-xs text-base-content/70">
-                  {direction.fonts.display} / {direction.fonts.body} / {direction.fonts.mono}
-                </p>
-              </DirectionScope>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section aria-labelledby="areas">
+      <section aria-labelledby="areas" className="mb-8">
         <h2 id="areas" className="mb-3 text-xl font-semibold">
           Areas
         </h2>
@@ -76,6 +83,18 @@ export function IndexPage() {
             </li>
           ))}
         </ul>
+      </section>
+
+      <section aria-labelledby="theme-title" className="mb-8">
+        <h2 id="theme-title" className="mb-3 text-xl font-semibold">
+          Theme specimen
+        </h2>
+        <Candidate id="H-THEME-1" title="Colours, type, shape, buttons, and badges in both themes">
+          <div className="grid gap-4 md:grid-cols-2">
+            <ThemeSpecimen mode="light" />
+            <ThemeSpecimen mode="dark" />
+          </div>
+        </Candidate>
       </section>
     </ShowcaseShell>
   );

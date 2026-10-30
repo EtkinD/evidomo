@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
-import { ChosenLockup } from '../../combo/logos';
-import { CheckIcon, ComboImage, ComboShell, Sample } from '../../combo/parts';
+import { Lockup } from '../../logo';
+import { CheckIcon, ApprovedImage, SampleShell, Sample } from '../../samples/parts';
 
 const CONTAINER = 'mx-auto w-full max-w-6xl px-4';
 const SECTION_PAD = 'py-12 md:py-20';
@@ -13,11 +13,11 @@ function Nav() {
         className={`${CONTAINER} flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-2`}
       >
         <Link
-          href="/showcase/combo/landing"
+          href="/showcase/samples/landing"
           aria-label="Evidomo, home"
           className="inline-flex min-h-11 items-center"
         >
-          <ChosenLockup />
+          <Lockup />
         </Link>
         <nav aria-label="Main" className="flex flex-wrap items-center gap-1">
           <a href="#h-how-1" className="btn btn-ghost hidden min-h-11 md:inline-flex">
@@ -26,10 +26,10 @@ function Nav() {
           <a href="#h-evid-1" className="btn btn-ghost hidden min-h-11 md:inline-flex">
             Evidence
           </a>
-          <Link href="/showcase/combo/auth" className="btn btn-ghost min-h-11">
+          <Link href="/showcase/samples/auth" className="btn btn-ghost min-h-11">
             Log in
           </Link>
-          <Link href="/showcase/combo/auth" className="btn btn-outline min-h-11">
+          <Link href="/showcase/samples/auth" className="btn btn-outline min-h-11">
             Create account
           </Link>
         </nav>
@@ -54,10 +54,10 @@ function Hero() {
             where every statement came from, so you approve facts, not guesses.
           </p>
           <div className="flex flex-wrap gap-3">
-            <Link href="/showcase/combo/review" className="btn btn-primary min-h-11">
+            <Link href="/showcase/samples/review" className="btn btn-primary min-h-11">
               Try the demo
             </Link>
-            <Link href="/showcase/combo/auth" className="btn btn-outline min-h-11">
+            <Link href="/showcase/samples/auth" className="btn btn-outline min-h-11">
               Create account
             </Link>
           </div>
@@ -66,7 +66,7 @@ function Hero() {
           </p>
         </div>
         <div className="relative">
-          <ComboImage image="hero" className="rounded-box" />
+          <ApprovedImage image="hero" className="rounded-box" />
           <div
             role="note"
             aria-label="Example evidence for the living area"
@@ -150,7 +150,7 @@ function HowItWorks() {
       <ol className="grid gap-6 md:grid-cols-3">
         {STEPS.map((step) => (
           <li key={step.n} className="card overflow-hidden border border-base-300 bg-base-100">
-            {step.image === null ? <PackPreview /> : <ComboImage image={step.image} />}
+            {step.image === null ? <PackPreview /> : <ApprovedImage image={step.image} />}
             <div className="card-body gap-2">
               <div className="flex items-center gap-3">
                 <span className="badge badge-primary font-mono">{step.n}</span>
@@ -254,7 +254,7 @@ function EvidenceHighlight() {
               </div>
               <p className="text-sm font-medium">Photo</p>
               <div className="relative">
-                <ComboImage
+                <ApprovedImage
                   image="floor"
                   aspect="aspect-4/3"
                   className="rounded-box"
@@ -321,13 +321,13 @@ function Cta() {
         </div>
         <div className="flex flex-wrap gap-3">
           <Link
-            href="/showcase/combo/review"
+            href="/showcase/samples/review"
             className="btn min-h-11 border-base-100 bg-base-100 text-base-content"
           >
             Try the demo
           </Link>
           <Link
-            href="/showcase/combo/auth"
+            href="/showcase/samples/auth"
             className="btn btn-ghost min-h-11 border-primary-content text-primary-content"
           >
             Create account
@@ -345,7 +345,7 @@ function Footer() {
         className={`${CONTAINER} flex flex-col gap-6 py-10 md:flex-row md:items-start md:justify-between`}
       >
         <div className="flex flex-col gap-2">
-          <ChosenLockup />
+          <Lockup />
           <p className="max-w-xs text-sm text-base-content/70">
             Evidence-linked listing packs for estate agents. Synthetic sample content.
           </p>
@@ -354,7 +354,7 @@ function Footer() {
           {[
             ['How it works', '#h-how-1'],
             ['Evidence', '#h-evid-1'],
-            ['Log in', '/showcase/combo/auth'],
+            ['Log in', '/showcase/samples/auth'],
           ].map(([label, href]) =>
             href?.startsWith('#') ? (
               <a key={label} href={href} className="inline-flex min-h-11 items-center underline">
@@ -376,9 +376,9 @@ function Footer() {
   );
 }
 
-export function ComboLandingPage() {
+export function SampleLandingPage() {
   return (
-    <ComboShell title="Combination: landing page">
+    <SampleShell title="Sample: landing page">
       <Sample id="H-NAV-1" title="Header with logo and navigation">
         <Nav />
       </Sample>
@@ -400,6 +400,6 @@ export function ComboLandingPage() {
       <Sample id="H-FOOT-1" title="Footer">
         <Footer />
       </Sample>
-    </ComboShell>
+    </SampleShell>
   );
 }

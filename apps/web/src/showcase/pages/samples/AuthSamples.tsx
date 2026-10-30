@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { useId } from 'react';
-import { ChosenLockup } from '../../combo/logos';
-import { ComboShell, Sample } from '../../combo/parts';
+import { Lockup } from '../../logo';
+import { SampleShell, Sample } from '../../samples/parts';
 
 function LoginCard() {
   const email = useId();
@@ -11,7 +11,7 @@ function LoginCard() {
       <div className="card w-full max-w-sm border border-base-300 bg-base-100 shadow-sm">
         <form className="card-body gap-5" noValidate onSubmit={(event) => event.preventDefault()}>
           <div className="flex flex-col items-center gap-2 text-center">
-            <ChosenLockup markClass="size-12" textClass="text-3xl" />
+            <Lockup markClass="size-12" textClass="text-3xl" />
             <h2 className="card-title text-2xl">Log in</h2>
             <p className="text-sm text-base-content/70">Back to your listing packs.</p>
           </div>
@@ -43,7 +43,7 @@ function LoginCard() {
           </button>
           <p className="text-center text-sm">
             New here?{' '}
-            <Link href="/showcase/combo/auth" className="link inline-flex min-h-11 items-center">
+            <Link href="/showcase/samples/auth" className="link inline-flex min-h-11 items-center">
               Create an account
             </Link>
           </p>
@@ -53,12 +53,12 @@ function LoginCard() {
   );
 }
 
-export function ComboAuthPage() {
+export function SampleAuthPage() {
   return (
-    <ComboShell title="Combination: log in">
+    <SampleShell title="Sample: log in">
       <Sample id="H-AUTH-1" title="Log in card with the logo">
         <LoginCard />
       </Sample>
-    </ComboShell>
+    </SampleShell>
   );
 }

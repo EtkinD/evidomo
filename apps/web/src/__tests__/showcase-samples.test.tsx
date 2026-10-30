@@ -6,18 +6,17 @@ import { setRoute } from './router-mock';
 import { jsonResponse } from './test-utils';
 
 vi.mock('next/router', () => import('./router-mock'));
-vi.mock('../showcase/fonts', () => ({ FONT_VARIABLE_CLASSES: '' }));
 
 const { ModeProvider } = await import('../showcase/mode');
-const { ComboAuthPage } = await import('../showcase/pages/combo/AuthSamples');
-const { ComboIndexPage } = await import('../showcase/pages/combo/ComboIndexPage');
-const { ComboLandingPage } = await import('../showcase/pages/combo/LandingSamples');
-const { ComboProjectPage } = await import('../showcase/pages/combo/ProjectSamples');
-const { ComboProjectsPage } = await import('../showcase/pages/combo/ProjectsSamples');
-const { ComboReviewPage } = await import('../showcase/pages/combo/ReviewSamples');
-const { ComboRunPage } = await import('../showcase/pages/combo/RunSamples');
-const { COMBO_LOGOS, setComboLogo } = await import('../showcase/combo/logos');
-const { SUB_PAGES } = await import('../showcase/directions');
+const { APPROVED_IMAGE_IDS } = await import('../showcase/assets');
+const { SAMPLE_PAGES } = await import('../showcase/samples/parts');
+const { SampleAuthPage } = await import('../showcase/pages/samples/AuthSamples');
+const { SamplesIndexPage } = await import('../showcase/pages/samples/SamplesIndexPage');
+const { SampleLandingPage } = await import('../showcase/pages/samples/LandingSamples');
+const { SampleProjectPage } = await import('../showcase/pages/samples/ProjectSamples');
+const { SampleProjectsPage } = await import('../showcase/pages/samples/ProjectsSamples');
+const { SampleReviewPage } = await import('../showcase/pages/samples/ReviewSamples');
+const { SampleRunPage } = await import('../showcase/pages/samples/RunSamples');
 
 const item = (id: string, direction: string, kind: string, file: string, size = 1536) => ({
   id,
@@ -37,7 +36,6 @@ const manifest = {
     item('B2-INT-1', 'B2', 'interior', 'B2/interior-1.webp'),
     item('B2-INT-2', 'B2', 'interior', 'B2/interior-2.webp'),
     item('B2-ILL-1', 'B2', 'illustration', 'B2/illustration-1.webp'),
-    item('B3-LOGO-2', 'B3', 'logo-concept', 'B3/logo-2.webp'),
   ],
 };
 
@@ -79,23 +77,29 @@ afterEach(() => {
   setRoute('/');
 });
 
-describe('combination sample pages', () => {
+describe('sample pages', () => {
   const pages: [string, () => ReactElement, string[]][] = [
     [
       'landing',
-      () => <ComboLandingPage />,
+      () => <SampleLandingPage />,
       ['H-NAV-1', 'H-HERO-1', 'H-HOW-1', 'H-EVID-1', 'H-TRUST-1', 'H-CTA-1', 'H-FOOT-1'],
     ],
-    ['projects', () => <ComboProjectsPage />, ['H-SHELL-1', 'H-LIST-1', 'H-EMPTY-1']],
-    ['project', () => <ComboProjectPage />, ['H-MAT-1', 'H-FORM-1', 'H-READY-1']],
-    ['run', () => <ComboRunPage />, ['H-RUN-1']],
-    ['auth', () => <ComboAuthPage />, ['H-AUTH-1']],
-    [
-      'index',
-      () => <ComboIndexPage />,
-      ['H-THEME-1', 'H-LOGO-1', 'H-LOGO-2', 'H-LOGO-3', 'H-LOGO-REF', 'H-IMG-1'],
-    ],
+    ['projects', () => <SampleProjectsPage />, ['H-SHELL-1', 'H-LIST-1', 'H-EMPTY-1']],
+    ['project', () => <SampleProjectPage />, ['H-MAT-1', 'H-FORM-1', 'H-READY-1']],
+    ['run', () => <SampleRunPage />, ['H-RUN-1']],
+    ['auth', () => <SampleAuthPage />, ['H-AUTH-1']],
   ];
+
+  it('the overview links to every sample page', () => {
+    stubFetch(false);
+    renderPage(<SamplesIndexPage />);
+    for (const { slug, label } of SAMPLE_PAGES) {
+      const link = screen.getAllByRole('link', { name: label }).find((candidate) => {
+        return candidate.getAttribute('href') === `/showcase/samples/${slug}`;
+      });
+      expect(link).toBeDefined();
+    }
+  });
 
   it.each(pages)('%s renders its H- IDs', (_name, page, ids) => {
     stubFetch(false);
@@ -108,10 +112,10 @@ describe('combination sample pages', () => {
     (_n, page) => {
       stubFetch(false);
       renderPage(page());
-      // A themed surface is one view: the specimen shows a light and a dark one side by side.
-      for (const scope of document.querySelectorAll('[data-direction="combo"]')) {
+      // Each themed surface is one view.
+      for (const scope of document.querySelectorAll('[data-sample]')) {
         const own = [...scope.querySelectorAll('.btn-primary')].filter(
-          (button) => button.closest('[data-direction="combo"]') === scope,
+          (button) => button.closest('[data-sample]') === scope,
         );
         expect(own.length).toBeLessThanOrEqual(1);
       }
@@ -121,80 +125,66 @@ describe('combination sample pages', () => {
     },
   );
 
-  it('is the first item of the showcase navigation', () => {
-    expect(SUB_PAGES[0]?.slug).toBe('combo');
-  });
-
-  it('shows the chosen logo in the samples and lets the switch change it', () => {
+  it('shows the H-LOGO-1 lockup in the samples', () => {
     stubFetch(false);
-    setComboLogo('H-LOGO-2');
-    renderPage(<ComboAuthPage />);
-    const switcher = screen.getByRole('group', { name: 'Logo in the samples' });
-    expect(within(switcher).getAllByRole('button')).toHaveLength(COMBO_LOGOS.length);
-    expect(
-      within(switcher).getByRole('button', { name: 'H-LOGO-2' }).getAttribute('aria-pressed'),
-    ).toBe('true');
-    fireEvent.click(within(switcher).getByRole('button', { name: 'H-LOGO-3' }));
-    expect(
-      within(switcher).getByRole('button', { name: 'H-LOGO-3' }).getAttribute('aria-pressed'),
-    ).toBe('true');
+    renderPage(<SampleAuthPage />);
     expect(screen.getAllByText('Evidomo').length).toBeGreaterThan(0);
+    expect(screen.queryByRole('group', { name: /Logo in the samples/ })).toBeNull();
   });
 
-  it('uses the combination theme in light and dark', () => {
+  it('uses the product theme in light and dark, and no candidate theme', () => {
     stubFetch(false);
-    const { container, unmount } = renderPage(<ComboRunPage />);
-    expect(
-      container.querySelector('[data-theme="combo-light"][data-direction="combo"]'),
-    ).not.toBeNull();
+    const { container, unmount } = renderPage(<SampleRunPage />);
+    expect(container.querySelector('[data-sample][data-theme="evidomo-light"]')).not.toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Dark' }));
-    expect(container.querySelector('[data-theme="combo-dark"]')).not.toBeNull();
+    expect(container.querySelector('[data-sample][data-theme="evidomo-dark"]')).not.toBeNull();
+    expect(container.querySelector('[data-direction]')).toBeNull();
     unmount();
   });
 
   it('run monitor: readable step names, no internal step IDs, cost against the cap', () => {
     stubFetch(false);
-    renderPage(<ComboRunPage />);
+    renderPage(<SampleRunPage />);
     expect(screen.getByText('Reading the walkthrough')).toBeDefined();
     expect(document.body.textContent).not.toMatch(
       /extract_facts|[a-z]+_[a-z]+_?[a-z]*\b(?=.*step)/,
     );
-    expect(screen.getByRole('progressbar', { name: 'Cost against the cap' })).toBeDefined();
+    const cost = screen.getByRole('region', { name: 'Cost so far' });
+    expect(within(cost).getByText('Visible in development only')).toBeDefined();
+    expect(within(cost).getByRole('progressbar', { name: 'Cost against the cap' })).toBeDefined();
     expect(screen.getByRole('link', { name: 'Resolve conflicts' })).toBeDefined();
   });
 
   it('project page: the field error is linked to its input', () => {
     stubFetch(false);
-    renderPage(<ComboProjectPage />);
+    renderPage(<SampleProjectPage />);
     const input = screen.getByRole('textbox', { name: 'Energy label' });
     expect(input.getAttribute('aria-invalid')).toBe('true');
     const message = document.getElementById(input.getAttribute('aria-describedby') ?? '');
     expect(message?.textContent).toContain('Use a label from A to G.');
   });
 
-  it('images: the four chosen ones render from the manifest, and placeholders when it is missing', async () => {
+  it('images: approved ones render from the manifest, and placeholders when it is missing', async () => {
     stubFetch(true);
-    const { unmount } = renderPage(<ComboIndexPage />);
-    await waitFor(() => expect(document.querySelectorAll('img[data-asset-id]').length).toBe(4));
-    expect(
-      [...document.querySelectorAll('img[data-asset-id]')]
-        .map((img) => img.getAttribute('data-asset-id'))
-        .sort(),
-    ).toEqual(['B2-HERO-1', 'B2-ILL-1', 'B2-INT-1', 'B2-INT-2']);
+    const { unmount } = renderPage(<SampleLandingPage />);
+    await waitFor(() =>
+      expect(document.querySelectorAll('img[data-asset-id]').length).toBeGreaterThan(0),
+    );
+    for (const img of document.querySelectorAll('img[data-asset-id]')) {
+      expect(APPROVED_IMAGE_IDS).toContain(img.getAttribute('data-asset-id'));
+    }
     unmount();
 
     stubFetch(false);
-    renderPage(<ComboIndexPage />);
-    await waitFor(() =>
-      expect(screen.getAllByText(/not generated yet/).length).toBeGreaterThanOrEqual(4),
-    );
+    renderPage(<SampleLandingPage />);
+    await waitFor(() => expect(screen.getAllByText(/not generated yet/).length).toBeGreaterThan(0));
   });
 });
 
-describe('combination review gates (the real views on sample data)', () => {
+describe('review gates (the real views on sample data)', () => {
   it('gate 1: one conflict with form, voice turn and photo evidence, and a decision that sticks', async () => {
     stubFetch(true);
-    renderPage(<ComboReviewPage />);
+    renderPage(<SampleReviewPage />);
     const card = await screen.findByRole('group', { name: 'Rooms' });
     expect(within(card).getAllByText(/4 rooms|^4$/).length).toBeGreaterThan(0);
     // The three evidence kinds of the one card.
@@ -219,7 +209,7 @@ describe('combination review gates (the real views on sample data)', () => {
 
   it('gate 2: one flagged claim with evidence, edit and remove, decided in memory', async () => {
     stubFetch(true);
-    renderPage(<ComboReviewPage />);
+    renderPage(<SampleReviewPage />);
     const claim = await screen.findByRole('group', {
       name: /It has 4 rooms that are bright and quiet/,
     });
@@ -234,7 +224,7 @@ describe('combination review gates (the real views on sample data)', () => {
 
   it('restores fetch when the page unmounts', async () => {
     stubFetch(true);
-    const { unmount } = renderPage(<ComboReviewPage />);
+    const { unmount } = renderPage(<SampleReviewPage />);
     await screen.findByRole('group', { name: 'Rooms' });
     expect(globalThis.fetch).not.toBe(realFetch);
     unmount();

@@ -1,11 +1,9 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useState, type ReactNode } from 'react';
-import { assetUrl, useAssetManifest, type AssetItem } from './assets';
-import { DIRECTIONS, SUB_PAGES, directionById } from './directions';
-import { FONT_VARIABLE_CLASSES } from './fonts';
+import { assetUrl, type AssetItem } from './assets';
 import { useMode } from './mode';
-import { THEME_NAMES, type DirectionId } from './palettes';
+import { SUB_PAGES } from './sections';
 
 export function ModeSwitch() {
   const { mode, setMode } = useMode();
@@ -26,10 +24,7 @@ export function ModeSwitch() {
   );
 }
 
-/**
- * Page frame of every showcase page. The chrome uses the product theme; candidates sit inside
- * `DirectionScope`s with their own theme.
- */
+/** Page frame of every showcase page, in the product theme (`evidomo-light` / `evidomo-dark`). */
 export function ShowcaseShell({
   title,
   children,
@@ -38,7 +33,7 @@ export function ShowcaseShell({
 }: {
   title: string;
   children: ReactNode;
-  /** Full-width content below the title (the combination's sample pages); `intro` sits above it. */
+  /** Full-width content below the title (the sample pages); `intro` sits above it. */
   wide?: boolean;
   intro?: ReactNode;
 }) {
@@ -47,7 +42,7 @@ export function ShowcaseShell({
   return (
     <div
       data-theme={`evidomo-${mode}`}
-      className={`${FONT_VARIABLE_CLASSES} flex min-h-dvh flex-col bg-base-200 text-base-content`}
+      className="flex min-h-dvh flex-col bg-base-200 text-base-content"
     >
       <header className="border-b border-base-300 bg-base-100 px-4 py-3">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-2">
@@ -86,7 +81,8 @@ export function ShowcaseShell({
         <div className={wide ? 'mx-auto w-full max-w-6xl px-4 pt-6' : ''}>
           <h1 className="mb-1 text-3xl font-bold">{title}</h1>
           <p className="mb-6 text-sm text-base-content/70">
-            Give feedback by ID, for example &ldquo;B2-COL-2 yes, B3-TYPE-1 no&rdquo;.
+            The approved design language, rendered with the product theme. Give feedback by ID, for
+            example &ldquo;H-HERO-1 more air&rdquo;.
           </p>
           {intro}
         </div>
@@ -96,51 +92,7 @@ export function ShowcaseShell({
   );
 }
 
-/** Applies a direction's theme and fonts to its subtree. */
-export function DirectionScope({
-  direction,
-  mode,
-  className = '',
-  children,
-}: {
-  direction: DirectionId;
-  mode: 'light' | 'dark';
-  className?: string;
-  children: ReactNode;
-}) {
-  return (
-    <div
-      data-theme={THEME_NAMES[direction][mode]}
-      data-direction={direction}
-      className={`sc-body bg-base-100 text-base-content ${className}`}
-    >
-      {children}
-    </div>
-  );
-}
-
-/** One directional section of a sub-page: heading with name and tagline. */
-export function DirectionSection({
-  direction,
-  children,
-}: {
-  direction: DirectionId;
-  children: ReactNode;
-}) {
-  const info = directionById(direction);
-  const headingId = `direction-${direction}`;
-  return (
-    <section aria-labelledby={headingId} className="mb-10 flex flex-col gap-4">
-      <h2 id={headingId} className="text-2xl font-bold">
-        <span className="font-mono">{direction}</span> {info.name}{' '}
-        <span className="text-base font-normal text-base-content/70">{info.tagline}</span>
-      </h2>
-      {children}
-    </section>
-  );
-}
-
-/** A candidate with its stable feedback ID. */
+/** A specimen with its stable feedback ID. */
 export function Candidate({
   id,
   title,
@@ -164,18 +116,6 @@ export function Candidate({
   );
 }
 
-export function EachDirection({ render }: { render: (direction: DirectionId) => ReactNode }) {
-  return (
-    <>
-      {DIRECTIONS.map((direction) => (
-        <DirectionSection key={direction.id} direction={direction.id}>
-          {render(direction.id)}
-        </DirectionSection>
-      ))}
-    </>
-  );
-}
-
 /** Shown when the Muse manifest or a single file does not exist. */
 export function NotGenerated({ what, className = '' }: { what: string; className?: string }) {
   return (
@@ -196,7 +136,7 @@ export function AssetFigure({ item, aspectClass = '' }: { item: AssetItem; aspec
       {failed ? (
         <NotGenerated what={`File ${item.file}`} className={`min-h-40 ${aspectClass}`} />
       ) : (
-        // eslint-disable-next-line @next/next/no-img-element -- local exploration asset, not optimised on purpose
+        // eslint-disable-next-line @next/next/no-img-element -- local dev-only asset, not optimised on purpose
         <img
           src={assetUrl(item)}
           alt={`${item.id}: ${item.prompt}`}
@@ -214,55 +154,5 @@ export function AssetFigure({ item, aspectClass = '' }: { item: AssetItem; aspec
         <p className="text-sm text-base-content/70">{item.prompt}</p>
       </details>
     </Candidate>
-  );
-}
-
-/** Manifest-driven asset grid for one direction; handles loading, missing, and invalid states. */
-export function AssetGrid({
-  direction,
-  kinds,
-  emptyLabel,
-  columns = 'sm:grid-cols-2 lg:grid-cols-3',
-}: {
-  direction: DirectionId;
-  kinds: readonly AssetItem['kind'][];
-  emptyLabel: string;
-  columns?: string;
-}) {
-  const query = useAssetManifest();
-  if (query.isPending) {
-    return (
-      <div role="status" className="flex items-center gap-2 text-base-content/70">
-        <span className="loading loading-spinner loading-sm" aria-hidden />
-        Loading assets
-      </div>
-    );
-  }
-  if (query.isError) {
-    return (
-      <div role="alert" className="alert alert-error">
-        <span>The asset manifest could not be loaded.</span>
-      </div>
-    );
-  }
-  if (query.data.status === 'missing')
-    return <NotGenerated what={emptyLabel} className="min-h-40" />;
-  if (query.data.status === 'invalid') {
-    return (
-      <div role="alert" className="alert alert-error">
-        <span>manifest.json does not match the expected shape: {query.data.message}</span>
-      </div>
-    );
-  }
-  const items = query.data.manifest.items.filter(
-    (item) => item.direction === direction && kinds.includes(item.kind),
-  );
-  if (items.length === 0) return <NotGenerated what={emptyLabel} className="min-h-40" />;
-  return (
-    <div className={`grid gap-4 ${columns}`}>
-      {items.map((item) => (
-        <AssetFigure key={item.id} item={item} />
-      ))}
-    </div>
   );
 }

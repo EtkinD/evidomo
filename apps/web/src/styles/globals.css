@@ -11,6 +11,29 @@
   themes: false;
 }
 
+/*
+ * Fonts. next/font (pages/_app.tsx) defines --font-newsreader and --font-source-sans on the app
+ * root; `inline` makes the utilities carry the family list itself, so nothing depends on these
+ * variables existing at :root. Source Sans 3 is the body face (`font-sans`), Newsreader the display
+ * face (`font-display`).
+ */
+@theme inline {
+  --font-sans: var(--font-source-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-newsreader), ui-serif, Georgia, serif;
+}
+
+/* Headings and card titles use the display face everywhere, so components need no font class.
+   daisyUI's `.card-title` sets no family, so a base rule is enough. */
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4,
+  .card-title {
+    @apply font-display;
+  }
+}
+
 /* Tailwind's `dark:` follows the active daisyUI theme: an explicit data-theme="evidomo-dark",
    or the system dark preference when no data-theme is set (evidomo-dark is --prefersdark).
    Theme tokens already switch by themselves, so `dark:` is a rare escape hatch. */
@@ -31,32 +54,30 @@
   prefersdark: false;
   color-scheme: light;
 
-  --color-base-100: oklch(99% 0.003 240);
-  --color-base-200: oklch(96.5% 0.006 240);
-  --color-base-300: oklch(92.5% 0.009 240);
-  --color-base-content: oklch(24% 0.02 250);
-
-  --color-primary: oklch(45% 0.09 200);
-  --color-primary-content: oklch(98% 0.01 200);
-  --color-secondary: oklch(42% 0.06 260);
-  --color-secondary-content: oklch(98% 0.008 260);
-  --color-accent: oklch(78% 0.13 75);
-  --color-accent-content: oklch(28% 0.05 70);
-  --color-neutral: oklch(30% 0.02 250);
-  --color-neutral-content: oklch(97% 0.005 250);
-
-  --color-info: oklch(48% 0.12 240);
-  --color-info-content: oklch(98% 0.01 240);
-  --color-success: oklch(47% 0.1 155);
-  --color-success-content: oklch(98% 0.01 155);
-  --color-warning: oklch(80% 0.14 80);
-  --color-warning-content: oklch(30% 0.06 60);
-  --color-error: oklch(50% 0.17 25);
+  --color-base-100: oklch(98.8% 0.008 85);
+  --color-base-200: oklch(96.5% 0.014 85);
+  --color-base-300: oklch(92.5% 0.02 80);
+  --color-base-content: oklch(30% 0.025 50);
+  --color-primary: oklch(52% 0.1 42);
+  --color-primary-content: oklch(99% 0.008 70);
+  --color-secondary: oklch(44% 0.06 135);
+  --color-secondary-content: oklch(98% 0.01 135);
+  --color-accent: oklch(85% 0.1 85);
+  --color-accent-content: oklch(30% 0.05 65);
+  --color-neutral: oklch(36% 0.025 55);
+  --color-neutral-content: oklch(97% 0.01 80);
+  --color-info: oklch(48% 0.07 235);
+  --color-info-content: oklch(98% 0.01 235);
+  --color-success: oklch(47% 0.08 150);
+  --color-success-content: oklch(98% 0.01 150);
+  --color-warning: oklch(84% 0.12 85);
+  --color-warning-content: oklch(30% 0.06 65);
+  --color-error: oklch(50% 0.16 25);
   --color-error-content: oklch(98% 0.01 25);
 
   --radius-selector: 0.5rem;
   --radius-field: 0.5rem;
-  --radius-box: 0.75rem;
+  --radius-box: 0.875rem;
   --size-selector: 0.25rem;
   --size-field: 0.25rem;
   --border: 1px;
@@ -70,32 +91,30 @@
   prefersdark: true;
   color-scheme: dark;
 
-  --color-base-100: oklch(21% 0.015 250);
-  --color-base-200: oklch(18.5% 0.014 250);
-  --color-base-300: oklch(16% 0.012 250);
-  --color-base-content: oklch(93% 0.01 250);
-
-  --color-primary: oklch(74% 0.1 195);
-  --color-primary-content: oklch(20% 0.03 200);
-  --color-secondary: oklch(76% 0.06 260);
-  --color-secondary-content: oklch(20% 0.02 260);
-  --color-accent: oklch(80% 0.12 75);
-  --color-accent-content: oklch(24% 0.05 70);
-  --color-neutral: oklch(32% 0.02 250);
-  --color-neutral-content: oklch(93% 0.01 250);
-
-  --color-info: oklch(74% 0.11 240);
-  --color-info-content: oklch(20% 0.03 240);
-  --color-success: oklch(74% 0.12 155);
-  --color-success-content: oklch(20% 0.03 155);
-  --color-warning: oklch(82% 0.13 80);
-  --color-warning-content: oklch(24% 0.05 60);
-  --color-error: oklch(72% 0.15 25);
-  --color-error-content: oklch(20% 0.04 25);
+  --color-base-100: oklch(25% 0.016 55);
+  --color-base-200: oklch(22% 0.014 55);
+  --color-base-300: oklch(19% 0.012 55);
+  --color-base-content: oklch(93% 0.012 85);
+  --color-primary: oklch(77% 0.09 45);
+  --color-primary-content: oklch(22% 0.035 45);
+  --color-secondary: oklch(77% 0.07 135);
+  --color-secondary-content: oklch(21% 0.03 135);
+  --color-accent: oklch(84% 0.09 85);
+  --color-accent-content: oklch(25% 0.045 65);
+  --color-neutral: oklch(34% 0.022 55);
+  --color-neutral-content: oklch(93% 0.012 85);
+  --color-info: oklch(77% 0.07 235);
+  --color-info-content: oklch(21% 0.03 235);
+  --color-success: oklch(77% 0.09 150);
+  --color-success-content: oklch(21% 0.03 150);
+  --color-warning: oklch(84% 0.11 85);
+  --color-warning-content: oklch(25% 0.05 65);
+  --color-error: oklch(74% 0.13 25);
+  --color-error-content: oklch(21% 0.04 25);
 
   --radius-selector: 0.5rem;
   --radius-field: 0.5rem;
-  --radius-box: 0.75rem;
+  --radius-box: 0.875rem;
   --size-selector: 0.25rem;
   --size-field: 0.25rem;
   --border: 1px;

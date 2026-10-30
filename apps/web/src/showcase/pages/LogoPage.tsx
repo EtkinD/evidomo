@@ -1,73 +1,48 @@
-import { Lockup, logoCandidatesFor, type LogoCandidate } from '../logos';
+import { Lockup, LogoMark } from '../logo';
 import type { Mode } from '../palettes';
-import { AssetGrid, Candidate, DirectionScope, EachDirection, ShowcaseShell } from '../ui';
+import { SampleScope } from '../samples/parts';
+import { Candidate, ShowcaseShell } from '../ui';
 
-const SIZES = [
+const FAVICON_SIZES = [
   { px: 16, cls: 'size-4' },
+  { px: 24, cls: 'size-6' },
   { px: 32, cls: 'size-8' },
-  { px: 64, cls: 'size-16' },
+  { px: 48, cls: 'size-12' },
 ] as const;
 
-function OnMode({ candidate, mode }: { candidate: LogoCandidate; mode: Mode }) {
+function OnMode({ mode }: { mode: Mode }) {
   return (
-    <DirectionScope
-      direction={candidate.direction}
-      mode={mode}
-      className="flex flex-col gap-4 rounded-box border border-base-300 p-4"
-    >
+    <SampleScope mode={mode} className="flex flex-col gap-4 rounded-box border border-base-300 p-4">
       <span className="text-xs text-base-content/70">{mode === 'light' ? 'Light' : 'Dark'}</span>
-      <Lockup candidate={candidate} />
-      <div className="flex items-end gap-4 text-primary">
-        {SIZES.map((size) => (
+      <Lockup markClass="size-12" textClass="text-3xl" />
+      <Lockup markClass="size-6" textClass="text-base" />
+      <div className="flex items-end gap-4">
+        {FAVICON_SIZES.map((size) => (
           <div key={size.px} className="flex flex-col items-center gap-1">
-            <candidate.Mark className={size.cls} />
-            <span className="sc-mono text-xs text-base-content/70">{size.px} px</span>
+            <LogoMark className={size.cls} />
+            <span className="font-mono text-xs text-base-content/70">{size.px} px</span>
           </div>
         ))}
         <div className="flex flex-col items-center gap-1">
-          <span className="flex size-16 items-center justify-center rounded-box bg-primary text-primary-content">
-            <candidate.Mark className="size-10" />
+          <span className="flex size-16 items-center justify-center rounded-box border border-base-300 bg-base-200">
+            <LogoMark className="size-10" />
           </span>
-          <span className="sc-mono text-xs text-base-content/70">App icon</span>
+          <span className="font-mono text-xs text-base-content/70">App tile</span>
         </div>
       </div>
-    </DirectionScope>
-  );
-}
-
-function SvgCandidate({ candidate }: { candidate: LogoCandidate }) {
-  return (
-    <Candidate id={candidate.id} title={candidate.title}>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <OnMode candidate={candidate} mode="light" />
-        <OnMode candidate={candidate} mode="dark" />
-      </div>
-    </Candidate>
+    </SampleScope>
   );
 }
 
 export function LogoPage() {
   return (
     <ShowcaseShell title="Logo">
-      <EachDirection
-        render={(direction) => (
-          <>
-            <h3 className="text-lg font-semibold">Muse concepts</h3>
-            <AssetGrid
-              direction={direction}
-              kinds={['logo-concept']}
-              emptyLabel="Muse logo concepts"
-              columns="sm:grid-cols-2 lg:grid-cols-4"
-            />
-            <h3 className="text-lg font-semibold">SVG candidates</h3>
-            <div className="grid gap-4">
-              {logoCandidatesFor(direction).map((candidate) => (
-                <SvgCandidate key={candidate.id} candidate={candidate} />
-              ))}
-            </div>
-          </>
-        )}
-      />
+      <Candidate id="H-LOGO-1" title="Roof, window, and check mark with a Newsreader wordmark">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <OnMode mode="light" />
+          <OnMode mode="dark" />
+        </div>
+      </Candidate>
     </ShowcaseShell>
   );
 }

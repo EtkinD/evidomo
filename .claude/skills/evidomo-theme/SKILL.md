@@ -28,19 +28,25 @@ Tailwind's `dark:` variant follows the same rule (`@custom-variant dark` in `glo
 
 ### Colour roles
 
-| Token                                | Use for                                                                    | As text on base?         |
-| ------------------------------------ | -------------------------------------------------------------------------- | ------------------------ |
-| `base-100` / `base-200` / `base-300` | surfaces: cards and inputs / page background / borders                     | —                        |
-| `base-content`                       | body text; `/70` for secondary text, never lower (`/60` fails AA in light) | yes                      |
-| `primary`                            | the one main action per view, links, focus                                 | yes                      |
-| `secondary`                          | secondary emphasis (selected states, secondary actions)                    | yes                      |
-| `accent`                             | highlight backgrounds (evidence markers, "new" chips)                      | **no** — background only |
-| `neutral`                            | dark UI chrome (tooltips, dark badges)                                     | —                        |
-| `info` / `success` / `error`         | status: run progress, verified facts, conflicts and errors                 | yes                      |
-| `warning`                            | warning backgrounds (`alert-warning`, `badge-warning`)                     | **no** — background only |
-| `*-content`                          | text on the matching filled colour                                         | only on its colour       |
+The palette is Hearth Clay: warm linen surfaces, a clay primary, a sage secondary, a honey accent (chosen 2026-10-30, see the log). The living reference with measured contrast is the dev-only `/showcase/colors`.
 
-Shape and density tokens: `--radius-field` / `--radius-selector` 0.5rem, `--radius-box` 0.75rem, `--border` 1px, `--depth` 0 (flat; no daisyUI depth shadows), `--noise` 0. Change these in the theme, not per component.
+| Token                                | Look (light / dark)                                                  | Use for                                                                    | As text on base?         |
+| ------------------------------------ | -------------------------------------------------------------------- | -------------------------------------------------------------------------- | ------------------------ |
+| `base-100` / `base-200` / `base-300` | linen white / warm cream / sand; dark: warm brown-black, three steps | surfaces: cards and inputs / page background / borders                     | —                        |
+| `base-content`                       | dark warm brown / warm off-white                                     | body text; `/70` for secondary text, never lower (`/60` fails AA in light) | yes                      |
+| `primary`                            | clay terracotta / lighter clay                                       | the one main action per view, links, focus                                 | yes                      |
+| `secondary`                          | sage green / lighter sage                                            | secondary emphasis (selected states, secondary actions, "needs review")    | yes                      |
+| `accent`                             | honey / honey                                                        | highlight backgrounds (evidence markers, "new" chips)                      | **no** — background only |
+| `neutral`                            | warm dark brown / dim warm brown                                     | dark UI chrome (tooltips, dark badges)                                     | —                        |
+| `info` / `success` / `error`         | muted blue / green / brick red                                       | status: run progress, verified facts, conflicts and errors                 | yes                      |
+| `warning`                            | amber                                                                | warning backgrounds (`alert-warning`, `badge-warning`)                     | **no** — background only |
+| `*-content`                          | near-white (or dark on the light fills)                              | text on the matching filled colour                                         | only on its colour       |
+
+Shape and density tokens: `--radius-selector` / `--radius-field` 0.5rem, `--radius-box` 0.875rem (sharp, editorial corners), `--border` 1px, `--depth` 0 (flat; no daisyUI depth shadows), `--noise` 0. Change these in the theme, not per component.
+
+### Fonts
+
+`next/font/google` in `pages/_app.tsx` self-hosts Source Sans 3 (`--font-source-sans`) and Newsreader (`--font-newsreader`) and puts the variables on the app root. `globals.css` maps them with `@theme inline`: `font-sans` (Source Sans 3, the body face, set on the root) and `font-display` (Newsreader). `h1`–`h4` and `.card-title` take Newsreader through one base rule, so components carry no font class; use `font-display` only for display text that is not a heading (a wordmark, a big figure), and `font-mono` for IDs. Source Sans 3 has no italic loaded, so italics are synthesised: use them sparingly.
 
 ## 3. Rules
 
@@ -49,7 +55,7 @@ Shape and density tokens: `--radius-field` / `--radius-selector` 0.5rem, `--radi
 - Status is never colour alone: pair it with an icon or text (accessibility, and the evidence UI depends on it).
 - Mobile first: base classes target phone width, `sm:`/`md:` add the larger layouts. Touch targets are at least 44 px (`min-h-11`): add it to every `btn`, including `btn-sm`, and make a text link `inline-flex min-h-11 items-center`.
 - Server and client errors on a field: `input-error` on the input, `aria-invalid`, and a `text-sm text-error` message linked with `aria-describedby`. daisyUI's `validator` / `validator-hint` react only to native constraint validation, so use them for pure client constraints, not for API errors.
-- Disabled buttons keep a readable label: `globals.css` holds the label at `base-content/70` (about 5.5:1 light, 6.3:1 dark; daisyUI's own dimming is 1.5:1). Never hide state in a disabled control: say why next to it ("Save your changes first."), and use a badge plus text, not a disabled button, for a feature that does not exist yet.
+- Disabled buttons keep a readable label: `globals.css` holds the label at `base-content/70` (about 5.2:1 light, 7.1:1 dark; daisyUI's own dimming is 1.5:1). Never hide state in a disabled control: say why next to it ("Save your changes first."), and use a badge plus text, not a disabled button, for a feature that does not exist yet.
 - Every token pair used for text must pass WCAG AA (4.5:1). Run the contrast check after any token change.
 
 ## 4. Recipes
@@ -91,6 +97,7 @@ The auth form (P4-01) predates this skill and uses `label` + `flex flex-col gap-
 
 ## 5. Helpers
 
+- **Showcase (dev only).** `/showcase` on the dev server (port 3000) renders the approved language with the product theme: palette with contrast, type scale, logo H-LOGO-1, components, the four approved images, and sample pages (`/showcase/samples/*`). Specimens carry stable `H-` IDs for feedback. Check a theme or component change there in both modes. The routes are `src/pages/showcase/*.dev.mts` and do not exist in production builds.
 - **Contrast check.** `node .claude/skills/evidomo-theme/scripts/check-contrast.ts` reads both themes from `globals.css` and checks base text (solid and at `/70`) on every surface, every `*-content` on its colour, and the text roles from the table above on every surface. It exits 1 below 4.5:1.
 
 ## 6. Recording design feedback

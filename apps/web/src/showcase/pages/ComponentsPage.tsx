@@ -1,7 +1,7 @@
 import { useId } from 'react';
 import { useMode } from '../mode';
-import type { DirectionId } from '../palettes';
-import { Candidate, DirectionScope, EachDirection, ShowcaseShell } from '../ui';
+import { SampleScope } from '../samples/parts';
+import { Candidate, ShowcaseShell } from '../ui';
 
 function Buttons() {
   return (
@@ -96,7 +96,7 @@ function SampleCard() {
   return (
     <div className="card border border-base-300 bg-base-100">
       <div className="card-body gap-2">
-        <h4 className="card-title sc-display">Voorbeeldlaan 12</h4>
+        <h4 className="card-title">Voorbeeldlaan 12</h4>
         <p className="text-base-content/70">5 rooms · 118 m² · Energy label B</p>
         <div className="card-actions justify-end">
           <button type="button" className="btn btn-primary min-h-11">
@@ -119,15 +119,14 @@ function FormEvidence() {
         <p className="text-sm font-medium">Form field</p>
         <p>
           <span className="text-base-content/70">Kitchen renovated:</span>{' '}
-          <span className="sc-mono">2021</span>
+          <span className="font-mono">2021</span>
         </p>
       </div>
     </article>
   );
 }
 
-/** Also used alone by the compare page. */
-export function VoiceEvidence() {
+function VoiceEvidence() {
   return (
     <article className="card border border-base-300 bg-base-100">
       <div className="card-body gap-2 p-4">
@@ -147,7 +146,7 @@ export function VoiceEvidence() {
             </svg>
             Play
           </button>
-          <span className="sc-mono text-sm text-base-content/70">0:42 to 0:51</span>
+          <span className="font-mono text-sm text-base-content/70">0:42 to 0:51</span>
         </div>
       </div>
     </article>
@@ -227,14 +226,14 @@ function Conflict() {
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="flex flex-col gap-2 rounded-box border border-base-300 p-3">
           <span className="text-sm text-base-content/70">Form</span>
-          <span className="sc-mono text-2xl font-bold">118 m²</span>
+          <span className="font-mono text-2xl font-bold">118 m²</span>
           <button type="button" className="btn btn-outline min-h-11">
             Use form value
           </button>
         </div>
         <div className="flex flex-col gap-2 rounded-box border border-base-300 p-3">
           <span className="text-sm text-base-content/70">Voice walkthrough</span>
-          <span className="sc-mono text-2xl font-bold">124 m²</span>
+          <span className="font-mono text-2xl font-bold">124 m²</span>
           <button type="button" className="btn btn-outline min-h-11">
             Use spoken value
           </button>
@@ -255,25 +254,19 @@ const BLOCKS = [
   { slug: 'CNF', title: 'Conflict side by side', Body: Conflict },
 ] as const;
 
-function DirectionComponents({ direction }: { direction: DirectionId }) {
+export function ComponentsPage() {
   const { mode } = useMode();
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
-      {BLOCKS.map(({ slug, title, Body }) => (
-        <Candidate key={slug} id={`${direction}-${slug}-1`} title={title}>
-          <DirectionScope direction={direction} mode={mode} className="rounded-box p-3">
-            <Body />
-          </DirectionScope>
-        </Candidate>
-      ))}
-    </div>
-  );
-}
-
-export function ComponentsPage() {
-  return (
     <ShowcaseShell title="Components">
-      <EachDirection render={(direction) => <DirectionComponents direction={direction} />} />
+      <div className="grid gap-4 lg:grid-cols-2">
+        {BLOCKS.map(({ slug, title, Body }) => (
+          <Candidate key={slug} id={`H-${slug}-1`} title={title}>
+            <SampleScope mode={mode} className="rounded-box p-3">
+              <Body />
+            </SampleScope>
+          </Candidate>
+        ))}
+      </div>
     </ShowcaseShell>
   );
 }

@@ -3,11 +3,11 @@ import { ClaimAuditView } from '../../../components/ClaimAudit';
 import { FactConflictsView } from '../../../components/FactConflicts';
 import type { EvidenceUrls } from '../../../lib/evidence-urls';
 import { segmentButtonId } from '../../../components/claim-audit/SegmentItem';
-import { useAssetManifest } from '../../assets';
-import { SampleApi } from '../../combo/sample-api';
-import { RUN_ID, SAMPLE_CLIP_MS } from '../../combo/sample-data';
+import { APPROVED_IMAGES, useAssetManifest } from '../../assets';
+import { SampleApi } from '../../samples/sample-api';
+import { RUN_ID, SAMPLE_CLIP_MS } from '../../samples/sample-data';
 import { CLAIM } from '../../../__tests__/claim-audit-fixtures';
-import { COMBO_IMAGES, ComboShell, Sample, useComboImageUrl } from '../../combo/parts';
+import { Sample, SampleShell, useApprovedImageUrl } from '../../samples/parts';
 
 /** A soft two-note chime as a WAV data URL: the sample's stand-in for the recorded voice memo. */
 function chimeDataUrl(): string {
@@ -54,7 +54,7 @@ const MASK_DATA_URL = `data:image/svg+xml,${encodeURIComponent(
 /** The evidence files of the sample run: one Muse photo, the chime, and the drawn mask. */
 function useSampleUrls(): EvidenceUrls | null {
   const manifest = useAssetManifest();
-  const photo = useComboImageUrl('floor');
+  const photo = useApprovedImageUrl('floor');
   const chime = useMemo(() => (manifest.isPending ? null : chimeDataUrl()), [manifest.isPending]);
   return useMemo(
     () =>
@@ -135,16 +135,16 @@ function Gate2Sample() {
   );
 }
 
-export function ComboReviewPage() {
+export function SampleReviewPage() {
   return (
-    <ComboShell title="Combination: the two review gates">
+    <SampleShell title="Sample: the two review gates">
       <div className="mx-auto w-full max-w-6xl px-4">
         <p className="rounded-box border border-base-300 bg-base-100 p-4 text-sm text-base-content/70">
           These are the real gate screens (<code className="font-mono">FactConflictsView</code> and{' '}
           <code className="font-mono">ClaimAuditView</code>) on synthetic data. Decisions work but
           live only in this page view; Approve pack is not wired here. The photo is{' '}
-          {COMBO_IMAGES.floor.id}, the audio is a synthetic chime, and the highlighted region is a
-          drawn mask.
+          {APPROVED_IMAGES.floor.id}, the audio is a synthetic chime, and the highlighted region is
+          a drawn mask.
         </p>
       </div>
       <Sample id="H-GATE1-1" title="Gate 1: one conflict with form, voice turn, and photo evidence">
@@ -153,6 +153,6 @@ export function ComboReviewPage() {
       <Sample id="H-GATE2-1" title="Gate 2: one flagged claim with the evidence panel">
         <Gate2Sample />
       </Sample>
-    </ComboShell>
+    </SampleShell>
   );
 }

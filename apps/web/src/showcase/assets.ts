@@ -1,14 +1,40 @@
 import { useQuery } from '@tanstack/react-query';
-import type { DirectionId } from './palettes';
-
-export const ASSET_KINDS = ['logo-concept', 'hero', 'interior', 'illustration'] as const;
+export const ASSET_KINDS = ['hero', 'interior', 'illustration'] as const;
 export type AssetKind = (typeof ASSET_KINDS)[number];
 
-// The web app has no zod dependency, and this exploration code is removed after P4B-02, so the
-// manifest is checked by hand instead of adding one.
+// The founder's four approved images (P4B-02). The gitignored manifest still lists every image the
+// exploration generated; only these IDs are ever read from it. The IDs keep their original names so
+// earlier feedback still points at the same pictures.
+export const APPROVED_IMAGES = {
+  hero: {
+    id: 'B2-HERO-1',
+    alt: 'A bright, empty canal-house living room with a limewashed brick wall and oak floor',
+  },
+  floor: {
+    id: 'B2-INT-1',
+    alt: 'Morning light across an oak herringbone floor that meets clay kitchen tiles',
+  },
+  fireplace: {
+    id: 'B2-INT-2',
+    alt: 'A limewashed brick fireplace with an oak mantel and a small plant',
+  },
+  illustration: {
+    id: 'B2-ILL-1',
+    alt: 'A rounded house with its front door open and a potted plant by the step',
+  },
+} as const;
+
+export type ApprovedImageKey = keyof typeof APPROVED_IMAGES;
+
+export const APPROVED_IMAGE_IDS: readonly string[] = Object.values(APPROVED_IMAGES).map(
+  (image) => image.id,
+);
+
+// The web app has no zod dependency and this is dev-only code, so the manifest is checked by hand
+// instead of adding one.
 export interface AssetItem {
   readonly id: string;
-  readonly direction: DirectionId;
+  readonly direction: string;
   readonly kind: AssetKind;
   readonly file: string;
   readonly prompt: string;
@@ -33,10 +59,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function isDirection(value: unknown): value is DirectionId {
-  return value === 'B' || value === 'B2' || value === 'B3';
-}
-
 function isKind(value: unknown): value is AssetKind {
   return ASSET_KINDS.some((kind) => kind === value);
 }
@@ -50,7 +72,7 @@ function parseItem(value: unknown, index: number): AssetItem | string {
   if (!isRecord(value)) return `${at} is not an object`;
   const { id, direction, kind, file, prompt, width, height } = value;
   if (typeof id !== 'string' || id === '') return `${at}.id is missing`;
-  if (!isDirection(direction)) return `${at}.direction must be B, B2, or B3`;
+  if (typeof direction !== 'string' || direction === '') return `${at}.direction is missing`;
   if (!isKind(kind)) return `${at}.kind is not a known kind`;
   if (typeof file !== 'string' || file === '') return `${at}.file is missing`;
   if (typeof prompt !== 'string') return `${at}.prompt is missing`;
@@ -72,6 +94,13 @@ export function parseManifest(value: unknown): ManifestCheck {
   if (!Array.isArray(items)) return { success: false, message: 'items is not a list' };
   const parsed: AssetItem[] = [];
   for (const [index, item] of items.entries()) {
+    // Unapproved images are neither shown nor validated.
+    if (
+      !isRecord(item) ||
+      typeof item['id'] !== 'string' ||
+      !APPROVED_IMAGE_IDS.includes(item['id'])
+    )
+      continue;
     const result = parseItem(item, index);
     if (typeof result === 'string') return { success: false, message: result };
     parsed.push(result);
@@ -80,7 +109,7 @@ export function parseManifest(value: unknown): ManifestCheck {
 }
 
 /**
- * The gitignored manifest written by the Muse image run. A missing file is a normal state (the
+ * The gitignored manifest written by the Muse image run, reduced to the approved images. A missing file is a normal state (the
  * assets are not generated yet); a malformed one is reported, not silently ignored.
  */
 export async function fetchManifest(): Promise<ManifestResult> {
@@ -110,14 +139,4 @@ export function useAssetManifest() {
 
 export function assetUrl(item: AssetItem): string {
   return `${ASSET_BASE}/${item.file}`;
-}
-
-export function itemsFor(
-  manifest: AssetManifest | undefined,
-  direction: DirectionId,
-  kinds: readonly AssetKind[],
-): AssetItem[] {
-  return (manifest?.items ?? []).filter(
-    (item) => item.direction === direction && kinds.includes(item.kind),
-  );
 }

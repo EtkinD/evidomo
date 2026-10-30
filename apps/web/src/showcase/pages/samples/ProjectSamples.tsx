@@ -1,10 +1,11 @@
 import { useId, useState } from 'react';
-import { ComboImage, ComboShell, Sample, type ComboImageKey } from '../../combo/parts';
+import type { ApprovedImageKey } from '../../assets';
+import { ApprovedImage, Sample, SampleShell } from '../../samples/parts';
 
 const PAGE = 'bg-base-200 px-4 py-8';
 const CARD = 'card mx-auto w-full max-w-3xl border border-base-300 bg-base-100';
 
-const THUMBS: readonly { image: ComboImageKey; position: string; label: string }[] = [
+const THUMBS: readonly { image: ApprovedImageKey; position: string; label: string }[] = [
   { image: 'hero', position: 'object-left', label: 'Living room' },
   { image: 'floor', position: 'object-left', label: 'Kitchen floor' },
   { image: 'fireplace', position: 'object-left', label: 'Fireplace' },
@@ -53,7 +54,7 @@ function Materials() {
             <ul className="grid grid-cols-3 gap-2 sm:grid-cols-6" aria-label="Photo thumbnails">
               {THUMBS.map((thumb) => (
                 <li key={thumb.label}>
-                  <ComboImage
+                  <ApprovedImage
                     image={thumb.image}
                     aspect="aspect-square"
                     className="rounded-field"
@@ -212,9 +213,9 @@ function Readiness() {
   );
 }
 
-export function ComboProjectPage() {
+export function SampleProjectPage() {
   return (
-    <ComboShell title="Combination: project page">
+    <SampleShell title="Sample: project page">
       <Sample id="H-MAT-1" title="Materials summary: photo grid and voice walkthrough">
         <Materials />
       </Sample>
@@ -224,6 +225,6 @@ export function ComboProjectPage() {
       <Sample id="H-READY-1" title="Readiness card with access code and Start run">
         <Readiness />
       </Sample>
-    </ComboShell>
+    </SampleShell>
   );
 }
