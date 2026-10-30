@@ -81,6 +81,8 @@ Do not raise the default for routine work.
   git worktree remove .claude/worktrees/<id> && git branch -d wip/<id>
   ```
 
+  Run these steps so that a failure stops the sequence: `set -e`, or check each exit code. Never pipe `git rebase` or `git merge` into `tail` or `grep` inside an `&&` chain: the pipe returns the filter's exit code, so a failed rebase lets the chain go on to `git worktree remove --force`.
+
   Never squash with `git reset --soft main`. A worktree based on an older commit would revert everything main gained since.
 
 ## 5. Report and close
