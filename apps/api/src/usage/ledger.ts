@@ -28,6 +28,30 @@ export class UsageLedgerError extends Error {
   override name = 'UsageLedgerError';
 }
 
+/**
+ * A budget cap is not a valid USD amount. A configuration error: every attempt would fail the
+ * same way. The message names the cap but not its value, because it becomes a run's failure
+ * reason.
+ */
+export class InvalidBudgetCapError extends UsageLedgerError {
+  override name = 'InvalidBudgetCapError';
+  readonly cap: 'daily' | 'run';
+
+  constructor(cap: 'daily' | 'run') {
+    super(
+      `The ${cap === 'daily' ? 'daily (DAILY_BUDGET_USD)' : 'per-run'} budget cap is not a valid USD amount (up to 4 integer and 8 fraction digits)`,
+    );
+    this.cap = cap;
+  }
+}
+
+/** Validates a budget cap; throws {@link InvalidBudgetCapError} instead of a `ZodError`. */
+export function parseBudgetCapUsd(cap: 'daily' | 'run', value: string): string {
+  const parsed = usdAmountSchema.safeParse(value);
+  if (!parsed.success) throw new InvalidBudgetCapError(cap);
+  return parsed.data;
+}
+
 /** The model has no price; refused before the call so no unmetered money is spent. */
 export class UnpricedModelError extends UsageLedgerError {
   override name = 'UnpricedModelError';
@@ -164,14 +188,14 @@ export function createUsageLedger(options: UsageLedgerOptions): UsageLedger {
   const { db, runId, stepId } = options;
   const prices = options.prices ?? PRICE_TABLE;
   const now = options.now ?? (() => new Date());
-  const dailyCapUsd = usdAmountSchema.parse(options.dailyCapUsd);
+  const dailyCapUsd = parseBudgetCapUsd('daily', options.dailyCapUsd);
   if (options.runCapUsd !== undefined && runId === null) {
     throw new UsageLedgerError('A run budget cap requires a run ID');
   }
   const run =
     options.runCapUsd === undefined || runId === null
       ? undefined
-      : { runId, capUsd: usdAmountSchema.parse(options.runCapUsd) };
+      : { runId, capUsd: parseBudgetCapUsd('run', options.runCapUsd) };
 
   const buffer: UsageEntry[] = [];
 

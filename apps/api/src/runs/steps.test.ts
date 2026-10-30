@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { DefinitionNotFoundError } from '../definitions/loader.ts';
 import { BudgetExceededError } from '../usage/budget.ts';
-import { UnpricedModelError, UnpricedUsageError } from '../usage/ledger.ts';
+import { InvalidBudgetCapError, UnpricedModelError, UnpricedUsageError } from '../usage/ledger.ts';
 import {
   describeStepError,
   isRetryableStepError,
@@ -12,9 +12,11 @@ import {
 } from './steps.ts';
 
 describe('isRetryableStepError', () => {
-  it('does not retry budget, pricing, definition, and explicit non-retryable errors', () => {
+  it('does not retry budget, budget-configuration, pricing, definition, and explicit non-retryable errors', () => {
     for (const error of [
       new BudgetExceededError('run', '0.50', '0.50000000'),
+      new InvalidBudgetCapError('daily'),
+      new InvalidBudgetCapError('run'),
       new UnpricedModelError('muse-unknown'),
       new UnpricedUsageError(
         [{ modelId: 'muse-spark-1.3', reason: 'missing_units', fields: [] }],
@@ -53,6 +55,9 @@ describe('describeStepError', () => {
         new UnpricedUsageError([{ modelId: 'muse-x', reason: 'unknown_model', fields: [] }], []),
       ),
     ).toBe('Model usage could not be priced (muse-x)');
+    expect(describeStepError(new InvalidBudgetCapError('daily'))).toBe(
+      'The daily (DAILY_BUDGET_USD) budget cap is not a valid USD amount (up to 4 integer and 8 fraction digits)',
+    );
   });
 
   it('reduces any other error to its class name, so no payload text is stored', () => {

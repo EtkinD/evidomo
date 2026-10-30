@@ -17,6 +17,7 @@ import {
   type TestDatabase,
 } from '../db/testing.ts';
 import { createLogger } from '../logger.ts';
+import { InvalidBudgetCapError } from '../usage/ledger.ts';
 import { createRunEngine, type RunEngine, type RunEngineOptions, type StepJob } from './engine.ts';
 import { RUN_STEP_QUEUE, type StepJobData } from './queue.ts';
 import { StepTimeoutError, type StepContext, type StepResult } from './steps.ts';
@@ -54,6 +55,15 @@ const TINY_BUDGET = buildTestService(
   ],
   '0.001',
 );
+// A registry entry whose run cap bypassed definition validation (the schema rejects it): the
+// ledger cannot be built for its steps.
+const INVALID_RUN_CAP: ServiceDefinition = {
+  ...buildTestService('invalid-run-cap', [
+    { id: 'metered', agent: 'extractor' },
+    { id: 'never', agent: 'exporter' },
+  ]),
+  budget: { max_cost_usd_per_run: '1000000.00' },
+};
 const HANG_TIMEOUT_MS = 1000;
 
 type Behavior = (context: StepContext) => Promise<StepResult | undefined>;
@@ -73,7 +83,7 @@ const calls: Call[] = [];
 const behaviors = new Map<string, Behavior>();
 
 const logger = createLogger({ LOG_LEVEL: 'info', NODE_ENV: 'test' });
-const registry = testRegistry(GATED, LINEAR, TIMEOUTS, TINY_BUDGET);
+const registry = testRegistry(GATED, LINEAR, TIMEOUTS, TINY_BUDGET, INVALID_RUN_CAP);
 
 function engineOptions(boss: PgBoss): RunEngineOptions {
   return {
@@ -403,6 +413,55 @@ describe('run engine', () => {
     expect(callsOf(run.id)).toEqual(['quick#1', 'hangs#1', 'hangs#2']);
     expect(abortReasons).toHaveLength(2);
     expect(abortReasons.every((r) => r instanceof StepTimeoutError)).toBe(true);
+  });
+
+  it('refuses an invalid daily cap when the engine is built, before any step runs', () => {
+    expect(() =>
+      createRunEngine({ ...engineOptions(primaryBoss), dailyCapUsd: '1000000.00' }),
+    ).toThrow(InvalidBudgetCapError);
+  });
+
+  it('fails the run with the real reason, without a redelivery, when the ledger cannot be built', async () => {
+    const run = await seedServiceRun(INVALID_RUN_CAP);
+    const reason =
+      'The per-run budget cap is not a valid USD amount (up to 4 integer and 8 fraction digits)';
+
+    await engine.startRun(run.id);
+    const failed = await waitForStatus(run.id, 'failed');
+    const failureReason = `Step "metered" failed after 1 execution: ${reason}`;
+    expect(failed.failureReason).toBe(failureReason);
+    // The handler never ran, so nothing was called or billed.
+    expect(callsOf(run.id)).toEqual([]);
+    expect(await listUsageForRun(testDb.db, run.id)).toEqual([]);
+
+    const steps = await listRunSteps(testDb.db, run.id);
+    expect(steps.map((s) => [s.stepId, s.attempt, s.status, s.executions])).toEqual([
+      ['metered', 1, 'failed', 1],
+    ]);
+    const events = await listRunEvents(testDb.db, run.id);
+    expect(events.map((e) => e.type)).toEqual([
+      'run_status_changed',
+      'step_started',
+      'step_failed',
+      'run_status_changed',
+    ]);
+    expect(events.find((e) => e.type === 'step_failed')?.payload).toMatchObject({
+      stepId: 'metered',
+      execution: 1,
+      reason: failureReason,
+      willRetry: false,
+    });
+
+    // The handler returned instead of throwing: pg-boss completes the job on its first delivery.
+    const jobId = steps[0]?.jobId;
+    const job = await waitFor('the step job to settle', async () => {
+      const result = await testDb.db.execute<{ state: string; retry_count: number }>(
+        sql`select state, retry_count from pgboss.job where id = ${jobId}`,
+      );
+      const row = result.rows[0];
+      return row !== undefined && row.state !== 'active' ? row : undefined;
+    });
+    expect(job).toEqual({ state: 'completed', retry_count: 0 });
   });
 
   it('fails the run when no handler is registered for the step agent', async () => {

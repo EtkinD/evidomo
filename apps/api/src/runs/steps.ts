@@ -5,7 +5,7 @@ import { DefinitionNotFoundError } from '../definitions/loader.ts';
 import type { Logger } from '../logger.ts';
 import type { MetaClients } from '../meta/clients.ts';
 import { BudgetExceededError, type BudgetStatus } from '../usage/budget.ts';
-import { UnpricedModelError, UnpricedUsageError } from '../usage/ledger.ts';
+import { InvalidBudgetCapError, UnpricedModelError, UnpricedUsageError } from '../usage/ledger.ts';
 
 // The contract between the run engine and step implementations (docs/architecture.md §9).
 // Handlers are registered by `agent`; real ones arrive with P2-06 and later.
@@ -115,13 +115,15 @@ export class StepRetryError extends Error {
 }
 
 /**
- * Budget and pricing errors would fail the same way again (and a retry could spend more), so
- * they fail the run at once, as do explicit non-retryable step errors. Everything else, including
- * timeouts, interruptions, and unknown errors, is transient: the attempt is retried once.
+ * Budget, budget-configuration, and pricing errors would fail the same way again (and a retry
+ * could spend more), so they fail the run at once, as do explicit non-retryable step errors.
+ * Everything else, including timeouts, interruptions, and unknown errors, is transient: the
+ * attempt is retried once.
  */
 export function isRetryableStepError(error: unknown): boolean {
   return !(
     error instanceof BudgetExceededError ||
+    error instanceof InvalidBudgetCapError ||
     error instanceof UnpricedModelError ||
     error instanceof UnpricedUsageError ||
     error instanceof NonRetryableStepError ||
@@ -139,6 +141,7 @@ export function describeStepError(error: unknown): string {
     error instanceof StepTimeoutError ||
     error instanceof StepInterruptedError ||
     error instanceof BudgetExceededError ||
+    error instanceof InvalidBudgetCapError ||
     error instanceof UnpricedModelError ||
     error instanceof NonRetryableStepError ||
     error instanceof DefinitionNotFoundError

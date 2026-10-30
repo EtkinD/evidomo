@@ -22,6 +22,7 @@ import { BudgetExceededError, checkBudget, utcDayWindow } from './budget.ts';
 import {
   createPriceTableCostEstimator,
   createUsageLedger,
+  InvalidBudgetCapError,
   UnpricedModelError,
   UnpricedUsageError,
   UsageLedgerError,
@@ -279,8 +280,14 @@ describe('meter', () => {
 
   it('validates its configuration', () => {
     expect(() => ledgerFor({ runId: null, runCapUsd: '0.50' })).toThrow(UsageLedgerError);
-    expect(() => ledgerFor({ runId: null, dailyCapUsd: '-1' })).toThrow();
-    expect(() => ledgerFor({ runId: randomUUID(), runCapUsd: '0.5000000001' })).toThrow();
+    for (const dailyCapUsd of ['-1', '1000000.00']) {
+      expect(() => ledgerFor({ runId: null, dailyCapUsd })).toThrow(
+        expect.objectContaining({ name: 'InvalidBudgetCapError', cap: 'daily' }),
+      );
+    }
+    expect(() => ledgerFor({ runId: randomUUID(), runCapUsd: '0.5000000001' })).toThrow(
+      InvalidBudgetCapError,
+    );
   });
 });
 

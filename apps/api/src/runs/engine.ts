@@ -42,7 +42,12 @@ import { DefinitionNotFoundError, type DefinitionRegistry } from '../definitions
 import type { Logger } from '../logger.ts';
 import type { MetaClients } from '../meta/clients.ts';
 import type { UsageRecorder } from '../meta/usage.ts';
-import { createUsageLedger, UnpricedUsageError, type UsageLedger } from '../usage/ledger.ts';
+import {
+  createUsageLedger,
+  parseBudgetCapUsd,
+  UnpricedUsageError,
+  type UsageLedger,
+} from '../usage/ledger.ts';
 import {
   ensureRunQueues,
   MAX_STEP_EXECUTIONS,
@@ -90,7 +95,10 @@ export interface RunEngineOptions {
   readonly boss: PgBoss;
   readonly registry: Pick<DefinitionRegistry, 'getService' | 'services'>;
   readonly logger: Logger;
-  /** `DAILY_BUDGET_USD`. The run cap comes from the service definition. */
+  /**
+   * `DAILY_BUDGET_USD`, validated at construction (`InvalidBudgetCapError`). The run cap comes
+   * from the service definition.
+   */
   readonly dailyCapUsd: string;
   readonly handlers?: StepHandlers;
   /** Builds Meta clients bound to one execution's ledger. Without it, `metaClients()` fails. */
@@ -232,6 +240,8 @@ function invokeHandler(
 
 export function createRunEngine(options: RunEngineOptions): RunEngine {
   const { db, boss, registry, logger } = options;
+  // Fail at startup, not on the first step: an invalid cap would fail every step the same way.
+  parseBudgetCapUsd('daily', options.dailyCapUsd);
   const handlers: StepHandlers = options.handlers ?? {};
   const expiryGraceSeconds = options.expiryGraceSeconds ?? DEFAULT_EXPIRY_GRACE_SECONDS;
   const heartbeatSeconds = options.heartbeatSeconds ?? DEFAULT_HEARTBEAT_SECONDS;
@@ -411,26 +421,33 @@ export function createRunEngine(options: RunEngineOptions): RunEngine {
     log: Logger,
   ): Promise<Execution> {
     const { run, service, step, execution } = claimed;
-    const timeoutMs = timeoutFor(step);
+
+    // Setup that can throw (an invalid budget cap, a throwing timeout option) runs before the
+    // timer is armed and settles like a handler failure; escaping here would make pg-boss
+    // redeliver the job until the run fails as "interrupted", without the real cause.
+    let timeoutMs: number;
+    let ledger: UsageLedger;
+    try {
+      timeoutMs = timeoutFor(step);
+      ledger = createUsageLedger({
+        db,
+        runId: run.id,
+        stepId: step.id,
+        dailyCapUsd: options.dailyCapUsd,
+        runCapUsd: service.budget.max_cost_usd_per_run,
+        ...(options.prices === undefined ? {} : { prices: options.prices }),
+      });
+    } catch (error) {
+      return { ok: false, error };
+    }
+
     const timeout = new AbortController();
-    const timer = setTimeout(() => {
-      timeout.abort(new StepTimeoutError(step.id, timeoutMs));
-    }, timeoutMs);
     const signal = AbortSignal.any([job.signal, timeout.signal]);
     // Why the step stopped when the signal fired: our timeout, or pg-boss (shutdown, lost claim).
     const abortError = (): Error =>
       timeout.signal.aborted
         ? new StepTimeoutError(step.id, timeoutMs)
         : new StepInterruptedError(step.id);
-
-    const ledger: UsageLedger = createUsageLedger({
-      db,
-      runId: run.id,
-      stepId: step.id,
-      dailyCapUsd: options.dailyCapUsd,
-      runCapUsd: service.budget.max_cost_usd_per_run,
-      ...(options.prices === undefined ? {} : { prices: options.prices }),
-    });
 
     async function reportUsage(): Promise<void> {
       try {
@@ -483,6 +500,9 @@ export function createRunEngine(options: RunEngineOptions): RunEngine {
     };
 
     let outcome: Execution;
+    const timer = setTimeout(() => {
+      timeout.abort(new StepTimeoutError(step.id, timeoutMs));
+    }, timeoutMs);
     try {
       const pending = invokeHandler(handlers, step, context);
       const aborted = new Promise<never>((_, reject) => {
@@ -618,7 +638,11 @@ export function createRunEngine(options: RunEngineOptions): RunEngine {
 
     const stepLog = log.child({ execution: claimed.execution });
     stepLog.info('step started');
-    const executed = await execute(job, claimed, data, stepLog);
+    // An error escaping `execute` would reach pg-boss, which redelivers without recording why;
+    // settling it here keeps the reason and the retry policy.
+    const executed = await execute(job, claimed, data, stepLog).catch(
+      (error: unknown): Execution => ({ ok: false, error }),
+    );
 
     let failure: unknown;
     if (executed.ok) {
