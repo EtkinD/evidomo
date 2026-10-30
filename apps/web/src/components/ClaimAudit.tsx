@@ -1,4 +1,4 @@
-import type { ClaimAuditGateResponse, ClaimAuditGateSegment } from '@evidomo/shared';
+import type { ClaimAuditGateSegment } from '@evidomo/shared';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useCallback, useMemo, useState } from 'react';
@@ -10,10 +10,12 @@ import {
   useClaimAuditActions,
   variantTitle,
   warningText,
+  type ClaimAuditGateData,
 } from '../lib/claim-audit';
-import { runEvidenceUrls, type EvidenceUrls } from '../lib/evidence-urls';
+import type { EvidenceUrls } from '../lib/evidence-urls';
 import { useRunSnapshotRef } from '../lib/fact-conflicts';
 import { useMarketForm } from '../lib/projects';
+import { useRunSource } from '../lib/run-source';
 import { EvidencePanel } from './claim-audit/EvidencePanel';
 import { SegmentItem, segmentButtonId, type ReviewContext } from './claim-audit/SegmentItem';
 import { StagedImages } from './claim-audit/StagedImages';
@@ -42,7 +44,7 @@ function Summary({
   warningLines,
   open,
 }: {
-  data: ClaimAuditGateResponse;
+  data: ClaimAuditGateData;
   warningLines: string[];
   open: boolean;
 }) {
@@ -73,7 +75,7 @@ function ApproveSection({
   warningLines,
   editingOpen,
 }: {
-  data: ClaimAuditGateResponse;
+  data: ClaimAuditGateData;
   runId: string;
   actions: ReviewContext['actions'];
   warningLines: string[];
@@ -184,16 +186,22 @@ export function ClaimAuditView({
   runId: string;
   urls?: EvidenceUrls;
 }) {
+  const source = useRunSource();
+  const demo = source.kind === 'demo';
   const gate = useClaimAudit(runId);
   const snapshot = useRunSnapshotRef(runId);
+  // The market form is a signed-in route; the demo falls back to plain fact labels.
   const marketQuery = useMarketForm(
-    snapshot.data === undefined
+    snapshot.data === undefined || demo
       ? undefined
       : { id: snapshot.data.marketProfileId, version: snapshot.data.marketProfileVersion },
   );
   const market = marketQuery.data?.market;
   const labels = useMemo(() => labelsFor(market), [market]);
-  const urls = useMemo(() => urlsOverride ?? runEvidenceUrls(runId), [runId, urlsOverride]);
+  const urls = useMemo(
+    () => urlsOverride ?? source.evidenceUrls(runId),
+    [runId, source, urlsOverride],
+  );
   const actions = useClaimAuditActions(runId);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editingIds, setEditingIds] = useState<ReadonlySet<string>>(new Set());
@@ -218,13 +226,15 @@ export function ClaimAuditView({
     return (
       <LoadErrorState
         message="We could not load the review. Check your connection and try again."
+        error={gate.error}
         onRetry={() => void gate.refetch()}
       />
     );
   }
 
   const data = gate.data;
-  const open = data.state === 'open';
+  // A demo never writes, so it never shows the open (deciding) form of the review.
+  const open = data.state === 'open' && !demo;
   const allSegments = [
     ...data.variants.flatMap((variant) => variant.segments),
     ...data.qaCards.flatMap((card) => card.segments),
@@ -257,7 +267,7 @@ export function ClaimAuditView({
       <div className={`flex flex-col gap-6 ${selected === undefined ? '' : 'pb-[70vh] lg:pb-0'}`}>
         <div className="flex flex-col gap-2">
           <Link
-            href={`/runs/${runId}`}
+            href={source.hrefs.monitor(runId)}
             className="link inline-flex min-h-11 w-fit items-center text-sm"
           >
             Back to run
@@ -283,8 +293,12 @@ export function ClaimAuditView({
         )}
         {data.state === 'released' && (
           <div role="status" className="alert alert-info alert-vertical sm:alert-horizontal">
-            <span>This review is finished. Your decisions are shown below.</span>
-            <Link href={`/runs/${runId}/pack`} className="btn btn-primary min-h-11">
+            <span>
+              {demo
+                ? 'This review was finished in the original run. The decisions made are shown below.'
+                : 'This review is finished. Your decisions are shown below.'}
+            </span>
+            <Link href={source.hrefs.pack(runId)} className="btn btn-primary min-h-11">
               Open the pack
             </Link>
           </div>
@@ -350,7 +364,6 @@ export function ClaimAuditView({
                 </section>
               )}
               <StagedImages
-                runId={runId}
                 images={data.images}
                 fallbacks={data.integrityFallbacks}
                 readOnly={!open}

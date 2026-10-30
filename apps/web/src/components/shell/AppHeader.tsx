@@ -9,12 +9,14 @@ interface NavItem {
   href: string;
 }
 
-// Primary navigation for signed-in agents. Add an entry here; the header lays it out.
-const AGENT_NAV: readonly NavItem[] = [{ label: 'Projects', href: '/projects' }];
+// The public demo replay is open to everyone, so it is in both navigations.
+const DEMO_NAV: NavItem = { label: 'Demo', href: '/demo' };
 
-// Extension point for links shown to signed-out visitors before the auth actions. The public demo
-// (P4-09) goes here once its page exists; it stays empty so the header never links to a 404.
-const PUBLIC_NAV: readonly NavItem[] = [];
+// Primary navigation for signed-in agents. Add an entry here; the header lays it out.
+const AGENT_NAV: readonly NavItem[] = [{ label: 'Projects', href: '/projects' }, DEMO_NAV];
+
+// Links shown to signed-out visitors before the auth actions.
+const PUBLIC_NAV: readonly NavItem[] = [DEMO_NAV];
 
 function NavLink({ item }: { item: NavItem }) {
   const { pathname } = useRouter();

@@ -8,6 +8,7 @@ import {
   type ClaimAuditWarning,
   type ClaimDecisionRequest,
   type ClaimGateDecision,
+  type DemoClaimAuditGateResponse,
   type StagedImageDecisionRequest,
 } from '@evidomo/shared';
 import {
@@ -22,6 +23,7 @@ import { keyLabel } from './evidence';
 import { humanize } from './project-view';
 import { describeRequestFailure } from './request-failure';
 import { runQueryKey } from './run-monitor';
+import { runScopedKey, useRunSource } from './run-source';
 
 export const claimAuditPath = (runId: string): string => `${runUrl(runId)}/gates/claim-audit`;
 export const claimDecisionPath = (runId: string, claimId: string): string =>
@@ -32,11 +34,18 @@ export const claimAuditApprovePath = (runId: string): string => `${claimAuditPat
 export const claimAuditKey = (runId: string) => ['runs', runId, 'claim-audit'] as const;
 export const reviewPageHref = (runId: string): string => `/runs/${runId}/review`;
 
-export function useClaimAudit(runId: string): UseQueryResult<ClaimAuditGateResponse> {
+/**
+ * Gate 2 as the screen reads it. The demo's response has no `decidedBy`, and the owner's is
+ * assignable to this, so one view serves both.
+ */
+export type ClaimAuditGateData = DemoClaimAuditGateResponse;
+
+export function useClaimAudit(runId: string): UseQueryResult<ClaimAuditGateData> {
+  const source = useRunSource();
   return useQuery({
-    queryKey: claimAuditKey(runId),
+    queryKey: runScopedKey(source, runId, 'claim-audit'),
     queryFn: ({ signal }) =>
-      apiJson(claimAuditPath(runId), claimAuditGateResponseSchema, { signal }),
+      apiJson(source.claimAuditUrl(runId), source.claimAuditSchema, { signal }),
   });
 }
 

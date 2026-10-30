@@ -19,6 +19,7 @@ class FakeAudio extends EventTarget {
   currentTime = 0;
   paused = true;
   readyState = 0;
+  duration = Number.NaN;
   error: object | null = null;
   play = vi.fn((): Promise<void> => {
     if (FakeAudio.playError !== null) return Promise.reject(FakeAudio.playError);
@@ -289,6 +290,78 @@ describe('transcript turn evidence', () => {
       audio().dispatchEvent(new Event('ended'));
       audio().dispatchEvent(new Event('error'));
     }).not.toThrow();
+  });
+
+  it('says the audio is not available when the turn starts after the recording ends', () => {
+    renderEvidence([first, second]);
+    play('01:23');
+    act(() => {
+      // A one-second stand-in recording: both turns lie far beyond its end.
+      audio().duration = 1;
+      audio().loadMetadata();
+    });
+
+    const alert = screen.getByRole('alert');
+    expect(alert.textContent).toContain('The audio for this part is not available');
+    expect(audio().currentTime).toBe(0);
+    expect(screen.getByRole('button', { name: 'Play the turn at 01:23' })).toBeDefined();
+    expect(vi.getTimerCount()).toBe(0);
+    // The message belongs to one turn at a time: starting another clip clears the first's.
+    play('02:22');
+    expect(screen.getAllByRole('alert')).toHaveLength(1);
+    act(() => {
+      audio().duration = 600;
+    });
+    play('01:23');
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it('does not play an unavailable turn when the metadata is already loaded', () => {
+    renderEvidence([first, second]);
+    play('01:23');
+    act(() => {
+      audio().duration = 100;
+      audio().loadMetadata();
+    });
+    // Playing now (in range); the second turn starts at 142 s, past the 100 s recording.
+    expect(audio().play).toHaveBeenCalledTimes(1);
+
+    play('02:22');
+
+    expect(audio().play).toHaveBeenCalledTimes(1);
+    expect(audio().paused).toBe(true);
+    expect(screen.getByRole('alert').textContent).toContain('not available');
+    expect(screen.getByRole('button', { name: 'Play the turn at 02:22' })).toBeDefined();
+  });
+
+  it('treats a start exactly at the end as unavailable, and an unknown duration as playable', () => {
+    renderEvidence([first]);
+    play('01:23');
+    act(() => {
+      audio().duration = 83.4;
+      audio().loadMetadata();
+    });
+    expect(screen.getByRole('alert').textContent).toContain('not available');
+    expect(audio().paused).toBe(true);
+
+    // A stream of unknown length reports Infinity: nothing says the turn is out of range.
+    audio().duration = Number.POSITIVE_INFINITY;
+    play('01:23');
+    expect(screen.queryByRole('alert')).toBeNull();
+    expect(audio().currentTime).toBe(83.4);
+  });
+
+  it('still plays a turn that lies inside the recording', () => {
+    renderEvidence([first]);
+    play('01:23');
+    act(() => {
+      audio().duration = 120;
+      audio().loadMetadata();
+    });
+
+    expect(screen.queryByRole('alert')).toBeNull();
+    expect(audio().currentTime).toBe(83.4);
+    expect(screen.getByRole('button', { name: 'Stop the turn at 01:23' })).toBeDefined();
   });
 
   it('returns to Play when the recording ends', () => {

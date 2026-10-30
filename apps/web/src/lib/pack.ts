@@ -1,14 +1,16 @@
-import { runExportResponseSchema, runExportUrl, type RunExportResponse } from '@evidomo/shared';
+import type { RunExportResponse } from '@evidomo/shared';
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 import { apiJson, isClientError } from './api';
+import { runScopedKey, useRunSource } from './run-source';
 
 export const exportKey = (runId: string) => ['runs', runId, 'export'] as const;
 
 /** The stored export manifest; 409 `export_not_ready` and 404 surface as `ApiRequestError`. */
 export function useExportManifest(runId: string): UseQueryResult<RunExportResponse> {
+  const source = useRunSource();
   return useQuery({
-    queryKey: exportKey(runId),
-    queryFn: ({ signal }) => apiJson(runExportUrl(runId), runExportResponseSchema, { signal }),
+    queryKey: runScopedKey(source, runId, 'export'),
+    queryFn: ({ signal }) => apiJson(source.exportUrl(runId), source.exportSchema, { signal }),
     retry: (failureCount, error) => !isClientError(error) && failureCount < 2,
   });
 }

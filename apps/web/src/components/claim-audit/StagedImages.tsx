@@ -1,6 +1,4 @@
 import {
-  runArtifactFileUrl,
-  runMaterialFileUrl,
   type ClaimAuditGateImage,
   type IntegrityAttemptSummary,
   type IntegrityFallback,
@@ -8,6 +6,7 @@ import {
 import { useRef } from 'react';
 import { describeAuditFailure, type ClaimAuditActions } from '../../lib/claim-audit';
 import { humanize } from '../../lib/project-view';
+import { useEvidenceUrls } from '../evidence/EvidenceProvider';
 
 const attemptText = (attempt: IntegrityAttemptSummary): string => {
   if (attempt.status === 'edit_failed') {
@@ -67,18 +66,17 @@ function Photos({
 }
 
 function ImageCard({
-  runId,
   image,
   index,
   readOnly,
   actions,
 }: {
-  runId: string;
   image: ClaimAuditGateImage;
   index: number;
   readOnly: boolean;
   actions: ClaimAuditActions;
 }) {
+  const urls = useEvidenceUrls();
   const statusRef = useRef<HTMLParagraphElement>(null);
   const operation = `${humanize(image.operation.id)} (photo ${index + 1})`;
   const decision = image.decision;
@@ -111,8 +109,8 @@ function ImageCard({
           </span>
         </div>
         <Photos
-          original={runMaterialFileUrl(runId, image.materialId)}
-          staged={runArtifactFileUrl(runId, image.artifactId)}
+          original={urls.materialFile(image.materialId)}
+          staged={urls.artifactFile(image.artifactId)}
           stagedLabel={image.disclosureLabel}
           operation={operation}
         />
@@ -202,18 +200,17 @@ function ImageCard({
 }
 
 export function StagedImages({
-  runId,
   images,
   fallbacks,
   readOnly,
   actions,
 }: {
-  runId: string;
   images: readonly ClaimAuditGateImage[];
   fallbacks: readonly IntegrityFallback[];
   readOnly: boolean;
   actions: ClaimAuditActions;
 }) {
+  const urls = useEvidenceUrls();
   if (images.length === 0 && fallbacks.length === 0) return null;
   return (
     <section aria-labelledby="images-heading" className="flex flex-col gap-4">
@@ -225,7 +222,6 @@ export function StagedImages({
           {images.map((image, index) => (
             <ImageCard
               key={image.artifactId}
-              runId={runId}
               image={image}
               index={index}
               readOnly={readOnly}
@@ -250,7 +246,7 @@ export function StagedImages({
                 >
                   <p className="font-medium">{name}</p>
                   <Photos
-                    original={runMaterialFileUrl(runId, fallback.materialId)}
+                    original={urls.materialFile(fallback.materialId)}
                     staged={null}
                     stagedLabel=""
                     operation={`${name} (rejected)`}

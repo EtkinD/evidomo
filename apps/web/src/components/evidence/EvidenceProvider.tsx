@@ -22,6 +22,11 @@ interface EvidenceAudio {
   playingId: string | null;
   /** The clip whose audio could not be played, until another clip is started. */
   failedId: string | null;
+  /**
+   * The clip that starts after the recording ends (a stand-in or truncated file): there is
+   * nothing to play for it, and the screen says so, until another clip is started.
+   */
+  unavailableId: string | null;
   /** Starts the clip, or stops it when it is the one playing. Any other clip is stopped first. */
   toggle: (clip: AudioClip) => void;
 }
@@ -46,6 +51,7 @@ export function EvidenceProvider({ urls, children }: { urls: EvidenceUrls; child
   const cancelRef = useRef<(() => void) | null>(null);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [failedId, setFailedId] = useState<string | null>(null);
+  const [unavailableId, setUnavailableId] = useState<string | null>(null);
 
   const halt = useCallback(() => {
     cancelRef.current?.();
@@ -70,6 +76,7 @@ export function EvidenceProvider({ urls, children }: { urls: EvidenceUrls; child
       }
       halt();
       setFailedId(null);
+      setUnavailableId(null);
       audioRef.current ??= new Audio();
       const audio = audioRef.current;
       // A previous load that failed or never produced metadata must not be reused as is.
@@ -83,7 +90,7 @@ export function EvidenceProvider({ urls, children }: { urls: EvidenceUrls; child
       const cleanup = () => {
         active = false;
         clearInterval(timer);
-        audio.removeEventListener('loadedmetadata', seek);
+        audio.removeEventListener('loadedmetadata', onMetadata);
         audio.removeEventListener('timeupdate', checkEnd);
         audio.removeEventListener('error', fail);
         audio.removeEventListener('ended', finish);
@@ -107,11 +114,22 @@ export function EvidenceProvider({ urls, children }: { urls: EvidenceUrls; child
         loadedUrlRef.current = null;
         setFailedId(clip.id);
       }
-      function seek() {
-        if (!active) return;
-        audio.removeEventListener('loadedmetadata', seek);
+      // False when there is nothing to play (the clip is gone or starts after the recording ends).
+      function onMetadata() {
+        seek();
+      }
+      function seek(): boolean {
+        if (!active) return false;
+        audio.removeEventListener('loadedmetadata', onMetadata);
+        // Seeking past the end would just end playback with no word. Say it instead.
+        if (Number.isFinite(audio.duration) && clip.startMs / 1000 >= audio.duration) {
+          finish();
+          setUnavailableId(clip.id);
+          return false;
+        }
         audio.currentTime = clip.startMs / 1000;
         seeked = true;
+        return true;
       }
       // `timeupdate` comes from the media clock, so it still fires on time when a background tab
       // throttles the interval.
@@ -129,8 +147,10 @@ export function EvidenceProvider({ urls, children }: { urls: EvidenceUrls; child
         loadedUrlRef.current = clip.url;
         audio.src = clip.url;
       }
-      if (audio.readyState >= 1) seek();
-      else audio.addEventListener('loadedmetadata', seek);
+      // Already-loaded metadata decides now: an unavailable clip must not be played at all.
+      if (audio.readyState >= 1) {
+        if (!seek()) return;
+      } else audio.addEventListener('loadedmetadata', onMetadata);
       // Called inside the click, as iOS Safari requires; the seek follows when it can.
       audio.play().catch((error: unknown) => {
         // A newer clip interrupting this one rejects with AbortError; that is not a failure.
@@ -142,8 +162,8 @@ export function EvidenceProvider({ urls, children }: { urls: EvidenceUrls; child
   );
 
   const value = useMemo<EvidenceContextValue>(
-    () => ({ urls, audio: { playingId, failedId, toggle } }),
-    [urls, playingId, failedId, toggle],
+    () => ({ urls, audio: { playingId, failedId, unavailableId, toggle } }),
+    [urls, playingId, failedId, unavailableId, toggle],
   );
   return <EvidenceContext.Provider value={value}>{children}</EvidenceContext.Provider>;
 }

@@ -29,7 +29,8 @@ describe('header, signed out', () => {
     expect(within(nav).getByRole('link', { name: 'Create account' }).getAttribute('href')).toBe(
       '/register',
     );
-    expect(within(nav).getAllByRole('link')).toHaveLength(2);
+    expect(within(nav).getByRole('link', { name: 'Demo' }).getAttribute('href')).toBe('/demo');
+    expect(within(nav).getAllByRole('link')).toHaveLength(3);
     expect(screen.queryByRole('button', { name: /Account menu/ })).toBeNull();
     expect(screen.queryByRole('navigation', { name: 'Main' })).toBeNull();
   });
@@ -59,9 +60,16 @@ describe('header, signed in', () => {
     const link = await screen.findByRole('link', { name: 'Projects' });
     expect(link.getAttribute('href')).toBe('/projects');
     expect(link.getAttribute('aria-current')).toBe(expected);
-    expect(
-      within(screen.getByRole('navigation', { name: 'Main' })).getAllByRole('link'),
-    ).toHaveLength(1);
+    const main = within(screen.getByRole('navigation', { name: 'Main' }));
+    expect(main.getAllByRole('link')).toHaveLength(2);
+    expect(main.getByRole('link', { name: 'Demo' }).getAttribute('href')).toBe('/demo');
+  });
+
+  it('marks Demo on the demo pages', async () => {
+    setRoute('/demo/runs/abc');
+    renderPage(Home);
+    const link = await screen.findByRole('link', { name: 'Demo' });
+    expect(link.getAttribute('aria-current')).toBe('true');
   });
 
   it('hides the sign-in actions', async () => {

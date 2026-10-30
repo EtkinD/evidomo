@@ -18,7 +18,7 @@ export function FormFieldEvidence({ label, valueText }: { label: string; valueTe
 
 export function TranscriptTurnEvidence({ source }: { source: SourceOf<'transcript_turn'> }) {
   const urls = useEvidenceUrls();
-  const { playingId, failedId, toggle } = useEvidenceAudio();
+  const { playingId, failedId, unavailableId, toggle } = useEvidenceAudio();
   // The same turn can back several facts; the clip identity is the turn, not the fact.
   const clipId = `${source.transcriptArtifactId}:${source.turnIndex}`;
   const playing = playingId === clipId;
@@ -55,6 +55,11 @@ export function TranscriptTurnEvidence({ source }: { source: SourceOf<'transcrip
           {time} to {formatTimestamp(source.endMs)}
         </span>
       </div>
+      {unavailableId === clipId && (
+        <p role="alert" className="text-sm text-error">
+          The audio for this part is not available: the recording ends before this point.
+        </p>
+      )}
       {failedId === clipId && (
         <p role="alert" className="text-sm text-error">
           The recording could not be played. Check your connection and try again.

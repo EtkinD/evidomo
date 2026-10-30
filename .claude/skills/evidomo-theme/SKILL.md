@@ -97,6 +97,7 @@ Shared building blocks (P4B-06), use them instead of re-creating the pattern:
 
 - **Page states:** `components/PageStates.tsx` (`LoadingBlock`, `LoadError`; a 401 links to log in with `next`) for project and capture screens; the run, gate, and pack screens use `LoadingState`, `SessionExpiredState`, `LoadErrorState`, and `RunNotFound` from `components/RunMonitor.tsx`.
 - **Run status:** `components/RunStatusBadge.tsx` (text plus icon, never colour alone); step names from `lib/step-labels.ts`.
+- **Demo screens (P4-09):** `components/demo/` (`DemoBanner` on every demo page, `ReplayControls`, `DemoRunFrame`); the run screens read `useRunSource()` (`lib/run-source.tsx`) and a demo never renders a write control (absent, not disabled).
 - **Whole-card link:** the card title is the link (`min-h-11`) with `after:absolute after:inset-0` on a `relative` card; any other action in the card gets `relative z-10`.
 
 ## 5. Helpers

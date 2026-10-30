@@ -3,12 +3,8 @@ import { useMe } from '../../lib/auth';
 import { LANDING_IMAGES } from '../../lib/landing-images';
 import { LandingImage } from './LandingImage';
 
-/**
- * Extension point for the public demo (P4-09). While it is null the demo calls to action are not
- * rendered, so the page never links to a route that does not exist. Set it to the demo path when
- * that page ships.
- */
-export const DEMO_HREF: string | null = null;
+/** The public demo replay (P4-09). */
+export const DEMO_HREF = '/demo';
 
 const CONTAINER = 'mx-auto w-full max-w-6xl px-4';
 const SECTION_PAD = 'py-12 md:py-20';
@@ -58,11 +54,9 @@ function Actions({ surface }: { surface: Surface }) {
           </Link>
         </>
       )}
-      {DEMO_HREF !== null && (
-        <Link href={DEMO_HREF} className={second}>
-          See a finished run
-        </Link>
-      )}
+      <Link href={DEMO_HREF} className={second}>
+        See a finished run
+      </Link>
     </div>
   );
 }

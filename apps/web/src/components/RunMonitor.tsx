@@ -1,10 +1,10 @@
 import type { RunSnapshot, RunStepSnapshot, RunStepViewStatus } from '@evidomo/shared';
 import Link from 'next/link';
+import type { ReactNode } from 'react';
 import { ApiRequestError } from '../lib/api';
-import { reviewPageHref } from '../lib/claim-audit';
-import { conflictsPageHref } from '../lib/fact-conflicts';
 import { withNext } from '../lib/next-path';
 import { costShare, formatDuration, formatUsd, gateLabel } from '../lib/run-monitor';
+import { useRunSource } from '../lib/run-source';
 import { stepLabel } from '../lib/step-labels';
 import type { RunMonitor as RunMonitorState, StreamState } from '../lib/use-run-monitor';
 
@@ -196,6 +196,8 @@ function CostCard({ run, costUsd }: { run: RunSnapshot; costUsd: string }) {
 }
 
 function GateNotice({ gate, runId }: { gate: NonNullable<RunSnapshot['gate']>; runId: string }) {
+  const source = useRunSource();
+  const demo = source.kind === 'demo';
   const conflicts = gate === 'fact_conflicts';
   return (
     <section
@@ -209,15 +211,22 @@ function GateNotice({ gate, runId }: { gate: NonNullable<RunSnapshot['gate']>; r
         <h2 className="text-lg font-semibold">{gateLabel(gate)}</h2>
       </div>
       <p className="text-sm text-base-content/70">
-        The run is paused until you finish this review. It stays here for as long as you need; you
-        can leave this page, and the run continues after your last decision.
+        {demo
+          ? 'A live run pauses here until the agent finishes this review. In this replay the decisions were made already; open the review to see them, with the evidence behind each value.'
+          : 'The run is paused until you finish this review. It stays here for as long as you need; you can leave this page, and the run continues after your last decision.'}
       </p>
       <div>
         <Link
-          href={conflicts ? conflictsPageHref(runId) : reviewPageHref(runId)}
+          href={conflicts ? source.hrefs.conflicts(runId) : source.hrefs.review(runId)}
           className="btn btn-primary min-h-11"
         >
-          {conflicts ? 'Review conflicts' : 'Review the pack'}
+          {demo
+            ? conflicts
+              ? 'See the conflicts'
+              : 'See the review'
+            : conflicts
+              ? 'Review conflicts'
+              : 'Review the pack'}
         </Link>
       </div>
     </section>
@@ -241,6 +250,7 @@ function FailureNotice({ reason }: { reason: string | null }) {
 }
 
 function CompletedNotice({ run, runId }: { run: RunSnapshot; runId: string }) {
+  const source = useRunSource();
   const { export: manifest } = run;
   const duration = formatDuration(run.startedAt, run.finishedAt);
   return (
@@ -253,7 +263,9 @@ function CompletedNotice({ run, runId }: { run: RunSnapshot; runId: string }) {
           <CheckIcon />
           Finished
         </span>
-        <h2 className="text-lg font-semibold">Your listing pack is ready</h2>
+        <h2 className="text-lg font-semibold">
+          {source.kind === 'demo' ? 'The listing pack is ready' : 'Your listing pack is ready'}
+        </h2>
       </div>
       <p role="status" className="text-sm text-base-content/70">
         {manifest !== null
@@ -263,7 +275,7 @@ function CompletedNotice({ run, runId }: { run: RunSnapshot; runId: string }) {
       </p>
       {manifest !== null && (
         <div>
-          <Link href={`/runs/${runId}/pack`} className="btn btn-primary min-h-11">
+          <Link href={source.hrefs.pack(runId)} className="btn btn-primary min-h-11">
             View pack
           </Link>
         </div>
@@ -290,12 +302,32 @@ function announcement(run: RunSnapshot): string {
   }
 }
 
-function StreamNotice({ state, onRetry }: { state: StreamState; onRetry: () => void }) {
+function StreamNotice({
+  state,
+  onRetry,
+  demo,
+}: {
+  state: StreamState;
+  onRetry: () => void;
+  demo: boolean;
+}) {
+  if (state === 'unavailable' && demo) {
+    return (
+      <div role="alert" className="alert alert-warning alert-vertical sm:alert-horizontal">
+        <span>The replay could not continue. Try again in a few seconds.</span>
+        <button type="button" className="btn min-h-11" onClick={onRetry}>
+          Try again
+        </button>
+      </div>
+    );
+  }
   if (state === 'reconnecting') {
     return (
       <div role="status" className="flex items-center gap-2 text-sm text-base-content/70">
         <span className="loading loading-spinner loading-xs" aria-hidden />
-        Live updates interrupted. Reconnecting…
+        {demo
+          ? 'The replay was interrupted. Reconnecting…'
+          : 'Live updates interrupted. Reconnecting…'}
       </div>
     );
   }
@@ -335,7 +367,17 @@ function StepProgress({ run }: { run: RunSnapshot }) {
   );
 }
 
-export function RunMonitorView({ monitor, runId }: { monitor: RunMonitorState; runId: string }) {
+/** `controls` (the demo's replay controls) render under the header once the run is loaded. */
+export function RunMonitorView({
+  monitor,
+  runId,
+  controls,
+}: {
+  monitor: RunMonitorState;
+  runId: string;
+  controls?: ReactNode;
+}) {
+  const demo = useRunSource().kind === 'demo';
   const run = monitor.snapshot.data;
   if (run === undefined) return <RunLoadState monitor={monitor} runId={runId} />;
 
@@ -353,7 +395,7 @@ export function RunMonitorView({ monitor, runId }: { monitor: RunMonitorState; r
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
-        <h1 className="card-title text-2xl">Run</h1>
+        <h1 className="card-title text-2xl">{demo ? 'Sample run replay' : 'Run'}</h1>
         <div className="flex flex-wrap items-center gap-2">
           <span className={`badge ${badge.className} gap-1`}>
             <StatusMark kind={badgeMark} />
@@ -367,7 +409,8 @@ export function RunMonitorView({ monitor, runId }: { monitor: RunMonitorState; r
         </p>
       </div>
 
-      <StreamNotice state={monitor.streamState} onRetry={monitor.retryStream} />
+      {controls}
+      <StreamNotice state={monitor.streamState} onRetry={monitor.retryStream} demo={demo} />
       {monitor.sessionExpired ? (
         <SessionExpiredState next={`/runs/${runId}`} />
       ) : (
@@ -437,10 +480,29 @@ export function SessionExpiredState({ next }: { next: string }) {
   );
 }
 
-export function LoadErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
+/**
+ * `error` lets the demo say "wait a moment" for a 429; the owner's screens keep their own
+ * message for every failure.
+ */
+export function LoadErrorState({
+  message,
+  onRetry,
+  error,
+}: {
+  message: string;
+  onRetry: () => void;
+  error?: unknown;
+}) {
+  const demo = useRunSource().kind === 'demo';
+  const limited = demo && error instanceof ApiRequestError && error.status === 429;
+  const wait = error instanceof ApiRequestError ? error.retryAfterSeconds : null;
   return (
     <div role="alert" className="alert alert-error alert-vertical sm:alert-horizontal">
-      <span>{message}</span>
+      <span>
+        {limited
+          ? `Too many requests right now. Wait ${wait !== null && wait > 0 && wait <= 120 ? `about ${wait} seconds` : 'a few seconds'} and try again.`
+          : message}
+      </span>
       <button type="button" className="btn min-h-11" onClick={onRetry}>
         Try again
       </button>
@@ -460,12 +522,23 @@ function RunLoadState({ monitor, runId }: { monitor: RunMonitorState; runId: str
   return (
     <LoadErrorState
       message="We could not load this run. Check your connection and try again."
+      error={error}
       onRetry={() => void refetch()}
     />
   );
 }
 
 export function RunNotFound() {
+  if (useRunSource().kind === 'demo') {
+    return (
+      <div role="alert" className="alert alert-warning alert-vertical sm:alert-horizontal">
+        <span>This demo run was not found. It may no longer be published.</span>
+        <Link href="/demo" className="btn min-h-11">
+          See the demo runs
+        </Link>
+      </div>
+    );
+  }
   return (
     <div role="alert" className="alert alert-warning alert-vertical sm:alert-horizontal">
       <span>This run was not found. It may belong to another account or no longer exist.</span>

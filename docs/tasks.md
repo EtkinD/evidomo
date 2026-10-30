@@ -183,7 +183,7 @@ The orchestrator (main session) delegates each task to its owner — see `.claud
 - [x] **P4-08 — Pack viewer and export**
   - Depends on: P3-09
   - Done when: the pack renders in the browser, prints cleanly to PDF, and the JSON downloads.
-- [ ] **P4-09 — Demo replay mode**
+- [x] **P4-09 — Demo replay mode**
   - Depends on: P4-05 … P4-08
   - Done when: a stored completed run replays from `run_events` with original timing at a public URL, without login and without model calls.
 - [x] **P4-10 — Live-run access control**

@@ -19,6 +19,7 @@ import {
 import { ApiRequestError, apiJson } from './api';
 import { describeRequestFailure } from './request-failure';
 import { runQueryKey } from './run-monitor';
+import { runScopedKey, useRunSource } from './run-source';
 
 export const factConflictsPath = (runId: string): string => `${runUrl(runId)}/gates/fact-conflicts`;
 export const factConflictDecisionPath = (runId: string, conflictId: string): string =>
@@ -27,10 +28,11 @@ export const factConflictsKey = (runId: string) => ['runs', runId, 'fact-conflic
 export const conflictsPageHref = (runId: string): string => `/runs/${runId}/conflicts`;
 
 export function useFactConflicts(runId: string): UseQueryResult<FactConflictsGateResponse> {
+  const source = useRunSource();
   return useQuery({
-    queryKey: factConflictsKey(runId),
+    queryKey: runScopedKey(source, runId, 'fact-conflicts'),
     queryFn: ({ signal }) =>
-      apiJson(factConflictsPath(runId), factConflictsGateResponseSchema, { signal }),
+      apiJson(source.factConflictsUrl(runId), factConflictsGateResponseSchema, { signal }),
   });
 }
 
@@ -39,9 +41,10 @@ export function useFactConflicts(runId: string): UseQueryResult<FactConflictsGat
  * It shares the monitor's cache entry; the stream stays the monitor's business.
  */
 export function useRunSnapshotRef(runId: string): UseQueryResult<RunSnapshot> {
+  const source = useRunSource();
   return useQuery({
-    queryKey: runQueryKey(runId),
-    queryFn: ({ signal }) => apiJson(runUrl(runId), runSnapshotSchema, { signal }),
+    queryKey: runScopedKey(source, runId),
+    queryFn: ({ signal }) => apiJson(source.snapshotUrl(runId), runSnapshotSchema, { signal }),
   });
 }
 

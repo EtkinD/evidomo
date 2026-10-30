@@ -28,7 +28,8 @@ export type StreamState = 'connecting' | 'live' | 'reconnecting' | 'unavailable'
 export const RECONNECT_NOTICE_DELAY_MS = 1500;
 
 export interface RunMonitor {
-  snapshot: UseQueryResult<RunSnapshot>;
+  /** The part of the query result the screens read (the demo replay builds its own). */
+  snapshot: Pick<UseQueryResult<RunSnapshot>, 'data' | 'error' | 'isError' | 'refetch'>;
   streamState: StreamState;
   /** The last snapshot refresh failed; what is shown may lag until the next event or retry. */
   refreshFailed: boolean;

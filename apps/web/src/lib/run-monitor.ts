@@ -181,3 +181,55 @@ export function formatDuration(startedAt: string | null, finishedAt: string | nu
   if (seconds < 60) return `${seconds} s`;
   return `${Math.floor(seconds / 60)} min ${seconds % 60} s`;
 }
+
+/**
+ * The state a demo replay starts from: the finished run's snapshot with its progress taken back
+ * (every step waiting, nothing started, no export, event cursor 0). Replayed events then move it
+ * forward exactly as live ones would.
+ */
+export function replayStart(final: RunSnapshot): RunSnapshot {
+  const costs = final.costUsd !== undefined;
+  return {
+    ...final,
+    status: 'queued',
+    gate: null,
+    currentStepId: null,
+    failureReason: null,
+    startedAt: null,
+    finishedAt: null,
+    lastEventSeq: 0,
+    export: null,
+    ...(costs ? { costUsd: '0' } : {}),
+    steps: final.steps.map((step) => ({
+      ...step,
+      status: 'pending',
+      attempt: null,
+      attempts: 0,
+      executions: 0,
+      totalExecutions: 0,
+      startedAt: null,
+      finishedAt: null,
+      gateReleasedAt: null,
+      error: null,
+      ...(costs ? { costUsd: '0' } : {}),
+    })),
+  };
+}
+
+/**
+ * One replayed event applied to the replay state. The events only describe progress; what they
+ * point at but do not carry (the export summary) is taken from the finished run's snapshot at the
+ * moment the stored run produced it. A gap in the sequence is tolerated: a replay has nothing to
+ * refetch, so the cursor simply moves on.
+ */
+export function applyReplayEvent(
+  final: RunSnapshot,
+  base: RunSnapshot,
+  event: RunStreamEvent,
+): RunSnapshot {
+  const next =
+    applyRunEvent(base, event) ??
+    applyRunEvent({ ...base, lastEventSeq: event.seq - 1 }, event) ??
+    base;
+  return event.type === 'pack_exported' ? { ...next, export: final.export } : next;
+}

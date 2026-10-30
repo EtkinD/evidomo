@@ -45,13 +45,15 @@ describe('landing page, signed out', () => {
     expect(main.querySelectorAll('.btn-primary')).toHaveLength(1);
   });
 
-  it('has no demo link while the demo page does not exist', async () => {
+  it('links to the public demo from the hero and the closing band', async () => {
     const main = await renderSignedOut();
 
-    expect(DEMO_HREF).toBeNull();
-    expect(within(main).queryByRole('link', { name: /demo|finished run/i })).toBeNull();
+    expect(DEMO_HREF).toBe('/demo');
+    const demo = within(main).getAllByRole('link', { name: 'See a finished run' });
+    expect(demo).toHaveLength(2);
+    for (const link of demo) expect(link.getAttribute('href')).toBe('/demo');
     for (const link of within(main).getAllByRole('link')) {
-      expect(['/register', '/login']).toContain(link.getAttribute('href'));
+      expect(['/register', '/login', '/demo']).toContain(link.getAttribute('href'));
     }
   });
 });

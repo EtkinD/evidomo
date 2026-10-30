@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRef } from 'react';
 import { ApiRequestError } from '../lib/api';
 import { formatBytes } from '../lib/pack';
+import { useRunSource } from '../lib/run-source';
 import { LoadErrorState, LoadingState, RunNotFound, SessionExpiredState } from './RunMonitor';
 
 /**
@@ -133,10 +134,11 @@ function PackReady({ pack }: { pack: RunExportResponse }) {
 }
 
 function NotReady({ runId }: { runId: string }) {
+  const source = useRunSource();
   return (
     <div role="status" className="alert alert-info alert-vertical sm:alert-horizontal">
       <span>The pack is not ready yet. It appears once the run has finished its export.</span>
-      <Link href={`/runs/${runId}`} className="btn min-h-11">
+      <Link href={source.hrefs.monitor(runId)} className="btn min-h-11">
         Back to the run
       </Link>
     </div>
@@ -153,6 +155,7 @@ function PackError({ query, runId }: { query: UseQueryResult<RunExportResponse>;
   return (
     <LoadErrorState
       message="We could not load this pack. Check your connection and try again."
+      error={error}
       onRetry={() => void query.refetch()}
     />
   );
@@ -165,11 +168,12 @@ export function PackViewer({
   query: UseQueryResult<RunExportResponse>;
   runId: string;
 }) {
+  const source = useRunSource();
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
         <Link
-          href={`/runs/${runId}`}
+          href={source.hrefs.monitor(runId)}
           className="link inline-flex min-h-11 w-fit items-center text-sm"
         >
           Back to the run

@@ -19,7 +19,7 @@ import {
   type EditResult,
 } from '../lib/conflict-edit';
 import { formatFactValue, keyLabel } from '../lib/evidence';
-import { runEvidenceUrls, type EvidenceUrls } from '../lib/evidence-urls';
+import type { EvidenceUrls } from '../lib/evidence-urls';
 import {
   decisionSummary,
   describeDecisionFailure,
@@ -29,6 +29,7 @@ import {
 } from '../lib/fact-conflicts';
 import { fieldHint, humanize } from '../lib/project-view';
 import { useMarketForm } from '../lib/projects';
+import { useRunSource } from '../lib/run-source';
 import { EvidenceInspector } from './evidence/EvidenceInspector';
 import { EvidenceProvider } from './evidence/EvidenceProvider';
 import { Field } from './FormField';
@@ -475,10 +476,13 @@ export function FactConflictsView({
   runId: string;
   urls?: EvidenceUrls;
 }) {
+  const source = useRunSource();
+  const demo = source.kind === 'demo';
   const gate = useFactConflicts(runId);
   const snapshot = useRunSnapshotRef(runId);
+  // The market form is a signed-in route; the demo falls back to plain fact labels.
   const marketQuery = useMarketForm(
-    snapshot.data === undefined
+    snapshot.data === undefined || demo
       ? undefined
       : { id: snapshot.data.marketProfileId, version: snapshot.data.marketProfileVersion },
   );
@@ -489,7 +493,10 @@ export function FactConflictsView({
   const [editingId, setEditingId] = useState<string | null>(null);
   const decide = useDecideConflict(runId);
   const labels = useMemo(() => labelsFor(market), [market]);
-  const urls = useMemo(() => urlsOverride ?? runEvidenceUrls(runId), [runId, urlsOverride]);
+  const urls = useMemo(
+    () => urlsOverride ?? source.evidenceUrls(runId),
+    [runId, source, urlsOverride],
+  );
 
   if (gate.data === undefined) {
     if (!gate.isError) {
@@ -502,13 +509,15 @@ export function FactConflictsView({
     return (
       <LoadErrorState
         message="We could not load the fact conflicts. Check your connection and try again."
+        error={gate.error}
         onRetry={() => void gate.refetch()}
       />
     );
   }
 
   const data = gate.data;
-  const readOnly = data.state !== 'open';
+  // A demo never writes, whatever state the stored gate is in.
+  const readOnly = data.state !== 'open' || demo;
   const list = (
     <ol className="flex flex-col gap-4">
       {data.conflicts.map((conflict) => (
@@ -532,20 +541,20 @@ export function FactConflictsView({
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-2">
           <Link
-            href={`/runs/${runId}`}
+            href={source.hrefs.monitor(runId)}
             className="link inline-flex min-h-11 w-fit items-center text-sm"
           >
             Back to run
           </Link>
           <h1 className="card-title text-2xl">
-            {data.state === 'open' ? 'Resolve fact conflicts' : 'Fact conflicts'}
+            {data.state === 'open' && !demo ? 'Resolve fact conflicts' : 'Fact conflicts'}
           </h1>
         </div>
 
         {decide.data?.resumed === true && (
           <div role="status" className="alert alert-success alert-vertical sm:alert-horizontal">
             <span>All conflicts are decided. The run is continuing.</span>
-            <Link href={`/runs/${runId}`} className="btn min-h-11">
+            <Link href={source.hrefs.monitor(runId)} className="btn min-h-11">
               Back to the run
             </Link>
           </div>
@@ -572,12 +581,14 @@ export function FactConflictsView({
             <span>
               {data.conflictCount === 0
                 ? 'No conflicts needed a decision.'
-                : 'This review is finished. Your decisions are shown below.'}
+                : demo
+                  ? 'This review was finished in the original run. The decisions made are shown below.'
+                  : 'This review is finished. Your decisions are shown below.'}
             </span>
           </div>
         )}
 
-        {data.state === 'open' && (
+        {data.state === 'open' && !demo && (
           <>
             <p className="text-base-content/70">
               These facts disagree. Compare the evidence for each value, then keep one, reject them

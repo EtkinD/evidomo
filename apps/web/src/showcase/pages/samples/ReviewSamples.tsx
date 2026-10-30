@@ -62,6 +62,7 @@ function useSampleUrls(): EvidenceUrls | null {
         ? null
         : {
             materialFile: () => photo ?? '',
+            artifactFile: () => photo ?? '',
             transcriptAudio: () => chime,
             factMask: () => MASK_DATA_URL,
           },
