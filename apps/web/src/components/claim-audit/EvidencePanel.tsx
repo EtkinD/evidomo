@@ -91,7 +91,7 @@ export function EvidencePanel({
                 <EvidenceInspector
                   factId={fact.id}
                   source={fact.source}
-                  valueText={labels.value(fact.value, fact.unit, fact.basis)}
+                  valueText={labels.value(fact.value, fact.unit, fact.basis, fact.key)}
                   label={labels.fact(fact.key)}
                 />
               )}

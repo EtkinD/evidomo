@@ -22,9 +22,11 @@ export function formatFactValue(
   unit: string | null,
   basis: string | null,
   basisLabel?: (basisId: string) => string | undefined,
+  /** The profile's label for an enum value (`oil` shows as the translated "Oil"). */
+  valueLabel?: (text: string) => string | undefined,
 ): string {
   if (typeof value === 'boolean') return value ? t('yes') : t('no');
-  const text = typeof value === 'string' ? value : JSON.stringify(value);
+  const text = typeof value === 'string' ? (valueLabel?.(value) ?? value) : JSON.stringify(value);
   // The same unit display as the exported pack (`withDisplayUnit` in @evidomo/shared).
   const withUnit = withDisplayUnit(text, unit);
   if (basis === null) return withUnit;

@@ -1,4 +1,4 @@
-import type { ProjectSummary } from '@evidomo/shared';
+import type { MarketSummary, ProjectSummary } from '@evidomo/shared';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -9,15 +9,30 @@ import { useMe } from '../lib/auth';
 import { clearFlash, peekFlash, type Flash } from '../lib/flash';
 import { getStaticProps } from '../lib/i18n-server';
 import type { NextPageWithAuth } from '../lib/page-auth';
-import { languageName } from '../lib/project-view';
+import { languageName, marketName } from '../lib/project-view';
 import { LANDING_IMAGES, landingSrc, landingSrcSet } from '../lib/landing-images';
-import { useProjects } from '../lib/projects';
+import { useMarkets, useProjects } from '../lib/projects';
 
 export { getStaticProps };
 
-function ProjectCard({ project }: { project: ProjectSummary }) {
+function ProjectCard({
+  project,
+  markets,
+}: {
+  project: ProjectSummary;
+  markets: readonly MarketSummary[];
+}) {
   const t = useTranslations('projects');
   const locale = useLocale();
+  // The project view carries the English name only; the market list has the translations.
+  const summary = markets.find(
+    (candidate) =>
+      candidate.id === project.market.id && candidate.version === project.market.version,
+  );
+  const market =
+    summary !== undefined
+      ? marketName(summary, locale)
+      : (project.market.name ?? t('unknownMarket'));
   const { latestRun } = project;
   return (
     // A folder: the market and language sit on its tab, the sheet below holds the facts.
@@ -25,7 +40,7 @@ function ProjectCard({ project }: { project: ProjectSummary }) {
     // run link below sits above it (`relative z-10`) and keeps its own target.
     <li className="lift relative mt-7 bg-base-100 shadow-sheet [&:hover_.folder-tab]:bg-accent">
       <p className="folder-tab absolute -top-7 left-0 max-w-[85%] truncate bg-base-300 px-3 py-1 text-sm leading-5 text-base-content transition-colors duration-200">
-        {project.market.name ?? t('unknownMarket')} · {languageName(project.outputLanguage, locale)}
+        {market} · {languageName(project.outputLanguage, locale)}
       </p>
       <div className="flex flex-col gap-3 p-5">
         <div className="flex flex-wrap items-start justify-between gap-2">
@@ -97,6 +112,7 @@ const ProjectsPage: NextPageWithAuth = () => {
   const t = useTranslations('projects');
   const { data: user } = useMe();
   const projects = useProjects();
+  const markets = useMarkets();
   const tDelete = useTranslations('deleteProject');
   // Read in the initialiser (pure) and consumed in an effect, so a strict-mode remount keeps it.
   const [flash, setFlash] = useState<Flash | null>(() => peekFlash());
@@ -157,7 +173,11 @@ const ProjectsPage: NextPageWithAuth = () => {
           {projects.isSuccess && projects.data.projects.length > 0 && (
             <ul className="flex flex-col gap-6">
               {projects.data.projects.map((project) => (
-                <ProjectCard key={project.id} project={project} />
+                <ProjectCard
+                  key={project.id}
+                  project={project}
+                  markets={markets.data?.markets ?? []}
+                />
               ))}
             </ul>
           )}

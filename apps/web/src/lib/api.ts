@@ -19,11 +19,6 @@ export class ApiRequestError extends Error {
   readonly status: number;
   /** `null` when the body was not a recognised API error (e.g. a proxy's HTML error page). */
   readonly code: ApiErrorCode | null;
-  /**
-   * The body's `error` string even when this client's shared schema does not know it yet (the
-   * resume codes land in `packages/shared` with the backend; see `lib/run-resume.ts`).
-   */
-  readonly rawCode: string | null;
   readonly issues: readonly ApiValidationIssue[];
   /** `claim_edit_rejected` only: the claim validator's findings on the edited text. */
   readonly findings: readonly ClaimFinding[];
@@ -39,7 +34,6 @@ export class ApiRequestError extends Error {
   constructor(init: {
     status: number;
     code: ApiErrorCode | null;
-    rawCode?: string | null;
     issues?: readonly ApiValidationIssue[];
     findings?: readonly ClaimFinding[];
     fields?: Readonly<Record<string, FactFormFieldProblem>>;
@@ -50,7 +44,6 @@ export class ApiRequestError extends Error {
     super(`API request failed with ${init.status} (${init.code ?? 'unrecognised body'})`);
     this.status = init.status;
     this.code = init.code;
-    this.rawCode = init.rawCode ?? init.code;
     this.issues = init.issues ?? [];
     this.findings = init.findings ?? [];
     this.fields = init.fields ?? {};
@@ -83,11 +76,6 @@ export function parseRetryAfter(value: string | null, now: number = Date.now()):
   return Math.max(0, Math.ceil((date - now) / 1000));
 }
 
-function rawErrorCode(body: unknown): string | null {
-  if (typeof body !== 'object' || body === null || !('error' in body)) return null;
-  return typeof body.error === 'string' ? body.error : null;
-}
-
 /** Builds the typed error from a non-2xx status, its (already parsed) body, and `Retry-After`. */
 export function apiRequestErrorFrom(
   status: number,
@@ -98,7 +86,6 @@ export function apiRequestErrorFrom(
   return new ApiRequestError({
     status,
     code: parsed.success ? parsed.data.error : null,
-    rawCode: parsed.success ? parsed.data.error : rawErrorCode(body),
     issues: parsed.success ? (parsed.data.issues ?? []) : [],
     findings: parsed.success ? (parsed.data.findings ?? []) : [],
     fields: parsed.success ? (parsed.data.fields ?? {}) : {},

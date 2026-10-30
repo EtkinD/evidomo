@@ -14,7 +14,7 @@ import {
   type ProjectFormErrors,
 } from '../lib/project-form';
 import { useCreateProject } from '../lib/projects';
-import { languageName } from '../lib/project-view';
+import { languageName, marketName } from '../lib/project-view';
 import { Field } from './FormField';
 import { OfficeProfileFields } from './OfficeProfileFields';
 
@@ -153,7 +153,7 @@ export function CreateProjectForm({ markets }: { markets: readonly MarketSummary
             >
               {markets.map((candidate) => (
                 <option key={marketValue(candidate)} value={marketValue(candidate)}>
-                  {candidate.name}
+                  {marketName(candidate, locale)}
                 </option>
               ))}
             </select>

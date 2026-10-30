@@ -84,6 +84,7 @@ export function buildEditRequest(
   conflict: GateConflict,
   text: string,
   picks: Picks = {},
+  locale = 'en',
 ): EditResult {
   const trimmed = text.trim();
   if (trimmed === '') return { ok: false, message: t('edit.enterValue') };
@@ -91,7 +92,8 @@ export function buildEditRequest(
   if (control.kind === 'market') {
     const { field } = control;
     const problem = checkFact(field, trimmed);
-    if (problem !== null) return { ok: false, message: factProblemMessage(t, field, problem) };
+    if (problem !== null)
+      return { ok: false, message: factProblemMessage(t, field, problem, locale) };
     // The profile fixes unit and basis for its own keys, so they are not sent.
     switch (field.type) {
       case 'enum':
@@ -101,7 +103,7 @@ export function buildEditRequest(
       default: {
         const number = parseNumberText(trimmed);
         return number === null
-          ? { ok: false, message: factProblemMessage(t, field, 'wrong_type') }
+          ? { ok: false, message: factProblemMessage(t, field, 'wrong_type', locale) }
           : { ok: true, body: { choice: 'edit', value: number } };
       }
     }

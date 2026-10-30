@@ -1,5 +1,6 @@
 import {
   displayUnit,
+  localizedLabel,
   type FactConflictDecision,
   type GateConflict,
   type GateConflictSide,
@@ -8,7 +9,7 @@ import {
 } from '@evidomo/shared';
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
-import { useTranslations } from 'use-intl';
+import { useLocale, useTranslations } from 'use-intl';
 import { ApiRequestError } from '../lib/api';
 import type { Translator } from '../lib/i18n';
 import {
@@ -29,7 +30,7 @@ import {
   useFactConflicts,
   useRunSnapshotRef,
 } from '../lib/fact-conflicts';
-import { fieldHint, humanize } from '../lib/project-view';
+import { fieldHint, fieldLabel, humanize, optionLabel } from '../lib/project-view';
 import { useMarketForm } from '../lib/projects';
 import { useRunSource } from '../lib/run-source';
 import { PAGE_TITLE_CLASS } from './DossierPage';
@@ -42,20 +43,39 @@ type Decide = ReturnType<typeof useDecideConflict>;
 
 export interface Labels {
   fact: (key: string) => string;
-  value: (value: GateFact['value'], unit: string | null, basis: string | null) => string;
+  value: (
+    value: GateFact['value'],
+    unit: string | null,
+    basis: string | null,
+    key: string,
+  ) => string;
 }
 
-export function labelsFor(tCommon: Translator<'common'>, market: MarketForm | undefined): Labels {
+/** Profile text (fact, option, and basis labels) in the interface `locale`, English as fallback. */
+export function labelsFor(
+  tCommon: Translator<'common'>,
+  market: MarketForm | undefined,
+  locale = 'en',
+): Labels {
   return {
-    fact: (key) => market?.facts.find((fact) => fact.key === key)?.label ?? keyLabel(key),
-    value: (value, unit, basis) =>
-      formatFactValue(
+    fact: (key) => {
+      const field = market?.facts.find((fact) => fact.key === key);
+      return field === undefined ? keyLabel(key) : fieldLabel(field, locale);
+    },
+    value: (value, unit, basis, key) => {
+      const field = market?.facts.find((fact) => fact.key === key);
+      return formatFactValue(
         tCommon,
         value,
         unit,
         basis,
-        (id) => market?.areaBases.find((candidate) => candidate.id === id)?.label,
-      ),
+        (id) => {
+          const base = market?.areaBases.find((candidate) => candidate.id === id);
+          return base === undefined ? undefined : localizedLabel(base, locale);
+        },
+        field?.type === 'enum' ? (text) => optionLabel(field, text, locale) : undefined,
+      );
+    },
   };
 }
 
@@ -91,6 +111,7 @@ function EditValueForm({
 }) {
   const t = useTranslations('conflicts');
   const tFact = useTranslations('factForm');
+  const locale = useLocale();
   const [text, setText] = useState('');
   const [unitPick, setUnitPick] = useState('');
   const [basisPick, setBasisPick] = useState('');
@@ -115,7 +136,7 @@ function EditValueForm({
   const { unit: sharedUnit } = editedMeasure(conflict, control, picks);
   const hint =
     control.kind === 'market'
-      ? fieldHint(tFact, control.field)
+      ? fieldHint(tFact, control.field, locale)
       : control.kind === 'number'
         ? unitOptions !== null
           ? t('edit.numberChooseUnit')
@@ -126,7 +147,7 @@ function EditValueForm({
 
   function submit(event: FormEvent) {
     event.preventDefault();
-    const result = buildEditRequest(tFact, control, conflict, text, picks);
+    const result = buildEditRequest(tFact, control, conflict, text, picks, locale);
     if (!result.ok) {
       setProblem(result.message);
       return;
@@ -193,7 +214,9 @@ function EditValueForm({
               <option value="">{t('edit.choose')}</option>
               {choices.map((choice) => (
                 <option key={choice} value={choice}>
-                  {humanize(choice)}
+                  {control.kind === 'market' && control.field.type === 'enum'
+                    ? optionLabel(control.field, choice, locale)
+                    : humanize(choice)}
                 </option>
               ))}
             </select>
@@ -234,7 +257,7 @@ function SideCard({
 }) {
   const t = useTranslations('conflicts');
   const headingId = `${conflict.id}-${side.factIds[0]}`;
-  const valueText = labels.value(side.value, side.unit, side.basis);
+  const valueText = labels.value(side.value, side.unit, side.basis, side.key);
   const kinds = [...new Set(side.sourceKinds)].map((kind) => t(SOURCE_KIND_KEYS[kind]));
 
   return (
@@ -278,7 +301,7 @@ function SideCard({
                 <EvidenceInspector
                   factId={fact.id}
                   source={fact.source}
-                  valueText={labels.value(fact.value, fact.unit, fact.basis)}
+                  valueText={labels.value(fact.value, fact.unit, fact.basis, fact.key)}
                   label={labels.fact(fact.key)}
                 />
               </div>
@@ -356,9 +379,11 @@ function ConflictCard({
           decision,
           (factIds) => {
             const side = conflict.sides.find((s) => s.factIds.some((id) => factIds.includes(id)));
-            return side === undefined ? undefined : labels.value(side.value, side.unit, side.basis);
+            return side === undefined
+              ? undefined
+              : labels.value(side.value, side.unit, side.basis, side.key);
           },
-          (edit) => labels.value(edit.value, edit.unit, edit.basis),
+          (edit) => labels.value(edit.value, edit.unit, edit.basis, conflict.key),
         );
 
   return (
@@ -389,7 +414,7 @@ function ConflictCard({
           {conflict.sides.map((side) => (
             <li key={side.factIds.join()} className="flex flex-col bg-base-100 p-2 shadow-sheet">
               <span className="font-semibold">
-                {labels.value(side.value, side.unit, side.basis)}
+                {labels.value(side.value, side.unit, side.basis, side.key)}
               </span>
               <span className="text-sm text-base-content/70">
                 {t('sourceCount', { count: side.facts.length })}
@@ -505,6 +530,7 @@ export function FactConflictsView({
 }) {
   const t = useTranslations('conflicts');
   const tCommon = useTranslations('common');
+  const locale = useLocale();
   const source = useRunSource();
   const demo = source.kind === 'demo';
   const gate = useFactConflicts(runId);
@@ -521,7 +547,7 @@ export function FactConflictsView({
   const marketLoading = snapshot.isLoading || marketQuery.isLoading;
   const [editingId, setEditingId] = useState<string | null>(null);
   const decide = useDecideConflict(runId);
-  const labels = useMemo(() => labelsFor(tCommon, market), [tCommon, market]);
+  const labels = useMemo(() => labelsFor(tCommon, market, locale), [tCommon, market, locale]);
   const urls = useMemo(
     () => urlsOverride ?? source.evidenceUrls(runId),
     [runId, source, urlsOverride],

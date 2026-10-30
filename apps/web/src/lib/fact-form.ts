@@ -5,7 +5,7 @@ import type {
   FactFormValues,
 } from '@evidomo/shared';
 import type { Translator } from './i18n';
-import { humanize } from './project-view';
+import { optionLabel } from './project-view';
 
 type FactT = Translator<'factForm'>;
 
@@ -91,6 +91,7 @@ export function factProblemMessage(
   t: FactT,
   field: FactFormField,
   problem: FactFormFieldProblem,
+  locale = 'en',
 ): string {
   switch (problem) {
     case 'wrong_type':
@@ -112,7 +113,9 @@ export function factProblemMessage(
       return t('problems.nonNegative');
     case 'not_allowed':
       return field.type === 'enum'
-        ? t('problems.chooseOneOf', { options: field.values.map(humanize).join(', ') })
+        ? t('problems.chooseOneOf', {
+            options: field.values.map((value) => optionLabel(field, value, locale)).join(', '),
+          })
         : t('problems.notAllowed');
     case 'invalid_key':
     case 'invalid_text':
@@ -129,11 +132,12 @@ export function validateDraft(
   t: FactT,
   fields: readonly FactFormField[],
   draft: FactDraft,
+  locale = 'en',
 ): Record<string, string> {
   const errors: Record<string, string> = {};
   for (const field of fields) {
     const problem = checkFact(field, draft[field.key] ?? '');
-    if (problem !== null) errors[field.key] = factProblemMessage(t, field, problem);
+    if (problem !== null) errors[field.key] = factProblemMessage(t, field, problem, locale);
   }
   return errors;
 }

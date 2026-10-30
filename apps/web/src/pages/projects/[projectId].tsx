@@ -12,7 +12,7 @@ import { ReadinessPanel } from '../../components/ReadinessPanel';
 import { ApiRequestError } from '../../lib/api';
 import { getServerSideProps } from '../../lib/i18n-server';
 import type { NextPageWithAuth } from '../../lib/page-auth';
-import { languageName } from '../../lib/project-view';
+import { languageName, marketName } from '../../lib/project-view';
 import { useMarketForm, useProject } from '../../lib/projects';
 
 export { getServerSideProps };
@@ -49,13 +49,16 @@ const ProjectPage: NextPageWithAuth = () => {
     body = <LoadingBlock label={tCommon('loadingProject')} cards={3} />;
   } else {
     const locked = detail.readiness.inputsLocked;
+    const marketText =
+      market.data === undefined
+        ? (detail.project.market.name ?? t('unknownMarket'))
+        : marketName(market.data.market, locale);
     body = (
       <>
         <header>
           <h1 className="text-3xl font-bold tracking-tight">{detail.project.title}</h1>
           <p className="text-base-content/70">
-            {detail.project.market.name ?? t('unknownMarket')} ·{' '}
-            {languageName(detail.project.outputLanguage, locale)}
+            {marketText} · {languageName(detail.project.outputLanguage, locale)}
           </p>
         </header>
 

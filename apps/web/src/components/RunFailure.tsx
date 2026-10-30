@@ -1,4 +1,4 @@
-import type { RunSnapshot } from '@evidomo/shared';
+import type { RunResumability, RunSnapshot } from '@evidomo/shared';
 import Link from 'next/link';
 import { useRef, useState } from 'react';
 import { useTranslations } from 'use-intl';
@@ -7,10 +7,8 @@ import { useRunSource } from '../lib/run-source';
 import {
   describeResumeFailure,
   failedStepOf,
-  resumeAvailability,
   useResumeRun,
   waitPhrase,
-  type RunResumability,
   type ResumeFailure,
 } from '../lib/run-resume';
 import { stepLabel } from '../lib/step-labels';
@@ -150,7 +148,7 @@ export function FailureNotice({
   // A ref: two clicks in one tick both see the mutation as idle.
   const sending = useRef(false);
 
-  const availability = resumeAvailability(run);
+  const availability = run.resume;
   const blocked = availability === undefined || availability === 'available' ? null : availability;
   const step = failedStepOf(run);
   const stepName = step === undefined ? null : stepLabel(tSteps, step.stepId).label;

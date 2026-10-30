@@ -1,5 +1,7 @@
 import {
   displayUnit,
+  localizedLabel,
+  type LabelTranslations,
   type AreaUnit,
   type FactFormField,
   type MarketForm,
@@ -52,16 +54,49 @@ export function humanize(value: string): string {
   return spaced === '' ? value : spaced.charAt(0).toUpperCase() + spaced.slice(1);
 }
 
+/** A market's name in the interface language, from the English `name` and its `names` map. */
+export function marketName(
+  market: { name: string; names?: LabelTranslations | undefined },
+  locale: string,
+): string {
+  return localizedLabel({ label: market.name, labels: market.names }, locale);
+}
+
+/** A fact form field's label in the interface language (English when it has no translation). */
+export function fieldLabel(field: FactFormField, locale: string): string {
+  return localizedLabel(field, locale);
+}
+
+/**
+ * An enum option in the interface language. An option the profile labels is shown by its label
+ * (or its value, for codes such as `B`); a stored value outside the profile is humanised.
+ */
+export function optionLabel(
+  field: Extract<FactFormField, { type: 'enum' }>,
+  value: string,
+  locale: string,
+): string {
+  const option = field.options.find((candidate) => candidate.value === value);
+  return option === undefined ? humanize(value) : localizedLabel(option, locale);
+}
+
 /**
  * One line describing what a field expects, shown under its label. The basis label of an area
- * field comes from the market profile and is shown as the profile wrote it.
+ * field comes from the market profile, in the interface language.
  */
-export function fieldHint(t: Translator<'factForm'>, field: FactFormField): string | null {
+export function fieldHint(
+  t: Translator<'factForm'>,
+  field: FactFormField,
+  locale = 'en',
+): string | null {
   switch (field.type) {
     case 'enum':
       return null;
     case 'area':
-      return t('hints.area', { unit: areaUnitLabel(field.unit), basis: field.basis.label });
+      return t('hints.area', {
+        unit: areaUnitLabel(field.unit),
+        basis: localizedLabel(field.basis, locale),
+      });
     case 'volume':
       return t('hints.volume', { unit: volumeUnitLabel(field.unit) });
     case 'money':
@@ -88,6 +123,7 @@ export function readinessMessage(
   t: Translator<'readiness'>,
   item: ReadinessItem,
   market: MarketForm | undefined,
+  locale = 'en',
 ): string {
   switch (item.kind) {
     case 'photos':
@@ -98,7 +134,8 @@ export function readinessMessage(
     case 'voice_memo':
       return t('recordVoice');
     case 'fact': {
-      const label = market?.facts.find((fact) => fact.key === item.key)?.label ?? item.key;
+      const found = market?.facts.find((fact) => fact.key === item.key);
+      const label = found === undefined ? item.key : fieldLabel(found, locale);
       return item.problem === 'missing' ? t('factMissing', { label }) : t('factInvalid', { label });
     }
     default: {

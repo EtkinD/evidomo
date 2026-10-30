@@ -2,7 +2,7 @@ import type { ClaimAuditGateSegment } from '@evidomo/shared';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useCallback, useMemo, useState } from 'react';
-import { useTranslations } from 'use-intl';
+import { useLocale, useTranslations } from 'use-intl';
 import { ApiRequestError } from '../lib/api';
 import {
   describeAuditFailure,
@@ -185,6 +185,7 @@ export function ClaimAuditView({
 }) {
   const t = useTranslations('claimAudit');
   const tCommon = useTranslations('common');
+  const locale = useLocale();
   const source = useRunSource();
   const demo = source.kind === 'demo';
   const gate = useClaimAudit(runId);
@@ -196,7 +197,7 @@ export function ClaimAuditView({
       : { id: snapshot.data.marketProfileId, version: snapshot.data.marketProfileVersion },
   );
   const market = marketQuery.data?.market;
-  const labels = useMemo(() => labelsFor(tCommon, market), [tCommon, market]);
+  const labels = useMemo(() => labelsFor(tCommon, market, locale), [tCommon, market, locale]);
   const urls = useMemo(
     () => urlsOverride ?? source.evidenceUrls(runId),
     [runId, source, urlsOverride],

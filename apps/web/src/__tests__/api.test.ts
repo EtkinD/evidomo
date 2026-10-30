@@ -129,15 +129,15 @@ describe('fetchMe', () => {
   });
 });
 
-describe('rawCode', () => {
-  it('keeps the error string of a code this client does not know yet', () => {
-    const error = apiRequestErrorFrom(409, { error: 'run_not_resumable' }, null);
-    expect(error.code).toBeNull();
-    expect(error.rawCode).toBe('run_not_resumable');
+describe('error codes', () => {
+  it('knows the resume codes', () => {
+    expect(apiRequestErrorFrom(409, { error: 'run_not_resumable' }, null).code).toBe(
+      'run_not_resumable',
+    );
   });
 
-  it('equals the typed code for a known one and is null for a body without an error', () => {
-    expect(apiRequestErrorFrom(404, { error: 'not_found' }, null).rawCode).toBe('not_found');
-    expect(apiRequestErrorFrom(502, '<html>', null).rawCode).toBeNull();
+  it('leaves the code null for one a future server adds', () => {
+    expect(apiRequestErrorFrom(409, { error: 'from_the_future' }, null).code).toBeNull();
+    expect(apiRequestErrorFrom(502, '<html>', null).code).toBeNull();
   });
 });

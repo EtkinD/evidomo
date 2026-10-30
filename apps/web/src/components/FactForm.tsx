@@ -1,7 +1,7 @@
 import type { FactFormField, MarketForm, ProjectDetailResponse } from '@evidomo/shared';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { useTranslations } from 'use-intl';
+import { useLocale, useTranslations } from 'use-intl';
 import { ApiRequestError } from '../lib/api';
 import {
   draftFromValues,
@@ -14,7 +14,7 @@ import {
 } from '../lib/fact-form';
 import { projectKey, useSaveFactForm } from '../lib/projects';
 import { describeRequestFailure } from '../lib/request-failure';
-import { fieldHint, humanize } from '../lib/project-view';
+import { fieldHint, fieldLabel, optionLabel } from '../lib/project-view';
 import { Field } from './FormField';
 
 interface FactFormProps {
@@ -51,6 +51,7 @@ function BooleanField({
   const errorId = `${id}-error`;
   const t = useTranslations('factForm');
   const tCommon = useTranslations('common');
+  const locale = useLocale();
   const options = [
     { value: 'yes', label: t('yes') },
     { value: 'no', label: t('no') },
@@ -59,7 +60,7 @@ function BooleanField({
   return (
     <fieldset className="fieldset" aria-describedby={error === undefined ? undefined : errorId}>
       <legend className="fieldset-legend">
-        {field.label}
+        {fieldLabel(field, locale)}
         {field.required && (
           <span className="font-normal text-base-content/70"> ({tCommon('required')})</span>
         )}
@@ -107,6 +108,7 @@ function idFor(field: FactFormField): string {
 export function FactForm({ projectId, market, values, locked, onUnsavedChange }: FactFormProps) {
   const t = useTranslations('factForm');
   const tApi = useTranslations('apiErrors');
+  const locale = useLocale();
   const queryClient = useQueryClient();
   const mutation = useSaveFactForm(projectId);
   const saving = useRef(false);
@@ -170,7 +172,7 @@ export function FactForm({ projectId, market, values, locked, onUnsavedChange }:
     setFormError(null);
     setSaved(false);
 
-    const found = validateDraft(t, market.facts, draft);
+    const found = validateDraft(t, market.facts, draft, locale);
     if (Object.keys(found).length > 0) {
       setErrors(found);
       requestFocus(found);
@@ -193,7 +195,7 @@ export function FactForm({ projectId, market, values, locked, onUnsavedChange }:
             for (const [key, problem] of Object.entries(error.fields)) {
               const field = market.facts.find((candidate) => candidate.key === key);
               if (field === undefined) unknownKeys.push(key);
-              else serverErrors[key] = factProblemMessage(t, field, problem);
+              else serverErrors[key] = factProblemMessage(t, field, problem, locale);
             }
             setErrors(serverErrors);
             requestFocus(serverErrors);
@@ -231,7 +233,7 @@ export function FactForm({ projectId, market, values, locked, onUnsavedChange }:
         // A stored value the profile no longer offers stays visible (and clearable via Unknown).
         const stale = value !== '' && !field.values.includes(value);
         return (
-          <Field id={id} label={field.label} required={field.required} error={error}>
+          <Field id={id} label={fieldLabel(field, locale)} required={field.required} error={error}>
             {(control) => (
               <select
                 {...control}
@@ -249,7 +251,7 @@ export function FactForm({ projectId, market, values, locked, onUnsavedChange }:
                 )}
                 {field.values.map((option) => (
                   <option key={option} value={option}>
-                    {humanize(option)}
+                    {optionLabel(field, option, locale)}
                   </option>
                 ))}
               </select>
@@ -278,9 +280,9 @@ export function FactForm({ projectId, market, values, locked, onUnsavedChange }:
           // stored value on save.
           <Field
             id={id}
-            label={field.label}
+            label={fieldLabel(field, locale)}
             required={field.required}
-            hint={fieldHint(t, field)}
+            hint={fieldHint(t, field, locale)}
             error={error}
           >
             {(control) => (

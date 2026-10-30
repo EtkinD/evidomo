@@ -3,7 +3,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FailureNotice } from '../components/RunFailure';
-import { resumeAvailability } from '../lib/run-resume';
 import RunPage from '../pages/runs/[runId]';
 import { FakeEventSource } from './fake-event-source';
 import { setRoute } from './router-mock';
@@ -276,6 +275,13 @@ describe('a step that is retrying and the stream states', () => {
 });
 
 describe('resume contract additions', () => {
+  it('a code a future server adds still gets the generic message and keeps the button', async () => {
+    open(snapshot(), () => jsonResponse(409, { error: 'from_the_future' }));
+    fireEvent.click(await resumeButton());
+    expect(await screen.findByText(/Something went wrong on our side/)).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Resume run' })).toBeDefined();
+  });
+
   it('mentions that a resume uses one of the day’s starts, next to the button', async () => {
     open(snapshot());
     await resumeButton();
@@ -303,29 +309,19 @@ describe('resume contract additions', () => {
     ).toBe(`/projects/${PROJECT_ID}`);
   });
 
-  it('reads the snapshot’s resume field when it is a value this client knows', () => {
-    expect(resumeAvailability(snapshot())).toBeUndefined();
-    expect(resumeAvailability(Object.assign(snapshot(), { resume: 'inputs_changed' }))).toBe(
-      'inputs_changed',
-    );
-    expect(
-      resumeAvailability(Object.assign(snapshot(), { resume: 'from_the_future' })),
-    ).toBeUndefined();
-  });
-
   it.each([
     ['inputs_changed', /photos, voice memo, or facts changed/],
     ['definition_unavailable', /no longer available/],
     ['budget_exhausted', /used up its own cost allowance/],
     ['other_run_active', /Another run of this project/],
     ['daily_budget_reached', /resume this run tomorrow/],
-  ])('with resume = %s the button is replaced by the explanation', (reason, text) => {
+  ] as const)('with resume = %s the button is replaced by the explanation', (reason, text) => {
     const queryClient = new QueryClient();
     render(
       <IntlTest>
         <QueryClientProvider client={queryClient}>
           <FailureNotice
-            run={Object.assign(snapshot(), { resume: reason })}
+            run={snapshot({ resume: reason })}
             runId={RUN_ID}
             onResumed={() => undefined}
           />

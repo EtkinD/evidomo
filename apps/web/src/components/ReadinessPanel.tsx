@@ -2,7 +2,7 @@ import type { MarketForm, ProjectDetailResponse } from '@evidomo/shared';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useRef, useState } from 'react';
-import { useTranslations } from 'use-intl';
+import { useLocale, useTranslations } from 'use-intl';
 import {
   describeAccessFailure,
   humanizeWait,
@@ -46,6 +46,7 @@ interface ReadinessPanelProps {
 export function ReadinessPanel({ detail, market, hasUnsavedChanges }: ReadinessPanelProps) {
   const t = useTranslations('readiness');
   const tApi = useTranslations('apiErrors');
+  const locale = useLocale();
   const router = useRouter();
   const { project, readiness, latestRun } = detail;
   const mutation = useStartRun(project.id);
@@ -101,7 +102,7 @@ export function ReadinessPanel({ detail, market, hasUnsavedChanges }: ReadinessP
             <ul className="mt-2 list-disc space-y-1 pl-6">
               {readiness.missing.map((item) => (
                 <li key={item.kind === 'fact' ? `fact:${item.key}` : item.kind}>
-                  {readinessMessage(t, item, market)}
+                  {readinessMessage(t, item, market, locale)}
                 </li>
               ))}
             </ul>
