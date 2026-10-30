@@ -33,7 +33,7 @@ export function OfficeProfileFields({
             disabled={disabled}
             value={values.agencyName}
             onChange={(event) => onChange('agencyName', event.target.value)}
-            className={`input w-full ${errors.agencyName === undefined ? '' : 'input-error'}`}
+            className={`input min-h-11 w-full ${errors.agencyName === undefined ? '' : 'input-error'}`}
           />
         )}
       </Field>
@@ -68,7 +68,7 @@ export function OfficeProfileFields({
             disabled={disabled}
             value={values.tone}
             onChange={(event) => onChange('tone', event.target.value)}
-            className={`input w-full ${errors.tone === undefined ? '' : 'input-error'}`}
+            className={`input min-h-11 w-full ${errors.tone === undefined ? '' : 'input-error'}`}
           />
         )}
       </Field>

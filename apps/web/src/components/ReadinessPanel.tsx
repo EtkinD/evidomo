@@ -10,10 +10,11 @@ import {
   type AccessFailure,
 } from '../lib/access-code';
 import { ApiRequestError } from '../lib/api';
-import { readinessMessage, runStatusBadge, runStatusLabel } from '../lib/project-view';
+import { readinessMessage } from '../lib/project-view';
 import { useStartRun } from '../lib/projects';
 import { describeRequestFailure } from '../lib/request-failure';
 import { Field } from './FormField';
+import { RunStatusBadge } from './RunStatusBadge';
 
 const subscribeNever = (): (() => void) => () => undefined;
 
@@ -79,9 +80,12 @@ export function ReadinessPanel({ detail, market, hasUnsavedChanges }: ReadinessP
   }
 
   return (
-    <section aria-labelledby="readiness-heading" className="card bg-base-100 shadow-sm">
+    <section
+      aria-labelledby="readiness-heading"
+      className="card border border-base-300 bg-base-100"
+    >
       <div className="card-body gap-4">
-        <h2 id="readiness-heading" className="card-title">
+        <h2 id="readiness-heading" className="card-title text-2xl">
           Ready to run?
         </h2>
 
@@ -170,7 +174,7 @@ export function ReadinessPanel({ detail, market, hasUnsavedChanges }: ReadinessP
               <input
                 {...control}
                 type={showCode ? 'text' : 'password'}
-                className={`input join-item w-full ${failure?.kind === 'code_invalid' ? 'input-error' : ''}`}
+                className={`input join-item min-h-11 w-full ${failure?.kind === 'code_invalid' ? 'input-error' : ''}`}
                 value={accessCode}
                 autoComplete="off"
                 autoCapitalize="none"
@@ -215,9 +219,7 @@ export function ReadinessPanel({ detail, market, hasUnsavedChanges }: ReadinessP
           )}
           {latestRun !== null && readiness.activeRunId === null && (
             <span className="flex items-center gap-2 text-sm">
-              <span className={`badge ${runStatusBadge(latestRun.status)}`}>
-                {runStatusLabel(latestRun.status)}
-              </span>
+              <RunStatusBadge status={latestRun.status} />
               <Link
                 href={`/runs/${latestRun.id}`}
                 className="link inline-flex min-h-11 items-center"

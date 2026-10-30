@@ -248,9 +248,9 @@ export function PhotoCapture({
   const deletingId = remove.isPending ? remove.variables : undefined;
 
   return (
-    <section aria-labelledby="photos-heading" className="card bg-base-100 shadow-sm">
+    <section aria-labelledby="photos-heading" className="card border border-base-300 bg-base-100">
       <div className="card-body gap-4">
-        <h2 id="photos-heading" tabIndex={-1} className="card-title">
+        <h2 id="photos-heading" tabIndex={-1} className="card-title text-2xl">
           Photos
         </h2>
 
@@ -299,7 +299,7 @@ export function PhotoCapture({
                 camera input would open the same file chooser. */}
             <button
               type="button"
-              className="btn btn-primary hidden h-14 w-full pointer-coarse:inline-flex sm:h-12 sm:w-56"
+              className="btn btn-secondary hidden h-14 w-full pointer-coarse:inline-flex sm:h-12 sm:w-56"
               disabled={full}
               onClick={() => cameraRef.current?.click()}
             >

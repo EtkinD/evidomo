@@ -42,6 +42,8 @@ export function Field({ id, label, required = false, hint, error, children }: Fi
       )}
       {error !== undefined && (
         <p id={errorId} className="text-sm text-error">
+          {/* A glyph beside the colour, so the error is not conveyed by red alone. */}
+          <span aria-hidden>× </span>
           {error}
         </p>
       )}

@@ -19,10 +19,14 @@ const LoginPage: NextPageWithAuth = () => {
       </Head>
       <AuthCard
         title="Log in"
+        description="Back to your listing packs."
         footer={
           <>
             No account yet?{' '}
-            <Link href={withNext('/register', next)} className="link">
+            <Link
+              href={withNext('/register', next)}
+              className="link inline-flex min-h-11 items-center"
+            >
               Create an account
             </Link>
           </>

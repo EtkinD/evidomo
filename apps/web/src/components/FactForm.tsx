@@ -61,7 +61,7 @@ function BooleanField({
       </legend>
       <div className="flex flex-wrap gap-x-6 gap-y-2">
         {options.map((option, index) => (
-          <label key={option.value} className="flex min-h-8 items-center gap-2">
+          <label key={option.value} className="flex min-h-11 min-w-11 items-center gap-2">
             <input
               // The first radio carries the field id so a failed save can move focus to the group.
               id={index === 0 ? id : undefined}
@@ -78,6 +78,7 @@ function BooleanField({
       </div>
       {error !== undefined && (
         <p id={errorId} className="text-sm text-error">
+          <span aria-hidden>× </span>
           {error}
         </p>
       )}
@@ -211,6 +212,8 @@ export function FactForm({ projectId, market, values, locked, onUnsavedChange }:
     );
   }
 
+  const errorCount = locked ? 0 : Object.keys(errors).length;
+
   function renderField(field: FactFormField) {
     const id = idFor(field);
     const error = locked ? undefined : errors[field.key];
@@ -229,7 +232,7 @@ export function FactForm({ projectId, market, values, locked, onUnsavedChange }:
                 disabled={readOnly}
                 value={value}
                 onChange={(event) => onChange(field.key, event.target.value)}
-                className={`select w-full ${error === undefined ? '' : 'select-error'}`}
+                className={`select min-h-11 w-full ${error === undefined ? '' : 'select-error'}`}
               >
                 <option value="">Unknown</option>
                 {stale && <option value={value}>(invalid) {value}</option>}
@@ -279,7 +282,7 @@ export function FactForm({ projectId, market, values, locked, onUnsavedChange }:
                 disabled={readOnly}
                 value={value}
                 onChange={(event) => onChange(field.key, event.target.value)}
-                className={`input w-full ${error === undefined ? '' : 'input-error'}`}
+                className={`input min-h-11 w-full ${error === undefined ? '' : 'input-error'}`}
               />
             )}
           </Field>
@@ -310,9 +313,11 @@ export function FactForm({ projectId, market, values, locked, onUnsavedChange }:
         Leave a fact empty when you do not know it. Required facts may stay empty while you draft,
         but a run needs them.
       </p>
-      {market.facts.map((field) => (
-        <div key={field.key}>{renderField(field)}</div>
-      ))}
+      <div className="grid gap-4 sm:grid-cols-2">
+        {market.facts.map((field) => (
+          <div key={field.key}>{renderField(field)}</div>
+        ))}
+      </div>
       {extras > 0 && (
         <p className="text-sm text-base-content/70">
           {extras} additional {extras === 1 ? 'field is' : 'fields are'} stored with this project
@@ -334,6 +339,14 @@ export function FactForm({ projectId, market, values, locked, onUnsavedChange }:
           <span role="status" className="text-sm text-base-content/70">
             {saved && !unsaved ? 'Facts saved.' : unsaved ? 'You have unsaved changes.' : ''}
           </span>
+          {errorCount > 0 && (
+            <span className="text-sm text-error">
+              <span aria-hidden>× </span>
+              {errorCount === 1
+                ? '1 field needs attention.'
+                : `${errorCount} fields need attention.`}
+            </span>
+          )}
         </div>
       )}
     </form>

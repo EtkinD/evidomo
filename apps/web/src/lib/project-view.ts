@@ -1,10 +1,11 @@
-import type {
-  AreaUnit,
-  FactFormField,
-  MarketForm,
-  ReadinessItem,
-  RunStatus,
-  VolumeUnit,
+import {
+  displayUnit,
+  type AreaUnit,
+  type FactFormField,
+  type MarketForm,
+  type ReadinessItem,
+  type RunStatus,
+  type VolumeUnit,
 } from '@evidomo/shared';
 
 const languageNames = new Intl.DisplayNames(['en'], { type: 'language', fallback: 'code' });
@@ -43,7 +44,7 @@ export function runStatusBadge(status: RunStatus): string {
     case 'queued':
       return 'badge-info';
     case 'awaiting_gate':
-      return 'badge-warning';
+      return 'badge-secondary';
     default: {
       const unreachable: never = status;
       return unreachable;
@@ -51,15 +52,13 @@ export function runStatusBadge(status: RunStatus): string {
   }
 }
 
-const AREA_UNIT_LABELS: Record<AreaUnit, string> = { m2: 'm²', sq_ft: 'sq ft' };
-const VOLUME_UNIT_LABELS: Record<VolumeUnit, string> = { m3: 'm³', cu_ft: 'cu ft' };
-
+// The unit text is shared with the review screens and the exported pack (`displayUnit`).
 export function areaUnitLabel(unit: AreaUnit): string {
-  return AREA_UNIT_LABELS[unit];
+  return displayUnit(unit);
 }
 
 export function volumeUnitLabel(unit: VolumeUnit): string {
-  return VOLUME_UNIT_LABELS[unit];
+  return displayUnit(unit);
 }
 
 /** `central_heating` -> `Central heating`. Enum values are slugs; the API takes them verbatim. */

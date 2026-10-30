@@ -2,6 +2,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
+import { LoadError, LoadingBlock } from '../../../components/PageStates';
 import { PhotoCapture } from '../../../components/PhotoCapture';
 import { VoiceCapture, type VoiceStatus } from '../../../components/VoiceCapture';
 import { ApiRequestError } from '../../../lib/api';
@@ -24,27 +25,19 @@ const CapturePage: NextPageWithAuth = () => {
   let body;
   if (project.isError) {
     const missing = project.error instanceof ApiRequestError && project.error.status === 404;
-    body = (
+    body = missing ? (
       <div role="alert" className="alert alert-error">
-        <span>
-          {missing
-            ? 'This project does not exist.'
-            : 'We could not load this project. Check your connection and try again.'}
-        </span>
-        {!missing && (
-          <button type="button" className="btn min-h-11" onClick={() => void project.refetch()}>
-            Try again
-          </button>
-        )}
+        <span>This project does not exist.</span>
       </div>
+    ) : (
+      <LoadError
+        error={project.error}
+        message="We could not load this project. Check your connection and try again."
+        onRetry={() => void project.refetch()}
+      />
     );
   } else if (detail === undefined) {
-    body = (
-      <div role="status" className="flex items-center gap-3 text-base-content/70">
-        <span className="loading loading-spinner" aria-hidden="true" />
-        <span>Loading the project…</span>
-      </div>
-    );
+    body = <LoadingBlock label="Loading the project…" cards={3} />;
   } else {
     const { readiness } = detail;
     const captureItems = readiness.missing.filter((item) => item.kind !== 'fact');
@@ -52,13 +45,16 @@ const CapturePage: NextPageWithAuth = () => {
     body = (
       <>
         <header>
-          <h1 className="text-3xl font-bold">Capture</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Capture</h1>
           <p className="text-base-content/70">{detail.project.title}</p>
         </header>
 
-        <section aria-labelledby="needed-heading" className="card bg-base-100 shadow-sm">
+        <section
+          aria-labelledby="needed-heading"
+          className="card border border-base-300 bg-base-100"
+        >
           <div className="card-body gap-2">
-            <h2 id="needed-heading" className="card-title">
+            <h2 id="needed-heading" className="card-title text-2xl">
               What is still needed
             </h2>
             {photosPending && (

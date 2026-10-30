@@ -202,9 +202,9 @@ export function VoiceCapture({
   const unsupported = recorder.support.status === 'unsupported';
 
   return (
-    <section aria-labelledby="voice-heading" className="card bg-base-100 shadow-sm">
+    <section aria-labelledby="voice-heading" className="card border border-base-300 bg-base-100">
       <div className="card-body gap-4">
-        <h2 id="voice-heading" tabIndex={-1} className="card-title">
+        <h2 id="voice-heading" tabIndex={-1} className="card-title text-2xl">
           Voice walkthrough
         </h2>
         <p className="text-base-content/70">

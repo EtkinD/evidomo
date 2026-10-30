@@ -121,7 +121,7 @@ export function CreateProjectForm({ markets }: { markets: readonly MarketSummary
               setTitle(event.target.value);
               clearError('title');
             }}
-            className={`input w-full ${errors.title === undefined ? '' : 'input-error'}`}
+            className={`input min-h-11 w-full ${errors.title === undefined ? '' : 'input-error'}`}
           />
         )}
       </Field>
@@ -145,7 +145,7 @@ export function CreateProjectForm({ markets }: { markets: readonly MarketSummary
                 setMarketChoice(event.target.value);
                 clearError('market');
               }}
-              className={`select w-full ${errors.market === undefined ? '' : 'select-error'}`}
+              className={`select min-h-11 w-full ${errors.market === undefined ? '' : 'select-error'}`}
             >
               {markets.map((candidate) => (
                 <option key={marketValue(candidate)} value={marketValue(candidate)}>
@@ -171,7 +171,7 @@ export function CreateProjectForm({ markets }: { markets: readonly MarketSummary
                 setLanguageChoice(event.target.value);
                 clearError('outputLanguage');
               }}
-              className={`select w-full ${errors.outputLanguage === undefined ? '' : 'select-error'}`}
+              className={`select min-h-11 w-full ${errors.outputLanguage === undefined ? '' : 'select-error'}`}
             >
               {languages.map((code) => (
                 <option key={code} value={code}>

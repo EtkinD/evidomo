@@ -19,10 +19,14 @@ const RegisterPage: NextPageWithAuth = () => {
       </Head>
       <AuthCard
         title="Create your account"
+        description="Turn property photos and a voice walkthrough into a listing pack with evidence."
         footer={
           <>
             Already have an account?{' '}
-            <Link href={withNext('/login', next)} className="link">
+            <Link
+              href={withNext('/login', next)}
+              className="link inline-flex min-h-11 items-center"
+            >
               Log in
             </Link>
           </>

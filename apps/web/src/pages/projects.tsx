@@ -1,50 +1,87 @@
 import type { ProjectSummary } from '@evidomo/shared';
 import Head from 'next/head';
 import Link from 'next/link';
+import { LoadError, LoadingBlock } from '../components/PageStates';
+import { RunStatusBadge } from '../components/RunStatusBadge';
 import { useMe } from '../lib/auth';
 import type { NextPageWithAuth } from '../lib/page-auth';
-import { languageName, runStatusBadge, runStatusLabel } from '../lib/project-view';
+import { languageName } from '../lib/project-view';
+import { LANDING_IMAGES, landingSrc, landingSrcSet } from '../lib/landing-images';
 import { useProjects } from '../lib/projects';
 
 function ProjectCard({ project }: { project: ProjectSummary }) {
   const { latestRun } = project;
   return (
-    <li className="card bg-base-100 shadow-sm">
-      <div className="card-body gap-2">
-        <h2 className="card-title">
-          <Link href={`/projects/${project.id}`} className="link link-hover">
-            {project.title}
-          </Link>
-        </h2>
-        <p className="text-sm text-base-content/70">
-          {project.market.name ?? 'Unknown market'} · {languageName(project.outputLanguage)}
-        </p>
+    // `relative` anchors the stretched title link: the whole card opens the project, while the
+    // run link below sits above it (`relative z-10`) and keeps its own target.
+    <li className="card relative border border-base-300 bg-base-100 transition-colors hover:border-primary">
+      <div className="card-body gap-3 p-5">
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div>
+            <h2 className="card-title text-xl">
+              <Link
+                href={`/projects/${project.id}`}
+                className="link link-hover inline-flex min-h-11 items-center after:absolute after:inset-0 after:content-['']"
+              >
+                {project.title}
+              </Link>
+            </h2>
+            <p className="text-sm text-base-content/70">
+              {project.market.name ?? 'Unknown market'} · {languageName(project.outputLanguage)}
+            </p>
+          </div>
+          {latestRun === null ? (
+            <span className="badge badge-outline">No run yet</span>
+          ) : (
+            <RunStatusBadge status={latestRun.status} />
+          )}
+        </div>
         <ul className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
           <li>
             {project.photoCount} {project.photoCount === 1 ? 'photo' : 'photos'}
           </li>
           <li>Voice memo: {project.hasVoiceMemo ? 'yes' : 'no'}</li>
-          <li className="flex items-center gap-2">
-            {latestRun === null ? (
-              <span className="text-base-content/70">No run yet</span>
-            ) : (
-              <>
-                <span className={`badge ${runStatusBadge(latestRun.status)}`}>
-                  {runStatusLabel(latestRun.status)}
-                </span>
-                <Link
-                  href={`/runs/${latestRun.id}`}
-                  className="link inline-flex min-h-11 items-center"
-                >
-                  View run
-                  <span className="sr-only"> for {project.title}</span>
-                </Link>
-              </>
-            )}
-          </li>
         </ul>
+        {latestRun !== null && (
+          <div>
+            <Link href={`/runs/${latestRun.id}`} className="btn btn-outline relative z-10 min-h-11">
+              View run
+              <span className="sr-only"> for {project.title}</span>
+            </Link>
+          </div>
+        )}
       </div>
     </li>
+  );
+}
+
+function EmptyProjects() {
+  const image = LANDING_IMAGES.illustration;
+  return (
+    <div className="card border border-base-300 bg-base-100">
+      <div className="card-body items-center gap-3 text-center">
+        {/* Decorative: the heading below says what the card is about. */}
+        {/* eslint-disable-next-line @next/next/no-img-element -- prebuilt responsive variants */}
+        <img
+          src={landingSrc(image, 640)}
+          srcSet={landingSrcSet(image)}
+          sizes="(min-width: 640px) 208px, 160px"
+          width={image.width}
+          height={image.height}
+          alt=""
+          loading="lazy"
+          className="aspect-square w-40 rounded-box sm:w-52"
+        />
+        <h2 className="card-title text-2xl">No projects yet</h2>
+        <p className="max-w-md text-base-content/70">
+          A project holds one property: its photos, voice walkthrough, and listing pack. Start one
+          when you are at the door.
+        </p>
+        <Link href="/projects/new" className="btn btn-primary min-h-11">
+          New project
+        </Link>
+      </div>
+    </div>
   );
 }
 
@@ -63,7 +100,7 @@ const ProjectsPage: NextPageWithAuth = () => {
         <div className="mx-auto flex max-w-3xl flex-col gap-6">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold">Your projects</h1>
+              <h1 className="text-3xl font-bold tracking-tight">Your projects</h1>
               {user && <p className="text-base-content/70">Signed in as {user.email}</p>}
             </div>
             {projects.data !== undefined && projects.data.projects.length > 0 && (
@@ -73,39 +110,17 @@ const ProjectsPage: NextPageWithAuth = () => {
             )}
           </div>
 
-          {projects.isPending && (
-            <div role="status" className="flex items-center gap-3 text-base-content/70">
-              <span className="loading loading-spinner" aria-hidden="true" />
-              <span>Loading your projects…</span>
-            </div>
-          )}
+          {projects.isPending && <LoadingBlock label="Loading your projects…" cards={3} />}
 
           {projects.isError && (
-            <div role="alert" className="alert alert-error">
-              <span>We could not load your projects. Check your connection and try again.</span>
-              <button
-                type="button"
-                className="btn min-h-11"
-                onClick={() => void projects.refetch()}
-              >
-                Try again
-              </button>
-            </div>
+            <LoadError
+              error={projects.error}
+              message="We could not load your projects. Check your connection and try again."
+              onRetry={() => void projects.refetch()}
+            />
           )}
 
-          {projects.isSuccess && projects.data.projects.length === 0 && (
-            <div className="card bg-base-100 shadow-sm">
-              <div className="card-body items-center text-center">
-                <h2 className="card-title">No projects yet</h2>
-                <p className="text-base-content/70">
-                  A project holds one property: its photos, voice walkthrough, and listing pack.
-                </p>
-                <Link href="/projects/new" className="btn btn-primary min-h-11">
-                  New project
-                </Link>
-              </div>
-            </div>
-          )}
+          {projects.isSuccess && projects.data.projects.length === 0 && <EmptyProjects />}
 
           {projects.isSuccess && projects.data.projects.length > 0 && (
             <ul className="flex flex-col gap-4">

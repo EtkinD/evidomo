@@ -5,20 +5,12 @@ import { useState } from 'react';
 import { FactForm } from '../../components/FactForm';
 import { MaterialsSummary } from '../../components/MaterialsSummary';
 import { ProjectDetailsForm } from '../../components/ProjectDetailsForm';
+import { LoadError, LoadingBlock } from '../../components/PageStates';
 import { ReadinessPanel } from '../../components/ReadinessPanel';
 import { ApiRequestError } from '../../lib/api';
 import type { NextPageWithAuth } from '../../lib/page-auth';
 import { languageName } from '../../lib/project-view';
 import { useMarketForm, useProject } from '../../lib/projects';
-
-function Loading({ label }: { label: string }) {
-  return (
-    <div role="status" className="flex items-center gap-3 text-base-content/70">
-      <span className="loading loading-spinner" aria-hidden="true" />
-      <span>{label}</span>
-    </div>
-  );
-}
 
 const ProjectPage: NextPageWithAuth = () => {
   const router = useRouter();
@@ -34,28 +26,25 @@ const ProjectPage: NextPageWithAuth = () => {
   let body;
   if (project.isError) {
     const missing = project.error instanceof ApiRequestError && project.error.status === 404;
-    body = (
+    body = missing ? (
       <div role="alert" className="alert alert-error">
-        <span>
-          {missing
-            ? 'This project does not exist.'
-            : 'We could not load this project. Check your connection and try again.'}
-        </span>
-        {!missing && (
-          <button type="button" className="btn min-h-11" onClick={() => void project.refetch()}>
-            Try again
-          </button>
-        )}
+        <span>This project does not exist.</span>
       </div>
+    ) : (
+      <LoadError
+        error={project.error}
+        message="We could not load this project. Check your connection and try again."
+        onRetry={() => void project.refetch()}
+      />
     );
   } else if (detail === undefined) {
-    body = <Loading label="Loading the project…" />;
+    body = <LoadingBlock label="Loading the project…" cards={3} />;
   } else {
     const locked = detail.readiness.inputsLocked;
     body = (
       <>
         <header>
-          <h1 className="text-3xl font-bold">{detail.project.title}</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{detail.project.title}</h1>
           <p className="text-base-content/70">
             {detail.project.market.name ?? 'Unknown market'} ·{' '}
             {languageName(detail.project.outputLanguage)}
@@ -67,11 +56,18 @@ const ProjectPage: NextPageWithAuth = () => {
           market={market.data?.market}
           hasUnsavedChanges={factsUnsaved || detailsUnsaved}
         />
-        <MaterialsSummary projectId={detail.project.id} readiness={detail.readiness} />
+        <MaterialsSummary
+          projectId={detail.project.id}
+          readiness={detail.readiness}
+          materials={detail.materials}
+        />
 
-        <section aria-labelledby="facts-heading" className="card bg-base-100 shadow-sm">
+        <section
+          aria-labelledby="facts-heading"
+          className="card border border-base-300 bg-base-100"
+        >
           <div className="card-body gap-4">
-            <h2 id="facts-heading" className="card-title">
+            <h2 id="facts-heading" className="card-title text-2xl">
               Property facts
             </h2>
             {locked && (
@@ -81,18 +77,13 @@ const ProjectPage: NextPageWithAuth = () => {
                 </span>
               </div>
             )}
-            {market.isPending && <Loading label="Loading the fact form…" />}
+            {market.isPending && <LoadingBlock label="Loading the fact form…" cards={1} />}
             {market.isError && (
-              <div role="alert" className="alert alert-error">
-                <span>We could not load the fact form. Check your connection and try again.</span>
-                <button
-                  type="button"
-                  className="btn min-h-11"
-                  onClick={() => void market.refetch()}
-                >
-                  Try again
-                </button>
-              </div>
+              <LoadError
+                error={market.error}
+                message="We could not load the fact form. Check your connection and try again."
+                onRetry={() => void market.refetch()}
+              />
             )}
             {market.isSuccess && (
               <FactForm
@@ -107,9 +98,12 @@ const ProjectPage: NextPageWithAuth = () => {
           </div>
         </section>
 
-        <section aria-labelledby="details-heading" className="card bg-base-100 shadow-sm">
+        <section
+          aria-labelledby="details-heading"
+          className="card border border-base-300 bg-base-100"
+        >
           <div className="card-body gap-4">
-            <h2 id="details-heading" className="card-title">
+            <h2 id="details-heading" className="card-title text-2xl">
               Project details
             </h2>
             <ProjectDetailsForm

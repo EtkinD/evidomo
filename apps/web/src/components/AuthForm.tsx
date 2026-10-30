@@ -107,8 +107,8 @@ export function AuthForm({ mode, mutation, loginHref }: AuthFormProps) {
         </div>
       )}
 
-      <div className="flex flex-col gap-1">
-        <label htmlFor={ids.email} className="text-sm font-medium">
+      <div className="fieldset">
+        <label htmlFor={ids.email} className="fieldset-legend">
           Email
         </label>
         <input
@@ -124,25 +124,26 @@ export function AuthForm({ mode, mutation, loginHref }: AuthFormProps) {
           onChange={(event) => onChange('email', event.target.value)}
           aria-invalid={emailInvalid}
           aria-describedby={emailInvalid ? ids.emailError : undefined}
-          className={`input w-full ${emailInvalid ? 'input-error' : ''}`}
+          className={`input min-h-11 w-full ${emailInvalid ? 'input-error' : ''}`}
         />
         {fieldErrors.email !== undefined && (
           <p id={ids.emailError} className="text-sm text-error">
+            <span aria-hidden>× </span>
             {fieldErrors.email}
           </p>
         )}
         {fieldErrors.email === undefined && emailTaken && (
           <p id={ids.emailError} className="text-sm text-error">
-            An account with this email already exists.{' '}
-            <Link href={loginHref} className="link font-medium">
+            <span aria-hidden>× </span>An account with this email already exists.{' '}
+            <Link href={loginHref} className="link inline-flex min-h-11 items-center font-medium">
               Log in instead
             </Link>
           </p>
         )}
       </div>
 
-      <div className="flex flex-col gap-1">
-        <label htmlFor={ids.password} className="text-sm font-medium">
+      <div className="fieldset">
+        <label htmlFor={ids.password} className="fieldset-legend">
           Password
         </label>
         <input
@@ -156,7 +157,7 @@ export function AuthForm({ mode, mutation, loginHref }: AuthFormProps) {
           onChange={(event) => onChange('password', event.target.value)}
           aria-invalid={passwordInvalid}
           aria-describedby={passwordDescribedBy === '' ? undefined : passwordDescribedBy}
-          className={`input w-full ${passwordInvalid ? 'input-error' : ''}`}
+          className={`input min-h-11 w-full ${passwordInvalid ? 'input-error' : ''}`}
         />
         {mode === 'register' && (
           <p id={ids.passwordHint} className="text-sm text-base-content/70">
@@ -165,6 +166,7 @@ export function AuthForm({ mode, mutation, loginHref }: AuthFormProps) {
         )}
         {fieldErrors.password !== undefined && (
           <p id={ids.passwordError} className="text-sm text-error">
+            <span aria-hidden>× </span>
             {fieldErrors.password}
           </p>
         )}
@@ -172,7 +174,7 @@ export function AuthForm({ mode, mutation, loginHref }: AuthFormProps) {
 
       <button
         type="submit"
-        className="btn btn-primary w-full min-h-11"
+        className="btn btn-primary min-h-11 w-full"
         disabled={mutation.isPending}
       >
         {mutation.isPending && <span className="loading loading-spinner loading-sm" aria-hidden />}

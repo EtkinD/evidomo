@@ -200,7 +200,7 @@ export function ProjectDetailsForm({
               update({ title: event.target.value, office: draft.office });
               clearError('title');
             }}
-            className={`input w-full ${errors.title === undefined ? '' : 'input-error'}`}
+            className={`input min-h-11 w-full ${errors.title === undefined ? '' : 'input-error'}`}
           />
         )}
       </Field>

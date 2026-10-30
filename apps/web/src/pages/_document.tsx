@@ -1,19 +1,23 @@
 import { Head, Html, Main, NextScript } from 'next/document';
-import { THEME_INIT_SCRIPT } from '../lib/theme';
+import { THEME_COLORS, THEME_INIT_SCRIPT } from '../lib/theme';
 
 export default function Document() {
   return (
     <Html lang="en">
       <Head>
-        {/* Applies the stored theme before first paint (no flash of the wrong theme). */}
-        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <link rel="icon" href="/favicon.ico" sizes="32x32" />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/site.webmanifest" />
-        {/* Token hex values of base-100 in evidomo-light / evidomo-dark (see site.webmanifest). */}
-        <meta name="theme-color" content="#fefbf5" media="(prefers-color-scheme: light)" />
-        <meta name="theme-color" content="#28201a" media="(prefers-color-scheme: dark)" />
+        {/* The System pair; lib/theme.ts repoints both when Light or Dark is chosen. */}
+        <meta
+          name="theme-color"
+          content={THEME_COLORS.light}
+          media="(prefers-color-scheme: light)"
+        />
+        <meta name="theme-color" content={THEME_COLORS.dark} media="(prefers-color-scheme: dark)" />
+        {/* After the meta tags it updates. Applies the stored theme before first paint. */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </Head>
       <body className="antialiased">
         <Main />
