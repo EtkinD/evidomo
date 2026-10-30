@@ -22,19 +22,20 @@
 
 ## Commands
 
-| Command                                                                                               | Purpose                                                                                             |
-| ----------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| `npm run lint` / `npm run format:check`                                                               | ESLint (type-aware for TS) / Prettier                                                               |
-| `npm run typecheck`                                                                                   | Root configs + every workspace (TypeScript pinned to `~6.0`)                                        |
-| `npx vitest run --project <shared\|api\|api-integration\|web>`                                        | One test project — run the narrowest one first                                                      |
-| `npm test` / `npm run test:e2e`                                                                       | All Vitest projects (integration needs Docker) / Playwright                                         |
-| `npm run audit:deps`                                                                                  | `npm audit` (moderate and above fail) + registry signatures                                         |
-| `npm run build`                                                                                       | Web production build                                                                                |
-| `npm run db:up` / `db:migrate` / `db:generate`                                                        | Local PostgreSQL and Drizzle migrations                                                             |
-| `npm run dev:api` / `dev:worker` / `dev:web`                                                          | Local dev processes (read `.env` at the repo root)                                                  |
-| `npm run dev:seed -- --owner <email> [--stop-at gate1\|gate2\|completed] [--path <id>] [project-dir]` | Local fixture run for a registered account, zero model calls; `--path` picks a recorded Gate 1 path |
-| `npm run dev:worker:replay [-- <project-dir>]`                                                        | Instead of `dev:worker`: continues seeded runs along any recorded path                              |
-| `npm run pipeline -- <project-dir> --list-paths`                                                      | Lists the recorded Gate 1 paths of a project's cassette                                             |
+| Command                                                                                               | Purpose                                                                                                |
+| ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `npm run lint` / `npm run format:check`                                                               | ESLint (type-aware for TS) / Prettier                                                                  |
+| `npm run typecheck`                                                                                   | Root configs + every workspace (TypeScript pinned to `~6.0`)                                           |
+| `npx vitest run --project <shared\|api\|api-integration\|web>`                                        | One test project — run the narrowest one first                                                         |
+| `npm test` / `npm run test:e2e`                                                                       | All Vitest projects (integration needs Docker) / Playwright                                            |
+| `npm run test:e2e:isolated`                                                                           | Playwright on its own stack (web :3100, API :4100, DB `evidomo_e2e`); safe next to running dev servers |
+| `npm run audit:deps`                                                                                  | `npm audit` (moderate and above fail) + registry signatures                                            |
+| `npm run build`                                                                                       | Web production build                                                                                   |
+| `npm run db:up` / `db:migrate` / `db:generate`                                                        | Local PostgreSQL and Drizzle migrations                                                                |
+| `npm run dev:api` / `dev:worker` / `dev:web`                                                          | Local dev processes (read `.env` at the repo root)                                                     |
+| `npm run dev:seed -- --owner <email> [--stop-at gate1\|gate2\|completed] [--path <id>] [project-dir]` | Local fixture run for a registered account, zero model calls; `--path` picks a recorded Gate 1 path    |
+| `npm run dev:worker:replay [-- <project-dir>]`                                                        | Instead of `dev:worker`: continues seeded runs along any recorded path                                 |
+| `npm run pipeline -- <project-dir> --list-paths`                                                      | Lists the recorded Gate 1 paths of a project's cassette                                                |
 
 ## Security
 
