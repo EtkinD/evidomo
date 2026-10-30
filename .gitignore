@@ -36,3 +36,6 @@ CLAUDE.local.md
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# Design exploration assets (Phase 4b showcase); only approved assets are committed
+/apps/web/public/showcase-assets/

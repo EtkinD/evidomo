@@ -20,6 +20,8 @@ The orchestrator (main session) delegates each task to its owner — see `.claud
 | P4-01                             | backend-developer (API), then frontend-developer (UI)                 |
 | P4-02 … P4-09                     | frontend-developer — any new endpoint goes to backend-developer first |
 | P4-10                             | backend-developer                                                     |
+| P4B-01                            | ai-pipeline-engineer (Muse assets), then frontend-developer           |
+| P4B-02 … P4B-06                   | frontend-developer                                                    |
 | D-01, D-05, D-06                  | devops-engineer                                                       |
 | D-02 … D-04                       | devops-engineer prepares, user executes (VPS, DNS, secrets)           |
 | P5-01                             | ai-pipeline-engineer                                                  |
@@ -187,6 +189,29 @@ The orchestrator (main session) delegates each task to its owner — see `.claud
 - [x] **P4-10 — Live-run access control**
   - Depends on: P4-01, P2-04
   - Done when: starting a live run requires an access code; per-IP and per-account rate limits apply; the global daily cap is enforced.
+
+## Phase 4b — Product UI and brand
+
+Design decisions are made in a dev-only showcase, and only what the founder approves there enters the design language (recorded in the `evidomo-theme` skill). Model-generated images are made with Muse Image tools off (no image or web search), so no third-party content enters the repository.
+
+- [ ] **P4B-01 — Design showcase**
+  - Depends on: —
+  - Done when: a `/showcase` area that exists only on the dev server (absent from production builds) presents three design directions across sub-pages for colour palettes, typography, logo, UI elements, and imagery/landing drafts, light and dark; Muse concept images are generated with tools off within the phase budget; exploration assets stay out of git.
+- [ ] **P4B-02 — Design language decision**
+  - Depends on: P4B-01
+  - Done when: the founder's showcase feedback is recorded in the `evidomo-theme` decision log, the chosen palette and typography are the `evidomo-light`/`evidomo-dark` tokens (contrast check passes), and the showcase's rejected candidates are removed.
+- [ ] **P4B-03 — Logo and brand assets**
+  - Depends on: P4B-02
+  - Done when: the chosen logo exists as SVG (mark and wordmark, light and dark), with favicon, app icons, and an Open Graph image; it is used in the app shell and the HTML pack.
+- [ ] **P4B-04 — App shell**
+  - Depends on: P4B-02
+  - Done when: header with logo and navigation, account menu, footer, and a light/dark theme switch work at phone and desktop widths.
+- [ ] **P4B-05 — Landing page**
+  - Depends on: P4B-03, P4B-04
+  - Done when: the public home page explains the product (capture → verify → pack, evidence for every claim), shows approved imagery, and links to sign-up and to the public demo (P4-09).
+- [ ] **P4B-06 — App screen polish**
+  - Depends on: P4B-02
+  - Done when: projects, project, capture, run monitor (readable step names), gates, and pack screens follow the chosen language, with designed empty, loading, and error states.
 
 ## Track D — Deployment
 
