@@ -29,6 +29,7 @@
     "test:unit": "vitest run --project shared --project api --project web",
     "test:integration": "vitest run --project api-integration",
     "test:e2e": "playwright test",
+    "test:e2e:isolated": "node e2e/support/prepare-isolated.ts && E2E_ISOLATED=1 playwright test",
     "audit:deps": "env -u npm_config_allow_scripts npm audit --audit-level=moderate && env -u npm_config_allow_scripts npm audit signatures",
     "db:up": "docker compose up -d --wait postgres",
     "db:down": "docker compose down",

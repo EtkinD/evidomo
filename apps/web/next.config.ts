@@ -45,6 +45,9 @@ export default function nextConfig(phase: string): NextConfig {
   return {
     reactStrictMode: true,
     poweredByHeader: false,
+    // Isolated e2e runs a second dev server next to the developer's own; Next locks the dist
+    // directory per dev server, so that stack builds elsewhere (playwright.config.ts).
+    ...(process.env['NEXT_DIST_DIR'] ? { distDir: process.env['NEXT_DIST_DIR'] } : {}),
     pageExtensions: pageExtensionsFor(phase),
     turbopack: { resolveAlias: { 'showcase-styles': showcaseStylesFor(phase) } },
     // @evidomo/shared ships raw TypeScript (no build step). Listing it makes Next compile it and
