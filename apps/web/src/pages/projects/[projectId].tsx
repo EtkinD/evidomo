@@ -42,7 +42,7 @@ const ProjectPage: NextPageWithAuth = () => {
             : 'We could not load this project. Check your connection and try again.'}
         </span>
         {!missing && (
-          <button type="button" className="btn btn-sm" onClick={() => void project.refetch()}>
+          <button type="button" className="btn min-h-11" onClick={() => void project.refetch()}>
             Try again
           </button>
         )}
@@ -85,7 +85,11 @@ const ProjectPage: NextPageWithAuth = () => {
             {market.isError && (
               <div role="alert" className="alert alert-error">
                 <span>We could not load the fact form. Check your connection and try again.</span>
-                <button type="button" className="btn btn-sm" onClick={() => void market.refetch()}>
+                <button
+                  type="button"
+                  className="btn min-h-11"
+                  onClick={() => void market.refetch()}
+                >
                   Try again
                 </button>
               </div>
@@ -126,7 +130,7 @@ const ProjectPage: NextPageWithAuth = () => {
       </Head>
       <main className="flex-1 bg-base-200 px-4 py-8">
         <div className="mx-auto flex max-w-3xl flex-col gap-6">
-          <Link href="/projects" className="link w-fit text-sm">
+          <Link href="/projects" className="link inline-flex min-h-11 w-fit items-center text-sm">
             Back to projects
           </Link>
           {body}

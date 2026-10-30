@@ -185,7 +185,7 @@ export function CreateProjectForm({ markets }: { markets: readonly MarketSummary
 
       <button
         type="submit"
-        className="btn btn-primary w-full"
+        className="btn btn-primary w-full min-h-11"
         disabled={mutation.isPending || mutation.isSuccess}
       >
         {mutation.isPending && <span className="loading loading-spinner loading-sm" aria-hidden />}

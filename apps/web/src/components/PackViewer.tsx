@@ -33,7 +33,7 @@ function FileRow({ file }: { file: RunExportFile }) {
       <a
         href={file.downloadUrl}
         download={file.fileName}
-        className="btn btn-sm"
+        className="btn min-h-11"
         aria-label={`Download ${file.fileName}`}
       >
         Download
@@ -87,10 +87,10 @@ function PackReady({ pack }: { pack: RunExportResponse }) {
             Preview
           </h2>
           <div className="flex flex-wrap gap-2">
-            <button type="button" className="btn btn-primary btn-sm" onClick={print}>
+            <button type="button" className="btn btn-primary min-h-11" onClick={print}>
               Print / Save as PDF
             </button>
-            <a href={html.url} target="_blank" rel="noopener" className="btn btn-sm">
+            <a href={html.url} target="_blank" rel="noopener" className="btn min-h-11">
               Open full screen
             </a>
           </div>
@@ -131,7 +131,7 @@ function NotReady({ runId }: { runId: string }) {
   return (
     <div role="status" className="alert alert-info">
       <span>The pack is not ready yet. It appears once the run has finished its export.</span>
-      <Link href={`/runs/${runId}`} className="btn btn-sm">
+      <Link href={`/runs/${runId}`} className="btn min-h-11">
         Back to the run
       </Link>
     </div>
@@ -147,7 +147,7 @@ function PackError({ query, runId }: { query: UseQueryResult<RunExportResponse>;
       return (
         <div role="alert" className="alert alert-warning">
           <span>Your session has expired.</span>
-          <Link href={withNext('/login', `/runs/${runId}/pack`)} className="btn btn-sm">
+          <Link href={withNext('/login', `/runs/${runId}/pack`)} className="btn min-h-11">
             Log in again
           </Link>
         </div>
@@ -157,7 +157,7 @@ function PackError({ query, runId }: { query: UseQueryResult<RunExportResponse>;
   return (
     <div role="alert" className="alert alert-error">
       <span>We could not load this pack. Check your connection and try again.</span>
-      <button type="button" className="btn btn-sm" onClick={() => void query.refetch()}>
+      <button type="button" className="btn min-h-11" onClick={() => void query.refetch()}>
         Try again
       </button>
     </div>
@@ -175,7 +175,7 @@ export function PackViewer({
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
         <h1 className="card-title text-2xl">Listing pack</h1>
-        <Link href={`/runs/${runId}`} className="link text-sm">
+        <Link href={`/runs/${runId}`} className="link inline-flex min-h-11 items-center text-sm">
           Back to the run
         </Link>
       </div>

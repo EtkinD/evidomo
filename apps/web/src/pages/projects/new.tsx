@@ -14,7 +14,7 @@ const NewProjectPage: NextPageWithAuth = () => {
       </Head>
       <main className="flex-1 bg-base-200 px-4 py-8">
         <div className="mx-auto flex max-w-2xl flex-col gap-4">
-          <Link href="/projects" className="link w-fit text-sm">
+          <Link href="/projects" className="link inline-flex min-h-11 w-fit items-center text-sm">
             Back to projects
           </Link>
           <section className="card bg-base-100 shadow-sm">
@@ -31,7 +31,7 @@ const NewProjectPage: NextPageWithAuth = () => {
                   <span>We could not load the markets. Check your connection and try again.</span>
                   <button
                     type="button"
-                    className="btn btn-sm"
+                    className="btn min-h-11"
                     onClick={() => void markets.refetch()}
                   >
                     Try again

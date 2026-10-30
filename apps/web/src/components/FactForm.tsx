@@ -301,7 +301,7 @@ export function FactForm({ projectId, market, values, locked, onUnsavedChange }:
       {conflict && (
         <div role="alert" className="alert alert-warning">
           <span>Saved values changed elsewhere. Your edits were not saved.</span>
-          <button type="button" className="btn btn-sm" onClick={discardEdits}>
+          <button type="button" className="btn min-h-11" onClick={discardEdits}>
             Load saved values
           </button>
         </div>
@@ -323,7 +323,7 @@ export function FactForm({ projectId, market, values, locked, onUnsavedChange }:
         <div className="flex flex-wrap items-center gap-3">
           <button
             type="submit"
-            className="btn btn-outline"
+            className="btn btn-outline min-h-11"
             disabled={mutation.isPending || !unsaved || conflict}
           >
             {mutation.isPending && (

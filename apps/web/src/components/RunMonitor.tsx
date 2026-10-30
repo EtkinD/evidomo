@@ -160,7 +160,7 @@ function StreamNotice({ state, onRetry }: { state: StreamState; onRetry: () => v
           Live updates are paused. What you see is the last known state. Try resuming; if it keeps
           failing, reload the page.
         </span>
-        <button type="button" className="btn btn-sm" onClick={onRetry}>
+        <button type="button" className="btn min-h-11" onClick={onRetry}>
           Resume live updates
         </button>
       </div>
@@ -202,7 +202,7 @@ export function RunMonitorView({ monitor, runId }: { monitor: RunMonitorState; r
             <span className="text-base-content/70">
               Could not refresh the run just now. What you see may be a little behind.
             </span>
-            <button type="button" className="btn btn-sm" onClick={monitor.retryStream}>
+            <button type="button" className="btn min-h-11" onClick={monitor.retryStream}>
               Try again
             </button>
           </div>
@@ -226,7 +226,7 @@ export function RunMonitorView({ monitor, runId }: { monitor: RunMonitorState; r
             Export ready: {run.export.fileCount} files
             {run.export.readyToPublish ? '' : ' (not yet ready to publish)'}.
           </span>
-          <Link href={`/runs/${runId}/pack`} className="btn btn-sm">
+          <Link href={`/runs/${runId}/pack`} className="btn min-h-11">
             View pack
           </Link>
         </div>
@@ -254,7 +254,7 @@ function SessionExpired({ runId }: { runId: string | null }) {
       <span>Your session has expired.</span>
       <Link
         href={withNext('/login', runId === null ? '/projects' : `/runs/${runId}`)}
-        className="btn btn-sm"
+        className="btn min-h-11"
       >
         Log in again
       </Link>
@@ -281,7 +281,7 @@ function RunLoadState({ monitor, runId }: { monitor: RunMonitorState; runId: str
   return (
     <div role="alert" className="alert alert-error">
       <span>We could not load this run. Check your connection and try again.</span>
-      <button type="button" className="btn btn-sm" onClick={() => void refetch()}>
+      <button type="button" className="btn min-h-11" onClick={() => void refetch()}>
         Try again
       </button>
     </div>

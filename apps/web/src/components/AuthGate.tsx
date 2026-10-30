@@ -40,7 +40,7 @@ export function RequireAuth({ children }: { children: ReactNode }) {
       <main className="flex flex-1 items-center justify-center p-4">
         <div role="alert" className="alert alert-error max-w-md">
           <span>We could not check your session. Check your connection and try again.</span>
-          <button type="button" className="btn btn-sm" onClick={() => void me.refetch()}>
+          <button type="button" className="btn min-h-11" onClick={() => void me.refetch()}>
             Try again
           </button>
         </div>

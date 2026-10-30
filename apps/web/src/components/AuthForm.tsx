@@ -170,7 +170,11 @@ export function AuthForm({ mode, mutation, loginHref }: AuthFormProps) {
         )}
       </div>
 
-      <button type="submit" className="btn btn-primary w-full" disabled={mutation.isPending}>
+      <button
+        type="submit"
+        className="btn btn-primary w-full min-h-11"
+        disabled={mutation.isPending}
+      >
         {mutation.isPending && <span className="loading loading-spinner loading-sm" aria-hidden />}
         {COPY[mode].submit}
       </button>

@@ -32,7 +32,10 @@ function ProjectCard({ project }: { project: ProjectSummary }) {
                 <span className={`badge ${runStatusBadge(latestRun.status)}`}>
                   {runStatusLabel(latestRun.status)}
                 </span>
-                <Link href={`/runs/${latestRun.id}`} className="link">
+                <Link
+                  href={`/runs/${latestRun.id}`}
+                  className="link inline-flex min-h-11 items-center"
+                >
                   View run
                   <span className="sr-only"> for {project.title}</span>
                 </Link>
@@ -64,7 +67,7 @@ const ProjectsPage: NextPageWithAuth = () => {
               {user && <p className="text-base-content/70">Signed in as {user.email}</p>}
             </div>
             {projects.data !== undefined && projects.data.projects.length > 0 && (
-              <Link href="/projects/new" className="btn btn-primary">
+              <Link href="/projects/new" className="btn btn-primary min-h-11">
                 New project
               </Link>
             )}
@@ -80,7 +83,11 @@ const ProjectsPage: NextPageWithAuth = () => {
           {projects.isError && (
             <div role="alert" className="alert alert-error">
               <span>We could not load your projects. Check your connection and try again.</span>
-              <button type="button" className="btn btn-sm" onClick={() => void projects.refetch()}>
+              <button
+                type="button"
+                className="btn min-h-11"
+                onClick={() => void projects.refetch()}
+              >
                 Try again
               </button>
             </div>
@@ -93,7 +100,7 @@ const ProjectsPage: NextPageWithAuth = () => {
                 <p className="text-base-content/70">
                   A project holds one property: its photos, voice walkthrough, and listing pack.
                 </p>
-                <Link href="/projects/new" className="btn btn-primary">
+                <Link href="/projects/new" className="btn btn-primary min-h-11">
                   New project
                 </Link>
               </div>

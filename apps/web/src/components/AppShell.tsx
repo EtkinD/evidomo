@@ -12,7 +12,7 @@ function AccountControls() {
   if (me.data) {
     return (
       <div className="flex items-center gap-2">
-        <Link href="/projects" className="btn btn-ghost btn-sm">
+        <Link href="/projects" className="btn btn-ghost min-h-11">
           Projects
         </Link>
         <span className="hidden max-w-48 truncate text-sm text-base-content/70 sm:inline">
@@ -20,7 +20,7 @@ function AccountControls() {
         </span>
         <button
           type="button"
-          className="btn btn-outline btn-sm"
+          className="btn btn-outline min-h-11"
           disabled={logout.isPending}
           onClick={() => logout.mutate()}
         >
@@ -38,10 +38,10 @@ function AccountControls() {
 
   return (
     <div className="flex items-center gap-2">
-      <Link href="/login" className="btn btn-ghost btn-sm">
+      <Link href="/login" className="btn btn-ghost min-h-11">
         Log in
       </Link>
-      <Link href="/register" className="btn btn-primary btn-sm">
+      <Link href="/register" className="btn btn-primary min-h-11">
         Create account
       </Link>
     </div>

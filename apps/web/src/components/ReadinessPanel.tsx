@@ -182,7 +182,7 @@ export function ReadinessPanel({ detail, market, hasUnsavedChanges }: ReadinessP
               />
               <button
                 type="button"
-                className="btn join-item"
+                className="btn join-item min-h-11"
                 aria-pressed={showCode}
                 onClick={() => setShowCode((value) => !value)}
               >
@@ -196,7 +196,7 @@ export function ReadinessPanel({ detail, market, hasUnsavedChanges }: ReadinessP
         <div className="flex flex-wrap items-center gap-3">
           <button
             type="button"
-            className="btn btn-primary"
+            className="btn btn-primary min-h-11"
             disabled={
               !readiness.canStartRun ||
               mutation.isPending ||
@@ -218,12 +218,18 @@ export function ReadinessPanel({ detail, market, hasUnsavedChanges }: ReadinessP
               <span className={`badge ${runStatusBadge(latestRun.status)}`}>
                 {runStatusLabel(latestRun.status)}
               </span>
-              <Link href={`/runs/${latestRun.id}`} className="link">
+              <Link
+                href={`/runs/${latestRun.id}`}
+                className="link inline-flex min-h-11 items-center"
+              >
                 View latest run
               </Link>
               {/* A completed run has stored its export; the pack page handles the rare gap. */}
               {latestRun.status === 'completed' && (
-                <Link href={`/runs/${latestRun.id}/pack`} className="link">
+                <Link
+                  href={`/runs/${latestRun.id}/pack`}
+                  className="link inline-flex min-h-11 items-center"
+                >
                   View pack
                 </Link>
               )}
