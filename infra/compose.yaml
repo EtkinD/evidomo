@@ -2,10 +2,12 @@
 # Run from the repository root (see infra/.env.example for variables):
 #   docker compose -f infra/compose.yaml --env-file infra/.env up -d --build --wait
 #   docker compose -f infra/compose.yaml --env-file infra/.env --profile tools run --rm migrate
+# On the server use infra/deploy.sh instead (infra/README.md).
 #
 # Variables are interpolated from the env file into each service's `environment` explicitly
 # (no `env_file:`), so every service sees only what it needs. MODEL_API_KEY reaches api and
-# worker only, never web, caddy, or demo-seed; LIVE_RUN_ACCESS_CODE reaches api only.
+# worker only, never web, caddy, backup, or demo-seed; LIVE_RUN_ACCESS_CODE reaches api only.
+# Only caddy publishes host ports (docker bypasses ufw for published ports, so nothing else may).
 
 # Distinct from the local dev project (docker-compose.yml at the root), so volumes never collide.
 name: evidomo-prod
@@ -27,7 +29,7 @@ services:
   caddy:
     build:
       context: ./caddy
-    image: evidomo-caddy:latest
+    image: ${IMAGE_PREFIX:-evidomo}-caddy:latest
     restart: unless-stopped
     depends_on:
       web:
@@ -36,6 +38,9 @@ services:
         condition: service_healthy
     environment:
       SITE_ADDRESS: ${SITE_ADDRESS:-:80}
+      WWW_ADDRESS: ${WWW_ADDRESS:-http://www.invalid}
+      HSTS_MAX_AGE: ${HSTS_MAX_AGE:-300}
+      ACME_CA: ${ACME_CA:-https://acme-v02.api.letsencrypt.org/directory}
     ports:
       - '${HTTP_PORT:-80}:80'
       - '${HTTPS_PORT:-443}:443'
@@ -50,7 +55,10 @@ services:
     build:
       context: ..
       dockerfile: apps/web/Dockerfile
-    image: evidomo-web:latest
+      args:
+        # Inlined into the client bundle at build time (absolute og:image URLs); not a secret.
+        NEXT_PUBLIC_SITE_ORIGIN: ${NEXT_PUBLIC_SITE_ORIGIN:-}
+    image: ${IMAGE_PREFIX:-evidomo}-web:latest
     restart: unless-stopped
     init: true
     networks: [edge]
@@ -61,7 +69,7 @@ services:
       context: ..
       dockerfile: apps/api/Dockerfile
       target: runtime
-    image: evidomo-api:latest
+    image: ${IMAGE_PREFIX:-evidomo}-api:latest
     restart: unless-stopped
     init: true
     depends_on:
@@ -91,7 +99,7 @@ services:
 
   worker:
     # Same image as api (built by the api service; compose builds before it starts anything).
-    image: evidomo-api:latest
+    image: ${IMAGE_PREFIX:-evidomo}-api:latest
     pull_policy: never
     restart: unless-stopped
     init: true
@@ -130,6 +138,31 @@ services:
       start_period: 10s
       retries: 10
 
+  # Daily pg_dump (custom format, compressed) plus a tarball of the storage volume, kept as
+  # 7 daily + 4 weekly (infra/backup/backup.sh). Restore with infra/restore.sh. Gets the database
+  # credentials only; storage is mounted read-only.
+  backup:
+    build:
+      context: ./backup
+    image: ${IMAGE_PREFIX:-evidomo}-backup:latest
+    restart: unless-stopped
+    init: true
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGHOST: postgres
+      PGUSER: ${POSTGRES_USER:-evidomo}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in the env file}
+      PGDATABASE: ${POSTGRES_DB:-evidomo}
+      # UTC, HHMM.
+      BACKUP_AT: ${BACKUP_AT:-0315}
+    volumes:
+      - backups:/backups
+      - storage:/data:ro
+    networks: [backend]
+    # Healthcheck comes from the image (a backup younger than 26 h exists).
+
   # One-off: docker compose -f infra/compose.yaml --env-file infra/.env --profile tools run --rm migrate
   migrate:
     profiles: [tools]
@@ -137,7 +170,7 @@ services:
       context: ..
       dockerfile: apps/api/Dockerfile
       target: migrate
-    image: evidomo-migrate:latest
+    image: ${IMAGE_PREFIX:-evidomo}-migrate:latest
     depends_on:
       postgres:
         condition: service_healthy
@@ -154,7 +187,7 @@ services:
       context: ..
       dockerfile: apps/api/Dockerfile
       target: demo-seed
-    image: evidomo-demo-seed:latest
+    image: ${IMAGE_PREFIX:-evidomo}-demo-seed:latest
     depends_on:
       postgres:
         condition: service_healthy
@@ -178,5 +211,6 @@ networks:
 volumes:
   postgres-data:
   storage:
+  backups:
   caddy-data:
   caddy-config:

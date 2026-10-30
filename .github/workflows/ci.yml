@@ -38,6 +38,15 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      # shellcheck ships with the ubuntu runner image.
+      - name: Shell scripts
+        run: shellcheck -x infra/*.sh infra/backup/backup.sh infra/provision/provision.sh .github/scripts/*.sh
+
+      - name: Compose file
+        run: >-
+          POSTGRES_PASSWORD=ci LIVE_RUN_ACCESS_CODE=ci
+          docker compose -f infra/compose.yaml config --quiet
+
       # Media conversion tests need ffmpeg, which the ubuntu runner image does not ship.
       - name: Install ffmpeg
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg

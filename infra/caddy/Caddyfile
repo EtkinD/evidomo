@@ -1,15 +1,61 @@
 # One site: /api/* goes to the API, everything else to the web app, so cookies stay
 # same-site and no CORS is needed (docs/architecture.md section 3).
 #
-# SITE_ADDRESS comes from compose. ":80" (the default) serves plain HTTP on any host name,
-# which is what a local run needs. A bare domain (e.g. "evidomo.example") turns on automatic
-# HTTPS via ACME; that is configured with D-03.
+# Everything environment-specific comes from compose (infra/.env):
+#   SITE_ADDRESS   ":80" (default) serves plain HTTP on any host name, which is what a local run
+#                  needs. A bare domain such as "evidomo.example" turns on automatic HTTPS (ACME).
+#   WWW_ADDRESS    Host that redirects to the apex, e.g. "www.evidomo.example". The default is a
+#                  plain-HTTP placeholder that never matches a real request, so no certificate
+#                  is requested for it.
+#   HSTS_MAX_AGE   Seconds; start low and raise it once HTTPS is verified (infra/README.md).
+#   ACME_CA        Certificate authority directory URL; the Let's Encrypt staging URL is for
+#                  dry runs (it avoids production rate limits).
+{
+	acme_ca {$ACME_CA:https://acme-v02.api.letsencrypt.org/directory}
+}
+
+# www is only a redirect to the apex. The session cookie is host-pinned (__Host-), so serving the
+# app on two host names would give each its own session.
+{$WWW_ADDRESS:http://www.invalid} {
+	redir https://{$SITE_ADDRESS}{uri} permanent
+}
 
 {$SITE_ADDRESS} {
-	encode zstd gzip
+	# Allow-list by content type. Never text/event-stream: compression buffers frames and delays
+	# the live run monitor and the demo replay.
+	encode {
+		zstd
+		gzip
+		match {
+			header Content-Type text/html*
+			header Content-Type text/css*
+			header Content-Type text/plain*
+			header Content-Type text/javascript*
+			header Content-Type application/javascript*
+			header Content-Type application/json*
+			header Content-Type application/manifest+json*
+			header Content-Type image/svg+xml*
+		}
+	}
+
+	header {
+		# "?" sets a header only when the upstream did not (for example the exported pack sets its
+		# own). defer evaluates that after the upstream answered.
+		defer
+		?Strict-Transport-Security "max-age={$HSTS_MAX_AGE:300}"
+		?X-Content-Type-Options nosniff
+		?Referrer-Policy strict-origin-when-cross-origin
+		# The listing pack preview is a same-origin iframe (PackViewer), so SAMEORIGIN, not DENY.
+		?X-Frame-Options SAMEORIGIN
+		# The voice recorder needs the microphone; nothing uses the camera stream or geolocation.
+		?Permissions-Policy "microphone=(self), camera=(), geolocation=(), payment=()"
+		-Server
+	}
 
 	handle /api/* {
 		reverse_proxy api:4000 {
+			# SSE (run monitor, demo replay): send every frame at once instead of buffering.
+			flush_interval -1
 			# Below Node's 5 s keep-alive timeout, so Caddy never reuses a connection
 			# the upstream is about to close.
 			transport http {

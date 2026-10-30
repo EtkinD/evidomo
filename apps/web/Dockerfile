@@ -27,6 +27,10 @@ RUN --mount=type=cache,target=/root/.npm \
 COPY tsconfig.base.json ./
 COPY packages/shared packages/shared
 COPY apps/web apps/web
+# Public origin for absolute og:image URLs. NEXT_PUBLIC_ values are inlined at build time, so
+# this is a build argument (not a secret); changing it needs a rebuild.
+ARG NEXT_PUBLIC_SITE_ORIGIN=
+ENV NEXT_PUBLIC_SITE_ORIGIN=${NEXT_PUBLIC_SITE_ORIGIN}
 RUN npm run build --workspace @evidomo/web \
     && rm -rf apps/web/.next/cache
 
