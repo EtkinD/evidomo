@@ -22,16 +22,18 @@
 
 ## Commands
 
-| Command                                                        | Purpose                                                      |
-| -------------------------------------------------------------- | ------------------------------------------------------------ |
-| `npm run lint` / `npm run format:check`                        | ESLint (type-aware for TS) / Prettier                        |
-| `npm run typecheck`                                            | Root configs + every workspace (TypeScript pinned to `~6.0`) |
-| `npx vitest run --project <shared\|api\|api-integration\|web>` | One test project — run the narrowest one first               |
-| `npm test` / `npm run test:e2e`                                | All Vitest projects (integration needs Docker) / Playwright  |
-| `npm run audit:deps`                                           | `npm audit` (moderate and above fail) + registry signatures  |
-| `npm run build`                                                | Web production build                                         |
-| `npm run db:up` / `db:migrate` / `db:generate`                 | Local PostgreSQL and Drizzle migrations                      |
-| `npm run dev:api` / `dev:worker` / `dev:web`                   | Local dev processes (read `.env` at the repo root)           |
+| Command                                                                   | Purpose                                                          |
+| ------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `npm run lint` / `npm run format:check`                                   | ESLint (type-aware for TS) / Prettier                            |
+| `npm run typecheck`                                                       | Root configs + every workspace (TypeScript pinned to `~6.0`)     |
+| `npx vitest run --project <shared\|api\|api-integration\|web>`            | One test project — run the narrowest one first                   |
+| `npm test` / `npm run test:e2e`                                           | All Vitest projects (integration needs Docker) / Playwright      |
+| `npm run audit:deps`                                                      | `npm audit` (moderate and above fail) + registry signatures      |
+| `npm run build`                                                           | Web production build                                             |
+| `npm run db:up` / `db:migrate` / `db:generate`                            | Local PostgreSQL and Drizzle migrations                          |
+| `npm run dev:api` / `dev:worker` / `dev:web`                              | Local dev processes (read `.env` at the repo root)               |
+| `npm run dev:seed -- --owner <email> [--stop-at gate1\|gate2\|completed]` | Local fixture run for a registered account, zero model calls     |
+| `npm run dev:worker:replay`                                               | Instead of `dev:worker`: continues seeded runs from the cassette |
 
 ## Security
 
