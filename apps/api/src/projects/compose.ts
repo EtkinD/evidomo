@@ -40,7 +40,7 @@ export interface ProjectApiDeps extends AppProjectDeps {
   logger: Logger;
   session: SessionMiddleware;
   storage: Storage;
-  engine: Pick<RunEngine, 'startRun'>;
+  engine: Pick<RunEngine, 'startRun' | 'discardPendingJobs'>;
 }
 
 /**

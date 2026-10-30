@@ -13,17 +13,24 @@ import type { Executor } from '../db/client.ts';
 import { deleteProjectMaterial, listMaterials } from '../db/repositories/materials.ts';
 import {
   createProject,
+  deleteProject as deleteProjectRows,
   getProjectForOwner,
   listProjectsWithCountsForOwner,
   lockProjectForOwner,
   updateProject,
   type Project,
 } from '../db/repositories/projects.ts';
-import { createRun, listRunsForProject, type Run } from '../db/repositories/runs.ts';
+import { hasOpenRunSteps } from '../db/repositories/run-steps.ts';
+import {
+  createRun,
+  listRunsForProject,
+  lockRunsForProject,
+  type Run,
+} from '../db/repositories/runs.ts';
 import { DefinitionNotFoundError, type DefinitionRegistry } from '../definitions/loader.ts';
 import type { Logger } from '../logger.ts';
 import type { RunEngine } from '../runs/engine.ts';
-import type { Storage } from '../storage/storage.ts';
+import { projectStoragePrefix, type Storage } from '../storage/storage.ts';
 import { captureInputs, type CaptureInputs } from '../upload/process-upload.ts';
 import { BudgetExceededError, checkBudget } from '../usage/budget.ts';
 import { inputsLocked } from './input-lock.ts';
@@ -57,6 +64,7 @@ export type ProjectFailure =
   | { readonly reason: 'inputs_locked' }
   | { readonly reason: 'not_ready'; readonly missing: ReadinessItem[] }
   | { readonly reason: 'run_active' }
+  | { readonly reason: 'run_in_progress' }
   | { readonly reason: 'daily_budget_reached' };
 
 /** An expected refusal, mapped to an HTTP error by the routes. Messages carry no user data. */
@@ -76,7 +84,8 @@ export interface ProjectServiceDeps {
   readonly storage: Storage;
   readonly logger: Logger;
   readonly definitions: Pick<DefinitionRegistry, 'getMarket' | 'getService'>;
-  readonly engine: Pick<RunEngine, 'startRun'>;
+  /** Run starts enqueue the first step; project deletion discards the runs' pending jobs. */
+  readonly engine: Pick<RunEngine, 'startRun' | 'discardPendingJobs'>;
   /** `DAILY_BUDGET_USD`, checked before a run is created. */
   readonly dailyCapUsd: string;
 }
@@ -96,6 +105,11 @@ export interface ProjectService {
     values: Readonly<Record<string, FactFormValue | null>>,
   ): Promise<ProjectDetailResponse>;
   deleteMaterial(ownerId: string, projectId: string, materialId: string): Promise<void>;
+  /**
+   * Hard-deletes the project with every derived row, then its files (P5-04). Refused with
+   * `run_in_progress` while a run is queued or running.
+   */
+  deleteProject(ownerId: string, projectId: string): Promise<void>;
   startRun(ownerId: string, projectId: string): Promise<Run>;
   /** The pinned service definition and what capture takes from it. */
   service(): { definition: ServiceDefinition; capture: CaptureInputs };
@@ -275,6 +289,69 @@ export function createProjectService(deps: ProjectServiceDeps): ProjectService {
         );
       }
       logger.info({ userId: ownerId, projectId, materialId }, 'material deleted');
+    },
+
+    async deleteProject(ownerId, projectId) {
+      const deleted = await db.transaction(async (tx) => {
+        // Project, then its runs: the order run starts use. The project lock serializes the
+        // deletion with uploads, material deletions, form saves, and run starts; the run locks
+        // with gate decisions and the worker, which lock the run only. Whatever committed first
+        // is seen here, and whatever waits finds nothing afterwards (404, or `run_missing`).
+        const project = await lockProjectForOwner(tx, projectId, ownerId);
+        if (project === undefined) throw notFound();
+        // From here on the stored ID, never the path parameter: `z.uuid()` accepts upper case,
+        // which PostgreSQL matches but storage keys (lower case) never contain.
+        const id = project.id;
+        const runs = await lockRunsForProject(tx, id);
+        const runIds = runs.map((run) => run.id);
+        // A queued or running run has a job a worker may be executing, writing files under the
+        // project's prefix. A run at a gate, completed, or failed has none (its open attempts
+        // were closed when it left `running`); the step check backs that invariant up.
+        if (
+          runs.some((run) => run.status === 'queued' || run.status === 'running') ||
+          (await hasOpenRunSteps(tx, runIds))
+        ) {
+          throw new ProjectRequestError({ reason: 'run_in_progress' });
+        }
+        const discardedJobs = await engine.discardPendingJobs(runIds, { tx });
+        const { storageKeys } = await deleteProjectRows(tx, id);
+        return { projectId: id, storageKeys, runCount: runIds.length, discardedJobs };
+      });
+
+      // After the commit (storage is not transactional): the rows are gone either way. A file
+      // that cannot be deleted now is logged and left to the operator's orphan sweep
+      // (`npm run storage:sweep`). Nothing here may throw, or a committed deletion would
+      // answer 500.
+      let failedFileCount = 0;
+      for (const storageKey of deleted.storageKeys) {
+        try {
+          await storage.delete(storageKey);
+        } catch (error) {
+          failedFileCount += 1;
+          logger.error({ err: error, storageKey }, 'could not delete a file of a deleted project');
+        }
+      }
+      // Whatever no row referenced (e.g. files of a superseded step execution) and the
+      // directories themselves.
+      try {
+        await storage.deletePrefix(projectStoragePrefix(deleted.projectId));
+      } catch (error) {
+        logger.error(
+          { err: error, projectId: deleted.projectId },
+          'could not remove the files of a deleted project',
+        );
+      }
+      logger.info(
+        {
+          userId: ownerId,
+          projectId: deleted.projectId,
+          runCount: deleted.runCount,
+          fileCount: deleted.storageKeys.length,
+          failedFileCount,
+          discardedJobs: deleted.discardedJobs,
+        },
+        'project deleted',
+      );
     },
 
     async startRun(ownerId, projectId) {

@@ -165,10 +165,19 @@ describe('flush', () => {
   });
 
   it('surfaces persistence errors and keeps the entries buffered for a retry', async () => {
-    // A run ID with no run row violates the foreign key, so the insert fails.
-    const ledger = ledgerFor({ runId: randomUUID() });
+    const { run } = await seedRunWithParents(testDb.db);
+    const ledger = ledgerFor({ runId: run.id });
+    // 1,000,000 images × 0.05 = 50,000 USD: beyond the ledger's numeric(12, 8), so the insert
+    // fails. (A missing run no longer fails it; see the next test.)
+    const unstorable = entry({
+      modelId: 'fake-image',
+      inputTokens: undefined,
+      outputTokens: undefined,
+      reasoningTokens: undefined,
+      images: 1_000_000,
+    });
     ledger.record(entry());
-    ledger.record(entry());
+    ledger.record(unstorable);
 
     const error = await ledger.flush().then(
       () => undefined,
@@ -180,6 +189,34 @@ describe('flush', () => {
     expect(ledger.pendingCount).toBe(2);
     await expect(ledger.flush()).rejects.toBeInstanceOf(UsagePersistenceError);
     expect(ledger.pendingCount).toBe(2);
+    // All or nothing: the storable entry of the batch was not written either.
+    expect(await listUsageForRun(testDb.db, run.id)).toEqual([]);
+  });
+
+  it('keeps a call whose run was deleted meanwhile, without the run, in the daily total', async () => {
+    const { project, run } = await seedRunWithParents(testDb.db);
+    const warn = vi.fn();
+    const ledger = ledgerFor({ runId: run.id, logger: { warn } });
+    const since = new Date(Date.now() - 1000);
+    const before = await getCostUsdSince(testDb.db, since);
+    // The project is deleted while the call is in flight (P5-04).
+    await deleteProject(testDb.db, project.id);
+    ledger.record(entry());
+
+    const [row, ...rest] = await ledger.flush();
+    expect(rest).toEqual([]);
+    expect(row).toMatchObject({
+      runId: null,
+      stepId: 'fact_extraction',
+      estimatedCostUsd: '0.00500000',
+    });
+    expect(ledger.pendingCount).toBe(0);
+    expect(warn).toHaveBeenCalledExactlyOnceWith(
+      { runId: run.id, rowCount: 1 },
+      'run missing: usage recorded without its run',
+    );
+    const after = await getCostUsdSince(testDb.db, since);
+    expect(Number(after) - Number(before)).toBeCloseTo(0.005, 8);
   });
 });
 
@@ -259,12 +296,22 @@ describe('meter', () => {
   });
 
   it('reports both errors when the call fails and its usage cannot be persisted', async () => {
-    const ledger = ledgerFor({ runId: randomUUID() });
+    const { run } = await seedRunWithParents(testDb.db);
+    const ledger = ledgerFor({ runId: run.id });
     const failure = new Error('model call failed');
 
     const error = await ledger
       .meter('fake-llm', () => {
-        ledger.record(entry());
+        // Beyond the ledger's numeric(12, 8), so the insert fails.
+        ledger.record(
+          entry({
+            modelId: 'fake-image',
+            inputTokens: undefined,
+            outputTokens: undefined,
+            reasoningTokens: undefined,
+            images: 1_000_000,
+          }),
+        );
         return Promise.reject(failure);
       })
       .then(

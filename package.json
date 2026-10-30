@@ -20,6 +20,7 @@
     "demo:seed": "node --env-file-if-exists=.env apps/api/src/cli/demo-seed.ts",
     "dev:seed": "node --env-file-if-exists=.env apps/api/src/cli/dev-seed.ts",
     "dev:worker:replay": "node --env-file-if-exists=.env apps/api/src/cli/dev-worker.ts",
+    "storage:sweep": "node --env-file-if-exists=.env apps/api/src/cli/sweep-orphans.ts",
     "build": "npm run build --workspaces --if-present",
     "typecheck": "tsc --noEmit -p tsconfig.json && npm run typecheck --workspaces --if-present",
     "lint": "eslint .",

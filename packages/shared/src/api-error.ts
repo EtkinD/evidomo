@@ -44,6 +44,9 @@ export const apiErrorCodeSchema = z.enum([
   'not_ready',
   'run_active',
   'daily_budget_reached',
+  // Deleting a project: one of its runs is queued or running (a worker may be writing to it).
+  // A run that waits at a gate, completed, or failed does not block the deletion.
+  'run_in_progress',
   // Starting a live run: the access code is missing or wrong (403; same answer for both).
   'access_code_invalid',
   // Starting a live run: this account or this IP used its run starts for the window (429 with

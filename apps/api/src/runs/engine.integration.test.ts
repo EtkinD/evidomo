@@ -1,14 +1,16 @@
 import { randomUUID } from 'node:crypto';
 import type { ServiceDefinition } from '@evidomo/shared';
-import { sql } from 'drizzle-orm';
+import { and, eq, isNull, sql } from 'drizzle-orm';
 import { PgBoss } from 'pg-boss';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { InvalidRunTransitionError } from '../db/errors.ts';
 import { listArtifacts, insertArtifact } from '../db/repositories/artifacts.ts';
+import { deleteProject } from '../db/repositories/projects.ts';
 import { listRunEvents } from '../db/repositories/run-events.ts';
 import { createRunStep, listRunSteps } from '../db/repositories/run-steps.ts';
 import { getRun, transitionRun, type Run } from '../db/repositories/runs.ts';
 import { listUsageForRun } from '../db/repositories/usage.ts';
+import { usageLedger } from '../db/schema.ts';
 import {
   seedProject,
   seedRun,
@@ -19,7 +21,7 @@ import {
 import { createLogger } from '../logger.ts';
 import { InvalidBudgetCapError } from '../usage/ledger.ts';
 import { createRunEngine, type RunEngine, type RunEngineOptions, type StepJob } from './engine.ts';
-import { RUN_STEP_QUEUE, type StepJobData } from './queue.ts';
+import { RUN_STEP_DEAD_LETTER_QUEUE, RUN_STEP_QUEUE, type StepJobData } from './queue.ts';
 import { StepTimeoutError, type StepContext, type StepResult } from './steps.ts';
 import {
   buildTestService,
@@ -591,5 +593,115 @@ describe('run engine concurrency', () => {
     expect(failed?.failureReason).toBe('Step "b" could not be recovered after repeated failures');
     expect((await listRunSteps(testDb.db, run.id)).map((s) => s.status)).toEqual(['failed']);
     expect(await engine.processDeadStepJob({ id: jobId, data })).toBe('skipped');
+  });
+});
+
+describe('run engine after project deletion (P5-04)', () => {
+  async function jobStates(queue: string, runId: string): Promise<string[]> {
+    const result = await testDb.db.execute<{ state: string }>(sql`
+      select state from pgboss.job where name = ${queue} and data->>'runId' = ${runId}
+      order by created_on, id
+    `);
+    return result.rows.map((row) => row.state);
+  }
+
+  it('settles quietly when the run is deleted while a step executes, and on every redelivery', async () => {
+    const { run, data, jobId } = await fabricateOpenStep(LINEAR, 'a');
+    const release = deferred();
+    behaviors.set(run.id, async (context) => {
+      await release.promise;
+      // The paid call finishes after the deletion: its usage must stay in the daily total.
+      await fakeModelCall(context);
+      return {
+        commit: () => Promise.reject(new Error('a deleted run must never commit')),
+      };
+    });
+    const executing = engine.processStepJob(delivery(jobId, data));
+    await waitFor('the step to start', () =>
+      Promise.resolve(callsOf(run.id).includes('a#1') ? true : undefined),
+    );
+
+    await deleteProject(testDb.db, run.projectId);
+    release.resolve();
+
+    expect(await executing).toEqual({ outcome: 'skipped', reason: 'run_missing' });
+    // A redelivery (pg-boss retry, or a duplicate) ends the same way instead of throwing.
+    expect(await engine.processStepJob(delivery(jobId, data, 1))).toEqual({
+      outcome: 'skipped',
+      reason: 'run_missing',
+    });
+    expect(await getRun(testDb.db, run.id)).toBeUndefined();
+    expect(await listRunSteps(testDb.db, run.id)).toEqual([]);
+    const orphanedUsage = await testDb.db
+      .select()
+      .from(usageLedger)
+      .where(and(isNull(usageLedger.runId), eq(usageLedger.stepId, 'a')));
+    expect(orphanedUsage.length).toBeGreaterThanOrEqual(1);
+    expect(callsOf(run.id)).toEqual(['a#1']);
+  });
+
+  it('settles quietly when the step fails because its run was deleted', async () => {
+    const { run, data, jobId } = await fabricateOpenStep(LINEAR, 'b');
+    const release = deferred();
+    behaviors.set(run.id, async () => {
+      await release.promise;
+      // What a real handler sees when its project's rows are gone.
+      throw new Error('project not found');
+    });
+    const executing = engine.processStepJob(delivery(jobId, data));
+    await waitFor('the step to start', () =>
+      Promise.resolve(callsOf(run.id).includes('b#1') ? true : undefined),
+    );
+    await deleteProject(testDb.db, run.projectId);
+    release.resolve();
+
+    // Not a StepRetryError: pg-boss would only redeliver into the same answer.
+    expect(await executing).toEqual({ outcome: 'skipped', reason: 'run_missing' });
+  });
+
+  it('discards only pending step and dead-letter jobs of the given runs, within the transaction', async () => {
+    const target = await seedServiceRun(LINEAR);
+    const other = await seedServiceRun(LINEAR);
+    // Far in the future, so no worker fetches them during the test. The step queue is
+    // `exclusive`, so each job needs its own key, as the engine's do.
+    const later = (key: string) => ({
+      startAfter: new Date(Date.now() + 3_600_000),
+      singletonKey: key,
+    });
+    for (const run of [target, other]) {
+      const a = { runId: run.id, stepId: 'a', attempt: 1 };
+      const b = { runId: run.id, stepId: 'b', attempt: 1 };
+      expect(await primaryBoss.send(RUN_STEP_QUEUE, a, later(`${run.id}:a:1`))).not.toBeNull();
+      expect(
+        await primaryBoss.send(RUN_STEP_DEAD_LETTER_QUEUE, b, later(`${run.id}:b:1`)),
+      ).not.toBeNull();
+    }
+    // A job a worker holds (active) is never deleted under it.
+    const held = JSON.stringify({ runId: target.id, stepId: 'c', attempt: 1 });
+    await testDb.db.execute(sql`
+      insert into pgboss.job (name, data, state, started_on, singleton_key)
+      values (${RUN_STEP_QUEUE}, ${held}::jsonb, 'active', now(), ${`${target.id}:c:1`})
+    `);
+
+    // Rolled back with its transaction: the jobs stay.
+    await expect(
+      testDb.db.transaction(async (tx) => {
+        expect(await engine.discardPendingJobs([target.id], { tx })).toBe(2);
+        throw new Error('roll back');
+      }),
+    ).rejects.toThrow('roll back');
+    expect(await jobStates(RUN_STEP_QUEUE, target.id)).toEqual(['created', 'active']);
+
+    const discarded = await testDb.db.transaction((tx) =>
+      engine.discardPendingJobs([target.id, target.id], { tx }),
+    );
+    expect(discarded).toBe(2);
+    expect(await jobStates(RUN_STEP_QUEUE, target.id)).toEqual(['active']);
+    expect(await jobStates(RUN_STEP_DEAD_LETTER_QUEUE, target.id)).toEqual([]);
+    expect(await jobStates(RUN_STEP_QUEUE, other.id)).toEqual(['created']);
+    expect(await jobStates(RUN_STEP_DEAD_LETTER_QUEUE, other.id)).toEqual(['created']);
+    expect(await engine.discardPendingJobs([])).toBe(0);
+
+    await testDb.db.execute(sql`delete from pgboss.job where data->>'runId' = ${target.id}`);
   });
 });

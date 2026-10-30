@@ -245,7 +245,7 @@ Design decisions are made in a dev-only showcase, and only what the founder appr
 - [ ] **P5-03 — Failure UX**
   - Depends on: P4-05
   - Done when: failed steps, resumes, and budget-exceeded states are clearly shown and recoverable from the UI.
-- [ ] **P5-04 — Project deletion**
+- [x] **P5-04 — Project deletion**
   - Depends on: P2-01, P2-05
   - Done when: deleting a project hard-deletes materials, artifacts, and derived data (tested).
 - [ ] **P5-05 — E2E flow**

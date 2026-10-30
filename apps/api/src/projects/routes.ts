@@ -56,6 +56,9 @@ export function sendProjectError(res: Response, error: ProjectRequestError): voi
     case 'run_active':
       sendError(res, 409, 'run_active');
       return;
+    case 'run_in_progress':
+      sendError(res, 409, 'run_in_progress');
+      return;
     case 'daily_budget_reached':
       sendError(res, 409, 'daily_budget_reached');
       return;
@@ -136,6 +139,20 @@ export function createProjectRouter(deps: ProjectRouterDeps): Router {
     await respond(res, async () => {
       const body = await projects.update(currentUser(req).id, params.data.projectId, parsed.data);
       res.json(body satisfies ProjectDetailResponse);
+    });
+  });
+
+  // Hard delete (P5-04): 204, or 404 for an unknown or another user's project, 409
+  // `run_in_progress` while a run is queued or running. Bodiless, like logout.
+  router.delete('/:projectId', async (req, res) => {
+    const params = projectParamsSchema.safeParse(req.params);
+    if (!params.success) {
+      sendValidationError(res, params.error);
+      return;
+    }
+    await respond(res, async () => {
+      await projects.deleteProject(currentUser(req).id, params.data.projectId);
+      res.status(204).end();
     });
   });
 

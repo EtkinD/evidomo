@@ -88,6 +88,7 @@ export const DEFAULT_EXPIRY_GRACE_SECONDS = 60;
 export const DEFAULT_HEARTBEAT_SECONDS = 30;
 export const DEFAULT_RETRY_DELAY_SECONDS = 5;
 export const DEFAULT_POLLING_INTERVAL_SECONDS = 2;
+const DISCARD_PAGE_SIZE = 100;
 
 export interface RunEngineOptions {
   /** The pool-backed database; every engine operation opens its own transaction on it. */
@@ -160,6 +161,13 @@ export interface RunEngine {
   processStepJob(job: StepJob): Promise<StepJobOutcome>;
   /** The dead-letter handler: fails a run whose step job ran out of pg-boss retries. */
   processDeadStepJob(job: Pick<StepJob, 'id' | 'data'>): Promise<'run_failed' | 'skipped'>;
+  /**
+   * Deletes the runs' step jobs that no worker holds yet (pg-boss `created` or `retry`, in the
+   * step and dead-letter queues) and returns how many. For project deletion, in its
+   * transaction: the jobs go with the runs or not at all. A job a worker already fetched is left
+   * alone; it finds no run and settles as `run_missing`.
+   */
+  discardPendingJobs(runIds: readonly string[], options?: TxOption): Promise<number>;
 }
 
 type Claim =
@@ -436,6 +444,7 @@ export function createRunEngine(options: RunEngineOptions): RunEngine {
         dailyCapUsd: options.dailyCapUsd,
         runCapUsd: service.budget.max_cost_usd_per_run,
         ...(options.prices === undefined ? {} : { prices: options.prices }),
+        logger: log,
       });
     } catch (error) {
       return { ok: false, error };
@@ -546,9 +555,10 @@ export function createRunEngine(options: RunEngineOptions): RunEngine {
     claimed: Extract<Claim, { kind: 'claimed' }>,
     data: StepJobData,
     result: StepResult | undefined,
-  ): Promise<'completed' | 'superseded'> {
+  ): Promise<'completed' | 'superseded' | 'run_missing'> {
     return db.transaction(async (tx) => {
       const run = await lockRun(tx, data.runId);
+      if (run === undefined) return 'run_missing';
       const row = await getRunStepForUpdate(tx, data);
       if (!isCurrentClaim(run, row, job)) return 'superseded';
       const committed = result?.commit === undefined ? undefined : await result.commit(tx);
@@ -579,10 +589,11 @@ export function createRunEngine(options: RunEngineOptions): RunEngine {
     job: StepJob,
     data: StepJobData,
     error: unknown,
-  ): Promise<{ decision: 'retry' | 'run_failed' | 'superseded'; reason: string }> {
+  ): Promise<{ decision: 'retry' | 'run_failed' | 'superseded' | 'run_missing'; reason: string }> {
     const reason = describeStepError(error);
     const decision = await db.transaction(async (tx) => {
       const run = await lockRun(tx, data.runId);
+      if (run === undefined) return 'run_missing';
       const row = await getRunStepForUpdate(tx, data);
       if (!isCurrentClaim(run, row, job)) return 'superseded';
       const ref = { stepId: data.stepId, attempt: data.attempt, execution: row.executions };
@@ -648,6 +659,10 @@ export function createRunEngine(options: RunEngineOptions): RunEngine {
     if (executed.ok) {
       try {
         const settled = await settleSuccess(job, claimed, data, executed.result);
+        if (settled === 'run_missing') {
+          stepLog.info('step result discarded: the run was deleted with its project');
+          return { outcome: 'skipped', reason: 'run_missing' };
+        }
         if (settled === 'superseded') {
           stepLog.warn('step result discarded: a newer delivery holds the claim');
           return { outcome: 'superseded' };
@@ -662,6 +677,12 @@ export function createRunEngine(options: RunEngineOptions): RunEngine {
     }
 
     const { decision, reason } = await settleFailure(job, data, failure);
+    if (decision === 'run_missing') {
+      // Expected when the project was deleted mid-execution (its reads fail too): nothing is
+      // left to record, and throwing would only make pg-boss redeliver into the same answer.
+      stepLog.info({ errName: errorName(failure) }, 'step ended after its run was deleted');
+      return { outcome: 'skipped', reason: 'run_missing' };
+    }
     stepLog.warn({ errName: errorName(failure), reason, decision }, 'step failed');
     switch (decision) {
       case 'retry':
@@ -795,5 +816,35 @@ export function createRunEngine(options: RunEngineOptions): RunEngine {
 
     processStepJob,
     processDeadStepJob,
+
+    async discardPendingJobs(runIds, txOption = {}) {
+      if (runIds.length === 0) return 0;
+      return inTransaction(txOption.tx, async (tx) => {
+        const connection = { db: fromDrizzle(tx, sql) };
+        let discarded = 0;
+        for (const queue of [RUN_STEP_QUEUE, RUN_STEP_DEAD_LETTER_QUEUE]) {
+          for (const runId of new Set(runIds)) {
+            // A run has a handful of jobs at most; the page loop only guards the assumption.
+            for (;;) {
+              const jobs = await boss.findJobs(queue, {
+                ...connection,
+                data: { runId },
+                queued: true,
+                limit: DISCARD_PAGE_SIZE,
+              });
+              if (jobs.length === 0) break;
+              await boss.deleteJob(
+                queue,
+                jobs.map((job) => job.id),
+                connection,
+              );
+              discarded += jobs.length;
+              if (jobs.length < DISCARD_PAGE_SIZE) break;
+            }
+          }
+        }
+        return discarded;
+      });
+    },
   };
 }

@@ -266,6 +266,13 @@ describe('loadEnv', () => {
       expect(loadEnv(withoutKey, 'demo-seed').MODEL_API_KEY).toBeUndefined();
     });
 
+    it('lets maintenance scripts run in production without MODEL_API_KEY', () => {
+      const { MODEL_API_KEY: _unused, ...withoutKey } = production;
+      expect(loadEnv(withoutKey, 'maintenance').MODEL_API_KEY).toBeUndefined();
+      const { STORAGE_DIR: _storage, ...withoutStorage } = production;
+      expect(() => loadEnv(withoutStorage, 'maintenance')).toThrow(/STORAGE_DIR/);
+    });
+
     it('coerces the run-start limits and bounds them', () => {
       const env = loadEnv({
         DATABASE_URL,

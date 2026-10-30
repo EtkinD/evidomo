@@ -1,5 +1,15 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { mkdtemp, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
+import {
+  mkdir,
+  mkdtemp,
+  readdir,
+  readFile,
+  rm,
+  stat,
+  symlink,
+  utimes,
+  writeFile,
+} from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { Readable } from 'node:stream';
@@ -8,9 +18,11 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { createLocalStorage } from './local.ts';
 import {
   InvalidStorageKeyError,
+  isProjectStorageSegment,
   isValidStorageKey,
   newMaterialStorageKey,
   newRunArtifactStorageKey,
+  projectStoragePrefix,
   StorageNotFoundError,
   type Storage,
 } from './storage.ts';
@@ -58,6 +70,20 @@ describe('storage keys', () => {
   it('refuses a project ID or extension that is not a plain token', () => {
     expect(() => newMaterialStorageKey('../x', 'jpg')).toThrow(InvalidStorageKeyError);
     expect(() => newMaterialStorageKey(randomUUID(), '../jpg')).toThrow(InvalidStorageKeyError);
+  });
+
+  it('puts every project file below the project prefix', () => {
+    const projectId = randomUUID();
+    const prefix = projectStoragePrefix(projectId);
+    expect(prefix).toBe(`projects/${projectId}`);
+    expect(newMaterialStorageKey(projectId, 'wav').startsWith(`${prefix}/`)).toBe(true);
+    expect(newRunArtifactStorageKey(projectId, randomUUID(), 'html').startsWith(`${prefix}/`)).toBe(
+      true,
+    );
+    expect(() => projectStoragePrefix('..')).toThrow(InvalidStorageKeyError);
+    expect(isProjectStorageSegment(projectId)).toBe(true);
+    expect(isProjectStorageSegment(projectId.toUpperCase())).toBe(false);
+    expect(isProjectStorageSegment('readme.txt')).toBe(false);
   });
 
   it('generates unique run artifact keys under the project prefix', () => {
@@ -181,6 +207,96 @@ describe('createLocalStorage', () => {
     );
     await expect(storage.stat('r/missing.bin')).rejects.toThrow(StorageNotFoundError);
     await expect(storage.stat('r')).rejects.toThrow(StorageNotFoundError);
+  });
+
+  it('lists the segments directly below a prefix, sorted, and nothing for a missing one', async () => {
+    await storage.put('projects/b/materials/x.jpg', new Uint8Array([1]));
+    await storage.put('projects/a/runs/r/artifacts/y.jpg', new Uint8Array([2]));
+    await storage.put('projects/c.bin', new Uint8Array([3]));
+    // Not writable through the interface, so never listed.
+    await mkdir(path.join(root, 'projects', 'Upper'), { recursive: true });
+    await writeFile(path.join(root, 'projects', '.hidden'), 'x');
+
+    expect(await storage.listChildren('projects')).toEqual(['a', 'b', 'c.bin']);
+    expect(await storage.listChildren('projects/a')).toEqual(['runs']);
+    expect(await storage.listChildren('missing')).toEqual([]);
+    expect(await storage.listChildren('projects/c.bin')).toEqual([]);
+    await expect(storage.listChildren('../x')).rejects.toThrow(InvalidStorageKeyError);
+  });
+
+  it('deletes a whole project prefix, idempotently, and leaves its siblings alone', async () => {
+    const a = randomUUID();
+    const b = randomUUID();
+    await storage.put(`projects/${a}/materials/x.jpg`, new Uint8Array([1]));
+    await storage.put(`projects/${a}/runs/r/artifacts/y.jpg`, new Uint8Array([2]));
+    await storage.put(`projects/${b}/materials/z.jpg`, new Uint8Array([3]));
+
+    await storage.deletePrefix(projectStoragePrefix(a));
+    expect(await storage.exists(`projects/${a}/materials/x.jpg`)).toBe(false);
+    expect(await storage.exists(`projects/${a}/runs/r/artifacts/y.jpg`)).toBe(false);
+    expect(await storage.listChildren('projects')).toEqual([b]);
+    expect(await storage.exists(`projects/${b}/materials/z.jpg`)).toBe(true);
+    await expect(storage.deletePrefix(projectStoragePrefix(a))).resolves.toBeUndefined();
+  });
+
+  it('refuses to delete any prefix but a single project’s, touching nothing', async () => {
+    const id = randomUUID();
+    await storage.put(`projects/${id}/materials/x.jpg`, new Uint8Array([1]));
+    await storage.put('system/database-binding.json', new Uint8Array([2]));
+    for (const prefix of [
+      'projects',
+      'system',
+      'system/database-binding.json',
+      `projects/${id}/materials`,
+      `projects/${id}/materials/x.jpg`,
+      `projects/${id.toUpperCase()}`,
+      'projects/not-a-uuid',
+      `other/${id}`,
+      '../x',
+      '',
+    ]) {
+      await expect(storage.deletePrefix(prefix), prefix).rejects.toThrow(InvalidStorageKeyError);
+    }
+    expect(await storage.exists(`projects/${id}/materials/x.jpg`)).toBe(true);
+    expect(await storage.exists('system/database-binding.json')).toBe(true);
+  });
+
+  it('removes a symbolic link below a deleted prefix, never its target', async () => {
+    const outside = await mkdtemp(path.join(tmpdir(), 'evidomo-storage-outside-'));
+    const id = randomUUID();
+    try {
+      await writeFile(path.join(outside, 'keep.txt'), 'keep');
+      await mkdir(path.join(root, 'projects', id), { recursive: true });
+      await symlink(outside, path.join(root, 'projects', id, 'link'));
+      await storage.deletePrefix(projectStoragePrefix(id));
+      expect(await readFile(path.join(outside, 'keep.txt'), 'utf8')).toBe('keep');
+      expect(await storage.listChildren('projects')).toEqual([]);
+    } finally {
+      await rm(outside, { recursive: true, force: true });
+    }
+  });
+
+  it('reports the newest modification below a prefix, or nothing when it is empty', async () => {
+    const id = randomUUID();
+    expect(await storage.lastModified(projectStoragePrefix(id))).toBeUndefined();
+    await storage.put(`projects/${id}/materials/old.jpg`, new Uint8Array([1]));
+    await storage.put(`projects/${id}/runs/r/artifacts/new.jpg`, new Uint8Array([2]));
+    const old = new Date('2020-01-01T00:00:00Z');
+    // Everything old except the deepest file: the newest time must come from it.
+    for (const relative of [
+      `projects/${id}`,
+      `projects/${id}/materials`,
+      `projects/${id}/materials/old.jpg`,
+      `projects/${id}/runs`,
+      `projects/${id}/runs/r`,
+      `projects/${id}/runs/r/artifacts`,
+    ]) {
+      await utimes(path.join(root, relative), old, old);
+    }
+    const newest = (await stat(path.join(root, `projects/${id}/runs/r/artifacts/new.jpg`))).mtime;
+    expect((await storage.lastModified(projectStoragePrefix(id)))?.getTime()).toBe(
+      newest.getTime(),
+    );
   });
 
   it('never touches paths outside the root', async () => {

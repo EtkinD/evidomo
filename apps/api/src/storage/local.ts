@@ -1,9 +1,11 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { mkdir, open, rename, rm, stat, type FileHandle } from 'node:fs/promises';
+import { lstat, mkdir, open, readdir, rename, rm, stat, type FileHandle } from 'node:fs/promises';
 import path from 'node:path';
 import {
+  assertProjectStoragePrefix,
   assertValidStorageKey,
   InvalidStorageKeyError,
+  isValidStorageKey,
   StorageNotFoundError,
   type Storage,
   type StorageKey,
@@ -160,6 +162,51 @@ export function createLocalStorage(options: LocalStorageOptions): Storage {
         if (hasCode(error, 'ENOENT', 'ENOTDIR')) return false;
         throw error;
       }
+    },
+
+    async listChildren(prefix) {
+      let names: string[];
+      try {
+        names = await readdir(pathFor(prefix));
+      } catch (error) {
+        if (hasCode(error, 'ENOENT', 'ENOTDIR')) return [];
+        throw error;
+      }
+      // Only names a key can contain: anything else was not written through this interface.
+      return names.filter((name) => isValidStorageKey(name)).sort();
+    },
+
+    async deletePrefix(prefix) {
+      assertProjectStoragePrefix(prefix);
+      // `rm` does not follow symbolic links; it removes the link.
+      // Retries cover a concurrent writer or a second sweep emptying the same tree (ENOTEMPTY).
+      await rm(pathFor(prefix), { recursive: true, force: true, maxRetries: 2 });
+    },
+
+    async lastModified(prefix) {
+      const top = pathFor(prefix);
+      let newest: number | undefined;
+      const consider = async (target: string): Promise<void> => {
+        try {
+          // `lstat`: a symbolic link's own time, never its target's.
+          const { mtimeMs } = await lstat(target);
+          newest = newest === undefined ? mtimeMs : Math.max(newest, mtimeMs);
+        } catch (error) {
+          // Removed while walking: nothing to date.
+          if (!hasCode(error, 'ENOENT', 'ENOTDIR')) throw error;
+        }
+      };
+      await consider(top);
+      if (newest === undefined) return undefined;
+      let entries;
+      try {
+        entries = await readdir(top, { recursive: true, withFileTypes: true });
+      } catch (error) {
+        if (hasCode(error, 'ENOENT', 'ENOTDIR')) return new Date(newest);
+        throw error;
+      }
+      for (const entry of entries) await consider(path.join(entry.parentPath, entry.name));
+      return new Date(newest);
     },
   };
 }

@@ -222,6 +222,11 @@ export const VOICE_MEMO_UPLOAD_CONTENT_TYPES = [
   'audio/3gpp',
 ] as const;
 
+/**
+ * Path parameters of every `/api/projects/:projectId` route, including
+ * `DELETE /api/projects/:projectId` (no body; 204 without a body, 404 `not_found` for an unknown
+ * or another user's project, 409 `run_in_progress` while one of its runs is queued or running).
+ */
 export const projectParamsSchema = z.strictObject({ projectId: z.uuid() });
 export const materialParamsSchema = z.strictObject({
   projectId: z.uuid(),

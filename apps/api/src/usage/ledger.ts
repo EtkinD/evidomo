@@ -7,13 +7,18 @@ import {
   type PriceTable,
 } from '@evidomo/shared';
 import type { Executor } from '../db/client.ts';
+import { isForeignKeyViolation } from '../db/errors.ts';
 import {
   recordUsage,
   type NewUsage,
   type UsageEntry as UsageRow,
 } from '../db/repositories/usage.ts';
+import type { Logger } from '../logger.ts';
 import type { CostEstimator, UsageEntry, UsageRecorder } from '../meta/usage.ts';
 import { checkBudget, type BudgetStatus } from './budget.ts';
+
+/** `usage_ledger.run_id → runs.id` (`ON DELETE SET NULL`), from migration 0000. */
+const USAGE_LEDGER_RUN_FK = 'usage_ledger_run_id_runs_id_fk';
 
 // The usage ledger behind the Meta clients' `UsageRecorder`. `record()` must stay synchronous
 // (the AI SDK swallows errors thrown in its callbacks), so entries are buffered in memory and
@@ -117,6 +122,8 @@ export interface UsageLedgerOptions {
   readonly prices?: PriceTable;
   /** Clock for the daily window; defaults to the system clock. */
   readonly now?: () => Date;
+  /** Warned when usage is recorded without its run because the run was deleted. */
+  readonly logger?: Pick<Logger, 'warn'>;
 }
 
 export interface UsageLedger extends UsageRecorder {
@@ -199,6 +206,14 @@ export function createUsageLedger(options: UsageLedgerOptions): UsageLedger {
 
   const buffer: UsageEntry[] = [];
 
+  function insertAll(priced: readonly NewUsage[]): Promise<UsageRow[]> {
+    return db.transaction(async (tx) => {
+      const inserted: UsageRow[] = [];
+      for (const usage of priced) inserted.push(await recordUsage(tx, usage));
+      return inserted;
+    });
+  }
+
   async function flush(): Promise<UsageRow[]> {
     // Taken synchronously, so a concurrent flush never persists the same entry twice.
     const batch = buffer.splice(0);
@@ -227,10 +242,17 @@ export function createUsageLedger(options: UsageLedgerOptions): UsageLedger {
     let rows: UsageRow[] = [];
     if (priced.length > 0) {
       try {
-        rows = await db.transaction(async (tx) => {
-          const inserted: UsageRow[] = [];
-          for (const usage of priced) inserted.push(await recordUsage(tx, usage));
-          return inserted;
+        rows = await insertAll(priced).catch(async (error: unknown) => {
+          if (runId === null || !isForeignKeyViolation(error, USAGE_LEDGER_RUN_FK)) throw error;
+          // The run was deleted with its project while the call was in flight. The call is
+          // paid: keep it without the run, as the deletion did with the run's earlier rows
+          // (`ON DELETE SET NULL`), so it still counts toward the daily cap. Logged, so a wrong run
+          // ID from a bug does not go unnoticed (IDs and a count only).
+          options.logger?.warn(
+            { runId, rowCount: priced.length },
+            'run missing: usage recorded without its run',
+          );
+          return insertAll(priced.map((usage) => ({ ...usage, runId: null })));
         });
       } catch (error) {
         // Nothing was written; keep the whole batch so a retry re-prices and re-reports it.

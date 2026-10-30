@@ -47,8 +47,11 @@ export function appConfigFromEnv(
 
 /** What the run routes need from the run engine and the definitions loaded at boot. */
 export interface AppRunDeps {
-  /** Gate decisions resume the run in their own transaction (no workers in the API process). */
-  engine: Pick<RunEngine, 'resumeAfterGate' | 'startRun'>;
+  /**
+   * Gate decisions resume the run in their own transaction (no workers in the API process);
+   * project deletion discards the runs' pending jobs in its transaction.
+   */
+  engine: Pick<RunEngine, 'resumeAfterGate' | 'startRun' | 'discardPendingJobs'>;
   markets: Pick<DefinitionRegistry, 'getMarket'>;
   /** The run snapshot lists the definition's steps and its cost cap. */
   services: Pick<DefinitionRegistry, 'getService'>;

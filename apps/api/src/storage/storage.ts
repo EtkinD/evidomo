@@ -38,6 +38,24 @@ export interface Storage {
   /** Removes the object. Idempotent: deleting a missing key succeeds. */
   delete(key: StorageKey): Promise<void>;
   exists(key: StorageKey): Promise<boolean>;
+  /**
+   * The segment names directly below `prefix` (objects and deeper prefixes alike; S3: a
+   * `Delimiter: '/'` listing), sorted. Empty when nothing is stored below it.
+   */
+  listChildren(prefix: StorageKey): Promise<string[]>;
+  /**
+   * Removes every object whose key starts with `<prefix>/`. Idempotent. Only a project's whole
+   * prefix is accepted (`projects/<lower-case uuid>`, `projectStoragePrefix`); anything else,
+   * such as `projects` or `system`, throws `InvalidStorageKeyError`, so no caller bug can empty
+   * the storage.
+   */
+  deletePrefix(prefix: StorageKey): Promise<void>;
+  /**
+   * The newest modification time of anything at or below `prefix` (objects and, locally, the
+   * directories themselves), or undefined when nothing is stored there. The orphan sweep's age
+   * guard.
+   */
+  lastModified(prefix: StorageKey): Promise<Date | undefined>;
 }
 
 export class StorageError extends Error {
@@ -80,10 +98,47 @@ export function assertValidStorageKey(key: string): void {
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const EXTENSION = /^[a-z0-9]{1,8}$/;
 
+// Key layout (docs/architecture.md §8 "Storage"): every file derived from a project lives below
+// `projects/<projectId>/`, so a project's files can be found and removed by prefix alone:
+//
+//   projects/<projectId>/materials/<uuid>.<ext>                  uploads (photos, voice memo)
+//   projects/<projectId>/runs/<runId>/artifacts/<uuid>.<ext>     staged images, integrity
+//                                                                retries, export files
+//   system/…                                                     the storage's own records
+//
+// Masks, transcripts, and every other derived value are database rows, not files.
+
+/** The first segment of every project's files. */
+export const PROJECTS_STORAGE_PREFIX = 'projects';
+
+/** `projects/<projectId>`: everything stored for one project lives below this prefix. */
+export function projectStoragePrefix(projectId: string): StorageKey {
+  if (!UUID.test(projectId)) throw new InvalidStorageKeyError();
+  return `${PROJECTS_STORAGE_PREFIX}/${projectId}`;
+}
+
+/** Whether a segment below `projects/` can name a project (a lower-case UUID). */
+export function isProjectStorageSegment(segment: string): boolean {
+  return UUID.test(segment);
+}
+
+/** Throws `InvalidStorageKeyError` unless `prefix` is exactly `projects/<lower-case uuid>`. */
+export function assertProjectStoragePrefix(prefix: string): void {
+  const [first, projectId, ...rest] = prefix.split('/');
+  if (
+    first !== PROJECTS_STORAGE_PREFIX ||
+    projectId === undefined ||
+    !UUID.test(projectId) ||
+    rest.length > 0
+  ) {
+    throw new InvalidStorageKeyError();
+  }
+}
+
 /** A fresh key for one material file of a project: `projects/<id>/materials/<uuid>.<ext>`. */
 export function newMaterialStorageKey(projectId: string, extension: string): StorageKey {
-  if (!UUID.test(projectId) || !EXTENSION.test(extension)) throw new InvalidStorageKeyError();
-  return `projects/${projectId}/materials/${randomUUID()}.${extension}`;
+  if (!EXTENSION.test(extension)) throw new InvalidStorageKeyError();
+  return `${projectStoragePrefix(projectId)}/materials/${randomUUID()}.${extension}`;
 }
 
 /**
@@ -96,8 +151,6 @@ export function newRunArtifactStorageKey(
   runId: string,
   extension: string,
 ): StorageKey {
-  if (!UUID.test(projectId) || !UUID.test(runId) || !EXTENSION.test(extension)) {
-    throw new InvalidStorageKeyError();
-  }
-  return `projects/${projectId}/runs/${runId}/artifacts/${randomUUID()}.${extension}`;
+  if (!UUID.test(runId) || !EXTENSION.test(extension)) throw new InvalidStorageKeyError();
+  return `${projectStoragePrefix(projectId)}/runs/${runId}/artifacts/${randomUUID()}.${extension}`;
 }

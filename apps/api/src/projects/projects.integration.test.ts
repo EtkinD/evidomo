@@ -895,6 +895,7 @@ describe.skipIf(!runFfmpegTests)('POST /api/projects/:projectId/runs', () => {
       engine: {
         resumeAfterGate: () => Promise.reject(new Error('unused')),
         startRun: () => Promise.reject(new Error('must not start')),
+        discardPendingJobs: () => Promise.reject(new Error('unused')),
       },
     });
     const agent = await loginOn(noBudget, owner);
@@ -1183,6 +1184,7 @@ describe('failure handling', () => {
       engine: {
         resumeAfterGate: () => Promise.reject(new Error('unused')),
         startRun: () => Promise.reject(new Error('enqueue failed')),
+        discardPendingJobs: () => Promise.reject(new Error('unused')),
       },
     });
     const agent = await loginOn(target, owner);

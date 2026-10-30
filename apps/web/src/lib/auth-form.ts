@@ -154,6 +154,7 @@ export function describeAuthFailure(
     case 'upload_rejected':
     case 'not_ready':
     case 'run_active':
+    case 'run_in_progress':
     case 'daily_budget_reached':
     case 'access_code_invalid':
     case 'run_limit_reached':

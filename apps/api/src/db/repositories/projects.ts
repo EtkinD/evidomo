@@ -183,9 +183,25 @@ export async function listProjectsWithCountsForOwner(
   }));
 }
 
+/** Which of `projectIds` still exist (for the orphaned-file sweep). */
+export async function listExistingProjectIds(
+  db: Executor,
+  projectIds: readonly string[],
+): Promise<Set<string>> {
+  if (projectIds.length === 0) return new Set();
+  const rows = await db
+    .select({ id: projects.id })
+    .from(projects)
+    .where(inArray(projects.id, [...projectIds]));
+  return new Set(rows.map((row) => row.id));
+}
+
 /**
- * Hard-deletes a project and, through FK cascades, every derived row. Returns the storage
- * keys of the project's files so the caller can remove them after the transaction commits.
+ * Hard-deletes a project and, through FK cascades, every derived row (materials, runs, run
+ * steps, events, facts, artifacts, claims, decisions; `usage_ledger.run_id` is set to NULL).
+ * Returns the storage keys of the project's files so the caller can remove them after the
+ * transaction commits. Callers with a policy (the project API refuses while a run is queued or
+ * running) check it in the same transaction first.
  */
 export async function deleteProject(
   db: Executor,

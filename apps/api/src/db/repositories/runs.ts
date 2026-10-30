@@ -110,6 +110,21 @@ export async function listRunsForProject(db: Executor, projectId: string): Promi
     .orderBy(asc(runs.createdAt), asc(runs.id));
 }
 
+/**
+ * Row-locks every run of a project until the transaction ends, in ID order (so two lockers
+ * cannot deadlock), and returns them as they are once the locks are held: a transition that
+ * committed while this waited is seen. Project deletion takes it after the project lock, the same
+ * project → run order as run starts.
+ */
+export async function lockRunsForProject(db: Executor, projectId: string): Promise<Run[]> {
+  return db
+    .select()
+    .from(runs)
+    .where(eq(runs.projectId, projectId))
+    .orderBy(asc(runs.id))
+    .for('update');
+}
+
 function transitionChanges(transition: RunTransition): PgUpdateSetSource<typeof runs> {
   switch (transition.to) {
     case 'queued':

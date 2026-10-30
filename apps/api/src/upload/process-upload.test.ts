@@ -78,6 +78,9 @@ function fakeStorage(options: { failDelete?: boolean } = {}) {
         : Promise.resolve();
     },
     exists: () => Promise.resolve(false),
+    listChildren: () => Promise.reject(new Error('not used')),
+    deletePrefix: () => Promise.reject(new Error('not used')),
+    lastModified: () => Promise.reject(new Error('not used')),
   };
   return { storage, puts, deletes };
 }

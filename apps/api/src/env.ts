@@ -108,8 +108,10 @@ const booleanFlagSchema = z.preprocess(
  *   code).
  * - `demo-seed` (`npm run demo:seed`): `MODEL_API_KEY` is not required; the seed replays
  *   recorded responses and never builds a live client.
+ * - `maintenance` (operator scripts such as `npm run storage:sweep`): like `demo-seed`, no
+ *   `MODEL_API_KEY`; they touch only the database and storage.
  */
-export type EnvRole = 'api' | 'worker' | 'demo-seed';
+export type EnvRole = 'api' | 'worker' | 'demo-seed' | 'maintenance';
 
 const envSchemaFor = (role: EnvRole) =>
   z
@@ -180,7 +182,8 @@ const envSchemaFor = (role: EnvRole) =>
       if (
         env.NODE_ENV === 'production' &&
         env.MODEL_API_KEY === undefined &&
-        role !== 'demo-seed'
+        role !== 'demo-seed' &&
+        role !== 'maintenance'
       ) {
         ctx.addIssue({
           code: 'custom',

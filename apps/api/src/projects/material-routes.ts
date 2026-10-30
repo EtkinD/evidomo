@@ -103,7 +103,6 @@ export function createMaterialRouter(deps: MaterialRouterDeps): Router {
       sendValidationError(res, params.error);
       return;
     }
-    const { projectId } = params.data;
     const length = declaredLength(req);
     const hasBody = req.headers['transfer-encoding'] !== undefined || (length ?? 0) > 0;
     if (!hasBody) {
@@ -117,10 +116,14 @@ export function createMaterialRouter(deps: MaterialRouterDeps): Router {
       return;
     }
     const user = currentUser(req);
-    if ((await getProjectForOwner(db, projectId, user.id)) === undefined) {
+    const project = await getProjectForOwner(db, params.data.projectId, user.id);
+    if (project === undefined) {
       refuse(res, 404, { error: 'not_found' });
       return;
     }
+    // The stored ID from here on: `z.uuid()` accepts upper case, which PostgreSQL matches but a
+    // storage key (lower case only) refuses.
+    const projectId = project.id;
     // Checked again under the project lock when the row is written; this only avoids receiving
     // and processing a file that cannot be accepted.
     const blocker = await uploadBlocker(db, projectId, route.kind, projects.service().capture);

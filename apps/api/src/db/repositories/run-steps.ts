@@ -69,6 +69,19 @@ export async function listRunSteps(db: Executor, runId: string): Promise<RunStep
     .orderBy(asc(runSteps.createdAt), asc(runSteps.stepId), asc(runSteps.attempt));
 }
 
+/** Whether any of the runs has a queued or running attempt (a job that may still execute). */
+export async function hasOpenRunSteps(db: Executor, runIds: readonly string[]): Promise<boolean> {
+  if (runIds.length === 0) return false;
+  const [row] = await db
+    .select({ runId: runSteps.runId })
+    .from(runSteps)
+    .where(
+      and(inArray(runSteps.runId, [...runIds]), inArray(runSteps.status, ['queued', 'running'])),
+    )
+    .limit(1);
+  return row !== undefined;
+}
+
 /** Completed attempts of a run; at most one per step (`run_steps_one_completion_key`). */
 export async function listCompletedRunSteps(db: Executor, runId: string): Promise<RunStep[]> {
   return db

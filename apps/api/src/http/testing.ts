@@ -11,7 +11,11 @@ const unusedEngine = (): Promise<never> =>
 /** Run dependencies that fail loudly if a test reaches them by accident. */
 export function unusedRunDeps(): AppRunDeps {
   return {
-    engine: { resumeAfterGate: unusedEngine, startRun: unusedEngine },
+    engine: {
+      resumeAfterGate: unusedEngine,
+      startRun: unusedEngine,
+      discardPendingJobs: unusedEngine,
+    },
     markets: {
       getMarket: () => {
         throw new Error('The definition registry is not used here');
@@ -36,6 +40,9 @@ export function unusedStorage(): Storage {
     stat: unusedStorageCall,
     delete: unusedStorageCall,
     exists: unusedStorageCall,
+    listChildren: unusedStorageCall,
+    deletePrefix: unusedStorageCall,
+    lastModified: unusedStorageCall,
   };
 }
 
