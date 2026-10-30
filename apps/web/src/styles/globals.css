@@ -133,3 +133,184 @@
     color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
   }
 }
+
+/*
+ * "The annotated dossier" (redesign round 1). Paper surfaces, layered depth, and a handful of
+ * motion utilities. daisyUI and Tailwind have no grain texture, multi-layer sheet shadow, or
+ * scroll/clip animation, so these live here. Colours stay theme tokens: shadows and grain are
+ * mixed from `base-content`, so both themes follow without per-theme values.
+ */
+@theme inline {
+  /* A sheet resting on the page: a hairline edge, a contact shadow, and a soft ambient one. */
+  --shadow-sheet:
+    0 0 0 1px color-mix(in oklab, var(--color-base-content) 9%, transparent),
+    0 1px 2px color-mix(in oklab, var(--color-base-content) 14%, transparent),
+    0 14px 28px -18px color-mix(in oklab, var(--color-base-content) 38%, transparent);
+  /* The same sheet picked up: used on hover and for planes that float above others. */
+  --shadow-lift:
+    0 0 0 1px color-mix(in oklab, var(--color-base-content) 12%, transparent),
+    0 2px 4px color-mix(in oklab, var(--color-base-content) 14%, transparent),
+    0 26px 44px -22px color-mix(in oklab, var(--color-base-content) 50%, transparent);
+}
+
+@layer components {
+  /*
+   * Paper grain: a fractal-noise SVG used as a mask over a `base-content` fill, so the speckle
+   * takes the theme's ink colour (dark on linen, light on the dark theme). It sits below the
+   * element's children and never takes pointer events.
+   */
+  .grain {
+    position: relative;
+    isolation: isolate;
+  }
+  .grain::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    border-radius: inherit;
+    background: var(--color-base-content);
+    opacity: 0.07;
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1.7 0 0 0 -.55'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    mask-size: 180px 180px;
+  }
+
+  /* A citation line from a marker on the photo to its note: a light 2px stroke with a dark hairline
+     edge, so it reads on both bright and dark parts of the picture. */
+  .leader {
+    height: 2px;
+    transform-origin: 0 50%;
+    background: var(--color-base-100);
+    box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-base-content) 55%, transparent);
+  }
+
+  /* A masthead's double rule: the header's own border plus a second hairline just below it. */
+  .rule-double::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    bottom: -5px;
+    border-top: 1px solid color-mix(in oklab, var(--color-base-content) 22%, transparent);
+    pointer-events: none;
+  }
+
+  /* A claim in running text: the honey highlight is a background, so it wraps across lines.
+     Hovering its note (see .dossier) fills it solid. */
+  .claim {
+    background: linear-gradient(var(--color-accent), var(--color-accent)) no-repeat 0 90% / 100%
+      0.5em;
+    padding-inline: 0.1em;
+    transition: background-size 200ms ease-out;
+  }
+  .dossier:has([data-note='1']:hover) [data-claim='1'],
+  .dossier:has([data-note='2']:hover) [data-claim='2'],
+  .dossier:has([data-note='3']:hover) [data-claim='3'] {
+    background-size: 100% 100%;
+  }
+}
+
+/* Every animation below is opt-in: with reduced motion (or no animation support) the page simply
+   renders its final state, so nothing is ever hidden waiting for a keyframe. */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes line-rise {
+    from {
+      transform: translateY(105%);
+    }
+  }
+  @keyframes settle {
+    from {
+      opacity: 0;
+      transform: translateY(1.5rem) rotate(-1.2deg);
+    }
+  }
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes pop {
+    from {
+      opacity: 0;
+      transform: scale(0.5);
+    }
+  }
+  @keyframes draw {
+    from {
+      transform: scaleX(0);
+    }
+  }
+  @keyframes sweep {
+    from {
+      background-size: 0 0.5em;
+    }
+  }
+
+  /* The one orchestrated moment: the hero's headline lines rise out of a mask... */
+  .line-mask {
+    display: block;
+    overflow: hidden;
+    padding-bottom: 0.12em;
+    margin-bottom: -0.12em;
+  }
+  .line-rise {
+    display: block;
+    animation: line-rise 800ms cubic-bezier(0.2, 0.75, 0.2, 1) backwards;
+    animation-delay: calc(var(--i, 0) * 110ms + 100ms);
+  }
+  /* ...then the print settles, its leader lines are drawn, and the notes arrive. */
+  .settle {
+    animation: settle 900ms cubic-bezier(0.2, 0.75, 0.2, 1) 450ms backwards;
+  }
+  .leader {
+    animation: draw 700ms cubic-bezier(0.4, 0, 0.2, 1) backwards;
+    animation-delay: calc(1000ms + var(--i, 0) * 160ms);
+  }
+  .pin {
+    animation: pop 350ms cubic-bezier(0.3, 1.6, 0.5, 1) backwards;
+    animation-delay: calc(900ms + var(--i, 0) * 160ms);
+  }
+  .note-in {
+    animation: fade-in 500ms ease-out backwards;
+    animation-delay: calc(1300ms + var(--i, 0) * 160ms);
+  }
+  .fade-late {
+    animation: fade-in 600ms ease-out 700ms backwards;
+  }
+
+  /* Hover and focus depth: a sheet lifts toward the reader. */
+  .lift {
+    transition:
+      transform 220ms ease-out,
+      box-shadow 220ms ease-out;
+  }
+  .lift:hover,
+  .lift:focus-within {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lift);
+  }
+  .tilt {
+    transition: transform 300ms ease-out;
+  }
+  .tilt:hover {
+    transform: rotate(0deg) translateY(-2px);
+  }
+
+  /* Highlights are painted in as the sentence scrolls into view (where the browser supports
+     scroll-driven animations; elsewhere they are simply drawn). */
+  @supports (animation-timeline: view()) {
+    .claim {
+      animation: sweep linear both;
+      animation-timeline: view();
+      animation-range: entry 25% cover 45%;
+    }
+  }
+}
+
+/* The hover lift also changes state without motion for people who asked for none. */
+@media (prefers-reduced-motion: reduce) {
+  .lift:hover,
+  .lift:focus-within {
+    box-shadow: var(--shadow-lift);
+  }
+}

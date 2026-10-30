@@ -12,31 +12,30 @@ import { useProjects } from '../lib/projects';
 function ProjectCard({ project }: { project: ProjectSummary }) {
   const { latestRun } = project;
   return (
-    // `relative` anchors the stretched title link: the whole card opens the project, while the
+    // A folder: the market and language sit on its tab, the sheet below holds the facts.
+    // `relative` anchors the stretched title link: the whole folder opens the project, while the
     // run link below sits above it (`relative z-10`) and keeps its own target.
-    <li className="card relative border border-base-300 bg-base-100 transition-colors hover:border-primary">
-      <div className="card-body gap-3 p-5">
+    <li className="lift relative mt-7 bg-base-100 shadow-sheet [&:hover_.folder-tab]:bg-accent">
+      <p className="folder-tab absolute -top-7 left-0 max-w-[85%] truncate bg-base-300 px-3 py-1 text-sm leading-5 text-base-content transition-colors duration-200">
+        {project.market.name ?? 'Unknown market'} · {languageName(project.outputLanguage)}
+      </p>
+      <div className="flex flex-col gap-3 p-5">
         <div className="flex flex-wrap items-start justify-between gap-2">
-          <div>
-            <h2 className="card-title text-xl">
-              <Link
-                href={`/projects/${project.id}`}
-                className="link link-hover inline-flex min-h-11 items-center after:absolute after:inset-0 after:content-['']"
-              >
-                {project.title}
-              </Link>
-            </h2>
-            <p className="text-sm text-base-content/70">
-              {project.market.name ?? 'Unknown market'} · {languageName(project.outputLanguage)}
-            </p>
-          </div>
+          <h2 className="text-2xl leading-tight font-medium">
+            <Link
+              href={`/projects/${project.id}`}
+              className="link link-hover inline-flex min-h-11 items-center after:absolute after:inset-0 after:content-['']"
+            >
+              {project.title}
+            </Link>
+          </h2>
           {latestRun === null ? (
             <span className="badge badge-outline">No run yet</span>
           ) : (
             <RunStatusBadge status={latestRun.status} />
           )}
         </div>
-        <ul className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+        <ul className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-base-content/20 pt-3 text-sm">
           <li>
             {project.photoCount} {project.photoCount === 1 ? 'photo' : 'photos'}
           </li>
@@ -58,8 +57,8 @@ function ProjectCard({ project }: { project: ProjectSummary }) {
 function EmptyProjects() {
   const image = LANDING_IMAGES.illustration;
   return (
-    <div className="card border border-base-300 bg-base-100">
-      <div className="card-body items-center gap-3 text-center">
+    <div className="bg-base-100 shadow-sheet">
+      <div className="flex flex-col items-center gap-3 p-8 text-center">
         {/* Decorative: the heading below says what the card is about. */}
         {/* eslint-disable-next-line @next/next/no-img-element -- prebuilt responsive variants */}
         <img
@@ -70,9 +69,9 @@ function EmptyProjects() {
           height={image.height}
           alt=""
           loading="lazy"
-          className="aspect-square w-40 rounded-box sm:w-52"
+          className="aspect-square w-40 -rotate-2 bg-base-100 p-1.5 shadow-lift sm:w-52"
         />
-        <h2 className="card-title text-2xl">No projects yet</h2>
+        <h2 className="text-3xl font-medium">No projects yet</h2>
         <p className="max-w-md text-base-content/70">
           A project holds one property: its photos, voice walkthrough, and listing pack. Start one
           when you are at the door.
@@ -96,12 +95,18 @@ const ProjectsPage: NextPageWithAuth = () => {
       <Head>
         <title>Your projects — Evidomo</title>
       </Head>
-      <main className="flex-1 bg-base-200 px-4 py-8">
-        <div className="mx-auto flex max-w-3xl flex-col gap-6">
+      <main className="flex-1 px-4 py-10 md:py-14">
+        <div className="mx-auto flex max-w-3xl flex-col gap-8">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Your projects</h1>
-              {user && <p className="text-base-content/70">Signed in as {user.email}</p>}
+              <h1 className="text-5xl leading-none font-medium tracking-tight md:text-6xl">
+                Your projects
+              </h1>
+              {user && (
+                <p className="mt-2 font-display text-lg text-base-content/70 italic">
+                  Signed in as {user.email}
+                </p>
+              )}
             </div>
             {projects.data !== undefined && projects.data.projects.length > 0 && (
               <Link href="/projects/new" className="btn btn-primary min-h-11">
@@ -123,7 +128,7 @@ const ProjectsPage: NextPageWithAuth = () => {
           {projects.isSuccess && projects.data.projects.length === 0 && <EmptyProjects />}
 
           {projects.isSuccess && projects.data.projects.length > 0 && (
-            <ul className="flex flex-col gap-4">
+            <ul className="flex flex-col gap-6">
               {projects.data.projects.map((project) => (
                 <ProjectCard key={project.id} project={project} />
               ))}

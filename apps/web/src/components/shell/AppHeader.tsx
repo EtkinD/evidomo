@@ -27,7 +27,7 @@ function NavLink({ item }: { item: NavItem }) {
       href={item.href}
       // "page" on the page itself, "true" on a page inside that section (a single project).
       aria-current={exact ? 'page' : inside ? 'true' : undefined}
-      className={`btn btn-ghost min-h-11 px-3 sm:px-4 ${exact || inside ? 'font-semibold underline' : ''}`}
+      className={`inline-flex min-h-11 items-center px-2 underline-offset-8 hover:underline hover:decoration-base-content/40 hover:decoration-1 sm:px-3 ${exact || inside ? 'font-semibold underline decoration-accent decoration-4' : ''}`}
     >
       {item.label}
     </Link>
@@ -58,7 +58,10 @@ function HeaderActions() {
       {PUBLIC_NAV.map((item) => (
         <NavLink key={item.href} item={item} />
       ))}
-      <Link href="/login" className="btn btn-ghost min-h-11 px-3 sm:px-4">
+      <Link
+        href="/login"
+        className="inline-flex min-h-11 items-center px-2 underline-offset-8 hover:underline hover:decoration-base-content/40 hover:decoration-1 sm:px-3"
+      >
         Log in
       </Link>
       <Link href="/register" className="btn btn-outline min-h-11 px-3 sm:px-4">
@@ -70,13 +73,18 @@ function HeaderActions() {
 
 export function AppHeader() {
   return (
-    <header className="border-b border-base-300 bg-base-100">
+    // A masthead: a double rule under the running head (.rule-double), on the paper-grain page
+    // colour. z-20 keeps the account menu above page content.
+    <header className="rule-double grain relative z-20 border-b border-base-content/25 bg-base-200">
       {/* flex-wrap is the safety net: whatever the controls add up to, the row wraps instead of
           overflowing the viewport. */}
       <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-x-2 gap-y-1 px-4 py-2">
         <Link href="/" className="inline-flex min-h-11 items-center">
           <Logo size="sm" />
         </Link>
+        <p aria-hidden className="hidden font-display text-lg text-base-content/70 italic lg:block">
+          Evidence for every home.
+        </p>
         <div className="flex items-center gap-1">
           <HeaderActions />
         </div>

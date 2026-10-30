@@ -20,8 +20,12 @@ const sourceSans = Source_Sans_3({
   display: 'swap',
   variable: '--font-source-sans',
 });
+// Italic is real (footnotes, captions, the masthead line), and the optical-size axis lets large
+// headings draw with finer strokes than text sizes.
 const newsreader = Newsreader({
   subsets: ['latin'],
+  style: ['normal', 'italic'],
+  axes: ['opsz'],
   display: 'swap',
   variable: '--font-newsreader',
 });
