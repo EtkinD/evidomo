@@ -175,7 +175,7 @@ The orchestrator (main session) delegates each task to its owner — see `.claud
 - [x] **P4-06 — Gate 1 UI**
   - Depends on: P2-10, P4-05
   - Done when: each conflict shows both values with their evidence (form value, transcript turn with audio playback, photo) and can be resolved in one action.
-- [ ] **P4-07 — Review workspace (Gate 2)**
+- [x] **P4-07 — Review workspace (Gate 2)**
   - Depends on: P3-08, P4-05
   - Done when: flagged claims can be approved/edited/removed; clicking any claim shows its evidence (form field, transcript turn, or photo with mask overlay); staged images are compared side by side with originals.
 - [x] **P4-08 — Pack viewer and export**

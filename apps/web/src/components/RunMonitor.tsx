@@ -1,6 +1,7 @@
 import type { RunSnapshot, RunStepSnapshot, RunStepViewStatus } from '@evidomo/shared';
 import Link from 'next/link';
 import { ApiRequestError } from '../lib/api';
+import { reviewPageHref } from '../lib/claim-audit';
 import { conflictsPageHref } from '../lib/fact-conflicts';
 import { withNext } from '../lib/next-path';
 import { costShare, formatDuration, formatUsd, gateLabel } from '../lib/run-monitor';
@@ -115,8 +116,9 @@ function GateNotice({ gate, runId }: { gate: NonNullable<RunSnapshot['gate']>; r
             Review conflicts
           </Link>
         ) : (
-          // The Gate 2 page arrives with P4-07; plain text avoids a dead link.
-          <span className="badge badge-outline">Review screen coming soon</span>
+          <Link href={reviewPageHref(runId)} className="btn btn-primary min-h-11">
+            Review the pack
+          </Link>
         )}
       </div>
       <p className="text-sm text-base-content/70">

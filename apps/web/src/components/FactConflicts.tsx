@@ -36,12 +36,12 @@ import { RunNotFound } from './RunMonitor';
 
 type Decide = ReturnType<typeof useDecideConflict>;
 
-interface Labels {
+export interface Labels {
   fact: (key: string) => string;
   value: (value: GateFact['value'], unit: string | null, basis: string | null) => string;
 }
 
-function labelsFor(market: MarketForm | undefined): Labels {
+export function labelsFor(market: MarketForm | undefined): Labels {
   return {
     fact: (key) => market?.facts.find((fact) => fact.key === key)?.label ?? keyLabel(key),
     value: (value, unit, basis) =>

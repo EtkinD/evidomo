@@ -246,6 +246,18 @@ describe('run monitor', () => {
     expect(screen.queryByRole('region', { name: 'Review needed' })).toBeNull();
   });
 
+  it('links the Gate 2 pause to the review page', async () => {
+    mockRun(snapshot({ status: 'awaiting_gate', gate: 'claim_audit', lastEventSeq: 3 }));
+    await renderMonitor();
+
+    const region = await screen.findByRole('region', { name: 'Review needed' });
+    expect(within(region).getByText('Gate 2: review the pack')).toBeDefined();
+    expect(within(region).getByRole('link', { name: 'Review the pack' }).getAttribute('href')).toBe(
+      `/runs/${RUN_ID}/review`,
+    );
+    expect(screen.queryByText('Review screen coming soon')).toBeNull();
+  });
+
   it('refetches the snapshot on resync', async () => {
     const calls = mockRun(snapshot(), () => snapshot({ lastEventSeq: 2, costUsd: '0.25' }));
     await renderMonitor();

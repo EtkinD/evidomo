@@ -2,6 +2,7 @@ import {
   apiErrorSchema,
   type ApiErrorCode,
   type ApiValidationIssue,
+  type ClaimFinding,
   type FactFormFieldProblem,
   type ReadinessItem,
   type UploadRejectionCode,
@@ -19,6 +20,8 @@ export class ApiRequestError extends Error {
   /** `null` when the body was not a recognised API error (e.g. a proxy's HTML error page). */
   readonly code: ApiErrorCode | null;
   readonly issues: readonly ApiValidationIssue[];
+  /** `claim_edit_rejected` only: the claim validator's findings on the edited text. */
+  readonly findings: readonly ClaimFinding[];
   /** Fact form `validation_failed` only: the problem per field key. */
   readonly fields: Readonly<Record<string, FactFormFieldProblem>>;
   /** `not_ready` only: what is still missing before a run can start. */
@@ -32,6 +35,7 @@ export class ApiRequestError extends Error {
     status: number;
     code: ApiErrorCode | null;
     issues?: readonly ApiValidationIssue[];
+    findings?: readonly ClaimFinding[];
     fields?: Readonly<Record<string, FactFormFieldProblem>>;
     missing?: readonly ReadinessItem[];
     retryAfterSeconds?: number | null;
@@ -41,6 +45,7 @@ export class ApiRequestError extends Error {
     this.status = init.status;
     this.code = init.code;
     this.issues = init.issues ?? [];
+    this.findings = init.findings ?? [];
     this.fields = init.fields ?? {};
     this.missing = init.missing ?? [];
     this.retryAfterSeconds = init.retryAfterSeconds ?? null;
@@ -82,6 +87,7 @@ export function apiRequestErrorFrom(
     status,
     code: parsed.success ? parsed.data.error : null,
     issues: parsed.success ? (parsed.data.issues ?? []) : [],
+    findings: parsed.success ? (parsed.data.findings ?? []) : [],
     fields: parsed.success ? (parsed.data.fields ?? {}) : {},
     missing: parsed.success ? (parsed.data.missing ?? []) : [],
     retryAfterSeconds: parseRetryAfter(retryAfter),
