@@ -93,7 +93,11 @@ These match the code as it is. Prefer them over new markup.
 </fieldset>
 ```
 
-The auth form (P4-01) predates this skill and uses `label` + `flex flex-col gap-1` instead of `fieldset`. Move it to the fieldset recipe the next time it changes.
+Shared building blocks (P4B-06), use them instead of re-creating the pattern:
+
+- **Page states:** `components/PageStates.tsx` (`LoadingBlock`, `LoadError`; a 401 links to log in with `next`) for project and capture screens; the run, gate, and pack screens use `LoadingState`, `SessionExpiredState`, `LoadErrorState`, and `RunNotFound` from `components/RunMonitor.tsx`.
+- **Run status:** `components/RunStatusBadge.tsx` (text plus icon, never colour alone); step names from `lib/step-labels.ts`.
+- **Whole-card link:** the card title is the link (`min-h-11`) with `after:absolute after:inset-0` on a `relative` card; any other action in the card gets `relative z-10`.
 
 ## 5. Helpers
 

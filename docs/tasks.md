@@ -209,7 +209,7 @@ Design decisions are made in a dev-only showcase, and only what the founder appr
 - [x] **P4B-05 — Landing page**
   - Depends on: P4B-03, P4B-04
   - Done when: the public home page explains the product (capture → verify → pack, evidence for every claim), shows approved imagery, and links to sign-up and to the public demo (P4-09).
-- [ ] **P4B-06 — App screen polish**
+- [x] **P4B-06 — App screen polish**
   - Depends on: P4B-02
   - Done when: projects, project, capture, run monitor (readable step names), gates, and pack screens follow the chosen language, with designed empty, loading, and error states.
 
