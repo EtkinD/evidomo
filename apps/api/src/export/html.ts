@@ -3,6 +3,7 @@ import {
   STAGED_IMAGE_LABEL,
   isOverridablePhrasingCategory,
   phrasingCategorySchema,
+  withDisplayUnit,
   type ClaimAuditCategory,
   type ClaimAuditWarning,
   type MarketProfile,
@@ -89,18 +90,8 @@ function formatNumber(value: number, language: string): string {
   return language === 'nl' ? text.replace('.', ',') : text;
 }
 
-const UNIT_DISPLAY: Readonly<Record<string, string>> = {
-  m2: 'm²',
-  sq_ft: 'sq ft',
-  m3: 'm³',
-  cu_ft: 'cu ft',
-};
-
 function withUnit(value: number, unit: string | null, language: string): string {
-  const number = formatNumber(value, language);
-  if (unit === null) return number;
-  if (unit === 'EUR') return `€ ${number}`;
-  return `${number} ${UNIT_DISPLAY[unit] ?? unit}`;
+  return withDisplayUnit(formatNumber(value, language), unit);
 }
 
 function scalarText(value: string | number | boolean, language: string, t: PackStrings): string {

@@ -1,9 +1,10 @@
-import type {
-  FactConflictDecision,
-  GateConflict,
-  GateConflictSide,
-  GateFact,
-  MarketForm,
+import {
+  displayUnit,
+  type FactConflictDecision,
+  type GateConflict,
+  type GateConflictSide,
+  type GateFact,
+  type MarketForm,
 } from '@evidomo/shared';
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
@@ -17,7 +18,7 @@ import {
   type EditControl,
   type EditResult,
 } from '../lib/conflict-edit';
-import { displayUnit, formatFactValue, keyLabel } from '../lib/evidence';
+import { formatFactValue, keyLabel } from '../lib/evidence';
 import { runEvidenceUrls } from '../lib/evidence-urls';
 import {
   decisionSummary,

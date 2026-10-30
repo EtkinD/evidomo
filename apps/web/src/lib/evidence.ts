@@ -1,4 +1,4 @@
-import type { ImageRegion, JsonValue } from '@evidomo/shared';
+import { withDisplayUnit, type ImageRegion, type JsonValue } from '@evidomo/shared';
 import { humanize } from './project-view';
 
 /** `mm:ss` of a position in the recording; minutes keep counting past 59. */
@@ -14,20 +14,6 @@ export function keyLabel(key: string): string {
   return humanize(key.startsWith('other:') ? key.slice('other:'.length) : key);
 }
 
-// The same mapping as the pack's HTML export (apps/api/src/export/html.ts `UNIT_DISPLAY`); the
-// API owns that copy, so a shared home for both is a follow-up for the backend.
-const UNIT_DISPLAY: Readonly<Record<string, string>> = {
-  m2: 'm²',
-  sq_ft: 'sq ft',
-  m3: 'm³',
-  cu_ft: 'cu ft',
-};
-
-/** A stored unit as a person reads it: `m2` is `m²`. */
-export function displayUnit(unit: string): string {
-  return UNIT_DISPLAY[unit] ?? unit;
-}
-
 /** A stored fact value as a person reads it: units and basis follow the number. */
 export function formatFactValue(
   value: JsonValue,
@@ -37,8 +23,8 @@ export function formatFactValue(
 ): string {
   if (typeof value === 'boolean') return value ? 'Yes' : 'No';
   const text = typeof value === 'string' ? value : JSON.stringify(value);
-  const withUnit =
-    unit === null ? text : unit === 'EUR' ? `€ ${text}` : `${text} ${displayUnit(unit)}`;
+  // The same unit display as the exported pack (`withDisplayUnit` in @evidomo/shared).
+  const withUnit = withDisplayUnit(text, unit);
   if (basis === null) return withUnit;
   return `${withUnit} (${basisLabel?.(basis) ?? basis})`;
 }
