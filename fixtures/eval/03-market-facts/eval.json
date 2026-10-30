@@ -1,0 +1,110 @@
+{
+  "formatVersion": 1,
+  "id": "03-market-facts",
+  "title": "Market facts contradicted by the form",
+  "description": "Four typed market facts on the form contradict the walkthrough: living area 98 vs 92 m² (NEN 2580), energy label C vs B, build year 1986 vs 1987, VvE 175 vs 165 EUR. Code decides these conflicts once extraction read the spoken values.",
+  "cassette": "p5-01/03-market-facts",
+  "include": ["p3-10/synthetic-walkthrough"],
+  "conflicts": [
+    {
+      "id": "living-area",
+      "origin": "planted",
+      "description": "Form 98 m² vs spoken 92 m² NEN 2580.",
+      "planted": {
+        "formField": "living_area"
+      },
+      "against": ["transcript_turn"],
+      "decidedBy": "code"
+    },
+    {
+      "id": "energy-label",
+      "origin": "planted",
+      "description": "Form C vs spoken B (said twice).",
+      "planted": {
+        "formField": "energy_label"
+      },
+      "against": ["transcript_turn"],
+      "decidedBy": "code"
+    },
+    {
+      "id": "build-year",
+      "origin": "planted",
+      "description": "Form 1986 vs spoken 1987.",
+      "planted": {
+        "formField": "build_year"
+      },
+      "against": ["transcript_turn"],
+      "decidedBy": "code"
+    },
+    {
+      "id": "vve-contribution",
+      "origin": "planted",
+      "description": "Form 175 vs spoken 165 EUR per month.",
+      "planted": {
+        "formField": "vve_monthly_contribution"
+      },
+      "against": ["transcript_turn"],
+      "decidedBy": "code"
+    },
+    {
+      "id": "bedroom-floor",
+      "origin": "incidental",
+      "description": "Walkthrough: laminate in both bedrooms; a bedroom photo shows carpet (the synthetic interiors were generated independently of the script, docs/model-notes.md P2-09).",
+      "planted": {
+        "source": "transcript_turn",
+        "key": "bedroom.*floor|floor.*bedroom"
+      },
+      "against": ["photo_region"],
+      "decidedBy": "model"
+    }
+  ],
+  "basisNotes": [
+    {
+      "id": "living-area-95",
+      "description": "Closing turn: \"zo'n 95 vierkante meter woonoppervlak\" without a basis: a basis note next to the verified NEN 2580 value, not a conflict.",
+      "key": "living_area",
+      "value": 95
+    }
+  ],
+  "injections": [
+    {
+      "id": "sought-after",
+      "description": "An unverifiable superlative.",
+      "variant": "portal",
+      "op": "append",
+      "target": "^build_year$",
+      "text": ", making it one of the most sought-after homes in Zandmeer",
+      "marker": "sought[- ]after",
+      "expect": {
+        "category": "unverifiable_superlative",
+        "detector": "verifier"
+      }
+    },
+    {
+      "id": "about-balcony",
+      "description": "An exact fact softened to an approximation.",
+      "variant": "portal",
+      "op": "approximate",
+      "target": "^other:balcony_area$",
+      "prefix": "about",
+      "expect": {
+        "category": "claim_support",
+        "detector": "validator"
+      }
+    },
+    {
+      "id": "utilities-included",
+      "description": "A commercial status no fact states: utilities in the service costs.",
+      "variant": "portal",
+      "op": "insert",
+      "target": "^vve_monthly_contribution$",
+      "cite": "^other:service_costs_include",
+      "text": "The service costs also cover gas, water and electricity.",
+      "marker": "gas, water",
+      "expect": {
+        "category": "claim_support",
+        "detector": "verifier"
+      }
+    }
+  ]
+}

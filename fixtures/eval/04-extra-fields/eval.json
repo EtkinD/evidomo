@@ -1,0 +1,122 @@
+{
+  "formatVersion": 1,
+  "id": "04-extra-fields",
+  "title": "Extra form fields contradicted by the walkthrough",
+  "description": "Typed facts agree; five extra form fields contradict the walkthrough under other key names than extraction chose: rooms 4 vs 3, floor level 3 vs 2, boiler year 2015 vs 2019, roof renewal 2012 vs 2020, paid parking yes vs no. Only the reconciliation model can pair them.",
+  "cassette": "p5-01/04-extra-fields",
+  "include": ["p3-10/synthetic-walkthrough"],
+  "conflicts": [
+    {
+      "id": "rooms",
+      "origin": "planted",
+      "description": "Form 4 rooms vs \"driekamerappartement\".",
+      "planted": {
+        "formField": "rooms"
+      },
+      "against": ["transcript_turn"],
+      "decidedBy": "model"
+    },
+    {
+      "id": "floor-level",
+      "origin": "planted",
+      "description": "Form floor 3 vs \"op de tweede verdieping\".",
+      "planted": {
+        "formField": "floor_level"
+      },
+      "against": ["transcript_turn"],
+      "decidedBy": "model"
+    },
+    {
+      "id": "boiler-year",
+      "origin": "planted",
+      "description": "Form 2015 vs \"HR-ketel uit 2019\".",
+      "planted": {
+        "formField": "heating_boiler_year"
+      },
+      "against": ["transcript_turn"],
+      "decidedBy": "model"
+    },
+    {
+      "id": "roof-year",
+      "origin": "planted",
+      "description": "Form 2012 vs \"het dak ... in 2020 vernieuwd\".",
+      "planted": {
+        "formField": "roof_renewal_year"
+      },
+      "against": ["transcript_turn"],
+      "decidedBy": "model"
+    },
+    {
+      "id": "paid-parking",
+      "origin": "planted",
+      "description": "Form paid parking vs \"geen betaald parkeren\".",
+      "planted": {
+        "formField": "paid_parking"
+      },
+      "against": ["transcript_turn"],
+      "decidedBy": "model"
+    },
+    {
+      "id": "bedroom-floor",
+      "origin": "incidental",
+      "description": "Walkthrough: laminate in both bedrooms; a bedroom photo shows carpet (the synthetic interiors were generated independently of the script, docs/model-notes.md P2-09).",
+      "planted": {
+        "source": "transcript_turn",
+        "key": "bedroom.*floor|floor.*bedroom"
+      },
+      "against": ["photo_region"],
+      "decidedBy": "model"
+    }
+  ],
+  "basisNotes": [
+    {
+      "id": "living-area-95",
+      "description": "Closing turn: \"zo'n 95 vierkante meter woonoppervlak\" without a basis: a basis note next to the verified NEN 2580 value, not a conflict.",
+      "key": "living_area",
+      "value": 95
+    }
+  ],
+  "injections": [
+    {
+      "id": "rise-in-value",
+      "description": "An investment promise.",
+      "variant": "portal",
+      "op": "append",
+      "target": "^build_year$",
+      "text": ", so the home is sure to rise in value",
+      "marker": "rise in value",
+      "expect": {
+        "category": "investment_promise",
+        "detector": "verifier"
+      }
+    },
+    {
+      "id": "wardrobes-everywhere",
+      "description": "A quantity read into a photo presence: wardrobes in every room.",
+      "variant": "portal",
+      "op": "insert",
+      "target": "wardrobe",
+      "cite": "^other:built_in_wardrobe$",
+      "text": "Every room has built-in wardrobes.",
+      "marker": "every room has built-in wardrobes",
+      "expect": {
+        "category": "claim_support",
+        "detector": "verifier"
+      }
+    },
+    {
+      "id": "completely-renovated",
+      "description": "A strengthened fact: \"grotendeels gerenoveerd\" (largely) written as completely.",
+      "variant": "portal",
+      "op": "insert",
+      "target": "^other:kitchen_year$",
+      "cite": "^other:renovation_year$",
+      "text": "The whole apartment was completely renovated in 2021 and needs no further work.",
+      "marker": "completely renovated",
+      "expect": {
+        "category": "claim_support",
+        "detector": "verifier"
+      }
+    }
+  ]
+}

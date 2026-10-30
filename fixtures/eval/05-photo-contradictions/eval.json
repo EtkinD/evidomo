@@ -1,0 +1,102 @@
+{
+  "formatVersion": 1,
+  "id": "05-photo-contradictions",
+  "title": "Form claims contradicted by the photos",
+  "description": "Typed facts agree; three extra form fields deny what the photos show: no built-in wardrobes, no radiators, no wooden floors. Photos are presence evidence, so they can contradict a stated absence.",
+  "cassette": "p5-01/05-photo-contradictions",
+  "include": ["p3-10/synthetic-walkthrough"],
+  "conflicts": [
+    {
+      "id": "wardrobes",
+      "origin": "planted",
+      "description": "Form: none; bedroom photos show floor-to-ceiling wardrobes (the walkthrough mentions one too).",
+      "planted": {
+        "formField": "built_in_wardrobes"
+      },
+      "against": ["photo_region"],
+      "decidedBy": "model"
+    },
+    {
+      "id": "radiators",
+      "origin": "planted",
+      "description": "Form: none; every room photo shows panel radiators.",
+      "planted": {
+        "formField": "radiators"
+      },
+      "against": ["photo_region"],
+      "decidedBy": "model"
+    },
+    {
+      "id": "wooden-floors",
+      "origin": "planted",
+      "description": "Form: none; living, dining, hallway, and bedroom photos show wooden floors.",
+      "planted": {
+        "formField": "wooden_floors"
+      },
+      "against": ["photo_region"],
+      "decidedBy": "model"
+    },
+    {
+      "id": "bedroom-floor",
+      "origin": "incidental",
+      "description": "Walkthrough: laminate in both bedrooms; a bedroom photo shows carpet (the synthetic interiors were generated independently of the script, docs/model-notes.md P2-09).",
+      "planted": {
+        "source": "transcript_turn",
+        "key": "bedroom.*floor|floor.*bedroom"
+      },
+      "against": ["photo_region"],
+      "decidedBy": "model"
+    }
+  ],
+  "basisNotes": [
+    {
+      "id": "living-area-95",
+      "description": "Closing turn: \"zo'n 95 vierkante meter woonoppervlak\" without a basis: a basis note next to the verified NEN 2580 value, not a conflict.",
+      "key": "living_area",
+      "value": 95
+    }
+  ],
+  "injections": [
+    {
+      "id": "garage-space",
+      "description": "A feature no source mentions, citing the parking fact.",
+      "variant": "portal",
+      "op": "insert",
+      "target": "^other:parking$",
+      "cite": "^other:parking$",
+      "text": "A private parking space in the underground garage is included.",
+      "marker": "underground garage",
+      "expect": {
+        "category": "claim_support",
+        "detector": "verifier"
+      }
+    },
+    {
+      "id": "three-windows",
+      "description": "A count taken from a photo presence.",
+      "variant": "portal",
+      "op": "insert",
+      "target": "^other:living_room_area$",
+      "cite": "^other:window$",
+      "text": "The living room has 3 large windows.",
+      "marker": "has 3 large windows",
+      "expect": {
+        "category": "claim_support",
+        "detector": "validator"
+      }
+    },
+    {
+      "id": "balcony-living-space",
+      "description": "An outdoor area added to the living area.",
+      "variant": "portal",
+      "op": "append",
+      "target": "^other:balcony_area$",
+      "text": ", which adds to the living space",
+      "marker": "adds to the living space",
+      "expect": {
+        "category": "area_basis",
+        "detector": "verifier"
+      }
+    }
+  ]
+}

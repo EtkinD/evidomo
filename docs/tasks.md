@@ -236,7 +236,7 @@ Design decisions are made in a dev-only showcase, and only what the founder appr
 
 ## Phase 5 — Hardening and evaluation
 
-- [ ] **P5-01 — Seeded-defect eval**
+- [x] **P5-01 — Seeded-defect eval**
   - Depends on: P3-10
   - Done when: `npm run eval` runs seeded property sets (planted conflicts and unsupported claims) and reports catch rate, in fixture mode by default and live mode on demand.
 - [ ] **P5-02 — Second property**

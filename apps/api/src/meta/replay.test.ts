@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { generateText } from 'ai';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { z } from 'zod';
 import { createMetaClients } from './clients.ts';
 import { readCassette } from './fixtures.ts';
 import { createMetaReplay, REPLAY_PLACEHOLDER_API_KEY, replayModeFromEnv } from './replay.ts';
@@ -419,6 +420,56 @@ describe('Meta record/replay', () => {
     } finally {
       await player.stop();
     }
+  });
+
+  it('rewrites what the SDK receives but records the original, and tells live from served', async () => {
+    const contexts: boolean[] = [];
+    const rewritten = (prompt: string) =>
+      createMetaReplay({
+        cassette: 'rewrite',
+        mode: prompt === 'record' ? 'record' : 'replay',
+        baseURL,
+        fixturesDir,
+        env: { MODEL_API_KEY: SECRET },
+        onInteraction: (_interaction, { fromCassette }) => {
+          contexts.push(fromCassette);
+        },
+        rewriteResponse: (request, interaction) => {
+          expect(request).toMatchObject({ method: 'POST', path: '/v1/responses' });
+          expect(request.body).toContain('"input"');
+          const body = interaction.response.body;
+          if (body.type !== 'json') throw new Error('expected JSON');
+          return {
+            ...interaction,
+            response: {
+              ...interaction.response,
+              body: {
+                type: 'json',
+                value: z
+                  .json()
+                  .parse(JSON.parse(JSON.stringify(body.value).replace('echo', 'REWRITTEN'))),
+              },
+            },
+          };
+        },
+      });
+    const recorder = rewritten('record');
+    await recorder.start();
+    const live = await callBothSdks(recorder.apiKey, 'rewrite me');
+    await recorder.stop();
+    expect(live.every((text) => text.startsWith('REWRITTEN'))).toBe(true);
+    const stored = await readFile(path.join(fixturesDir, 'rewrite.json'), 'utf8');
+    expect(stored).toContain('echo: ok');
+    expect(stored).not.toContain('REWRITTEN');
+
+    const player = rewritten('replay');
+    await player.start();
+    try {
+      expect(await callBothSdks(player.apiKey, 'rewrite me')).toEqual(live);
+    } finally {
+      await player.stop();
+    }
+    expect(contexts).toEqual([false, false, true, true]);
   });
 
   it('counts no live requests in replay mode', async () => {

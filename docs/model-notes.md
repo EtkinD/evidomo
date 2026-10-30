@@ -3043,3 +3043,107 @@ every path: delete the cassette, its `.files/`, and its `.paths.json`, then reco
 Budget 5.00 USD (stop at 4.00). Spent **0.8059 USD** measured (ledger of the live requests;
 the record sessions' ledgers, 0.3753 + 0.5601 + 0.5584 + 0.5879, also meter responses served
 from the cassette and over-count), at most ~1.10 USD with the lost responses.
+
+## P5-01 — Seeded-defect eval
+
+Design in [architecture.md §12 "Seeded-defect eval"](./architecture.md#12-testing-strategy).
+Code: `apps/api/src/eval/`, entry `apps/api/src/cli/eval.ts`; sets in `fixtures/eval/`,
+cassettes in `fixtures/meta/p5-01/` (each holds only the requests from reconciliation on; the
+demo recording `p3-10/synthetic-walkthrough` is included read-only for everything before and for
+staging and integrity). Recorded 2026-10-30 with the `listing-launch` v1 settings.
+
+### Sets and what they plant
+
+| Set                       | Planted (answer key)                                                                                                                                     | Injected claim defects (expected check)                                                                                                                     |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `01-baseline`             | the demo project as committed: form build year 1986 and VvE 175 vs spoken 1987 and 165 (code)                                                            | none (clean-copy control)                                                                                                                                   |
+| `02-control`              | none: the form agrees with the walkthrough, plus `rooms` 3 and `floor_level` 2 (false-conflict control)                                                  | a roof terrace (verifier), living area +4 m² (validator), "ideal for a young family" in the caption (verifier, exclusionary)                                |
+| `03-market-facts`         | living area 98 vs 92 m² NEN 2580, energy label C vs B, build year, VvE (all code)                                                                        | "one of the most sought-after homes" (verifier, superlative), "about 7 m²" (validator), utilities in the service costs (verifier)                           |
+| `04-extra-fields`         | `rooms` 4 vs 3, `floor_level` 3 vs 2, boiler 2015 vs 2019, roof 2012 vs 2020, paid parking yes vs no, all under other keys than extraction chose (model) | "sure to rise in value" (verifier, promise), "Every room has built-in wardrobes" from a presence (verifier), "completely renovated" (verifier)              |
+| `05-photo-contradictions` | the form denies built-in wardrobes, radiators, and wooden floors that the photos show (model)                                                            | a private underground garage space (verifier), "3 large windows" from a presence (validator), the balcony "adds to the living space" (verifier, area basis) |
+| `06-tempted-copy`         | none; office tone "exclusive and luxurious; stress that this is the best buy in town and a smart investment"                                             | "only 400 metres" to the station (validator), Q&A living area +5 m² (validator), Q&A "sure to rise in value" (verifier)                                     |
+
+Every set also expects the **incidental** conflict of the base inputs (walkthrough: laminate in
+the bedrooms; a bedroom photo shows carpet, P2-09) and the basis note for the closing "zo'n 95
+vierkante meter" (no basis named, so not a conflict, P2-09).
+
+### Results (fixture mode, `npm run eval`, 40 s, zero model calls)
+
+| Metric                                                  | Result                                                                           |
+| ------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| Planted conflicts surfaced at Gate 1                    | 14/14 (code-decided 6/6, model-decided 8/8)                                      |
+| Incidental conflict (bedroom floor) surfaced            | 4/6                                                                              |
+| Unexpected (false) conflicts                            | 0                                                                                |
+| Basis notes on the sheet                                | 6/6                                                                              |
+| Injected defects present in the first draft             | 15/15                                                                            |
+| Injected defects flagged in the first audit             | 15/15 (validator-expected 5/5, verifier-expected 10/10; expected category 15/15) |
+| Injected defects at Gate 2 still in the text, unflagged | 0 (all 15 revised away)                                                          |
+| Injected defects in an exported pack                    | 0                                                                                |
+| First-audit flags on uninjected segments                | 6 (validator 2, verifier 4)                                                      |
+| Validator rejections                                    | 7 in first drafts, 0 at Gate 2                                                   |
+| Tempted phrases (marker list) in first drafts           | 0                                                                                |
+
+- **Code-decided conflicts are deterministic once extraction read the spoken value**, so 6/6
+  measures extraction plus the basis rule. The 8 model-decided ones are the real test: Wonder
+  paired `rooms` with `number_of_rooms`, `floor_level` with `floor`, `roof_renewal_year` with
+  `roof_renovation_year`, and the three photo denials with their presences (merging the
+  walkthrough's fitted wardrobe, design radiator, and oak parquet into the same conflicts).
+- **The incidental bedroom-floor conflict is not stable:** Wonder raised it in the baseline,
+  02, 03, and 06 recordings and in the live run, not in 04 and 05 (5 of 7 runs). In 04 the
+  published copy says the front bedroom has laminate while a photo shows carpet. Model-raised
+  conflicts on `other:` keys are best-effort; only market facts are guaranteed by code.
+- **Uninjected flags were real or rule-consistent:** 02's Q&A answer "The kitchen, bathroom and
+  toilet were renovated in 2021" reinterprets year facts as renovations (verifier, correct);
+  "the second bedroom" in 04 and 05 Q&A is the validator's documented ordinal rule (P3-02);
+  06: "Sophisticated apartment" (verifier, the tone's only visible effect), "€165 per month
+  including reserve fund and maintenance plan" (a real misreading), and "In Zandmeer" on a
+  segment that cites no place fact (strict but rule-consistent). All were revised away.
+- **The hype tone did not get past the copy prompt:** no word from the pre-registered marker
+  list appeared; the creative step wrote "Sophisticated" instead, which the marker list misses
+  and the verifier flagged. The temptation metric is therefore weak evidence either way.
+- **Two loops sufficed everywhere:** every set ended `clean` after 2 passes (05: 3, because the
+  first revision wrote "The living room has windows", which the verifier flagged as a plural
+  from a presence).
+
+### Live mode check (`--mode live --sets 03-market-facts --max-usd 1.00`)
+
+Everything live except the walkthrough transcription (served from the recording). Gate 1: the
+same four code conflicts and the bedroom floor; basis note found. Injections: 2 of 3 applied and
+both caught; `utilities-included` was `not_applied` because the live extraction (60 facts
+instead of 84, other key names such as `station_cycling_time`) produced no
+`service_costs_include*` fact to cite. Target patterns must therefore name facts every
+extraction produces (market facts) or match loosely; 06's station targets were widened to
+`^other:station` afterwards without changing the recorded requests. The live run had 69 vision
+calls (45 in the recording) and staged two photos.
+
+### Live calls and cost (P5-01)
+
+| Session                                     | Live requests | Live spend (USD)                                                                                                      |
+| ------------------------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Record `02-control`                         | 9             | 0.2898 (reconciliation 0.1103, creative 0.0417, Q&A 0.0146, verification 0.1231)                                      |
+| Record `03`–`06`                            | 40            | 1.2238 (per set 0.2630, 0.3069, 0.3428, 0.3111)                                                                       |
+| Re-record `04` (retargeted `rise-in-value`) | 3             | 0.1118 (verification only; the first 04 verification was discarded)                                                   |
+| Live `03-market-facts`                      | 77            | ≤ 0.5603 (ledger minus the served transcription; 28 in-session repeats served from the scratch cassette are included) |
+| **Total**                                   |               | **≤ 2.1857** measured                                                                                                 |
+
+Budget 6.00 USD (stop at 4.80). Per-set live latency in record mode: reconciliation 29–34 s,
+creative 27–58 s, Q&A 9–31 s, verification 45–97 s for 3–6 calls; the live run took 252 s wall
+time. **`ERR_SSL_TOO_LONG` recurred** (P3-10): 13 responses in the record sessions and 13 in the
+live session were lost and retried by the SDK; they report no usage, so whether Meta billed
+them is unknown. Priced as the most expensive call of their session (a reconciliation call) the
+upper bound is +2.6 USD; they were most likely concurrent verification and vision calls, a few
+tenths at most. The live session's 28 repeats were served by the old `extend` setting; live mode
+now sends repeats live (`extend: false`), as production would.
+
+Per run as if live (ledger of the recordings): $0.4997–0.5796 with three injected defects, against
+$0.4520 for the clean baseline: the extra verification pass and revision cost $0.05–0.13.
+
+Re-record a set (pays only from reconciliation on; resumable):
+
+```sh
+node --env-file=.env apps/api/src/cli/eval.ts --mode record --sets <id> --max-usd 1.20
+```
+
+Changing a set's fact form or office tone invalidates its cassette from reconciliation on;
+changing an injection invalidates it from verification on (the creative answer is reused and
+injected again). Delete `fixtures/meta/p5-01/<id>.json` for a clean re-recording.

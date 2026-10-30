@@ -10,7 +10,8 @@ import { createFactConflictsGate, FactConflictsGateError } from '../gates/fact-c
 import type { Logger } from '../logger.ts';
 import { createMetaClients } from '../meta/clients.ts';
 import type { MatchOptions } from '../meta/fixtures.ts';
-import { createMetaReplay, type MetaReplay } from '../meta/replay.ts';
+import { createMetaReplay, type MetaReplay, type MetaReplayOptions } from '../meta/replay.ts';
+import type { UsageEntry, UsageRecorder } from '../meta/usage.ts';
 import { createStepHandlers } from '../pipeline/handlers.ts';
 import { createRunEngine } from '../runs/engine.ts';
 import type { Storage } from '../storage/storage.ts';
@@ -77,6 +78,19 @@ export interface ExecutePipelineOptions {
    * (the development seed). The run stays resumable by the normal gate services.
    */
   readonly stopAtGate?: Gate;
+  /**
+   * Record mode: serve requests the cassette already answers (default true). False sends every
+   * request live, repeats included (the eval's live mode).
+   */
+  readonly extend?: boolean;
+  /** Further cassettes under `fixturesDir` served read-only (`MetaReplayOptions.include`). */
+  readonly include?: readonly string[];
+  /** Evaluation only (`npm run eval`): `MetaReplayOptions.rewriteResponse`; not in live mode. */
+  readonly rewriteResponse?: MetaReplayOptions['rewriteResponse'];
+  /** Sees every interaction after the image aliases did (`MetaReplayOptions.onInteraction`). */
+  readonly onInteraction?: MetaReplayOptions['onInteraction'];
+  /** Sees every metered model call, after the run's usage ledger recorded it. */
+  readonly onUsage?: (entry: UsageEntry) => void;
 }
 
 /** What waits at the gate a run was left at (`stopAtGate`). */
@@ -127,6 +141,16 @@ export interface PipelineExecution {
  */
 export function fixtureMatchOptions(aliases: FixtureImageAliases): MatchOptions {
   return { ignoreFileContentFields: ['audio'], imageAlias: aliases.alias };
+}
+
+function tapUsage(usage: UsageRecorder, onUsage: ((entry: UsageEntry) => void) | undefined) {
+  if (onUsage === undefined) return usage;
+  return {
+    record(entry: UsageEntry) {
+      usage.record(entry);
+      onUsage(entry);
+    },
+  } satisfies UsageRecorder;
 }
 
 function describeGateError(error: unknown): unknown {
@@ -184,6 +208,10 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
     // Without a cassette nothing would intercept the requests: never run "fixtures" live.
     throw new Error(`${mode} mode needs a cassette`);
   }
+  if (mode === 'live' && (options.rewriteResponse !== undefined || options.include !== undefined)) {
+    // Both work through the replay, which live mode does not start.
+    throw new Error('rewriteResponse and include need fixtures or record mode');
+  }
   const apiKey = options.apiKey;
   const aliases = createFixtureImageAliases();
   let replay: MetaReplay | undefined;
@@ -195,10 +223,17 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
         ...(options.fixturesDir === undefined ? {} : { fixturesDir: options.fixturesDir }),
         mode: mode === 'record' ? 'record' : 'replay',
         env,
-        extend: mode === 'record',
+        extend: mode === 'record' && options.extend !== false,
         retainUnused: options.retainUnused === true,
         match: fixtureMatchOptions(aliases),
-        onInteraction: aliases.onInteraction,
+        ...(options.include === undefined ? {} : { include: options.include }),
+        ...(options.rewriteResponse === undefined
+          ? {}
+          : { rewriteResponse: options.rewriteResponse }),
+        onInteraction: async (interaction, context) => {
+          await aliases.onInteraction(interaction);
+          await options.onInteraction?.(interaction, context);
+        },
       });
       await replay.start();
     }
@@ -221,7 +256,12 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
       dailyCapUsd: options.dailyCapUsd,
       handlers: createStepHandlers({ storage, markets: definitions }),
       createMetaClients: (usage) =>
-        createMetaClients({ apiKey: clientKey, usage, estimateCost, logger }),
+        createMetaClients({
+          apiKey: clientKey,
+          usage: tapUsage(usage, options.onUsage),
+          estimateCost,
+          logger,
+        }),
     });
     await engine.startWorkers({ pollingIntervalSeconds: 0.5 });
     const factGate = createFactConflictsGate({ db, engine, markets: definitions });

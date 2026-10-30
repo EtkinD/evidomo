@@ -68,8 +68,29 @@ export interface MetaReplayOptions {
    * Called with every interaction before its response is returned to the SDK (replayed,
    * included, or freshly recorded), so a caller can derive state from a response before the code
    * under test sees it (e.g. register an image alias for what the code will send next).
+   * `fromCassette` is false for a response that just came from the live API.
    */
-  readonly onInteraction?: (interaction: Interaction) => void | Promise<void>;
+  readonly onInteraction?: (
+    interaction: Interaction,
+    context: { readonly fromCassette: boolean },
+  ) => void | Promise<void>;
+  /**
+   * Evaluation only (`npm run eval`): replaces the response the SDK receives, after
+   * `onInteraction` saw the original. What is recorded is always the original response, so a
+   * cassette never holds a rewritten answer; the rewrite must be deterministic for replay to
+   * reproduce the requests that follow it.
+   */
+  readonly rewriteResponse?: (
+    request: RewriteRequest,
+    interaction: Interaction,
+  ) => Interaction | Promise<Interaction>;
+}
+
+/** The request a response rewrite sees: its path and body text. */
+export interface RewriteRequest {
+  readonly method: string;
+  readonly path: string;
+  readonly body: string;
 }
 
 export interface MetaReplay {
@@ -137,26 +158,38 @@ export function createMetaReplay(options: MetaReplayOptions): MetaReplay {
   let liveRequestCount = 0;
   let servedFromCassetteCount = 0;
 
-  async function serve(interaction: Interaction, fromCassette: boolean): Promise<Response> {
+  async function serve(
+    interaction: Interaction,
+    fromCassette: boolean,
+    rewriteRequest: RewriteRequest | undefined,
+  ): Promise<Response> {
     if (fromCassette) servedFromCassetteCount += 1;
-    await options.onInteraction?.(interaction);
-    return responseFromInteraction(interaction);
+    await options.onInteraction?.(interaction, { fromCassette });
+    const served =
+      options.rewriteResponse === undefined || rewriteRequest === undefined
+        ? interaction
+        : await options.rewriteResponse(rewriteRequest, interaction);
+    return responseFromInteraction(served);
   }
 
   const metaHandler = http.all(`${origin}/*`, async ({ request }) => {
     const descriptor = await describeRequest(request.clone(), options.match);
     const key = matchKey(descriptor);
+    const rewriteRequest =
+      options.rewriteResponse === undefined
+        ? undefined
+        : { method: request.method, path: descriptor.path, body: await request.clone().text() };
 
     const fixed = included.get(key);
     if (fixed !== undefined) {
-      return serve(fixed, true);
+      return serve(fixed, true, rewriteRequest);
     }
 
     if (mode === 'record') {
       const known = options.extend === true ? interactions.get(key) : undefined;
       if (known !== undefined) {
         used.add(key);
-        return serve(known, true);
+        return serve(known, true, rewriteRequest);
       }
       liveRequestCount += 1;
       const live = await fetch(bypass(request));
@@ -167,12 +200,12 @@ export function createMetaReplay(options: MetaReplayOptions): MetaReplay {
       // Identical requests replay the same response; the latest recording wins.
       interactions.set(key, interaction);
       used.add(key);
-      return serve(interaction, false);
+      return serve(interaction, false, rewriteRequest);
     }
 
     const interaction = interactions.get(key);
     if (interaction !== undefined) {
-      return serve(interaction, true);
+      return serve(interaction, true, rewriteRequest);
     }
     const message =
       `No recorded Meta API fixture for ${key} in ${file}. ` +

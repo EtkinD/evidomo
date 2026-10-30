@@ -1,0 +1,17 @@
+{
+  "formatVersion": 1,
+  "factConflicts": {
+    "default": "accept_form_else_reject",
+    "decisions": []
+  },
+  "claimAudit": {
+    "claims": {
+      "default": "remove",
+      "decisions": []
+    },
+    "images": {
+      "default": "accept",
+      "decisions": []
+    }
+  }
+}

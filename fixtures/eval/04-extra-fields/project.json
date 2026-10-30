@@ -1,0 +1,47 @@
+{
+  "formatVersion": 1,
+  "title": "Eval: Extra form fields contradicted by the walkthrough (synthetic)",
+  "service": {
+    "id": "listing-launch",
+    "version": 1
+  },
+  "market": {
+    "id": "nl",
+    "version": 1
+  },
+  "outputLanguage": "en",
+  "officeProfile": {
+    "agencyName": "Example Makelaardij (demo)",
+    "contactBlock": "Demo office, not a real agency. info@example.invalid",
+    "tone": "warm, clear, and factual"
+  },
+  "factForm": {
+    "street_name": "Kwartelhoflaan",
+    "place_name": "Zandmeer",
+    "energy_label": "B",
+    "living_area": 92,
+    "build_year": 1987,
+    "vve_monthly_contribution": 165,
+    "ground_lease": false,
+    "rooms": 4,
+    "floor_level": 3,
+    "heating_boiler_year": 2015,
+    "roof_renewal_year": 2012,
+    "paid_parking": true
+  },
+  "photos": [
+    "../../samples/synthetic-interiors/living-empty.jpg",
+    "../../samples/synthetic-interiors/living-dining-cluttered.jpg",
+    "../../samples/synthetic-interiors/kitchen-cluttered.jpg",
+    "../../samples/synthetic-interiors/bedroom-empty.jpg",
+    "../../samples/synthetic-interiors/hallway.jpg",
+    "../../samples/synthetic-interiors/dining-chairs.jpg",
+    "../../samples/synthetic-interiors/living-empty.edit-add-sofa.jpg",
+    "../../samples/synthetic-interiors/living-dining-cluttered.edit-declutter-table.jpg",
+    "../../samples/synthetic-interiors/bedroom-empty.edit-add-bed.jpg",
+    "../../samples/synthetic-interiors/dining-chairs.edit-replace-chairs.jpg",
+    "../../samples/synthetic-interiors/hallway.edit-add-rug-plant.jpg"
+  ],
+  "voiceMemo": "../../projects/synthetic-walkthrough/voice-memo-standin.wav",
+  "fixture": null
+}

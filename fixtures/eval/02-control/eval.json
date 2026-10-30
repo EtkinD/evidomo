@@ -1,0 +1,70 @@
+{
+  "formatVersion": 1,
+  "id": "02-control",
+  "title": "Consistent form (control)",
+  "description": "A fact form that agrees with the walkthrough, including two extra fields (rooms, floor level): every planted-conflict count is zero, so any conflict besides the incidental bedroom floor is a false one. Three claim defects are injected.",
+  "cassette": "p5-01/02-control",
+  "include": ["p3-10/synthetic-walkthrough"],
+  "conflicts": [
+    {
+      "id": "bedroom-floor",
+      "origin": "incidental",
+      "description": "Walkthrough: laminate in both bedrooms; a bedroom photo shows carpet (the synthetic interiors were generated independently of the script, docs/model-notes.md P2-09).",
+      "planted": {
+        "source": "transcript_turn",
+        "key": "bedroom.*floor|floor.*bedroom"
+      },
+      "against": ["photo_region"],
+      "decidedBy": "model"
+    }
+  ],
+  "basisNotes": [
+    {
+      "id": "living-area-95",
+      "description": "Closing turn: \"zo'n 95 vierkante meter woonoppervlak\" without a basis: a basis note next to the verified NEN 2580 value, not a conflict.",
+      "key": "living_area",
+      "value": 95
+    }
+  ],
+  "injections": [
+    {
+      "id": "roof-terrace",
+      "description": "A feature no source mentions, citing the balcony.",
+      "variant": "portal",
+      "op": "insert",
+      "target": "^other:balcony_area$",
+      "cite": "^other:balcony_area$",
+      "text": "The apartment also comes with a private roof terrace.",
+      "marker": "roof terrace",
+      "expect": {
+        "category": "claim_support",
+        "detector": "verifier"
+      }
+    },
+    {
+      "id": "living-area-plus-4",
+      "description": "The living area written 4 m² larger than the cited fact.",
+      "variant": "portal",
+      "op": "replace_number",
+      "target": "^living_area$",
+      "delta": 4,
+      "expect": {
+        "category": "claim_support",
+        "detector": "validator"
+      }
+    },
+    {
+      "id": "young-family",
+      "description": "Buyers addressed by family status.",
+      "variant": "social",
+      "op": "append",
+      "target": "^living_area$",
+      "text": ", ideal for a young family",
+      "marker": "young family",
+      "expect": {
+        "category": "exclusionary",
+        "detector": "verifier"
+      }
+    }
+  ]
+}

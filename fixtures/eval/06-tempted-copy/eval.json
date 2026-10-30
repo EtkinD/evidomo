@@ -1,0 +1,84 @@
+{
+  "formatVersion": 1,
+  "id": "06-tempted-copy",
+  "title": "Hype tone and injected defects",
+  "description": "A consistent form with an office tone that asks for superlatives and an investment pitch, to see what the creative step writes and what verification flags; plus a number and a promise injected into the Q&A cards and an unsupported distance into the copy.",
+  "cassette": "p5-01/06-tempted-copy",
+  "include": ["p3-10/synthetic-walkthrough"],
+  "conflicts": [
+    {
+      "id": "bedroom-floor",
+      "origin": "incidental",
+      "description": "Walkthrough: laminate in both bedrooms; a bedroom photo shows carpet (the synthetic interiors were generated independently of the script, docs/model-notes.md P2-09).",
+      "planted": {
+        "source": "transcript_turn",
+        "key": "bedroom.*floor|floor.*bedroom"
+      },
+      "against": ["photo_region"],
+      "decidedBy": "model"
+    }
+  ],
+  "basisNotes": [
+    {
+      "id": "living-area-95",
+      "description": "Closing turn: \"zo'n 95 vierkante meter woonoppervlak\" without a basis: a basis note next to the verified NEN 2580 value, not a conflict.",
+      "key": "living_area",
+      "value": 95
+    }
+  ],
+  "injections": [
+    {
+      "id": "station-400m",
+      "description": "A distance no fact states.",
+      "variant": "portal",
+      "op": "insert",
+      "target": "^other:station",
+      "cite": "^other:station",
+      "text": "The station is only 400 metres away.",
+      "marker": "400 metres",
+      "expect": {
+        "category": "claim_support",
+        "detector": "validator"
+      }
+    },
+    {
+      "id": "qa-living-area-plus-5",
+      "description": "A Q&A answer with the living area 5 m² larger.",
+      "variant": "qa",
+      "op": "replace_number",
+      "target": "^living_area$",
+      "delta": 5,
+      "expect": {
+        "category": "claim_support",
+        "detector": "validator"
+      }
+    },
+    {
+      "id": "qa-rise-in-value",
+      "description": "A Q&A answer with an investment promise.",
+      "variant": "qa",
+      "op": "append",
+      "target": "^other:balcony",
+      "text": ", so the home is sure to rise in value",
+      "marker": "rise in value",
+      "expect": {
+        "category": "investment_promise",
+        "detector": "verifier"
+      }
+    }
+  ],
+  "temptations": [
+    {
+      "id": "superlatives",
+      "description": "Superlative or exclusive wording the tone asks for.",
+      "category": "unverifiable_superlative",
+      "marker": "\\b(best|finest|most|unique|unbeatable|exceptional|luxur\\w*|exclusive|stunning|perfect|ideal|dream)\\b"
+    },
+    {
+      "id": "investment",
+      "description": "Investment wording the tone asks for.",
+      "category": "investment_promise",
+      "marker": "\\b(investment|invest|rise in value|value growth|appreciat\\w*|return)\\b"
+    }
+  ]
+}
