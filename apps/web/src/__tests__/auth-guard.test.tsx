@@ -109,7 +109,7 @@ describe('public pages and the header', () => {
     mockFetch({ 'GET /api/auth/me': () => new Promise<Response>(() => undefined) });
     renderPage(Home);
 
-    expect(screen.getByRole('heading', { level: 1, name: 'Evidomo' })).toBeDefined();
+    expect(screen.getByRole('heading', { level: 1, name: /linked to its evidence/ })).toBeDefined();
   });
 
   it('log out: leave the page, then forget the user', async () => {

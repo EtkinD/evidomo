@@ -59,7 +59,7 @@ function HeaderActions() {
       <Link href="/login" className="btn btn-ghost min-h-11 px-3 sm:px-4">
         Log in
       </Link>
-      <Link href="/register" className="btn btn-primary min-h-11 px-3 sm:px-4">
+      <Link href="/register" className="btn btn-outline min-h-11 px-3 sm:px-4">
         Create account
       </Link>
     </nav>

@@ -1,27 +1,20 @@
 import Head from 'next/head';
+import { LandingPage } from '../components/landing/LandingPage';
+
+const TITLE = 'Evidomo: listing packs where every claim has a source';
+const DESCRIPTION =
+  'Photos and a voice walkthrough in, a listing pack out. Every statement links to the form field, spoken turn, or photo it came from, and you review it before export.';
 
 export default function Home() {
   return (
     <>
       <Head>
-        <title>Evidomo — evidence for every home</title>
-        <meta
-          name="description"
-          content="Verified, source-linked listing packs for real estate agents."
-        />
+        <title>{TITLE}</title>
+        <meta name="description" content={DESCRIPTION} />
+        <meta key="og:title" property="og:title" content={TITLE} />
+        <meta key="og:description" property="og:description" content={DESCRIPTION} />
       </Head>
-      <main className="hero flex-1 bg-base-200">
-        <div className="hero-content max-w-xl text-center">
-          <div>
-            <h1 className="text-5xl font-bold">Evidomo</h1>
-            <p className="py-6 text-lg">
-              Evidence for every home. Raw photos and a voice walkthrough in, a verified listing
-              pack out — every claim linked to its source.
-            </p>
-            <span className="badge badge-outline">In development</span>
-          </div>
-        </div>
-      </main>
+      <LandingPage />
     </>
   );
 }
