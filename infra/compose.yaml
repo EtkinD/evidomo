@@ -82,6 +82,8 @@ services:
       DEMO_RUN_IDS: ${DEMO_RUN_IDS:-}
       # Proxies trusted for the client IP (rate limits). Empty means 1 in production: Caddy.
       TRUST_PROXY_HOPS: ${TRUST_PROXY_HOPS:-}
+      # Run costs in API responses. Empty means hidden in production (operators read the ledger).
+      RUN_COSTS_VISIBLE: ${RUN_COSTS_VISIBLE:-}
     volumes:
       - storage:/data
     networks: [edge, backend]

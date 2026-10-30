@@ -31,6 +31,11 @@ import {
 // snapshot and event stream (P4-05), the owner-only evidence files the gates link to (P4-06,
 // P4-07), and the stored export (P4-08). Snapshots and events carry IDs, counts, costs, and
 // operator-safe reasons only; the files are customer material (personal-data scope).
+//
+// Run costs are an operator concern (docs/architecture.md §10 "Cost visibility"): a server with
+// `RUN_COSTS_VISIBLE` off (the production default) leaves every cost key out of snapshots,
+// summaries, and events, replaces `usage_recorded` with `withheld`, and states budget failures
+// without amounts. Absent, not null: `costCapUsd: null` already means "no cap known".
 
 const isoDateTime = z.iso.datetime({ offset: true });
 const count = z.int().nonnegative();
@@ -200,8 +205,11 @@ export const runStepSnapshotSchema = z.strictObject({
   executions: count,
   /** Handler executions across all attempts. */
   totalExecutions: count,
-  /** Every ledger row of this step in this run, across attempts and executions. */
-  costUsd: usdAmountSchema,
+  /**
+   * Every ledger row of this step in this run, across attempts and executions. Absent when the
+   * server does not disclose run costs.
+   */
+  costUsd: usdAmountSchema.optional(),
   startedAt: isoDateTime.nullable(),
   finishedAt: isoDateTime.nullable(),
   /** Set once the run was released past this step's `gateAfter`. */
@@ -236,24 +244,42 @@ const runCommon = {
   createdAt: isoDateTime,
   startedAt: isoDateTime.nullable(),
   finishedAt: isoDateTime.nullable(),
-  /** Every ledger row of the run (exact decimal string). */
-  costUsd: usdAmountSchema,
+  /** Every ledger row of the run (exact decimal string). Absent when costs are not disclosed. */
+  costUsd: usdAmountSchema.optional(),
 };
 
 /** `GET /api/runs/:runId`: one consistent read (one database snapshot). */
-export const runSnapshotSchema = z.strictObject({
-  ...runCommon,
-  updatedAt: isoDateTime,
-  /** The run's newest event; open the stream with `?after=<lastEventSeq>` to continue from here. */
-  lastEventSeq: count,
-  /** `budget.max_cost_usd_per_run` of the run's definition; null if that version is gone. */
-  costCapUsd: usdAmountSchema.nullable(),
-  maxExecutionsPerAttempt: z.int().positive(),
-  /** The definition's steps in order, then any stored step it no longer lists. */
-  steps: z.array(runStepSnapshotSchema),
-  /** Null until the export step has stored its manifest. */
-  export: runExportSummarySchema.nullable(),
-});
+export const runSnapshotSchema = z
+  .strictObject({
+    ...runCommon,
+    updatedAt: isoDateTime,
+    /** The run's newest event; open the stream with `?after=<lastEventSeq>` to continue from here. */
+    lastEventSeq: count,
+    /**
+     * `budget.max_cost_usd_per_run` of the run's definition; null if that version is gone. Absent
+     * (with every other cost key) when costs are not disclosed.
+     */
+    costCapUsd: usdAmountSchema.nullable().optional(),
+    maxExecutionsPerAttempt: z.int().positive(),
+    /** The definition's steps in order, then any stored step it no longer lists. */
+    steps: z.array(runStepSnapshotSchema),
+    /** Null until the export step has stored its manifest. */
+    export: runExportSummarySchema.nullable(),
+  })
+  .superRefine((snapshot, ctx) => {
+    // Costs are disclosed everywhere (run, cap, every step) or nowhere.
+    const disclosed = snapshot.costUsd !== undefined;
+    const agree =
+      (snapshot.costCapUsd !== undefined) === disclosed &&
+      snapshot.steps.every((step) => (step.costUsd !== undefined) === disclosed);
+    if (!agree) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['costUsd'],
+        message: 'Run costs must be disclosed for the whole snapshot or left out entirely',
+      });
+    }
+  });
 export type RunSnapshot = z.infer<typeof runSnapshotSchema>;
 
 export const runSummarySchema = z.strictObject(runCommon);
@@ -271,10 +297,26 @@ export const runStatusChangedPayloadSchema = z.strictObject({
   to: runStatusSchema,
   /** Present when `to` is `awaiting_gate`. */
   gate: gateSchema.optional(),
-  /** Present when `to` is `failed`: operator-safe text. */
+  /**
+   * Present when `to` is `failed`: operator-safe text (budget failures without amounts when
+   * costs are not disclosed).
+   */
   reason: z.string().min(1).optional(),
 });
 export type RunStatusChangedPayload = z.infer<typeof runStatusChangedPayloadSchema>;
+
+/**
+ * The `type` of a message that stands in for a stored event this client is not shown
+ * (`usage_recorded` while costs are not disclosed). It keeps the stored event's `seq` (and SSE
+ * `id`) and changes nothing but the cursor, so the sequence the client sees stays gapless and
+ * its gap check (refetch on a skipped seq) still holds. Never a stored type.
+ */
+export const RUN_STREAM_WITHHELD_TYPE = 'withheld';
+
+export const runStreamWithheldPayloadSchema = z.strictObject({});
+
+/** Payload cost totals are left out when the server does not disclose run costs. */
+const COST_TOTALS = { stepCostUsd: true, runCostUsd: true } as const;
 
 const streamEvent = <T extends string, P extends z.ZodType>(type: T, payload: P) =>
   z.strictObject({
@@ -286,15 +328,15 @@ const streamEvent = <T extends string, P extends z.ZodType>(type: T, payload: P)
   });
 
 /**
- * The `data` of each default (`message`) SSE event: one stored `run_events` row. Parse with
- * `safeParse`: an event type added later fails here, and the client should then refetch the
- * snapshot instead of stopping.
+ * The `data` of each default (`message`) SSE event: one stored `run_events` row (or `withheld`
+ * in its place). Parse with `safeParse`: an event type added later fails here, and the client
+ * should then refetch the snapshot instead of stopping.
  */
 export const runStreamEventSchema = z.discriminatedUnion('type', [
   streamEvent('run_status_changed', runStatusChangedPayloadSchema),
   streamEvent('step_started', stepStartedPayloadSchema),
-  streamEvent('step_completed', stepCompletedPayloadSchema),
-  streamEvent('step_failed', stepFailedPayloadSchema),
+  streamEvent('step_completed', stepCompletedPayloadSchema.partial(COST_TOTALS)),
+  streamEvent('step_failed', stepFailedPayloadSchema.partial(COST_TOTALS)),
   streamEvent('gate_opened', gateOpenedPayloadSchema),
   streamEvent('gate_decided', gateDecidedPayloadSchema),
   streamEvent('usage_recorded', usageRecordedPayloadSchema),
@@ -308,6 +350,7 @@ export const runStreamEventSchema = z.discriminatedUnion('type', [
   streamEvent('integrity_checked', integrityCheckedPayloadSchema),
   streamEvent('claims_audited', claimsAuditedPayloadSchema),
   streamEvent('pack_exported', packExportedPayloadSchema),
+  streamEvent(RUN_STREAM_WITHHELD_TYPE, runStreamWithheldPayloadSchema),
 ]);
 export type RunStreamEvent = z.infer<typeof runStreamEventSchema>;
 

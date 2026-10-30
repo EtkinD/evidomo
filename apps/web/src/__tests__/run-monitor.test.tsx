@@ -564,6 +564,59 @@ describe('run monitor', () => {
     view.unmount();
     expect(source.readyState).toBe(FakeEventSource.CLOSED);
   });
+  describe('without disclosed costs (production)', () => {
+    function hiddenSnapshot(overrides: Partial<RunSnapshot> = {}): RunSnapshot {
+      const { costUsd: _cost, costCapUsd: _cap, steps, ...rest } = snapshot(overrides);
+      return { ...rest, steps: steps.map(({ costUsd: _stepCost, ...kept }) => kept) };
+    }
+
+    function expectNoCostUi(): void {
+      expect(screen.queryByRole('region', { name: 'Cost' })).toBeNull();
+      expect(screen.queryByRole('progressbar')).toBeNull();
+      expect(screen.queryByText('Cost', { exact: true })).toBeNull();
+      expect(screen.queryByText(/\$\d/)).toBeNull();
+      expect(screen.queryByText(/cost cap/)).toBeNull();
+    }
+
+    it('shows no cost card, step cost, or cap message', async () => {
+      mockRun(hiddenSnapshot());
+      await renderMonitor();
+      expect(within(stepItem('intake')).getByText('Completed')).toBeDefined();
+      expectNoCostUi();
+    });
+
+    it('applies withheld and cost-less events without refetching the snapshot', async () => {
+      const calls = mockRun(hiddenSnapshot());
+      await renderMonitor();
+      const source = FakeEventSource.last;
+      const reason = 'Step "extract" failed after 1 execution: This run reached its budget limit.';
+
+      act(() => {
+        source.emit(event('step_started', { stepId: 'extract', attempt: 1, execution: 1 }));
+        source.emit(event('withheld', {}));
+        source.emit(event('withheld', {}));
+        source.emit(
+          event('step_failed', {
+            stepId: 'extract',
+            attempt: 1,
+            execution: 1,
+            reason,
+            willRetry: false,
+          }),
+        );
+        source.emit(event('run_status_changed', { from: 'running', to: 'failed', reason }));
+      });
+
+      const alert = await screen.findByRole('alert');
+      expect(alert.textContent).toContain(reason);
+      expect(within(stepItem('extract')).getByText('Failed')).toBeDefined();
+      // A withheld message that did not move the cursor would make the next event a gap, and a
+      // gap refetches; wait past any refetch that could still be scheduled.
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      expect(calls()).toBe(1);
+      expectNoCostUi();
+    });
+  });
 });
 
 describe('useRunMonitor lifecycle', () => {

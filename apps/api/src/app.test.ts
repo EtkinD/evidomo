@@ -228,3 +228,22 @@ describe('GET /api/auth/me without a session', () => {
     expect(response.headers['set-cookie']?.[0]).toMatch(/^evidomo_session=;/);
   });
 });
+
+describe('appConfigFromEnv', () => {
+  const production = {
+    DATABASE_URL: 'postgres://u:p@localhost:5432/db',
+    NODE_ENV: 'production',
+    MODEL_API_KEY: 'test-key',
+    DAILY_BUDGET_USD: '20',
+    STORAGE_DIR: '/data',
+    APP_ORIGIN: 'https://evidomo.example',
+  };
+
+  it('hides run costs in production without a setting and shows them in development', () => {
+    expect(appConfigFromEnv(loadEnv(production)).runCosts).toBe('hidden');
+    expect(appConfigFromEnv(loadEnv({ ...production, RUN_COSTS_VISIBLE: 'true' })).runCosts).toBe(
+      'visible',
+    );
+    expect(appConfigFromEnv(devEnv).runCosts).toBe('visible');
+  });
+});

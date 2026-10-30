@@ -31,6 +31,48 @@ export class BudgetExceededError extends Error {
   }
 }
 
+// The amounts in a budget failure, and the budget configuration, are operator data
+// (docs/architecture.md §10 "Cost visibility"). The exact message stays in the database
+// (`runs.failure_reason`, `run_steps.error`, event payloads); a server that does not disclose
+// run costs states these instead. The patterns are tied to `BudgetExceededError` and
+// `InvalidBudgetCapError` (`ledger.ts`) by `budget.test.ts`.
+
+/** A run budget failure as a user reads it. */
+export const RUN_BUDGET_REACHED_REASON = 'This run reached its budget limit.';
+/** A daily budget failure as a user reads it. */
+export const DAILY_BUDGET_REACHED_REASON = "Today's budget for live runs is used up.";
+/**
+ * Stands in for a whole reason that names budget configuration (an invalid cap) or still names
+ * an amount no rule above recognizes.
+ */
+export const UNDISCLOSED_FAILURE_REASON = 'The details of this failure are available to operators.';
+
+const AMOUNT = '[0-9]+(?:\\.[0-9]+)?';
+const RUN_CAP_MESSAGE = new RegExp(`Run budget cap reached: spent ${AMOUNT} of ${AMOUNT} USD`, 'g');
+const DAILY_CAP_MESSAGE = new RegExp(
+  `Global daily budget cap reached: spent ${AMOUNT} of ${AMOUNT} USD today \\(UTC\\)`,
+  'g',
+);
+// Anything that still reads as money after the known messages are replaced: `3.00 USD`,
+// `USD 3.00`, `$3`.
+const LEFTOVER_AMOUNT = new RegExp(`${AMOUNT}\\s*USD\\b|\\bUSD\\s*[0-9]|\\$\\s*[0-9]`, 'i');
+// `InvalidBudgetCapError`: names the env setting and how caps are configured.
+const BUDGET_CONFIGURATION = /budget cap is not a valid USD amount|DAILY_BUDGET_USD/i;
+
+/**
+ * `reason` as a user may read it: each budget failure message (also inside a composed reason
+ * such as `Step "copy" failed after 1 execution: …`) becomes its user-facing sentence without
+ * amounts. Fail-closed: a reason that names budget configuration or still names an amount is
+ * replaced as a whole.
+ */
+export function withoutBudgetDetails(reason: string): string {
+  if (BUDGET_CONFIGURATION.test(reason)) return UNDISCLOSED_FAILURE_REASON;
+  const replaced = reason
+    .replace(RUN_CAP_MESSAGE, RUN_BUDGET_REACHED_REASON)
+    .replace(DAILY_CAP_MESSAGE, DAILY_BUDGET_REACHED_REASON);
+  return LEFTOVER_AMOUNT.test(replaced) ? UNDISCLOSED_FAILURE_REASON : replaced;
+}
+
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 /**

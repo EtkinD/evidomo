@@ -12,6 +12,7 @@ import {
 import express from 'express';
 import { pino } from 'pino';
 import { afterEach, describe, expect, it } from 'vitest';
+import type { RunCostVisibility } from './cost-visibility.ts';
 import {
   createRunEventStreams,
   type RunEventSource,
@@ -97,12 +98,14 @@ async function startStreams(
     shutdownSignal?: AbortSignal;
     /** Delay before `serve`, standing in for the route's ownership query. */
     handlerDelayMs?: number;
+    costs?: RunCostVisibility;
   } = {},
 ): Promise<Harness> {
-  const { shutdownSignal, handlerDelayMs, ...streamOptions } = options;
+  const { shutdownSignal, handlerDelayMs, costs = 'visible', ...streamOptions } = options;
   const streams = createRunEventStreams({
     source: run.source,
     logger,
+    costs,
     options: { pollIntervalMs: 20, heartbeatIntervalMs: 60_000, ...streamOptions },
     ...(shutdownSignal === undefined ? {} : { shutdownSignal }),
   });
@@ -422,5 +425,79 @@ describe('createRunEventStreams', () => {
     await until(() => streams.activeCount() === 2);
     const again = await open(0, 'alice');
     expect(again.status).toBe(200);
+  });
+
+  describe('with run costs hidden', () => {
+    const BUDGET =
+      'Step "copy" failed after 1 execution: Run budget cap reached: spent 1.00412000 of 1.00 USD';
+
+    function budgetFailedRun(): FakeRun {
+      const run = new FakeRun();
+      run.append('step_started', { stepId: 'copy', attempt: 1, execution: 1 });
+      run.usage('0.40');
+      run.usage('1.00412');
+      run.append('step_failed', {
+        stepId: 'copy',
+        attempt: 1,
+        execution: 1,
+        reason: BUDGET,
+        willRetry: false,
+        stepCostUsd: '1.00412',
+        runCostUsd: '1.00412',
+      });
+      run.append('run_status_changed', { from: 'running', to: 'failed', reason: BUDGET });
+      run.status = 'failed';
+      return run;
+    }
+
+    it('sends every seq once (usage as withheld) with no cost keys and no amounts', async () => {
+      const run = budgetFailedRun();
+      const { open } = await startStreams(run, { costs: 'hidden' });
+
+      const stream = await open();
+      await stream.closed();
+      const received = events(stream.messages());
+      // Gapless: the client's `seq === lastEventSeq + 1` check holds for every message.
+      expect(received.map((e) => [e.id, e.event.seq, e.event.type])).toEqual([
+        ['1', 1, 'step_started'],
+        ['2', 2, 'withheld'],
+        ['3', 3, 'withheld'],
+        ['4', 4, 'step_failed'],
+        ['5', 5, 'run_status_changed'],
+      ]);
+      expect(received[1]?.event.payload).toEqual({});
+      const failed = received[3]?.event;
+      expect(failed?.type === 'step_failed' && failed.payload).toEqual({
+        stepId: 'copy',
+        attempt: 1,
+        execution: 1,
+        reason: 'Step "copy" failed after 1 execution: This run reached its budget limit.',
+        willRetry: false,
+      });
+      const status = received[4]?.event;
+      expect(status?.type === 'run_status_changed' && status.payload.reason).toBe(
+        'Step "copy" failed after 1 execution: This run reached its budget limit.',
+      );
+      expect(stream.text()).not.toMatch(/usage_recorded|CostUsd|USD|1\.00412/);
+      expect(stream.messages().at(-1)?.event).toBe(RUN_STREAM_END_EVENT);
+    });
+
+    it('resumes from the seq of a withheld message without repeating or skipping', async () => {
+      const run = budgetFailedRun();
+      const { open } = await startStreams(run, { costs: 'hidden' });
+
+      const resumed = await open(3);
+      await resumed.closed();
+      expect(events(resumed.messages()).map((e) => e.event.seq)).toEqual([4, 5]);
+    });
+
+    it('leaves the stored rows untouched', async () => {
+      const run = budgetFailedRun();
+      const before = structuredClone(run.stored);
+      const { open } = await startStreams(run, { costs: 'hidden' });
+      const stream = await open();
+      await stream.closed();
+      expect(run.stored).toEqual(before);
+    });
   });
 });

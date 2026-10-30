@@ -27,6 +27,7 @@ describe('loadEnv', () => {
       RUN_STARTS_PER_IP_PER_DAY: 5,
       ACCESS_CODE_FAILURES_PER_IP_PER_HOUR: 10,
       DEMO_RUN_IDS: [],
+      RUN_COSTS_VISIBLE: true,
     });
   });
 
@@ -297,6 +298,44 @@ describe('loadEnv', () => {
         (_, i) => `00000000-0000-4000-8000-${String(i).padStart(12, '0')}`,
       );
       expect(() => loadEnv({ DATABASE_URL, DEMO_RUN_IDS: many.join(',') })).toThrow(/DEMO_RUN_IDS/);
+    });
+  });
+
+  describe('RUN_COSTS_VISIBLE', () => {
+    const DATABASE_URL = 'postgres://u:p@localhost:5432/db';
+    const production = {
+      DATABASE_URL,
+      NODE_ENV: 'production',
+      MODEL_API_KEY: 'test-key',
+      DAILY_BUDGET_USD: '20',
+      STORAGE_DIR: '/data',
+      APP_ORIGIN: 'https://evidomo.example',
+    };
+
+    it('shows costs by default in development and test, also for an empty value', () => {
+      expect(loadEnv({ DATABASE_URL }).RUN_COSTS_VISIBLE).toBe(true);
+      expect(loadEnv({ DATABASE_URL, NODE_ENV: 'test' }).RUN_COSTS_VISIBLE).toBe(true);
+      expect(loadEnv({ DATABASE_URL, RUN_COSTS_VISIBLE: '' }).RUN_COSTS_VISIBLE).toBe(true);
+    });
+
+    it('hides costs by default in production without any setting, also for an empty value', () => {
+      expect(loadEnv(production).RUN_COSTS_VISIBLE).toBe(false);
+      expect(loadEnv({ ...production, RUN_COSTS_VISIBLE: '' }).RUN_COSTS_VISIBLE).toBe(false);
+    });
+
+    it('follows an explicit value in either environment', () => {
+      expect(loadEnv({ ...production, RUN_COSTS_VISIBLE: 'true' }).RUN_COSTS_VISIBLE).toBe(true);
+      expect(loadEnv({ ...production, RUN_COSTS_VISIBLE: '1' }).RUN_COSTS_VISIBLE).toBe(true);
+      expect(loadEnv({ DATABASE_URL, RUN_COSTS_VISIBLE: 'false' }).RUN_COSTS_VISIBLE).toBe(false);
+      expect(loadEnv({ DATABASE_URL, RUN_COSTS_VISIBLE: '0' }).RUN_COSTS_VISIBLE).toBe(false);
+    });
+
+    it('rejects anything that is not a boolean', () => {
+      for (const value of ['yes', 'TRUE', 'off', ' true']) {
+        expect(() => loadEnv({ ...production, RUN_COSTS_VISIBLE: value }), value).toThrow(
+          /RUN_COSTS_VISIBLE/,
+        );
+      }
     });
   });
 });

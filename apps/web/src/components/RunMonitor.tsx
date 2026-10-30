@@ -49,10 +49,12 @@ function StepItem({ step, cap }: { step: RunStepSnapshot; cap: number }) {
             {cap > 0 && step.executions > 1 ? ` (execution ${step.executions}/${cap})` : ''}
           </dd>
         </div>
-        <div className="flex gap-1">
-          <dt>Cost</dt>
-          <dd>{formatUsd(step.costUsd)}</dd>
-        </div>
+        {step.costUsd !== undefined && (
+          <div className="flex gap-1">
+            <dt>Cost</dt>
+            <dd>{formatUsd(step.costUsd)}</dd>
+          </div>
+        )}
         {duration !== null && (
           <div className="flex gap-1">
             <dt>Duration</dt>
@@ -67,9 +69,10 @@ function StepItem({ step, cap }: { step: RunStepSnapshot; cap: number }) {
   );
 }
 
-function CostCard({ run }: { run: RunSnapshot }) {
+/** Only when the server discloses costs (development); production snapshots carry none. */
+function CostCard({ run, costUsd }: { run: RunSnapshot; costUsd: string }) {
   const share = costShare(run);
-  const cap = run.costCapUsd;
+  const cap = run.costCapUsd ?? null;
   const nearCap = share !== null && share >= 0.8;
   return (
     <section aria-labelledby="run-cost-heading" className="flex flex-col gap-2">
@@ -77,7 +80,7 @@ function CostCard({ run }: { run: RunSnapshot }) {
         Cost
       </h2>
       <p className="text-2xl font-bold">
-        {formatUsd(run.costUsd)}
+        {formatUsd(costUsd)}
         {cap !== null && (
           <span className="text-base font-normal text-base-content/70">
             {' '}
@@ -234,7 +237,7 @@ export function RunMonitorView({ monitor, runId }: { monitor: RunMonitorState; r
         </div>
       )}
 
-      <CostCard run={run} />
+      {run.costUsd !== undefined && <CostCard run={run} costUsd={run.costUsd} />}
 
       <section aria-labelledby="run-steps-heading" className="flex flex-col gap-3">
         <h2 id="run-steps-heading" className="text-lg font-semibold">

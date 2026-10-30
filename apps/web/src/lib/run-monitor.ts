@@ -29,6 +29,23 @@ export function eventNeedsSnapshot(event: RunStreamEvent): boolean {
 }
 
 /**
+ * Cost totals of a step event as snapshot fields; empty when the server does not disclose costs
+ * (then neither the snapshot nor any event carries them, and none is invented here).
+ */
+function costTotals(payload: {
+  stepCostUsd?: string | undefined;
+  runCostUsd?: string | undefined;
+}): {
+  step: { costUsd?: string };
+  run: { costUsd?: string };
+} {
+  return {
+    step: payload.stepCostUsd === undefined ? {} : { costUsd: payload.stepCostUsd },
+    run: payload.runCostUsd === undefined ? {} : { costUsd: payload.runCostUsd },
+  };
+}
+
+/**
  * Applies one stream event to a snapshot. Pure and idempotent: an event at or below the
  * snapshot's `lastEventSeq` is already reflected in it and is ignored, and cost values are
  * absolute totals, so replaying an event can never double-count.
@@ -73,30 +90,32 @@ export function applyRunEvent(snapshot: RunSnapshot, event: RunStreamEvent): Run
       return { ...started, currentStepId: stepId };
     }
     case 'step_completed': {
-      const { stepId, stepCostUsd, runCostUsd } = event.payload;
+      const { stepId } = event.payload;
+      const costs = costTotals(event.payload);
       return {
         ...mapStep(next, stepId, (step) => ({
           ...step,
           status: 'completed',
-          costUsd: stepCostUsd,
+          ...costs.step,
           finishedAt: event.occurredAt,
           error: null,
         })),
-        costUsd: runCostUsd,
+        ...costs.run,
       };
     }
     case 'step_failed': {
-      const { stepId, reason, willRetry, stepCostUsd, runCostUsd } = event.payload;
+      const { stepId, reason, willRetry } = event.payload;
+      const costs = costTotals(event.payload);
       return {
         ...mapStep(next, stepId, (step) => ({
           ...step,
           // A retried execution waits in the queue; only the final failure ends the step.
           status: willRetry ? 'queued' : 'failed',
-          costUsd: stepCostUsd,
+          ...costs.step,
           finishedAt: willRetry ? null : event.occurredAt,
           error: reason,
         })),
-        costUsd: runCostUsd,
+        ...costs.run,
       };
     }
     case 'usage_recorded': {
@@ -108,6 +127,10 @@ export function applyRunEvent(snapshot: RunSnapshot, event: RunStreamEvent): Run
     }
     case 'gate_opened':
       return { ...next, gate: event.payload.gate };
+    case 'withheld':
+      // Stands in for an event this client is not shown (spend while costs are hidden): it
+      // keeps the sequence gapless, so only the cursor moves and nothing is refetched.
+      return next;
     default:
       // Known events with no monitor state (counts for other screens): only the cursor moves.
       return next;
@@ -144,9 +167,9 @@ export function formatUsd(amount: string): string {
   return `$${Number(amount).toFixed(4)}`;
 }
 
-/** Share of the cap spent, 0–1, or null without a cap. */
+/** Share of the cap spent, 0–1, or null without a cap or without disclosed costs. */
 export function costShare(snapshot: Pick<RunSnapshot, 'costUsd' | 'costCapUsd'>): number | null {
-  if (snapshot.costCapUsd === null) return null;
+  if (snapshot.costUsd === undefined || snapshot.costCapUsd == null) return null;
   const cap = Number(snapshot.costCapUsd);
   if (cap <= 0) return null;
   return Math.min(1, Number(snapshot.costUsd) / cap);

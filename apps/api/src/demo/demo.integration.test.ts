@@ -84,11 +84,12 @@ const missingRunId = randomUUID();
 const LIVE_DAILY_CAP = '0.01';
 const LIVE_SPEND_TODAY = '0.00500000';
 
-function buildApp(demo: AppDemoDeps): Express {
+function buildApp(demo: AppDemoDeps, options: { runCostsVisible?: boolean } = {}): Express {
   const env = loadEnv({
     DATABASE_URL: testDb.container.getConnectionUri(),
     NODE_ENV: 'test',
     APP_ORIGIN,
+    ...(options.runCostsVisible === false ? { RUN_COSTS_VISIBLE: 'false' } : {}),
   });
   return createApp({
     db: testDb.client,
@@ -492,5 +493,51 @@ describe('demo replay stream', () => {
       headers: { 'Last-Event-ID': 'abc' },
     });
     expect(badHeader.status).toBe(400);
+  });
+});
+
+describe('demo API with run costs hidden (the production default)', () => {
+  let server: Server;
+  let baseUrl: string;
+  let hiddenApp: Express;
+
+  beforeAll(async () => {
+    hiddenApp = buildApp(
+      { runIds: [first.runId], replay: { maxGapMs: 2 } },
+      { runCostsVisible: false },
+    );
+    server = hiddenApp.listen(0);
+    await new Promise<void>((resolve) => server.once('listening', () => resolve()));
+    const address = server.address();
+    if (address === null || typeof address === 'string') throw new Error('Expected a TCP address');
+    baseUrl = `http://127.0.0.1:${address.port}`;
+  });
+
+  afterAll(async () => {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+  });
+
+  it('serves the snapshot without any cost key', async () => {
+    const response = await request(hiddenApp).get(demoRunUrl(first.runId));
+    expect(response.status).toBe(200);
+    const snapshot = runSnapshotSchema.parse(response.body);
+    expect(snapshot.id).toBe(first.runId);
+    expect(JSON.stringify(response.body)).not.toMatch(/costUsd|costCapUsd/i);
+    // The ledger still holds the replayed usage the visible snapshot reports.
+    expect(Number(first.costUsd)).toBeGreaterThan(0);
+  });
+
+  it('replays every seq with usage_recorded as withheld and no cost values', async () => {
+    const stored = await listRunEvents(testDb.db, first.runId);
+    expect(stored.some((e) => e.type === 'usage_recorded')).toBe(true);
+    const stream = await openSse(`${baseUrl}${demoRunEventsUrl(first.runId, { speed: 10 })}`);
+    await stream.closed(20_000);
+    const messages = stream.messages().filter((m) => m.data !== undefined && m.event === undefined);
+    const received = messages.map((m) => runStreamEventSchema.parse(JSON.parse(m.data ?? '')));
+    expect(messages.map((m) => m.id)).toEqual(stored.map((e) => String(e.seq)));
+    expect(received.map((e) => e.type)).toEqual(
+      stored.map((e) => (e.type === 'usage_recorded' ? 'withheld' : e.type)),
+    );
+    expect(stream.text()).not.toMatch(/usage_recorded|CostUsd|costUsd/);
   });
 });

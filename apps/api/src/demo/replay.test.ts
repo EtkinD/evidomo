@@ -10,6 +10,7 @@ import {
 import express from 'express';
 import { pino } from 'pino';
 import { afterEach, describe, expect, it } from 'vitest';
+import type { RunCostVisibility } from '../run-api/cost-visibility.ts';
 import type { RunEventSource, StreamedRunEvent } from '../run-api/event-stream.ts';
 import { openSse, type SseConnection, type SseMessage } from '../run-api/testing.ts';
 import {
@@ -102,12 +103,13 @@ interface Harness {
 
 async function startReplay(
   run: StoredRun,
-  options: DemoReplayOptions & { shutdownSignal?: AbortSignal } = {},
+  options: DemoReplayOptions & { shutdownSignal?: AbortSignal; costs?: RunCostVisibility } = {},
 ): Promise<Harness> {
-  const { shutdownSignal, ...replayOptions } = options;
+  const { shutdownSignal, costs = 'visible', ...replayOptions } = options;
   const streams = createDemoReplayStreams({
     source: run.source,
     logger,
+    costs,
     options: { heartbeatIntervalMs: 60_000, maxGapMs: 200, ...replayOptions },
     ...(shutdownSignal === undefined ? {} : { shutdownSignal }),
   });
@@ -302,5 +304,25 @@ describe('createDemoReplayStreams', () => {
     await stream.closed();
     expect(stream.messages().some((m) => m.event === RUN_STREAM_END_EVENT)).toBe(false);
     await until(() => harness.streams.activeCount() === 0);
+  });
+
+  it('with run costs hidden, replays usage as withheld at the same seq and timing', async () => {
+    const run = sampleRun();
+    const harness = await startReplay(run, { costs: 'hidden' });
+
+    const { elapsedMs, stream } = await timedReplay(harness, {});
+    expect(events(stream.messages()).map((e) => [e.id, e.event.seq, e.event.type])).toEqual(
+      run.stored.map((e) => [String(e.seq), e.seq, 'withheld']),
+    );
+    expect(events(stream.messages()).every((e) => Object.keys(e.event.payload).length === 0)).toBe(
+      true,
+    );
+    expect(stream.text()).not.toMatch(/usage_recorded|CostUsd/);
+    expect(runStreamEndSchema.parse(JSON.parse(stream.messages().at(-1)?.data ?? ''))).toEqual({
+      status: 'completed',
+      lastEventSeq: 4,
+    });
+    // The original rhythm is kept: a withheld message still occupies its event's moment.
+    expect(elapsedMs).toBeGreaterThanOrEqual(330);
   });
 });

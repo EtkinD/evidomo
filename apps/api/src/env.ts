@@ -90,6 +90,16 @@ const demoRunIdsSchema = z.preprocess(
     .default([]),
 );
 
+// `RUN_COSTS_VISIBLE`: `true`/`false` (or `1`/`0`). Anything else is a typo that would silently
+// pick a side, so it fails at boot instead.
+const booleanFlagSchema = z.preprocess(
+  emptyAsUnset,
+  z
+    .enum(['true', 'false', '1', '0'], 'Expected true or false')
+    .transform((value) => value === 'true' || value === '1')
+    .optional(),
+);
+
 /**
  * Which process reads the environment. Production requirements differ per role:
  * - `worker` (the default; also tests): `MODEL_API_KEY`, `DAILY_BUDGET_USD`, `STORAGE_DIR`, and
@@ -161,6 +171,10 @@ const envSchemaFor = (role: EnvRole) =>
         DEFAULT_ACCESS_CODE_FAILURES_PER_IP_PER_HOUR,
       ),
       DEMO_RUN_IDS: demoRunIdsSchema,
+      // Whether the run and demo APIs send run costs (snapshot, events, budget amounts in
+      // failure reasons) to clients. Costs are for operators: on by default outside production,
+      // off in production unless set. Ledger, caps, and stored reasons are unaffected.
+      RUN_COSTS_VISIBLE: booleanFlagSchema,
     })
     .superRefine((env, ctx) => {
       if (
@@ -225,6 +239,7 @@ const envSchemaFor = (role: EnvRole) =>
       STORAGE_DIR: env.STORAGE_DIR ?? DEFAULT_DEV_STORAGE_DIR,
       APP_ORIGIN: env.APP_ORIGIN ?? DEFAULT_DEV_APP_ORIGIN,
       TRUST_PROXY_HOPS: env.TRUST_PROXY_HOPS ?? (env.NODE_ENV === 'production' ? 1 : 0),
+      RUN_COSTS_VISIBLE: env.RUN_COSTS_VISIBLE ?? env.NODE_ENV !== 'production',
     }));
 
 export type Env = z.infer<ReturnType<typeof envSchemaFor>>;

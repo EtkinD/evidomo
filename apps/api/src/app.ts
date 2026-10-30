@@ -22,6 +22,7 @@ import type { RunEngine } from './runs/engine.ts';
 import { createRunEventSource } from './run-api/event-source.ts';
 import { createRunEventStreams, type RunEventStreamOptions } from './run-api/event-stream.ts';
 import { createProjectRunsRouter, createRunApiRouter } from './run-api/routes.ts';
+import { runCostVisibility, type RunCostVisibility } from './run-api/cost-visibility.ts';
 import { createRunApiService } from './run-api/service.ts';
 import type { Storage } from './storage/storage.ts';
 
@@ -29,15 +30,18 @@ export interface AppConfig {
   auth: AuthConfig;
   /** Express `trust proxy` hop count; 0 disables X-Forwarded-For entirely. */
   trustProxyHops: number;
+  /** `RUN_COSTS_VISIBLE`: whether run and demo responses carry costs (§10 "Cost visibility"). */
+  runCosts: RunCostVisibility;
 }
 
 export function appConfigFromEnv(
-  env: Pick<Env, 'APP_ORIGIN' | 'SESSION_TTL_DAYS' | 'TRUST_PROXY_HOPS'>,
+  env: Pick<Env, 'APP_ORIGIN' | 'SESSION_TTL_DAYS' | 'TRUST_PROXY_HOPS' | 'RUN_COSTS_VISIBLE'>,
   rateLimits?: AuthRateLimits,
 ): AppConfig {
   return {
     auth: authConfigFromEnv(env, rateLimits),
     trustProxyHops: env.TRUST_PROXY_HOPS,
+    runCosts: runCostVisibility(env.RUN_COSTS_VISIBLE),
   };
 }
 
@@ -112,11 +116,16 @@ export function createApp({ db, logger, config, runs, storage, projects, demo }:
     engine: runs.engine,
     markets: runs.markets,
   });
-  const runApi = createRunApiService({ db: db.db, services: runs.services });
+  const runApi = createRunApiService({
+    db: db.db,
+    services: runs.services,
+    costs: config.runCosts,
+  });
   const eventSource = createRunEventSource(db.db);
   const streams = createRunEventStreams({
     source: eventSource,
     logger,
+    costs: config.runCosts,
     ...(runs.eventStream === undefined ? {} : { options: runs.eventStream }),
     ...(runs.shutdownSignal === undefined ? {} : { shutdownSignal: runs.shutdownSignal }),
   });
@@ -136,6 +145,7 @@ export function createApp({ db, logger, config, runs, storage, projects, demo }:
       replay: createDemoReplayStreams({
         source: eventSource,
         logger,
+        costs: config.runCosts,
         ...(demo?.replay === undefined ? {} : { options: demo.replay }),
         ...(runs.shutdownSignal === undefined ? {} : { shutdownSignal: runs.shutdownSignal }),
       }),

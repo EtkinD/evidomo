@@ -7,6 +7,7 @@ import {
 } from '@evidomo/shared';
 import type { Response } from 'express';
 import type { Logger } from '../logger.ts';
+import { disclosedEvent, type RunCostVisibility } from '../run-api/cost-visibility.ts';
 import { formatRunEvent, type RunEventSource } from '../run-api/event-stream.ts';
 import { createSseHub, namedSseEvent, type SseSession } from '../run-api/sse.ts';
 
@@ -61,6 +62,8 @@ export interface DemoReplayOptions {
 export interface DemoReplayDeps {
   readonly source: RunEventSource;
   readonly logger: Logger;
+  /** As on the live stream: `hidden` sends no cost values and `withheld` for `usage_recorded`. */
+  readonly costs: RunCostVisibility;
   readonly options?: DemoReplayOptions;
   /** Aborted on shutdown: every open replay ends so `server.close()` can finish. */
   readonly shutdownSignal?: AbortSignal;
@@ -134,7 +137,7 @@ export function createDemoReplayStreams(deps: DemoReplayDeps): DemoReplayStreams
         const delay = replayDelayMs(previous, event.occurredAt, timing);
         if (delay > 0) await session.sleep(delay);
         if (session.isClosed()) return;
-        await session.write(formatRunEvent(event));
+        await session.write(formatRunEvent(disclosedEvent(event, deps.costs)));
         cursor = event.seq;
         previous = event.occurredAt;
       }

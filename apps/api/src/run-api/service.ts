@@ -29,6 +29,7 @@ import { getRun, getRunForOwner, listRunsForProject, type Run } from '../db/repo
 import { getRunCostUsd, getRunStepCostsUsd, getRunsCostUsd } from '../db/repositories/usage.ts';
 import { DefinitionNotFoundError, type DefinitionRegistry } from '../definitions/loader.ts';
 import { MAX_STEP_EXECUTIONS } from '../runs/queue.ts';
+import { disclosedReason, type RunCostVisibility } from './cost-visibility.ts';
 import { observationRegions, renderMaskLayer, type MaskLayerResult } from './mask.ts';
 
 // Reads behind the run, evidence, and export routes (docs/architecture.md §5 "Run API"). Every
@@ -40,6 +41,11 @@ const ZERO_USD = '0.00000000';
 export interface RunApiServiceDeps {
   readonly db: Executor;
   readonly services: Pick<DefinitionRegistry, 'getService'>;
+  /**
+   * `hidden`: snapshots and summaries carry no cost keys (and no ledger is read for them), and
+   * failure reasons and step errors state budget failures without amounts.
+   */
+  readonly costs: RunCostVisibility;
 }
 
 function iso(date: Date | null): string | null {
@@ -59,7 +65,12 @@ function serviceOf(
   }
 }
 
-function summaryOf(run: Run, costUsd: string): RunSummary {
+/** Spreads `{ costUsd }` only when costs are disclosed (`undefined` means hidden). */
+function costField(costUsd: string | undefined): { costUsd?: string } {
+  return costUsd === undefined ? {} : { costUsd };
+}
+
+function summaryOf(run: Run, costUsd: string | undefined, costs: RunCostVisibility): RunSummary {
   return {
     id: run.id,
     projectId: run.projectId,
@@ -71,11 +82,11 @@ function summaryOf(run: Run, costUsd: string): RunSummary {
     outputLanguage: run.outputLanguage,
     gate: run.gate,
     currentStepId: run.currentStepId,
-    failureReason: run.failureReason,
+    failureReason: run.failureReason === null ? null : disclosedReason(run.failureReason, costs),
     createdAt: run.createdAt.toISOString(),
     startedAt: iso(run.startedAt),
     finishedAt: iso(run.finishedAt),
-    costUsd,
+    ...costField(costUsd),
   };
 }
 
@@ -83,7 +94,8 @@ function stepSnapshot(
   stepId: string,
   definition: ServiceDefinition['steps'][number] | undefined,
   attempts: readonly RunStep[],
-  costUsd: string,
+  costUsd: string | undefined,
+  costs: RunCostVisibility,
 ): RunStepSnapshot {
   const latest = attempts.reduce<RunStep | undefined>(
     (newest, row) => (newest === undefined || row.attempt > newest.attempt ? row : newest),
@@ -99,11 +111,11 @@ function stepSnapshot(
     attempts: attempts.length,
     executions: latest?.executions ?? 0,
     totalExecutions: attempts.reduce((sum, row) => sum + row.executions, 0),
-    costUsd,
+    ...costField(costUsd),
     startedAt: iso(latest?.startedAt ?? null),
     finishedAt: iso(latest?.finishedAt ?? null),
     gateReleasedAt: iso(released?.gateReleasedAt ?? null),
-    error: latest?.error ?? null,
+    error: latest?.error == null ? null : disclosedReason(latest.error, costs),
   };
 }
 
@@ -198,7 +210,9 @@ export interface RunApiService {
   exportFile(run: Run, artifactId: string): Promise<ServableExportFile | undefined>;
 }
 
-export function createRunApiService({ db, services }: RunApiServiceDeps): RunApiService {
+export function createRunApiService({ db, services, costs }: RunApiServiceDeps): RunApiService {
+  const disclosed = costs === 'visible';
+
   async function runArtifact(run: Run, artifactId: string): Promise<Artifact | undefined> {
     const artifact = await getArtifact(db, artifactId);
     return artifact?.runId === run.id ? artifact : undefined;
@@ -217,8 +231,10 @@ export function createRunApiService({ db, services }: RunApiServiceDeps): RunApi
         if (run === undefined) return undefined;
         const service = serviceOf(services, run);
         const rows = await listRunSteps(tx, run.id);
-        const stepCosts = await getRunStepCostsUsd(tx, run.id);
-        const totalUsd = await getRunCostUsd(tx, run.id);
+        const stepCosts = disclosed ? await getRunStepCostsUsd(tx, run.id) : undefined;
+        const totalUsd = disclosed ? await getRunCostUsd(tx, run.id) : undefined;
+        const stepCost = (stepId: string): string | undefined =>
+          stepCosts === undefined ? undefined : (stepCosts.get(stepId) ?? ZERO_USD);
         const stored = await loadRunExport(tx, run.id);
 
         const attemptsByStep = new Map<string, RunStep[]>();
@@ -235,21 +251,22 @@ export function createRunApiService({ db, services }: RunApiServiceDeps): RunApi
               step.id,
               step,
               attemptsByStep.get(step.id) ?? [],
-              stepCosts.get(step.id) ?? ZERO_USD,
+              stepCost(step.id),
+              costs,
             ),
           ),
           ...[...attemptsByStep.entries()]
             .filter(([stepId]) => !known.has(stepId))
             .map(([stepId, attempts]) =>
-              stepSnapshot(stepId, undefined, attempts, stepCosts.get(stepId) ?? ZERO_USD),
+              stepSnapshot(stepId, undefined, attempts, stepCost(stepId), costs),
             ),
         ];
 
         return runSnapshotSchema.parse({
-          ...summaryOf(run, totalUsd),
+          ...summaryOf(run, totalUsd, costs),
           updatedAt: run.updatedAt.toISOString(),
           lastEventSeq: run.lastEventSeq,
-          costCapUsd: service?.budget.max_cost_usd_per_run ?? null,
+          ...(disclosed ? { costCapUsd: service?.budget.max_cost_usd_per_run ?? null } : {}),
           maxExecutionsPerAttempt: MAX_STEP_EXECUTIONS,
           steps,
           export:
@@ -276,12 +293,20 @@ export function createRunApiService({ db, services }: RunApiServiceDeps): RunApi
       if (project === undefined) return undefined;
       // Oldest first from the repository; reversed for newest first (ties by ID, descending).
       const runs = (await listRunsForProject(db, project.id)).reverse();
-      const costs = await getRunsCostUsd(
-        db,
-        runs.map((run) => run.id),
-      );
+      const runCosts = disclosed
+        ? await getRunsCostUsd(
+            db,
+            runs.map((run) => run.id),
+          )
+        : undefined;
       return runs.map((run) =>
-        runSummarySchema.parse(summaryOf(run, costs.get(run.id) ?? ZERO_USD)),
+        runSummarySchema.parse(
+          summaryOf(
+            run,
+            runCosts === undefined ? undefined : (runCosts.get(run.id) ?? ZERO_USD),
+            costs,
+          ),
+        ),
       );
     },
 

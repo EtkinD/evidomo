@@ -1,6 +1,6 @@
 import type { RunSnapshot, RunStepSnapshot, RunStreamEvent } from '@evidomo/shared';
 import { describe, expect, it } from 'vitest';
-import { applyRunEnd, applyRunEvent } from '../lib/run-monitor';
+import { applyRunEnd, applyRunEvent, costShare } from '../lib/run-monitor';
 
 const AT = '2026-10-29T10:00:00.000Z';
 const LATER = '2026-10-29T10:05:00.000Z';
@@ -165,5 +165,62 @@ describe('applyRunEnd', () => {
       lastEventSeq: 9,
       finishedAt: AT,
     });
+  });
+});
+
+describe('without disclosed costs (production)', () => {
+  function hidden(): RunSnapshot {
+    const { costUsd: _cost, costCapUsd: _cap, steps, ...rest } = run();
+    return {
+      ...rest,
+      steps: steps.map(({ costUsd: _stepCost, ...kept }) => kept),
+    };
+  }
+
+  it('moves the cursor on withheld, so the next event is not a gap', () => {
+    const afterWithheld = applyRunEvent(hidden(), ev(5, 'withheld', {}));
+    expect(afterWithheld?.lastEventSeq).toBe(5);
+    const next =
+      afterWithheld &&
+      applyRunEvent(
+        afterWithheld,
+        ev(6, 'step_started', {
+          stepId: 'a',
+          attempt: 1,
+          execution: 1,
+        }),
+      );
+    expect(next).not.toBeNull();
+    expect(next?.steps[0]?.status).toBe('running');
+  });
+
+  it('applies step events without cost totals and never invents cost keys', () => {
+    const completed = applyRunEvent(
+      hidden(),
+      ev(5, 'step_completed', { stepId: 'a', attempt: 1, execution: 1, artifactIds: [] }),
+    );
+    const failed =
+      completed &&
+      applyRunEvent(
+        completed,
+        ev(6, 'step_failed', {
+          stepId: 'b',
+          attempt: 1,
+          execution: 1,
+          reason: 'Step "b" failed after 1 execution: This run reached its budget limit.',
+          willRetry: false,
+        }),
+      );
+    expect(failed?.steps.map((s) => [s.stepId, s.status, s.error])).toEqual([
+      ['a', 'completed', null],
+      ['b', 'failed', 'Step "b" failed after 1 execution: This run reached its budget limit.'],
+    ]);
+    expect(failed && 'costUsd' in failed).toBe(false);
+    expect(failed?.steps.some((s) => 'costUsd' in s)).toBe(false);
+  });
+
+  it('has no cost share', () => {
+    expect(costShare(hidden())).toBeNull();
+    expect(costShare(run({ costUsd: '1' }))).toBe(0.5);
   });
 });

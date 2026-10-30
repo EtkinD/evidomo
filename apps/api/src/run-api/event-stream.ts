@@ -8,6 +8,7 @@ import {
 } from '@evidomo/shared';
 import type { Response } from 'express';
 import type { Logger } from '../logger.ts';
+import { disclosedEvent, type RunCostVisibility } from './cost-visibility.ts';
 import { createSseHub, namedSseEvent, type SseSession } from './sse.ts';
 
 // The run monitor's event stream (docs/architecture.md §5 "Run API"): stored `run_events`
@@ -56,6 +57,8 @@ export interface RunEventStreamOptions {
 export interface RunEventStreamsDeps {
   readonly source: RunEventSource;
   readonly logger: Logger;
+  /** `hidden`: no cost values and no `usage_recorded` (sent as `withheld`), see `disclosedEvent`. */
+  readonly costs: RunCostVisibility;
   readonly options?: RunEventStreamOptions;
   /** Aborted on shutdown: every open stream ends so `server.close()` can finish. */
   readonly shutdownSignal?: AbortSignal;
@@ -134,7 +137,7 @@ export function createRunEventStreams(deps: RunEventStreamsDeps): RunEventStream
         const due = batch.filter((event) => event.seq > cursor && event.seq <= head.lastEventSeq);
         if (due.length === 0) break;
         for (const event of due) {
-          await session.write(formatRunEvent(event));
+          await session.write(formatRunEvent(disclosedEvent(event, deps.costs)));
           cursor = event.seq;
         }
       }
