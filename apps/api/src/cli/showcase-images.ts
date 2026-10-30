@@ -12,7 +12,7 @@ import type { InMemoryUsageRecorder } from '../meta/usage.ts';
 export const SHOWCASE_KINDS = ['logo-concept', 'hero', 'interior', 'illustration'] as const;
 export type ShowcaseKind = (typeof SHOWCASE_KINDS)[number];
 
-export const SHOWCASE_DIRECTION_IDS = ['A', 'B', 'C'] as const;
+export const SHOWCASE_DIRECTION_IDS = ['B', 'B2', 'B3'] as const;
 export type ShowcaseDirectionId = (typeof SHOWCASE_DIRECTION_IDS)[number];
 
 /** How the tools were turned off: the endpoint whose JSON body validates `tool_enablement`. */
@@ -96,7 +96,7 @@ export class ShowcasePlanError extends Error {
 }
 
 /**
- * Numbers the specs per direction and kind in list order (`A-LOGO-1`, `A/logo-1.webp`) and
+ * Numbers the specs per direction and kind in list order (`B2-LOGO-1`, `B2/logo-1.webp`) and
  * composes each full prompt: subject, kind style, direction palette, constraints.
  */
 export function planShowcaseImages(

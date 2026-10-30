@@ -129,7 +129,7 @@ output_tokens, total_tokens } }`. There is no `id`, `model`, or `size`, and no f
   reports tool use.
 - **Measured:**
   - flat $0.01 per returned image (the tokens are informational);
-  - edits take 8.4–15.9 s, generations 9.3–29.4 s (8.0–34.1 s for 30 tools-off generations,
+  - edits take 8.4–15.9 s, generations 9.3–29.4 s (8.0–34.1 s for 46 tools-off generations,
     P4B-01);
   - generations return 1600×1600 for `size` 1024x1024 and 1920×1280 for 1536x1024 (P4B-01);
   - output is 1920×1280 for `size` 1536x1024, never the input size; without `size` the aspect
@@ -2956,3 +2956,25 @@ goes to the gitignored `apps/web/public/showcase-assets/` with a `manifest.json`
   came out as a plain zigzag, one close to a letter form); they are exploration input, not a
   final mark.
 - Session total, probes included: 31 billed images, **$0.31**.
+
+### Round 2: Hearth variants
+
+The founder kept B "Hearth" and dropped A and C. `showcase-prompts.ts` now holds B unchanged
+plus two variants of it: B2 "Hearth Clay" (linen, oat, light clay, sage, honey; morning light)
+and B3 "Hearth Canal" (deep brick red, canal teal green, brass; late-afternoon to evening light).
+Each has 2 logo concepts, 2 heroes, 2 interior details, and 2 illustrations, built on the liked B
+subjects with only palette, mood, and light moved. 26 planned images.
+
+- **B's specs must stay byte-identical.** Reuse matches ID, file, and full prompt, so any change
+  to a B subject, the B palette, a kind style line, or `SHOWCASE_CONSTRAINTS` would regenerate
+  (and re-bill) the approved images. Checked before the run: all 10 B prompts equal the manifest's,
+  and the B files' hashes did not change.
+- **Dropping a direction needs a manifest prune first.** The manifest schema's `direction` enum
+  follows `SHOWCASE_DIRECTION_IDS`, so the round-1 manifest (with A and C items) no longer
+  parses and the generator refuses to run. The A and C entries were removed from the gitignored
+  manifest, and the `A/` and `C/` directories deleted, by hand.
+- 16 of 16 generated, no failures, concurrency 2; 9.1–26.5 s per image; **$0.16**. A
+  downscaled contact-sheet check found no text, people, faces, or plates, so nothing was
+  regenerated. Both canal-room heroes show generic, out-of-focus gabled facades across the water
+  through the windows (invented, not a recognisable building); "limewashed brick" in B2 came out
+  sage-tinted.

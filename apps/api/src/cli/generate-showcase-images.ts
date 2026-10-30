@@ -22,7 +22,7 @@ const USAGE = `Usage: node --env-file=<repo>/.env apps/api/src/cli/generate-show
   --out <dir> --max-usd <amount> [options]
 
 Generates the showcase prompt list (showcase-prompts.ts) with Muse Image, image search, web
-search, and shell all off (POST /v1/images/generations), and writes <dir>/<A|B|C>/*.webp and
+search, and shell all off (POST /v1/images/generations), and writes <dir>/<B|B2|B3>/*.webp and
 <dir>/manifest.json. LIVE and billed ($0.01 per image). Images already in the manifest with the
 same prompt are kept; development only, refuses NODE_ENV=production.
 
@@ -30,7 +30,7 @@ Options:
   --out <dir>          output directory (required; the showcase reads
                        apps/web/public/showcase-assets, which is gitignored)
   --max-usd <amount>   spend cap for this invocation (required)
-  --only <ids>         comma-separated IDs to regenerate (e.g. A-LOGO-2,C-HERO-1)
+  --only <ids>         comma-separated IDs to regenerate (e.g. B2-LOGO-2,B3-HERO-1)
   --concurrency <n>    parallel calls (default 2)
   --dry-run            print the plan and the full prompts; no calls
   --help               show this help`;

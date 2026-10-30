@@ -3,16 +3,10 @@ import type { ShowcaseDirection, ShowcaseImageSpec } from './showcase-images.ts'
 // Prompt list for the Phase 4b design showcase (P4B-01). Exploration only: nothing generated from
 // it is committed. Every prompt is composed with its kind's style line, the direction's palette,
 // and SHOWCASE_CONSTRAINTS (showcase-images.ts), so each subject below describes content only.
+// Round 2: the founder kept B "Hearth" (A and C are dropped); B2 and B3 are variants of it. B's
+// specs must stay byte-identical, or the generator would regenerate the images already approved.
 
 export const SHOWCASE_DIRECTIONS: readonly ShowcaseDirection[] = [
-  {
-    id: 'A',
-    name: 'Ledger',
-    mood: 'calm trust',
-    palette:
-      'Palette: deep teal (#0F4C5C) and slate (#3E4C59) on cool light greys (#E9EDF0, #F6F7F8). ' +
-      'Mood: calm, precise, and quiet; modern Dutch and Scandinavian minimalism.',
-  },
   {
     id: 'B',
     name: 'Hearth',
@@ -22,90 +16,26 @@ export const SHOWCASE_DIRECTIONS: readonly ShowcaseDirection[] = [
       'Mood: warm, welcoming, and premium Dutch real estate; brick, oak, and soft daylight.',
   },
   {
-    id: 'C',
-    name: 'Signal',
-    mood: 'editorial evidence',
+    id: 'B2',
+    name: 'Hearth Clay',
+    mood: 'soft, airy home',
     palette:
-      'Palette: ink navy and near-black (#0E1726, #151B23), signal amber (#F2A900), and ' +
-      'verification green (#1E9E5A) on off-white (#F5F4F0). Mood: forensic, high-contrast, editorial.',
+      'Palette: linen and oat (#F5EFE4, #E7DCC8), light clay terracotta (#C98466), sage and olive ' +
+      'green (#8C9C7A, #5F6B46), and a honey accent (#D9A548). Mood: soft, light, and airy Dutch ' +
+      'home; linen, pale oak, plants, soft shadows, and gentle morning light.',
+  },
+  {
+    id: 'B3',
+    name: 'Hearth Canal',
+    mood: 'deep, grounded editorial',
+    palette:
+      'Palette: deep brick and crimson red (#8C2D27), deep canal-water teal green (#1D4A4A), a ' +
+      'brass accent (#B08A4E), and warm ivory (#EFE6D6). Mood: deep, grounded, and editorial ' +
+      'Dutch canal house; brick, dark oak, brass details, and low late-afternoon to evening light.',
   },
 ];
 
 export const SHOWCASE_IMAGES: readonly ShowcaseImageSpec[] = [
-  // A "Ledger"
-  {
-    direction: 'A',
-    kind: 'logo-concept',
-    subject:
-      'A minimal house roofline drawn as one continuous single-weight stroke whose right side ' +
-      'continues into a check mark.',
-  },
-  {
-    direction: 'A',
-    kind: 'logo-concept',
-    subject:
-      'A simple rectangular document shape with a folded top corner, where the fold forms the ' +
-      'pitched roof of a house.',
-  },
-  {
-    direction: 'A',
-    kind: 'logo-concept',
-    subject:
-      'A geometric location pin whose inner negative space is the silhouette of a small house ' +
-      'with a pitched roof.',
-  },
-  {
-    direction: 'A',
-    kind: 'logo-concept',
-    subject:
-      'An abstract geometric emblem: a roof chevron above a short horizontal bar and an open ' +
-      'circular arc, evoking a lowercase e without being a typeface letter.',
-  },
-  {
-    direction: 'A',
-    kind: 'hero',
-    subject:
-      'A bright, empty, minimalist Dutch apartment living room with pale grey walls, a light oak ' +
-      'floor, a slim slate-grey sofa, one deep teal armchair, and a large window with soft ' +
-      'overcast north light. Wide architectural interior photograph, eye-level.',
-  },
-  {
-    direction: 'A',
-    kind: 'hero',
-    subject:
-      'A generic, invented modern Dutch row of terraced houses with flat grey brick facades, ' +
-      'large black-framed windows, and one deep teal front door, under a soft overcast sky. ' +
-      'Architectural exterior photograph. No house numbers, street signs, or cars.',
-  },
-  {
-    direction: 'A',
-    kind: 'interior',
-    subject:
-      'Close-up detail of a minimalist kitchen: a pale grey stone worktop, a slate-grey tap, and ' +
-      'a backsplash of matte deep teal rectangular tiles, in soft daylight. Shallow depth of field.',
-  },
-  {
-    direction: 'A',
-    kind: 'interior',
-    subject:
-      'Close-up detail of a tall white window frame with a slim metal handle, a cool grey wall, ' +
-      'and a light oak windowsill with a single small ceramic vase, soft diffuse daylight.',
-  },
-  {
-    direction: 'A',
-    kind: 'illustration',
-    subject:
-      'Empty-state illustration: a simple outline of a house standing on a dotted path that ' +
-      'leads towards it, with a small plus sign floating beside it, lots of calm empty space.',
-  },
-  {
-    direction: 'A',
-    kind: 'illustration',
-    subject:
-      'Empty-state illustration: a clipboard with three rows of plain grey bars and a check mark ' +
-      'beside each row, resting next to a small potted plant.',
-  },
-
   // B "Hearth"
   {
     direction: 'B',
@@ -178,77 +108,137 @@ export const SHOWCASE_IMAGES: readonly ShowcaseImageSpec[] = [
       'a few soft circles of light around it, suggesting adding photos.',
   },
 
-  // C "Signal"
+  // B2 "Hearth Clay": the liked B subjects (B-LOGO-3, B-LOGO-2, B-HERO-1, B-INT-1/2, B-ILL-1/2)
+  // with only mood, palette, and light moved, so the founder compares variants of one idea.
   {
-    direction: 'C',
+    direction: 'B2',
     kind: 'logo-concept',
     subject:
-      'A bold geometric magnifying glass whose handle bends upward into a check mark, with the ' +
-      'lens ring in ink navy and the check in signal amber.',
+      'A soft rounded house shape with a single sage leaf shape in its centre, like a hearth, ' +
+      'built from two overlapping flat shapes, light and airy.',
   },
   {
-    direction: 'C',
+    direction: 'B2',
     kind: 'logo-concept',
     subject:
-      'A document shape with a folded corner and a bold verification-green check stamp ' +
-      'overlapping its lower right edge.',
+      'A round magnifying glass with a thin, light ring whose lens contains a simple rounded ' +
+      'house with a pitched roof.',
   },
   {
-    direction: 'C',
-    kind: 'logo-concept',
-    subject:
-      'A sharp geometric location pin with a house-shaped cut-out and a small signal amber dot ' +
-      'above the roof.',
-  },
-  {
-    direction: 'C',
-    kind: 'logo-concept',
-    subject:
-      'A house roofline enclosed in four corner brackets like a camera focus frame or crosshair, ' +
-      'heavy strokes, one amber accent.',
-  },
-  {
-    direction: 'C',
+    direction: 'B2',
     kind: 'hero',
     subject:
-      'A dramatic, empty, modern living room with dark ink-navy walls, a polished concrete floor, ' +
-      'a single low black sofa, and one amber floor lamp casting a warm pool of light at dusk. ' +
-      'High-contrast editorial architectural photograph.',
+      'A light, airy, empty, high-ceilinged Dutch canal-house living room with a pale limewashed ' +
+      'brick wall, wide pale oak floorboards, tall white sash windows with sheer linen curtains ' +
+      'and soft morning sunlight, an oat linen sofa, a sage green armchair, and a large leafy ' +
+      'plant in a clay pot. Wide architectural interior photograph.',
   },
   {
-    direction: 'C',
+    direction: 'B2',
     kind: 'hero',
     subject:
-      'An invented, generic modern Dutch house exterior at blue hour: dark brick and glass, ' +
-      'one window glowing amber, crisp geometry, deep navy sky. High-contrast editorial ' +
-      'architectural photograph. No house numbers, street signs, or cars.',
+      'A bright, empty window bay in a high-ceilinged Dutch canal-house living room: tall white ' +
+      'sash windows with sheer linen curtains, a pale oak window seat with oat linen cushions, a ' +
+      'few potted plants, and long soft morning shadows on a pale oak floor. Only soft, ' +
+      'out-of-focus greenery is visible outside. Wide architectural interior photograph.',
   },
   {
-    direction: 'C',
+    direction: 'B2',
     kind: 'interior',
     subject:
-      'Close-up detail of a dark navy wall with a crisp white door frame edge and a single ' +
-      'brass light switch, lit by a narrow beam of light. High-contrast, editorial.',
+      'Close-up detail of a pale oak herringbone floor meeting light clay terracotta kitchen ' +
+      'floor tiles, with a soft stripe of morning sunlight and a gentle leaf shadow falling ' +
+      'across it. Shallow depth of field.',
   },
   {
-    direction: 'C',
+    direction: 'B2',
     kind: 'interior',
     subject:
-      'Close-up detail of a steel and oak staircase in a dark interior, with a thin amber light ' +
-      'strip under the handrail. High-contrast editorial architectural photograph.',
+      'Close-up detail of a pale limewashed brick fireplace surround with a simple pale oak ' +
+      'mantel, a linen-white wall, a small trailing plant in a ceramic pot on the mantel, and a ' +
+      'few birch logs, in soft morning daylight.',
   },
   {
-    direction: 'C',
+    direction: 'B2',
     kind: 'illustration',
     subject:
-      'Empty-state illustration: a large magnifying glass hovering over a blank document that ' +
-      'shows only plain grey bars, with a small amber spark at the lens edge.',
+      'Empty-state illustration: a cosy rounded house with its front door open, soft honey ' +
+      'morning light spilling out onto the step, and a small sage green potted plant beside the ' +
+      'door, light and airy.',
   },
   {
-    direction: 'C',
+    direction: 'B2',
     kind: 'illustration',
     subject:
-      'Empty-state illustration: a neat stack of three blank documents with a large ' +
-      'verification-green check mark badge on top.',
+      'Empty-state illustration: a simple rounded camera floating in front of an open window ' +
+      'frame with a sheer linen curtain, with a few soft circles of morning light around it, ' +
+      'suggesting adding photos.',
+  },
+
+  // B3 "Hearth Canal": the liked B subjects (B-LOGO-1, B-LOGO-4, B-HERO-1, B-INT-1/2, B-ILL-1/2)
+  // with only mood, palette, and light moved.
+  {
+    direction: 'B3',
+    kind: 'logo-concept',
+    subject:
+      'A stylised tall stepped canal-house gable silhouette in deep brick red with a small brass ' +
+      'check mark forming the arched doorway.',
+  },
+  {
+    direction: 'B3',
+    kind: 'logo-concept',
+    subject:
+      'An abstract emblem: a curved roof arc that wraps around a short horizontal bar, evoking a ' +
+      'lowercase e without being a typeface letter, in brass inside a deep teal green rounded ' +
+      'square tile.',
+  },
+  {
+    direction: 'B3',
+    kind: 'hero',
+    subject:
+      'A deep, grounded, empty, high-ceilinged Dutch canal-house living room with an exposed deep ' +
+      'red brick wall, wide dark oak floorboards, tall canal-house windows with dark painted ' +
+      'frames letting in low golden late-afternoon light, a deep crimson velvet sofa, a deep teal ' +
+      'green armchair, and a brass floor lamp. Wide editorial architectural interior photograph.',
+  },
+  {
+    direction: 'B3',
+    kind: 'hero',
+    subject:
+      'An empty, tall canal-house window bay in early evening: a dark oak window seat, deep teal ' +
+      'green painted wall panelling, brass window fittings, and warm lamplight inside; only ' +
+      'soft, out-of-focus trees and canal water are visible outside. Wide editorial ' +
+      'architectural interior photograph.',
+  },
+  {
+    direction: 'B3',
+    kind: 'interior',
+    subject:
+      'Close-up detail of a dark oak herringbone floor meeting deep red terracotta kitchen floor ' +
+      'tiles, with a low golden stripe of late-afternoon sunlight falling across it. Shallow ' +
+      'depth of field.',
+  },
+  {
+    direction: 'B3',
+    kind: 'interior',
+    subject:
+      'Close-up detail of a deep red brick fireplace surround with a dark oak mantel, a brass ' +
+      'candle holder, a deep teal green wall, and a stack of firewood, in warm early-evening light.',
+  },
+  {
+    direction: 'B3',
+    kind: 'illustration',
+    subject:
+      'Empty-state illustration: a tall narrow canal house with a stepped gable and its front ' +
+      'door open, warm brass-gold evening light spilling out onto the step, and a small potted ' +
+      'plant beside the door.',
+  },
+  {
+    direction: 'B3',
+    kind: 'illustration',
+    subject:
+      'Empty-state illustration: a simple camera floating in front of a tall arched canal-house ' +
+      'window frame at dusk, with a few warm circles of lamplight around it, suggesting adding ' +
+      'photos.',
   },
 ];

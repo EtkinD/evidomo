@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm, stat } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import sharp from 'sharp';
@@ -26,27 +26,35 @@ const WEBP_3X2 = await sharp({
 describe('planShowcaseImages', () => {
   const plan = planShowcaseImages(SHOWCASE_DIRECTIONS, SHOWCASE_IMAGES);
 
-  it('plans 4 logos, 2 heroes, 2 interiors, and 2 illustrations per direction', () => {
-    expect(plan).toHaveLength(30);
-    for (const direction of ['A', 'B', 'C']) {
-      const ids = plan.filter((item) => item.direction === direction).map((item) => item.id);
-      expect(ids).toEqual([
-        ...[1, 2, 3, 4].map((n) => `${direction}-LOGO-${String(n)}`),
-        `${direction}-HERO-1`,
-        `${direction}-HERO-2`,
-        `${direction}-INT-1`,
-        `${direction}-INT-2`,
-        `${direction}-ILL-1`,
-        `${direction}-ILL-2`,
+  it('plans B unchanged (4 logos) and 2 logos for each Hearth variant, then 2 of each photo kind', () => {
+    expect(plan).toHaveLength(26);
+    expect(new Set(plan.map((item) => item.direction))).toEqual(new Set(['B', 'B2', 'B3']));
+    const rest = (direction: string) => [
+      `${direction}-HERO-1`,
+      `${direction}-HERO-2`,
+      `${direction}-INT-1`,
+      `${direction}-INT-2`,
+      `${direction}-ILL-1`,
+      `${direction}-ILL-2`,
+    ];
+    const idsOf = (direction: string) =>
+      plan.filter((item) => item.direction === direction).map((item) => item.id);
+    expect(idsOf('B')).toEqual([...[1, 2, 3, 4].map((n) => `B-LOGO-${String(n)}`), ...rest('B')]);
+    for (const direction of ['B2', 'B3']) {
+      expect(idsOf(direction)).toEqual([
+        `${direction}-LOGO-1`,
+        `${direction}-LOGO-2`,
+        ...rest(direction),
       ]);
     }
-    expect(new Set(plan.map((item) => item.file)).size).toBe(30);
+    expect(new Set(plan.map((item) => item.file)).size).toBe(26);
+    expect(new Set(plan.map((item) => item.prompt)).size).toBe(26);
   });
 
   it('gives square logos and illustrations, 3:2 photos, and WebP files under the direction', () => {
-    expect(plan.find((item) => item.id === 'A-LOGO-1')).toMatchObject({
+    expect(plan.find((item) => item.id === 'B2-LOGO-1')).toMatchObject({
       kind: 'logo-concept',
-      file: 'A/logo-1.webp',
+      file: 'B2/logo-1.webp',
       size: '1024x1024',
     });
     expect(plan.find((item) => item.id === 'B-HERO-2')).toMatchObject({
@@ -54,14 +62,14 @@ describe('planShowcaseImages', () => {
       file: 'B/hero-2.webp',
       size: '1536x1024',
     });
-    expect(plan.find((item) => item.id === 'C-INT-1')).toMatchObject({
+    expect(plan.find((item) => item.id === 'B3-INT-1')).toMatchObject({
       kind: 'interior',
-      file: 'C/interior-1.webp',
+      file: 'B3/interior-1.webp',
       size: '1536x1024',
     });
-    expect(plan.find((item) => item.id === 'C-ILL-2')).toMatchObject({
+    expect(plan.find((item) => item.id === 'B3-ILL-2')).toMatchObject({
       kind: 'illustration',
-      file: 'C/illustration-2.webp',
+      file: 'B3/illustration-2.webp',
       size: '1024x1024',
     });
   });
@@ -79,8 +87,8 @@ describe('planShowcaseImages', () => {
 
   it('rejects a spec for an unknown direction', () => {
     expect(() =>
-      planShowcaseImages(SHOWCASE_DIRECTIONS.slice(0, 1), [
-        { direction: 'B', kind: 'hero', subject: 'x' },
+      planShowcaseImages(SHOWCASE_DIRECTIONS.slice(0, 2), [
+        { direction: 'B3', kind: 'hero', subject: 'x' },
       ]),
     ).toThrow(ShowcasePlanError);
   });
@@ -125,7 +133,7 @@ describe('generateShowcaseImages (stubbed fetch, no network)', () => {
   const estimateCost = createTokenPriceEstimator({ [MODEL]: { usdPerImage: 0.01 } });
   const clients = createMetaClients({ apiKey: 'k', usage, estimateCost, maxRetries: 0 });
   const plan = planShowcaseImages(SHOWCASE_DIRECTIONS, SHOWCASE_IMAGES).filter((item) =>
-    ['A-LOGO-1', 'A-HERO-1'].includes(item.id),
+    ['B2-LOGO-1', 'B2-HERO-1'].includes(item.id),
   );
   const requests: Request[] = [];
   let outDir: string;
@@ -190,8 +198,8 @@ describe('generateShowcaseImages (stubbed fetch, no network)', () => {
     });
     expect(await requests[1]?.json()).toMatchObject({ size: '1536x1024' });
 
-    expect(await readFile(path.join(outDir, 'A', 'logo-1.webp'))).toEqual(WEBP_3X2);
-    expect((await stat(path.join(outDir, 'A', 'hero-1.webp'))).isFile()).toBe(true);
+    expect(await readFile(path.join(outDir, 'B2', 'logo-1.webp'))).toEqual(WEBP_3X2);
+    expect((await stat(path.join(outDir, 'B2', 'hero-1.webp'))).isFile()).toBe(true);
     const manifest = showcaseManifestSchema.parse(
       JSON.parse(await readFile(path.join(outDir, 'manifest.json'), 'utf8')),
     );
@@ -210,7 +218,7 @@ describe('generateShowcaseImages (stubbed fetch, no network)', () => {
       })),
     });
     expect(result).toMatchObject({
-      generated: ['A-LOGO-1', 'A-HERO-1'],
+      generated: ['B2-LOGO-1', 'B2-HERO-1'],
       kept: [],
       failed: [],
       notAttempted: [],
@@ -224,25 +232,60 @@ describe('generateShowcaseImages (stubbed fetch, no network)', () => {
 
     const again = await run();
     expect(requests).toHaveLength(0);
-    expect(again).toMatchObject({ generated: [], kept: ['A-LOGO-1', 'A-HERO-1'] });
+    expect(again).toMatchObject({ generated: [], kept: ['B2-LOGO-1', 'B2-HERO-1'] });
     expect(again.manifest.items).toHaveLength(2);
 
-    const redo = await run({ only: new Set(['A-HERO-1']) });
+    const redo = await run({ only: new Set(['B2-HERO-1']) });
     expect(requests).toHaveLength(1);
     expect(await requests[0]?.json()).toMatchObject({ size: '1536x1024' });
-    expect(redo).toMatchObject({ generated: ['A-HERO-1'], kept: ['A-LOGO-1'] });
-    expect(redo.manifest.items.map((item) => item.id)).toEqual(['A-LOGO-1', 'A-HERO-1']);
+    expect(redo).toMatchObject({ generated: ['B2-HERO-1'], kept: ['B2-LOGO-1'] });
+    expect(redo.manifest.items.map((item) => item.id)).toEqual(['B2-LOGO-1', 'B2-HERO-1']);
+  });
+
+  it('drops earlier manifest items that are no longer planned', async () => {
+    const [kept] = plan;
+    if (kept === undefined) throw new Error('plan too short');
+    const unplanned = { ...kept, id: 'B3-LOGO-1', file: 'B3/logo-1.webp' };
+    const entry = (item: PlannedShowcaseImage) => ({
+      id: item.id,
+      direction: item.direction,
+      kind: item.kind,
+      file: item.file,
+      prompt: item.prompt,
+      width: 3,
+      height: 2,
+    });
+    for (const item of [kept, unplanned]) {
+      await mkdir(path.join(outDir, path.dirname(item.file)), { recursive: true });
+      await writeFile(path.join(outDir, item.file), WEBP_3X2);
+    }
+    await writeFile(
+      path.join(outDir, 'manifest.json'),
+      JSON.stringify({
+        generatedAt: '2026-10-29T12:00:00.000Z',
+        toolsOff: 'generations',
+        items: [entry(kept), { ...entry(kept), id: unplanned.id, file: unplanned.file }],
+      }),
+    );
+
+    const result = await run();
+    expect(requests).toHaveLength(1);
+    expect(result).toMatchObject({ generated: ['B2-HERO-1'], kept: ['B2-LOGO-1'] });
+    const manifest = showcaseManifestSchema.parse(
+      JSON.parse(await readFile(path.join(outDir, 'manifest.json'), 'utf8')),
+    );
+    expect(manifest.items.map((item) => item.id)).toEqual(['B2-LOGO-1', 'B2-HERO-1']);
   });
 
   it('starts no call that could exceed the spend cap', async () => {
     const result = await run({ maxUsd: 0.015 });
     expect(requests).toHaveLength(1);
-    expect(result).toMatchObject({ generated: ['A-LOGO-1'], notAttempted: ['A-HERO-1'] });
-    expect(result.manifest.items.map((item) => item.id)).toEqual(['A-LOGO-1']);
+    expect(result).toMatchObject({ generated: ['B2-LOGO-1'], notAttempted: ['B2-HERO-1'] });
+    expect(result.manifest.items.map((item) => item.id)).toEqual(['B2-LOGO-1']);
   });
 
   it('rejects unknown IDs in only before any call', async () => {
-    await expect(run({ only: new Set(['A-LOGO-9']) })).rejects.toThrow(ShowcasePlanError);
+    await expect(run({ only: new Set(['B2-LOGO-9']) })).rejects.toThrow(ShowcasePlanError);
     expect(requests).toHaveLength(0);
   });
 });
