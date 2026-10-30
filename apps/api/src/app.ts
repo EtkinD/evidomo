@@ -21,7 +21,12 @@ import { createProjectApiRouter, type AppProjectDeps } from './projects/compose.
 import type { RunEngine } from './runs/engine.ts';
 import { createRunEventSource } from './run-api/event-source.ts';
 import { createRunEventStreams, type RunEventStreamOptions } from './run-api/event-stream.ts';
-import { createProjectRunsRouter, createRunApiRouter } from './run-api/routes.ts';
+import { createRunResumer } from './run-api/resume.ts';
+import {
+  createProjectRunsRouter,
+  createRunApiRouter,
+  createRunResumeRouter,
+} from './run-api/routes.ts';
 import { runCostVisibility, type RunCostVisibility } from './run-api/cost-visibility.ts';
 import { createRunApiService } from './run-api/service.ts';
 import type { Storage } from './storage/storage.ts';
@@ -48,10 +53,11 @@ export function appConfigFromEnv(
 /** What the run routes need from the run engine and the definitions loaded at boot. */
 export interface AppRunDeps {
   /**
-   * Gate decisions resume the run in their own transaction (no workers in the API process);
-   * project deletion discards the runs' pending jobs in its transaction.
+   * Gate decisions and the resume of a failed run resume the run in their own transaction (no
+   * workers in the API process); project deletion discards the runs' pending jobs in its
+   * transaction.
    */
-  engine: Pick<RunEngine, 'resumeAfterGate' | 'startRun' | 'discardPendingJobs'>;
+  engine: Pick<RunEngine, 'resumeAfterGate' | 'startRun' | 'resumeRun' | 'discardPendingJobs'>;
   markets: Pick<DefinitionRegistry, 'getMarket'>;
   /** The run snapshot lists the definition's steps and its cost cap. */
   services: Pick<DefinitionRegistry, 'getService'>;
@@ -123,6 +129,7 @@ export function createApp({ db, logger, config, runs, storage, projects, demo }:
     db: db.db,
     services: runs.services,
     costs: config.runCosts,
+    dailyCapUsd: projects.dailyCapUsd,
   });
   const eventSource = createRunEventSource(db.db);
   const streams = createRunEventStreams({
@@ -135,6 +142,22 @@ export function createApp({ db, logger, config, runs, storage, projects, demo }:
   // Before the gate router: its `router.use` (session, JSON guard, no-store) would otherwise run
   // on every run API request too. These routes guard themselves per route.
   app.use('/api/runs', createRunApiRouter({ service: runApi, streams, storage, session, logger }));
+  app.use(
+    '/api/runs',
+    createRunResumeRouter({
+      resumer: createRunResumer({
+        db: db.db,
+        engine: runs.engine,
+        services: runs.services,
+        dailyCapUsd: projects.dailyCapUsd,
+        logger,
+      }),
+      service: runApi,
+      session,
+      // Resuming spends live model credit like a start: the same guard array (shared limits).
+      ...(projects.runStartGuards === undefined ? {} : { runStartGuards: projects.runStartGuards }),
+    }),
+  );
   app.use('/api/projects', createProjectRunsRouter({ service: runApi, session }));
   app.use('/api/runs', createGateRouter({ gate, claimAudit, session, logger }));
   // Public and read-only: no session, its own per-IP limit (docs/architecture.md §5 "Demo API").

@@ -8,22 +8,25 @@ import { sendError, sendValidationError } from '../http/errors.ts';
 import type { Logger } from '../logger.ts';
 
 // Live-run access control (P4-10, docs/architecture.md §8 "Start a run" and §14): the guards
-// `AppProjectDeps.runStartGuards` runs after `requireUser` and before the run start handler.
+// `AppProjectDeps.runStartGuards` runs after `requireUser` and before the run start handler and
+// the run resume handler (P5-03; a resume spends live model credit like a start). One guard array
+// is mounted on both routes, so starts and resumes share the limiters and the allowance.
 // 1. The access code (only when `LIVE_RUN_ACCESS_CODE` is configured): a missing or wrong code is
 //    403 `access_code_invalid`; wrong codes are limited per client IP, so the code cannot be
 //    guessed online.
-// 2. Run starts per account and per client IP (429 `run_limit_reached`). Only starts that
-//    actually start a run (201) count: a hit is reserved before the handler runs and refunded
-//    when the response is anything else (`not_ready`, `run_active`, `daily_budget_reached`, …).
-// The global daily budget cap stays in the run start itself (`daily_budget_reached`).
+// 2. Run starts per account and per client IP (429 `run_limit_reached`). Only requests that
+//    actually put a run to work (a 2xx: 201 for a start, 200 for a resume) count: a hit is
+//    reserved before the handler runs and refunded when the response is anything else
+//    (`not_ready`, `run_active`, `run_not_resumable`, `daily_budget_reached`, …).
+// The global daily budget cap stays in the handlers themselves (`daily_budget_reached`).
 
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
 
 export interface RunStartLimits {
-  /** Run starts (201) per account. */
+  /** Run starts and resumes (2xx) per account. */
   readonly perAccount: RateLimit;
-  /** Run starts (201) per client IP, across accounts. */
+  /** Run starts and resumes (2xx) per client IP, across accounts. */
   readonly perIp: RateLimit;
   /** Wrong access codes per client IP. */
   readonly accessCodeFailuresPerIp: RateLimit;
@@ -158,10 +161,10 @@ export function createRunStartGuards(deps: RunStartGuardsDeps): RequestHandler[]
       );
       return;
     }
-    // A response that did not start a run gives the reservation back. A client that disconnects
-    // before the response finishes keeps it spent: the run may still have started.
+    // A response that did not start or resume a run gives the reservation back. A client that
+    // disconnects before the response finishes keeps it spent: the run may still have started.
     res.once('finish', () => {
-      if (res.statusCode === 201) return;
+      if (res.statusCode >= 200 && res.statusCode < 300) return;
       perAccount.refund(userId, account.windowResetAt);
       perIp.refund(ip, byIp.windowResetAt);
     });

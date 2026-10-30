@@ -3,7 +3,7 @@ import { and, asc, eq, sql } from 'drizzle-orm';
 import type { PgUpdateSetSource } from 'drizzle-orm/pg-core';
 import type { Executor } from '../client.ts';
 import { InvalidRunTransitionError, NotFoundError } from '../errors.ts';
-import { projects, runs } from '../schema.ts';
+import { materials, projects, runs } from '../schema.ts';
 import { appendRunEvent } from './run-events.ts';
 import { returnedRow } from './rows.ts';
 
@@ -108,6 +108,27 @@ export async function listRunsForProject(db: Executor, projectId: string): Promi
     .from(runs)
     .where(eq(runs.projectId, projectId))
     .orderBy(asc(runs.createdAt), asc(runs.id));
+}
+
+/**
+ * Whether the run's project changed after the run was created: `projects.updated_at` (title,
+ * office profile, fact form, and, through `touchProject`, material uploads and deletions) or a
+ * material created later. Compared in SQL, at the database's microsecond precision. The run's own
+ * start writes the project (`draft → active`) with its transaction's `now()`, which precedes the
+ * run's `created_at` (`clock_timestamp()`), so it does not count. False for an unknown run.
+ */
+export async function projectChangedSinceRun(db: Executor, runId: string): Promise<boolean> {
+  const [row] = await db
+    .select({
+      changed: sql<boolean>`(${projects.updatedAt} > ${runs.createdAt} or exists (
+        select 1 from ${materials}
+        where ${materials.projectId} = ${projects.id} and ${materials.createdAt} > ${runs.createdAt}
+      ))`,
+    })
+    .from(runs)
+    .innerJoin(projects, eq(projects.id, runs.projectId))
+    .where(eq(runs.id, runId));
+  return row?.changed === true;
 }
 
 /**

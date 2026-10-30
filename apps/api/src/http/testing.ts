@@ -14,6 +14,7 @@ export function unusedRunDeps(): AppRunDeps {
     engine: {
       resumeAfterGate: unusedEngine,
       startRun: unusedEngine,
+      resumeRun: unusedEngine,
       discardPendingJobs: unusedEngine,
     },
     markets: {

@@ -6,10 +6,12 @@ import {
   runEventsQuerySchema,
   runFactParamsSchema,
   runMaterialParamsSchema,
+  resumeRunRequestSchema,
   runParamsSchema,
   RUN_FACT_MASK_PNG,
   type ExportFileRole,
   type ProjectRunsResponse,
+  type ResumeRunResponse,
   type RunExportResponse,
   type RunSnapshot,
 } from '@evidomo/shared';
@@ -19,10 +21,12 @@ import { currentUser, type SessionMiddleware } from '../auth/session.ts';
 import type { Run } from '../db/repositories/runs.ts';
 import { PACK_CONTENT_SECURITY_POLICY } from '../export/html.ts';
 import { sendError, sendValidationError } from '../http/errors.ts';
+import { requireJsonBody } from '../http/guards.ts';
 import type { Logger } from '../logger.ts';
 import type { Storage } from '../storage/storage.ts';
 import type { RunEventStreams } from './event-stream.ts';
 import { encodeMaskPng } from './mask.ts';
+import type { RunResumer } from './resume.ts';
 import {
   etagMatches,
   sendStoredFile,
@@ -394,5 +398,59 @@ export function createProjectRunsRouter({ service, session }: ProjectRunsRouterD
     }
     res.json({ runs } satisfies ProjectRunsResponse);
   });
+  return router;
+}
+
+export interface RunResumeRouterDeps {
+  readonly resumer: RunResumer;
+  readonly service: RunApiService;
+  readonly session: SessionMiddleware;
+  /**
+   * The run start guards (`createRunStartGuards`, P4-10), the same array as the run start route,
+   * so starts and resumes share one allowance. None when omitted (development and tests).
+   */
+  readonly runStartGuards?: readonly RequestHandler[];
+}
+
+/**
+ * `POST /api/runs/:runId/resume` (P5-03), mounted at `/api/runs` with per-route guards like the
+ * other run routes. The Origin check runs app-wide; `requireJsonBody` and the run start guards
+ * run here, after authentication and before the handler.
+ */
+export function createRunResumeRouter({
+  resumer,
+  service,
+  session,
+  runStartGuards = [],
+}: RunResumeRouterDeps): Router {
+  const router = Router();
+  router.post(
+    '/:runId/resume',
+    session.requireUser,
+    noStore,
+    requireJsonBody,
+    ...runStartGuards,
+    async (req, res) => {
+      const params = parseOr400(runParamsSchema, req.params, res);
+      if (params === undefined) return;
+      // A bodiless POST is an empty request, as for a run start.
+      if (parseOr400(resumeRunRequestSchema, req.body ?? {}, res) === undefined) return;
+      const userId = currentUser(req).id;
+      const outcome = await resumer.resume(userId, params.runId);
+      if (outcome.kind === 'refused') {
+        sendError(res, outcome.reason === 'not_found' ? 404 : 409, outcome.reason);
+        return;
+      }
+      // After the commit, through the snapshot read the GET route uses (cost visibility
+      // included); a worker may already have moved the run on.
+      const snapshot = await service.snapshot(userId, outcome.run.id);
+      if (snapshot === undefined) {
+        // Only if the run failed again and its project was deleted in between.
+        sendError(res, 404, 'not_found');
+        return;
+      }
+      res.json({ run: snapshot } satisfies ResumeRunResponse);
+    },
+  );
   return router;
 }

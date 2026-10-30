@@ -17,6 +17,7 @@ import {
   getProjectForOwner,
   listProjectsWithCountsForOwner,
   lockProjectForOwner,
+  touchProject,
   updateProject,
   type Project,
 } from '../db/repositories/projects.ts';
@@ -275,7 +276,11 @@ export function createProjectService(deps: ProjectServiceDeps): ProjectService {
     async deleteMaterial(ownerId, projectId, materialId) {
       const deleted = await db.transaction(async (tx) => {
         await lockEditable(tx, ownerId, projectId);
-        return deleteProjectMaterial(tx, projectId, materialId);
+        const removed = await deleteProjectMaterial(tx, projectId, materialId);
+        // A deletion leaves no row behind: the project's `updated_at` records it, so a failed run
+        // created before it is no longer resumable (`projectChangedSinceRun`).
+        if (removed !== undefined) await touchProject(tx, projectId);
+        return removed;
       });
       if (deleted === undefined) throw notFound();
       // After the commit: the row is gone either way, and a file without a row is harmless,

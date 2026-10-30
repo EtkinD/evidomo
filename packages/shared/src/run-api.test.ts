@@ -9,6 +9,11 @@ import {
   runFactMaskUrl,
   runMaterialFileUrl,
   projectMaterialFileUrl,
+  RESUME_REFUSAL_CODES,
+  RUN_RESUMABILITY_VALUES,
+  resumeRunRequestSchema,
+  resumeRunResponseSchema,
+  runResumeUrl,
   runSnapshotSchema,
   runStreamEventSchema,
   runSummarySchema,
@@ -92,6 +97,7 @@ describe('URL builders', () => {
     expect(projectMaterialFileUrl(uuid, '../x', { download: true })).toBe(
       `/api/projects/${uuid}/materials/..%2Fx/file?download=1`,
     );
+    expect(runResumeUrl(uuid)).toBe(`/api/runs/${uuid}/resume`);
     expect(runEventsUrl(uuid)).toBe(`/api/runs/${uuid}/events`);
     expect(runEventsUrl(uuid, 7)).toBe(`/api/runs/${uuid}/events?after=7`);
     expect(runMaterialFileUrl(uuid, other)).toBe(`/api/runs/${uuid}/materials/${other}/file`);
@@ -114,6 +120,18 @@ describe('URL builder input', () => {
     expect(runEventsUrl(uuid, 0)).toBe(`/api/runs/${uuid}/events?after=0`);
     for (const bad of [-1, 1.5, Number.NaN, Number.POSITIVE_INFINITY]) {
       expect(() => runEventsUrl(uuid, bad), String(bad)).toThrow(RangeError);
+    }
+  });
+});
+
+describe('resumeRunRequestSchema', () => {
+  it('takes the run start body: an optional, trimmed access code and nothing else', () => {
+    expect(resumeRunRequestSchema.parse({})).toEqual({});
+    expect(resumeRunRequestSchema.parse({ accessCode: ' code \n' })).toEqual({
+      accessCode: 'code',
+    });
+    for (const body of [{ accessCode: '' }, { accessCode: 3 }, { accessCode: 'x', extra: true }]) {
+      expect(resumeRunRequestSchema.safeParse(body).success).toBe(false);
     }
   });
 });
@@ -192,6 +210,27 @@ describe('cost keys in snapshots and summaries', () => {
     ]) {
       expect(runSnapshotSchema.safeParse(mixed).success).toBe(false);
     }
+  });
+
+  it('carries the resume state when present and refuses an unknown one', () => {
+    expect(runSnapshotSchema.parse({ ...snapshot, resume: 'budget_exhausted' }).resume).toBe(
+      'budget_exhausted',
+    );
+    expect(runSnapshotSchema.safeParse({ ...snapshot, resume: 'maybe' }).success).toBe(false);
+    // Every refusal maps to the endpoint's 409 code; only `available` has none.
+    expect(RUN_RESUMABILITY_VALUES.filter((value) => !(value in RESUME_REFUSAL_CODES))).toEqual([
+      'available',
+    ]);
+  });
+
+  it('wraps the same snapshot in a resume response, with or without costs', () => {
+    expect(resumeRunResponseSchema.parse({ run: snapshot })).toEqual({ run: snapshot });
+    const hidden = { run: { ...hiddenSnapshot, steps: [hiddenStep] } };
+    expect(resumeRunResponseSchema.parse(hidden)).toEqual(hidden);
+    expect(
+      resumeRunResponseSchema.safeParse({ run: { ...snapshot, steps: [hiddenStep] } }).success,
+    ).toBe(false);
+    expect(resumeRunResponseSchema.safeParse({ run: snapshot, extra: 1 }).success).toBe(false);
   });
 
   it('accepts a run summary with and without its cost', () => {

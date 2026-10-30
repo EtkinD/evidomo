@@ -20,7 +20,7 @@ import { createProjectRouter } from './routes.ts';
 /** What the project and input routes (P4-02 … P4-04) need beyond the app's own dependencies. */
 export interface AppProjectDeps {
   definitions: Pick<DefinitionRegistry, 'markets' | 'getMarket' | 'getService'>;
-  /** `DAILY_BUDGET_USD`, checked before a run is started. */
+  /** `DAILY_BUDGET_USD`, checked before a run is started or resumed. */
   dailyCapUsd: string;
   /** Defaults to `UPLOAD_LIMITS`; tests pass small limits. */
   uploadLimits?: UploadLimits;
@@ -31,7 +31,10 @@ export interface AppProjectDeps {
   uploadTempDir?: string;
   /** In-flight uploads per user and per process; defaults to 2 and 6. */
   uploadSlots?: UploadSlotLimits;
-  /** Access code and run limits (`createRunStartGuards`, P4-10), run before a run starts. */
+  /**
+   * Access code and run limits (`createRunStartGuards`, P4-10), run before a run starts or a
+   * failed run is resumed (`POST /api/runs/:runId/resume`, the same array: shared limits).
+   */
   runStartGuards?: readonly RequestHandler[];
 }
 

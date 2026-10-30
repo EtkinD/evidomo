@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { ApiErrorCode } from './api-error.ts';
 import { stepAgentSchema } from './definitions.ts';
 import {
   gateSchema,
@@ -8,6 +9,7 @@ import {
   type RunStatus,
 } from './domain.ts';
 import { exportManifestContentSchema } from './export.ts';
+import { startRunRequestSchema } from './projects.ts';
 import {
   claimsAuditedPayloadSchema,
   copyGeneratedPayloadSchema,
@@ -167,6 +169,11 @@ export function projectRunsUrl(projectId: string): string {
   return `/api/projects/${pathSegment(projectId)}/runs`;
 }
 
+/** `POST` resumes a failed run (`resumeRunRequestSchema` → `resumeRunResponseSchema`). */
+export function runResumeUrl(runId: string): string {
+  return `/api/runs/${pathSegment(runId)}/resume`;
+}
+
 /**
  * The mask overlay format: an RGBA PNG exactly the stored photo's width and height (the frame
  * the photo file and SAM's boxes share). Mask pixels are opaque white, every other pixel fully
@@ -227,6 +234,43 @@ export const runExportSummarySchema = z.strictObject({
 });
 export type RunExportSummary = z.infer<typeof runExportSummarySchema>;
 
+/**
+ * Whether the owner can resume the run (`POST /api/runs/:runId/resume`), decided by the same
+ * function as the endpoint, in the order the endpoint checks:
+ * - `not_failed`: only a `failed` run resumes (also every demo run, which is completed);
+ * - `definition_unavailable`: the run's service definition version is no longer deployed;
+ * - `other_run_active`: another run of the project is queued, running, or at a gate;
+ * - `budget_exhausted`: the run's own spend reached its cost cap, so it would fail again on its
+ *   first model call (start a new run);
+ * - `inputs_changed`: the project's inputs (or its title) changed after the run was created, so
+ *   its completed steps no longer match them (start a new run on the current inputs);
+ * - `daily_budget_reached`: today's live-run budget is used up; resumable once the day allows;
+ * - `available`: the run passes every run-level rule. The request may still need the access code
+ *   and run allowance (403 / 429), and the endpoint decides again under its locks.
+ * States only, never amounts (cost visibility, docs/architecture.md §10).
+ */
+export const RUN_RESUMABILITY_VALUES = [
+  'available',
+  'not_failed',
+  'definition_unavailable',
+  'other_run_active',
+  'budget_exhausted',
+  'inputs_changed',
+  'daily_budget_reached',
+] as const;
+export const runResumabilitySchema = z.enum(RUN_RESUMABILITY_VALUES);
+export type RunResumability = z.infer<typeof runResumabilitySchema>;
+
+/** The 409 code `POST /api/runs/:runId/resume` answers for each value other than `available`. */
+export const RESUME_REFUSAL_CODES = {
+  not_failed: 'run_not_resumable',
+  definition_unavailable: 'run_not_resumable',
+  other_run_active: 'run_active',
+  budget_exhausted: 'run_budget_exhausted',
+  inputs_changed: 'run_not_resumable',
+  daily_budget_reached: 'daily_budget_reached',
+} as const satisfies Record<Exclude<RunResumability, 'available'>, ApiErrorCode>;
+
 const runCommon = {
   id: z.uuid(),
   projectId: z.uuid(),
@@ -263,6 +307,11 @@ export const runSnapshotSchema = z
     maxExecutionsPerAttempt: z.int().positive(),
     /** The definition's steps in order, then any stored step it no longer lists. */
     steps: z.array(runStepSnapshotSchema),
+    /**
+     * Whether Resume is possible and, if not, why (`runResumabilitySchema`). Always sent by the
+     * API; optional in the schema only so snapshots built before the field existed still parse.
+     */
+    resume: runResumabilitySchema.optional(),
     /** Null until the export step has stored its manifest. */
     export: runExportSummarySchema.nullable(),
   })
@@ -288,6 +337,30 @@ export type RunSummary = z.infer<typeof runSummarySchema>;
 /** `GET /api/projects/:projectId/runs`: newest first. */
 export const projectRunsResponseSchema = z.strictObject({ runs: z.array(runSummarySchema) });
 export type ProjectRunsResponse = z.infer<typeof projectRunsResponseSchema>;
+
+/**
+ * `POST /api/runs/:runId/resume` (an empty object or no body when no access code is configured):
+ * a `failed` run continues from its failed step; completed steps are not run again. Resuming
+ * spends live model credit like a start, so the body is the run start's (`startRunRequestSchema`)
+ * and the same guards apply: the access code (403 `access_code_invalid`), the run allowance per
+ * account and per IP, which starts and resumes share (429 `run_limit_reached` / `rate_limited`
+ * with `Retry-After`), and the global daily cap (409 `daily_budget_reached`).
+ */
+export const resumeRunRequestSchema = startRunRequestSchema;
+export type ResumeRunRequest = z.infer<typeof resumeRunRequestSchema>;
+
+/**
+ * 200 from `POST /api/runs/:runId/resume`: the run's snapshot right after it was queued again,
+ * the same shape (and cost visibility) as `GET /api/runs/:runId`. Its status is `running` (the
+ * failed step has a new attempt), or `awaiting_gate` when the run had failed at a gate it had not
+ * passed yet. Refusals: 404 `not_found`; 409 `run_not_resumable` (the run is not `failed`, its
+ * definition version is no longer deployed, or the project's inputs changed after the run was
+ * created), `run_active` (another run of the project is active), `run_budget_exhausted` (the
+ * run's own spend reached its cap: start a new run), `daily_budget_reached`. The snapshot's
+ * `resume` says in advance which of these applies (`RESUME_REFUSAL_CODES`).
+ */
+export const resumeRunResponseSchema = z.strictObject({ run: runSnapshotSchema });
+export type ResumeRunResponse = z.infer<typeof resumeRunResponseSchema>;
 
 // --- Event stream -----------------------------------------------------------------------------
 

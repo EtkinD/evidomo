@@ -33,7 +33,12 @@ import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { appConfigFromEnv, createApp } from '../app.ts';
 import { addMaterial, listMaterials } from '../db/repositories/materials.ts';
 import { getProject as getProjectRow, lockProject } from '../db/repositories/projects.ts';
-import { getRun, listRunsForProject, transitionRun } from '../db/repositories/runs.ts';
+import {
+  getRun,
+  listRunsForProject,
+  projectChangedSinceRun,
+  transitionRun,
+} from '../db/repositories/runs.ts';
 import { seedProject, startTestDatabase, type TestDatabase } from '../db/testing.ts';
 import { loadDefinitions, type DefinitionRegistry } from '../definitions/loader.ts';
 import { loadEnv } from '../env.ts';
@@ -911,6 +916,7 @@ describe.skipIf(!runFfmpegTests)('POST /api/projects/:projectId/runs', () => {
       engine: {
         resumeAfterGate: () => Promise.reject(new Error('unused')),
         startRun: () => Promise.reject(new Error('must not start')),
+        resumeRun: () => Promise.reject(new Error('unused')),
         discardPendingJobs: () => Promise.reject(new Error('unused')),
       },
     });
@@ -1075,6 +1081,33 @@ describe.skipIf(!runFfmpegTests)('input lock after runs', () => {
       expect([locked.status, errorOf(locked).error]).toEqual([409, 'inputs_locked']);
     }
   });
+
+  it('records every input change after a failed run, so that run is no longer resumable', async () => {
+    const { project, materials } = await readyProject();
+    const failed = startRunResponseSchema.parse(
+      (await owner.agent.post(`/api/projects/${project.id}/runs`).send({})).body,
+    ).run;
+    await transitionRun(testDb.db, failed.id, { to: 'failed', reason: 'Step "intake" failed' });
+    // Starting the run wrote the project (`draft → active`) without counting as a change.
+    expect(await projectChangedSinceRun(testDb.db, failed.id)).toBe(false);
+
+    const updatedAt = async (): Promise<number> =>
+      (await getProjectRow(testDb.db, project.id))?.updatedAt.getTime() ?? Number.NaN;
+    const changes: [string, () => Promise<{ status: number }>][] = [
+      ['upload', async () => uploadPhoto(project.id, await tinyJpeg(91))],
+      [
+        'material deletion',
+        () =>
+          owner.agent.delete(`/api/projects/${project.id}/materials/${String(materials[0]?.id)}`),
+      ],
+    ];
+    for (const [change, act] of changes) {
+      const before = await updatedAt();
+      expect([change, (await act()).status]).toEqual([change, change === 'upload' ? 201 : 204]);
+      expect([change, (await updatedAt()) > before]).toEqual([change, true]);
+    }
+    expect(await projectChangedSinceRun(testDb.db, failed.id)).toBe(true);
+  });
 });
 
 describe('upload slots', () => {
@@ -1200,6 +1233,7 @@ describe('failure handling', () => {
       engine: {
         resumeAfterGate: () => Promise.reject(new Error('unused')),
         startRun: () => Promise.reject(new Error('enqueue failed')),
+        resumeRun: () => Promise.reject(new Error('unused')),
         discardPendingJobs: () => Promise.reject(new Error('unused')),
       },
     });

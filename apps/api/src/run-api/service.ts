@@ -31,6 +31,7 @@ import { DefinitionNotFoundError, type DefinitionRegistry } from '../definitions
 import { MAX_STEP_EXECUTIONS } from '../runs/queue.ts';
 import { disclosedReason, type RunCostVisibility } from './cost-visibility.ts';
 import { observationRegions, renderMaskLayer, type MaskLayerResult } from './mask.ts';
+import { decideResumability } from './resume.ts';
 
 // Reads behind the run, evidence, and export routes (docs/architecture.md §5 "Run API"). Every
 // entry point takes the requesting user and answers `undefined` both for a missing ID and for one
@@ -42,10 +43,13 @@ export interface RunApiServiceDeps {
   readonly db: Executor;
   readonly services: Pick<DefinitionRegistry, 'getService'>;
   /**
-   * `hidden`: snapshots and summaries carry no cost keys (and no ledger is read for them), and
-   * failure reasons and step errors state budget failures without amounts.
+   * `hidden`: snapshots and summaries carry no cost keys (and no ledger is read for them, except
+   * by a failed run's `resume` decision, which yields a state, never an amount), and failure
+   * reasons and step errors state budget failures without amounts.
    */
   readonly costs: RunCostVisibility;
+  /** `DAILY_BUDGET_USD`, for the snapshot's `resume` (`decideResumability`). */
+  readonly dailyCapUsd: string;
 }
 
 function iso(date: Date | null): string | null {
@@ -210,7 +214,12 @@ export interface RunApiService {
   exportFile(run: Run, artifactId: string): Promise<ServableExportFile | undefined>;
 }
 
-export function createRunApiService({ db, services, costs }: RunApiServiceDeps): RunApiService {
+export function createRunApiService({
+  db,
+  services,
+  costs,
+  dailyCapUsd,
+}: RunApiServiceDeps): RunApiService {
   const disclosed = costs === 'visible';
 
   async function runArtifact(run: Run, artifactId: string): Promise<Artifact | undefined> {
@@ -236,6 +245,8 @@ export function createRunApiService({ db, services, costs }: RunApiServiceDeps):
         const stepCost = (stepId: string): string | undefined =>
           stepCosts === undefined ? undefined : (stepCosts.get(stepId) ?? ZERO_USD);
         const stored = await loadRunExport(tx, run.id);
+        // The endpoint's own rule set, in this snapshot's transaction; states only, no amounts.
+        const resume = await decideResumability(tx, run, { services, dailyCapUsd });
 
         const attemptsByStep = new Map<string, RunStep[]>();
         for (const row of rows) {
@@ -269,6 +280,7 @@ export function createRunApiService({ db, services, costs }: RunApiServiceDeps):
           ...(disclosed ? { costCapUsd: service?.budget.max_cost_usd_per_run ?? null } : {}),
           maxExecutionsPerAttempt: MAX_STEP_EXECUTIONS,
           steps,
+          resume,
           export:
             stored === undefined
               ? null

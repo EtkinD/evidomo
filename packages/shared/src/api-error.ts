@@ -52,6 +52,12 @@ export const apiErrorCodeSchema = z.enum([
   // Starting a live run: this account or this IP used its run starts for the window (429 with
   // `Retry-After`). Wrong access codes are throttled with `rate_limited` instead.
   'run_limit_reached',
+  // Resuming a run: the run is not `failed` (running, at a gate, completed, or resumed by a
+  // concurrent request), its definition version is gone, or the project's inputs changed since
+  // the run was created (start a new run on the current inputs instead).
+  'run_not_resumable',
+  // Resuming a run: its own spend reached the run's cost cap, so it cannot finish by resuming.
+  'run_budget_exhausted',
   'internal_error',
 ]);
 

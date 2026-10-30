@@ -101,6 +101,21 @@ export async function lockProject(db: Executor, projectId: string): Promise<Proj
   return row && toProject(row);
 }
 
+/**
+ * Marks the project as changed (`updated_at = now()`) without changing a column. Material uploads
+ * and deletions call it in their transaction, so `updated_at` covers every input change: a failed
+ * run is resumable only while its project has not changed since the run was created
+ * (`projectChangedSinceRun`).
+ */
+export async function touchProject(db: Executor, projectId: string): Promise<void> {
+  const rows = await db
+    .update(projects)
+    .set({ updatedAt: sql`now()` })
+    .where(eq(projects.id, projectId))
+    .returning({ id: projects.id });
+  if (rows.length === 0) throw new NotFoundError('project', projectId);
+}
+
 export interface ProjectChanges {
   title?: string;
   officeProfile?: OfficeProfile;

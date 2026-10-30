@@ -12,7 +12,7 @@ import {
   listMaterials,
   type Material,
 } from '../db/repositories/materials.ts';
-import { lockProject } from '../db/repositories/projects.ts';
+import { lockProject, touchProject } from '../db/repositories/projects.ts';
 import { listRunsForProject } from '../db/repositories/runs.ts';
 import type { Logger } from '../logger.ts';
 import { inputsLocked } from '../projects/input-lock.ts';
@@ -139,6 +139,9 @@ export function createMaterialCommitter(db: Executor, capture: CaptureInputs): M
         }
         throwIfAborted(input.signal);
         const material = await insertReadyMaterial(tx, input.projectId, prepared, stored);
+        // Input changed: a failed run created before it is no longer resumable (a replaced
+        // voice memo leaves no row behind to compare with).
+        await touchProject(tx, input.projectId);
         return { material, replacedKeys };
       });
     },

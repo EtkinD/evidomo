@@ -160,6 +160,8 @@ export function describeAuthFailure(
     case 'daily_budget_reached':
     case 'access_code_invalid':
     case 'run_limit_reached':
+    case 'run_not_resumable':
+    case 'run_budget_exhausted':
     case null:
       return { kind: 'message', message: t('errors.generic') };
     default: {

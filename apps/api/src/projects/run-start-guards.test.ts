@@ -14,8 +14,10 @@ import {
 
 // The P4-10 guards in front of a stand-in run start handler: the access code (correct, wrong,
 // missing, not configured), the wrong-code limit per IP, and the run start limits per account
-// and per IP, which only count starts that answered 201. The wiring in front of the real route
-// is covered by projects.integration.test.ts.
+// and per IP, which only count requests that put a run to work (2xx: a start's 201, a resume's
+// 200; P5-03 mounts the same guards on both routes, so they share one allowance). The wiring in
+// front of the real routes is covered by projects.integration.test.ts and
+// run-api/run-resume.integration.test.ts.
 
 const CODE = 'synthetic-test-access-code';
 const HOUR = 60 * 60 * 1000;
@@ -58,21 +60,24 @@ function harness(
   // The client IP comes from X-Forwarded-For here, as behind Caddy in production.
   app.set('trust proxy', 1);
   app.use(express.json());
-  app.post(
-    '/runs',
-    ...createRunStartGuards({
-      accessCode: options.accessCode,
-      limits: options.limits ?? LIMITS,
-      logger,
-      now: () => time,
-      userIdOf: (req) => req.get('x-test-user') ?? 'user-1',
-    }),
-    async (req, res) => {
-      handled += 1;
-      const status = (await options.status?.(req, res)) ?? 201;
-      res.status(status).json({ ok: status === 201 });
-    },
-  );
+  const guards = createRunStartGuards({
+    accessCode: options.accessCode,
+    limits: options.limits ?? LIMITS,
+    logger,
+    now: () => time,
+    userIdOf: (req) => req.get('x-test-user') ?? 'user-1',
+  });
+  app.post('/runs', ...guards, async (req, res) => {
+    handled += 1;
+    const status = (await options.status?.(req, res)) ?? 201;
+    res.status(status).json({ ok: status === 201 });
+  });
+  // A stand-in resume handler behind the same guard array, as `createApp` mounts it.
+  app.post('/resume', ...guards, async (req, res) => {
+    handled += 1;
+    const status = (await options.status?.(req, res)) ?? 200;
+    res.status(status).json({ ok: status === 200 });
+  });
   return {
     app,
     logs: () => logged,
@@ -216,6 +221,27 @@ describe('run start limits', () => {
     }
     // Two 201s used the account's allowance of 2; the refusals before them did not count.
     expect((await start(h.app, {})).status).toBe(429);
+  });
+
+  it('shares one allowance between starts and resumes, and counts a resume that answered 200', async () => {
+    const statuses = [409, 200];
+    const h = harness({
+      status: (req) => (req.path === '/resume' ? (statuses.shift() ?? 200) : 201),
+    });
+    const resume = (): request.Test =>
+      request(h.app)
+        .post('/resume')
+        .set('x-test-user', 'user-1')
+        .set('X-Forwarded-For', '203.0.113.1')
+        .send({});
+    // A refused resume (409) is refunded; the 200 is not.
+    expect((await resume()).status).toBe(409);
+    expect((await resume()).status).toBe(200);
+    expect((await start(h.app, {})).status).toBe(201);
+    // Allowance of 2 used by one resume and one start: both routes are refused now.
+    for (const limited of [await start(h.app, {}), await resume()]) {
+      expect([limited.status, errorOf(limited)]).toEqual([429, 'run_limit_reached']);
+    }
   });
 
   it('gives the full allowance back after refusals while a start was still in flight', async () => {
