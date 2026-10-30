@@ -37,8 +37,15 @@ vitest.config.ts
 # Local data
 **/uploads
 **/data
+# Dev-only design exploration images (gitignored; public/ is copied into the web image)
+apps/web/public/showcase-assets
+# The dev-only design showcase never ships (its routes use a dev-only page extension) and
+# reads test fixtures, which are not in the build context either.
+apps/web/src/showcase
+apps/web/src/pages/showcase
 
 # Not needed in any image
+apps/web/scripts
 docs
 infra
 docker-compose.yml
