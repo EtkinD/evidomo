@@ -36,6 +36,7 @@
 | `npm run dev:seed -- --owner <email> [--stop-at gate1\|gate2\|completed] [--path <id>] [project-dir]` | Local fixture run for a registered account, zero model calls; `--path` picks a recorded Gate 1 path    |
 | `npm run dev:worker:replay [-- <project-dir>]`                                                        | Instead of `dev:worker`: continues seeded runs along any recorded path                                 |
 | `npm run pipeline -- <project-dir> --list-paths`                                                      | Lists the recorded Gate 1 paths of a project's cassette                                                |
+| `npm run storage:sweep -- [--delete --bind] [--min-age-hours n]`                                      | Lists (or deletes) stored project folders with no database row; operator only                          |
 
 ## Security
 
