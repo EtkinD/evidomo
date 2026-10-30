@@ -8,4 +8,8 @@ import type { NextPage } from 'next';
  */
 export type PageAuth = 'required' | 'guest';
 
-export type NextPageWithAuth<P = object> = NextPage<P> & { auth?: PageAuth };
+/**
+ * `bare` pages render without the product shell and auth gate. Only the dev-only design
+ * showcase uses it.
+ */
+export type NextPageWithAuth<P = object> = NextPage<P> & { auth?: PageAuth; bare?: boolean };

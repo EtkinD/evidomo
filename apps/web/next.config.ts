@@ -20,10 +20,33 @@ function apiProxyOrigin(): string {
   return url.origin;
 }
 
+const DEFAULT_PAGE_EXTENSIONS = ['tsx', 'ts', 'jsx', 'js'];
+
+// `*.dev.mts` files under src/pages are routes only on the dev server (the design showcase).
+// The extension deliberately does not end in `.ts`/`.tsx`: Next matches `index.dev.tsx` against
+// the `tsx` extension and would build it as the route `/index.dev` in production. In a production
+// build the file is not a page, so it is never compiled or bundled.
+export function pageExtensionsFor(phase: string): string[] {
+  return phase === PHASE_DEVELOPMENT_SERVER
+    ? [...DEFAULT_PAGE_EXTENSIONS, 'dev.mts']
+    : DEFAULT_PAGE_EXTENSIONS;
+}
+
+// The showcase's candidate themes (src/styles/showcase.css) are global CSS, which Next only
+// accepts from `_app`. `_app` imports the `showcase-styles` alias; production builds resolve it to
+// an empty file, so none of the candidate CSS is emitted.
+export function showcaseStylesFor(phase: string): string {
+  return phase === PHASE_DEVELOPMENT_SERVER
+    ? './src/styles/showcase.css'
+    : './src/styles/showcase-off.css';
+}
+
 export default function nextConfig(phase: string): NextConfig {
   return {
     reactStrictMode: true,
     poweredByHeader: false,
+    pageExtensions: pageExtensionsFor(phase),
+    turbopack: { resolveAlias: { 'showcase-styles': showcaseStylesFor(phase) } },
     // @evidomo/shared ships raw TypeScript (no build step). Listing it makes Next compile it and
     // bundle it into the routes, so the production image needs no shared sources at runtime.
     transpilePackages: ['@evidomo/shared'],

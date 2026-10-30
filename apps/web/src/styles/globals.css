@@ -1,5 +1,10 @@
 @import 'tailwindcss';
 
+/* The dev-only design showcase has its own stylesheet (showcase.css); keep its utilities out of
+   the product CSS. */
+@source not '../showcase';
+@source not '../pages/showcase';
+
 /* Built-in themes are off: the app uses only the Evidomo themes below. Their tokens are the
    single source of colour, radius, and size (see the evidomo-theme skill). */
 @plugin "daisyui" {

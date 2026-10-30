@@ -7,6 +7,10 @@ import type { NextPageWithAuth } from '../lib/page-auth';
 import { createQueryClient } from '../lib/query-client';
 import '../styles/globals.css';
 
+// Design showcase candidate themes. next.config.ts aliases this module to the real stylesheet on
+// the dev server and to an empty one in production builds. Removed with the showcase after P4B-02.
+import 'showcase-styles';
+
 type AppPropsWithAuth = AppProps & { Component: NextPageWithAuth };
 
 export default function App({ Component, pageProps }: AppPropsWithAuth) {
@@ -15,12 +19,16 @@ export default function App({ Component, pageProps }: AppPropsWithAuth) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AppShell>
-        {/* Pages opt in with `Page.auth`; public pages (and the demo replay) set nothing. */}
-        <AuthGate mode={Component.auth}>
-          <Component {...pageProps} />
-        </AuthGate>
-      </AppShell>
+      {Component.bare ? (
+        <Component {...pageProps} />
+      ) : (
+        <AppShell>
+          {/* Pages opt in with `Page.auth`; public pages (and the demo replay) set nothing. */}
+          <AuthGate mode={Component.auth}>
+            <Component {...pageProps} />
+          </AuthGate>
+        </AppShell>
+      )}
     </QueryClientProvider>
   );
 }

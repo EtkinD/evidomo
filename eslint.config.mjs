@@ -57,5 +57,9 @@ export default defineConfig([
 
   ...nextForWeb,
 
+  // eslint-config-next assigns its Babel parser to `.mts` (it only swaps in the TypeScript parser
+  // for .ts/.tsx). The dev-only showcase routes are `*.dev.mts`, so they need the typed parser.
+  { files: [`${webDir}/**/*.mts`], languageOptions: { parser: tseslint.parser } },
+
   prettier,
 ]);
