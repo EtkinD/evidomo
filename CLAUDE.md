@@ -37,6 +37,7 @@
 | `npm run dev:worker:replay [-- <project-dir>]`                                                        | Instead of `dev:worker`: continues seeded runs along any recorded path                                 |
 | `npm run pipeline -- <project-dir> --list-paths`                                                      | Lists the recorded Gate 1 paths of a project's cassette                                                |
 | `npm run storage:sweep -- [--delete --bind] [--min-age-hours n]`                                      | Lists (or deletes) stored project folders with no database row; operator only                          |
+| `npm run eval [-- --mode record\|live --sets <ids> --max-usd <n>]`                                    | Seeded-defect eval; fixture replay by default (zero model calls), report in `data/eval/`               |
 
 ## Security
 
