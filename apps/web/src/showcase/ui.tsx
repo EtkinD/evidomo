@@ -30,7 +30,18 @@ export function ModeSwitch() {
  * Page frame of every showcase page. The chrome uses the product theme; candidates sit inside
  * `DirectionScope`s with their own theme.
  */
-export function ShowcaseShell({ title, children }: { title: string; children: ReactNode }) {
+export function ShowcaseShell({
+  title,
+  children,
+  wide = false,
+  intro,
+}: {
+  title: string;
+  children: ReactNode;
+  /** Full-width content below the title (the combination's sample pages); `intro` sits above it. */
+  wide?: boolean;
+  intro?: ReactNode;
+}) {
   const { mode } = useMode();
   const router = useRouter();
   return (
@@ -51,7 +62,9 @@ export function ShowcaseShell({ title, children }: { title: string; children: Re
         <nav aria-label="Showcase pages" className="mx-auto mt-1 max-w-6xl">
           <ul className="flex flex-wrap gap-x-2">
             {SUB_PAGES.map((page) => {
-              const current = router.pathname === `/showcase/${page.slug}`;
+              const current =
+                router.pathname === `/showcase/${page.slug}` ||
+                router.pathname.startsWith(`/showcase/${page.slug}/`);
               return (
                 <li key={page.slug}>
                   <Link
@@ -69,11 +82,14 @@ export function ShowcaseShell({ title, children }: { title: string; children: Re
           </ul>
         </nav>
       </header>
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
-        <h1 className="mb-1 text-3xl font-bold">{title}</h1>
-        <p className="mb-6 text-sm text-base-content/70">
-          Give feedback by ID, for example &ldquo;B2-COL-2 yes, B3-TYPE-1 no&rdquo;.
-        </p>
+      <main className={wide ? 'w-full flex-1' : 'mx-auto w-full max-w-6xl flex-1 px-4 py-6'}>
+        <div className={wide ? 'mx-auto w-full max-w-6xl px-4 pt-6' : ''}>
+          <h1 className="mb-1 text-3xl font-bold">{title}</h1>
+          <p className="mb-6 text-sm text-base-content/70">
+            Give feedback by ID, for example &ldquo;B2-COL-2 yes, B3-TYPE-1 no&rdquo;.
+          </p>
+          {intro}
+        </div>
         {children}
       </main>
     </div>

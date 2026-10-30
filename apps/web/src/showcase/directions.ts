@@ -38,6 +38,12 @@ export const DIRECTIONS: readonly Direction[] = [
 
 export const SUB_PAGES = [
   {
+    slug: 'combo',
+    label: 'Combination',
+    summary:
+      'The founder’s mix as real sample pages: B2 colours, B3 type and shape, new logo marks.',
+  },
+  {
     slug: 'colors',
     label: 'Colours',
     summary: 'Palettes by role, light and dark, with measured contrast.',

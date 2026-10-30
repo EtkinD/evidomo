@@ -11,7 +11,7 @@ import {
   variantTitle,
   warningText,
 } from '../lib/claim-audit';
-import { runEvidenceUrls } from '../lib/evidence-urls';
+import { runEvidenceUrls, type EvidenceUrls } from '../lib/evidence-urls';
 import { withNext } from '../lib/next-path';
 import { useRunSnapshotRef } from '../lib/fact-conflicts';
 import { useMarketForm } from '../lib/projects';
@@ -185,7 +185,14 @@ function VariantBlock({
   );
 }
 
-export function ClaimAuditView({ runId }: { runId: string }) {
+/** `urls` overrides where the evidence files are served from (default: the owner's run routes). */
+export function ClaimAuditView({
+  runId,
+  urls: urlsOverride,
+}: {
+  runId: string;
+  urls?: EvidenceUrls;
+}) {
   const gate = useClaimAudit(runId);
   const snapshot = useRunSnapshotRef(runId);
   const marketQuery = useMarketForm(
@@ -195,7 +202,7 @@ export function ClaimAuditView({ runId }: { runId: string }) {
   );
   const market = marketQuery.data?.market;
   const labels = useMemo(() => labelsFor(market), [market]);
-  const urls = useMemo(() => runEvidenceUrls(runId), [runId]);
+  const urls = useMemo(() => urlsOverride ?? runEvidenceUrls(runId), [runId, urlsOverride]);
   const actions = useClaimAuditActions(runId);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editingIds, setEditingIds] = useState<ReadonlySet<string>>(new Set());

@@ -19,7 +19,7 @@ import {
   type EditResult,
 } from '../lib/conflict-edit';
 import { formatFactValue, keyLabel } from '../lib/evidence';
-import { runEvidenceUrls } from '../lib/evidence-urls';
+import { runEvidenceUrls, type EvidenceUrls } from '../lib/evidence-urls';
 import {
   decisionSummary,
   describeDecisionFailure,
@@ -467,7 +467,14 @@ function SessionExpired({ runId }: { runId: string }) {
   );
 }
 
-export function FactConflictsView({ runId }: { runId: string }) {
+/** `urls` overrides where the evidence files are served from (default: the owner's run routes). */
+export function FactConflictsView({
+  runId,
+  urls: urlsOverride,
+}: {
+  runId: string;
+  urls?: EvidenceUrls;
+}) {
   const gate = useFactConflicts(runId);
   const snapshot = useRunSnapshotRef(runId);
   const marketQuery = useMarketForm(
@@ -482,7 +489,7 @@ export function FactConflictsView({ runId }: { runId: string }) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const decide = useDecideConflict(runId);
   const labels = useMemo(() => labelsFor(market), [market]);
-  const urls = useMemo(() => runEvidenceUrls(runId), [runId]);
+  const urls = useMemo(() => urlsOverride ?? runEvidenceUrls(runId), [runId, urlsOverride]);
 
   if (gate.data === undefined) {
     if (!gate.isError) {

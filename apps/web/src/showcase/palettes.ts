@@ -188,3 +188,13 @@ export const PALETTES: Readonly<Record<DirectionId, Readonly<Record<Mode, Palett
     },
   },
 };
+
+// Round 3 combination, marked "showcase candidate, removed after P4B-02": B2's colours with B3's
+// shape tokens. It shares the B2 palette object, so the palette test stays the single source of
+// truth for the colour values.
+export const COMBO_THEME_NAMES: Readonly<Record<Mode, string>> = {
+  light: 'combo-light',
+  dark: 'combo-dark',
+};
+export const COMBO_PALETTES: Readonly<Record<Mode, Palette>> = PALETTES.B2;
+export const COMBO_SHAPE: ThemeShape = SHAPES.B3;

@@ -238,6 +238,85 @@
 }
 
 /*
+ * COMBINATION (round 3), showcase candidate, removed after P4B-02: B2 Hearth Clay colours with
+ * B3 Hearth Canal's radius tokens. Colour values are copied from B2 and a test keeps them equal to
+ * `PALETTES.B2`.
+ */
+@plugin "daisyui/theme" {
+  name: 'combo-light';
+  default: false;
+  prefersdark: false;
+  color-scheme: light;
+
+  --color-base-100: oklch(98.8% 0.008 85);
+  --color-base-200: oklch(96.5% 0.014 85);
+  --color-base-300: oklch(92.5% 0.02 80);
+  --color-base-content: oklch(30% 0.025 50);
+  --color-primary: oklch(52% 0.1 42);
+  --color-primary-content: oklch(99% 0.008 70);
+  --color-secondary: oklch(44% 0.06 135);
+  --color-secondary-content: oklch(98% 0.01 135);
+  --color-accent: oklch(85% 0.1 85);
+  --color-accent-content: oklch(30% 0.05 65);
+  --color-neutral: oklch(36% 0.025 55);
+  --color-neutral-content: oklch(97% 0.01 80);
+  --color-info: oklch(48% 0.07 235);
+  --color-info-content: oklch(98% 0.01 235);
+  --color-success: oklch(47% 0.08 150);
+  --color-success-content: oklch(98% 0.01 150);
+  --color-warning: oklch(84% 0.12 85);
+  --color-warning-content: oklch(30% 0.06 65);
+  --color-error: oklch(50% 0.16 25);
+  --color-error-content: oklch(98% 0.01 25);
+
+  --radius-selector: 0.5rem;
+  --radius-field: 0.5rem;
+  --radius-box: 0.875rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}
+
+@plugin "daisyui/theme" {
+  name: 'combo-dark';
+  default: false;
+  prefersdark: false;
+  color-scheme: dark;
+
+  --color-base-100: oklch(25% 0.016 55);
+  --color-base-200: oklch(22% 0.014 55);
+  --color-base-300: oklch(19% 0.012 55);
+  --color-base-content: oklch(93% 0.012 85);
+  --color-primary: oklch(77% 0.09 45);
+  --color-primary-content: oklch(22% 0.035 45);
+  --color-secondary: oklch(77% 0.07 135);
+  --color-secondary-content: oklch(21% 0.03 135);
+  --color-accent: oklch(84% 0.09 85);
+  --color-accent-content: oklch(25% 0.045 65);
+  --color-neutral: oklch(34% 0.022 55);
+  --color-neutral-content: oklch(93% 0.012 85);
+  --color-info: oklch(77% 0.07 235);
+  --color-info-content: oklch(21% 0.03 235);
+  --color-success: oklch(77% 0.09 150);
+  --color-success-content: oklch(21% 0.03 150);
+  --color-warning: oklch(84% 0.11 85);
+  --color-warning-content: oklch(25% 0.05 65);
+  --color-error: oklch(74% 0.13 25);
+  --color-error-content: oklch(21% 0.04 25);
+
+  --radius-selector: 0.5rem;
+  --radius-field: 0.5rem;
+  --radius-box: 0.875rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}
+
+/*
  * Font roles per direction. next/font/google exposes each family as a CSS variable
  * (showcase/fonts.ts); neither daisyUI nor Tailwind can map a role to a family per direction
  * without arbitrary values, so the three roles are plain classes here.
@@ -254,10 +333,20 @@
   --sc-mono: ui-monospace, monospace;
 }
 
-[data-direction='B3'] {
+[data-direction='B3'],
+[data-direction='combo'] {
   --sc-display: var(--font-sc-newsreader), Georgia, serif;
   --sc-body: var(--font-sc-source-sans), system-ui, sans-serif;
   --sc-mono: ui-monospace, monospace;
+}
+
+/*
+ * The combination shows the product's own components (gate views, evidence cards), which carry no
+ * display-font class. Headings and card titles take the display face here, which previews the one
+ * global heading rule the final theme would hold.
+ */
+[data-direction='combo'] :is(h1, h2, h3, h4, .card-title) {
+  font-family: var(--sc-display);
 }
 
 .sc-display {
