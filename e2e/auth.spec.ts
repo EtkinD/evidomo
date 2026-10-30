@@ -31,7 +31,10 @@ test('register, log out, get redirected to login, and log back in', async ({ pag
   await page.getByRole('button', { name: /Account menu/ }).click();
   await page.getByRole('button', { name: 'Log out' }).click();
   await expect(page).toHaveURL('/');
-  await expect(page.getByRole('link', { name: 'Log in' })).toBeVisible();
+  // The landing page repeats Log in in its calls to action; the header's is the signed-out marker.
+  await expect(
+    page.getByRole('navigation', { name: 'Account' }).getByRole('link', { name: 'Log in' }),
+  ).toBeVisible();
   await page.goto('/projects');
   await expect(page).toHaveURL('/login?next=%2Fprojects');
   await expect(projectsHeading).toBeHidden();
