@@ -2,6 +2,7 @@ import { PASSWORD_MIN_LENGTH, type AuthUserResponse } from '@evidomo/shared';
 import type { UseMutationResult } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useId, useRef, useState, type FormEvent } from 'react';
+import { useTranslations } from 'use-intl';
 import {
   AUTH_FIELDS,
   describeAuthFailure,
@@ -19,16 +20,17 @@ interface AuthFormProps {
   loginHref: string;
 }
 
-const COPY = {
-  login: { submit: 'Log in', passwordAutoComplete: 'current-password' },
-  register: { submit: 'Create account', passwordAutoComplete: 'new-password' },
-} as const satisfies Record<AuthFormMode, { submit: string; passwordAutoComplete: string }>;
+const AUTOCOMPLETE = {
+  login: 'current-password',
+  register: 'new-password',
+} as const satisfies Record<AuthFormMode, string>;
 
 /**
  * Email and password form for login and registration. On success it does not navigate: the
  * mutation stores the user in the `me` cache and the page's `GuestOnly` guard redirects to `next`.
  */
 export function AuthForm({ mode, mutation, loginHref }: AuthFormProps) {
+  const t = useTranslations('auth');
   const id = useId();
   const ids = {
     email: `${id}-email`,
@@ -57,7 +59,7 @@ export function AuthForm({ mode, mutation, loginHref }: AuthFormProps) {
     setFormError(null);
     setEmailTaken(false);
 
-    const validation = validateAuthForm(mode, values);
+    const validation = validateAuthForm(t, mode, values);
     if (!validation.ok) {
       setFieldErrors(validation.fields);
       focusFirstInvalid(validation.fields);
@@ -68,7 +70,7 @@ export function AuthForm({ mode, mutation, loginHref }: AuthFormProps) {
     const submitted = values;
     mutation.mutate(validation.data, {
       onError: (error) => {
-        const failure = describeAuthFailure(error, mode, submitted);
+        const failure = describeAuthFailure(t, error, mode, submitted);
         switch (failure.kind) {
           case 'fields':
             setFieldErrors(failure.fields);
@@ -109,7 +111,7 @@ export function AuthForm({ mode, mutation, loginHref }: AuthFormProps) {
 
       <div className="fieldset">
         <label htmlFor={ids.email} className="fieldset-legend">
-          Email
+          {t('email')}
         </label>
         <input
           ref={emailInput}
@@ -134,9 +136,10 @@ export function AuthForm({ mode, mutation, loginHref }: AuthFormProps) {
         )}
         {fieldErrors.email === undefined && emailTaken && (
           <p id={ids.emailError} className="text-sm text-error">
-            <span aria-hidden>× </span>An account with this email already exists.{' '}
+            <span aria-hidden>× </span>
+            {t('emailTaken')}{' '}
             <Link href={loginHref} className="link inline-flex min-h-11 items-center font-medium">
-              Log in instead
+              {t('logInInstead')}
             </Link>
           </p>
         )}
@@ -144,14 +147,14 @@ export function AuthForm({ mode, mutation, loginHref }: AuthFormProps) {
 
       <div className="fieldset">
         <label htmlFor={ids.password} className="fieldset-legend">
-          Password
+          {t('password')}
         </label>
         <input
           ref={passwordInput}
           id={ids.password}
           name="password"
           type="password"
-          autoComplete={COPY[mode].passwordAutoComplete}
+          autoComplete={AUTOCOMPLETE[mode]}
           required
           value={values.password}
           onChange={(event) => onChange('password', event.target.value)}
@@ -161,7 +164,7 @@ export function AuthForm({ mode, mutation, loginHref }: AuthFormProps) {
         />
         {mode === 'register' && (
           <p id={ids.passwordHint} className="text-sm text-base-content/70">
-            At least {PASSWORD_MIN_LENGTH} characters.
+            {t('passwordHint', { min: PASSWORD_MIN_LENGTH })}
           </p>
         )}
         {fieldErrors.password !== undefined && (
@@ -178,7 +181,7 @@ export function AuthForm({ mode, mutation, loginHref }: AuthFormProps) {
         disabled={mutation.isPending}
       >
         {mutation.isPending && <span className="loading loading-spinner loading-sm" aria-hidden />}
-        {COPY[mode].submit}
+        {mode === 'login' ? t('login.submit') : t('register.submit')}
       </button>
     </form>
   );

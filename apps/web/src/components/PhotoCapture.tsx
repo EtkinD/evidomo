@@ -1,21 +1,19 @@
 import type { ProjectDetailResponse, ProjectMaterial } from '@evidomo/shared';
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { projectMaterialFileUrl } from '@evidomo/shared';
+import { useTranslations } from 'use-intl';
 import { useDeleteMaterial, useRefreshProject } from '../lib/materials';
 import { usePhotoUploads, type PhotoItem } from '../lib/photo-upload-queue';
 import { describeRequestFailure } from '../lib/request-failure';
 
-function plural(count: number): string {
-  return count === 1 ? '1 photo' : `${count} photos`;
-}
-
 function Thumbnail({ src, label }: { src: string; label: string }) {
+  const t = useTranslations('capture');
   const [failed, setFailed] = useState(false);
   // The stored-file endpoint may be missing or the file gone: keep the tile, drop the image.
   if (failed) {
     return (
       <div className="flex aspect-4/3 items-center justify-center rounded-field bg-base-200 p-2 text-center text-sm text-base-content/70">
-        Preview unavailable
+        {t('photos.previewUnavailable')}
       </div>
     );
   }
@@ -41,7 +39,8 @@ interface StoredTileProps {
 }
 
 function StoredTile({ projectId, material, preview, locked, deleting, onDelete }: StoredTileProps) {
-  const label = `Photo ${material.position}`;
+  const t = useTranslations('capture');
+  const label = t('photos.photoN', { position: material.position });
   return (
     <li className="flex flex-col gap-2">
       <Thumbnail src={preview ?? projectMaterialFileUrl(projectId, material.id)} label={label} />
@@ -52,12 +51,12 @@ function StoredTile({ projectId, material, preview, locked, deleting, onDelete }
             type="button"
             id={`delete-photo-${material.id}`}
             className="btn btn-ghost min-h-11"
-            aria-label={`Delete ${label.toLowerCase()}`}
+            aria-label={t('photos.deleteLabel', { position: material.position })}
             disabled={deleting}
             onClick={() => onDelete(material)}
           >
             {deleting && <span className="loading loading-spinner loading-xs" aria-hidden />}
-            Delete
+            {t('photos.delete')}
           </button>
         )}
       </div>
@@ -73,16 +72,17 @@ interface QueueTileProps {
 }
 
 function QueueTile({ item, onRetry, onSkip, onDismiss }: QueueTileProps) {
+  const t = useTranslations('capture');
   let status;
   switch (item.status) {
     case 'queued':
-      status = <span className="text-sm text-base-content/70">Waiting to upload</span>;
+      status = <span className="text-sm text-base-content/70">{t('photos.waiting')}</span>;
       break;
     case 'preparing':
       status = (
         <span className="flex items-center gap-2 text-sm text-base-content/70">
           <span className="loading loading-spinner loading-xs" aria-hidden />
-          Preparing…
+          {t('photos.preparing')}
         </span>
       );
       break;
@@ -90,7 +90,7 @@ function QueueTile({ item, onRetry, onSkip, onDismiss }: QueueTileProps) {
       status = (
         <progress
           className="progress progress-primary w-full"
-          aria-label={`Uploading ${item.name}`}
+          aria-label={t('photos.uploadingLabel', { name: item.name })}
           value={Math.round(item.progress * 100)}
           max={100}
         />
@@ -100,19 +100,19 @@ function QueueTile({ item, onRetry, onSkip, onDismiss }: QueueTileProps) {
       status = (
         <span className="flex items-center gap-2 text-sm text-base-content/70">
           <span className="loading loading-spinner loading-xs" aria-hidden />
-          Server busy, trying again shortly…
+          {t('photos.busy')}
         </span>
       );
       break;
     case 'paused':
       status = (
-        <p className="text-sm text-error">
-          Upload paused: {item.error} The photos after this one are waiting.
-        </p>
+        <p className="text-sm text-error">{t('photos.paused', { error: item.error ?? '' })}</p>
       );
       break;
     case 'failed':
-      status = <p className="text-sm text-error">Skipped: {item.error}</p>;
+      status = (
+        <p className="text-sm text-error">{t('photos.skippedWhy', { error: item.error ?? '' })}</p>
+      );
       break;
     default: {
       const unreachable: never = item.status;
@@ -136,18 +136,18 @@ function QueueTile({ item, onRetry, onSkip, onDismiss }: QueueTileProps) {
           <button
             type="button"
             className="btn btn-outline min-h-11"
-            aria-label={`Retry ${item.name}`}
+            aria-label={t('photos.retryLabel', { name: item.name })}
             onClick={() => onRetry(item.id)}
           >
-            Retry
+            {t('photos.retry')}
           </button>
           <button
             type="button"
             className="btn btn-ghost min-h-11"
-            aria-label={`Skip ${item.name}`}
+            aria-label={t('photos.skipLabel', { name: item.name })}
             onClick={() => onSkip(item.id)}
           >
-            Skip this photo
+            {t('photos.skip')}
           </button>
         </div>
       )}
@@ -155,20 +155,20 @@ function QueueTile({ item, onRetry, onSkip, onDismiss }: QueueTileProps) {
         <button
           type="button"
           className="btn btn-ghost min-h-11 w-fit"
-          aria-label={`Skip ${item.name}`}
+          aria-label={t('photos.skipLabel', { name: item.name })}
           onClick={() => onSkip(item.id)}
         >
-          Skip this photo
+          {t('photos.skip')}
         </button>
       )}
       {item.status === 'failed' && (
         <button
           type="button"
           className="btn btn-ghost min-h-11 w-fit"
-          aria-label={`Remove ${item.name}`}
+          aria-label={t('photos.removeLabel', { name: item.name })}
           onClick={() => onDismiss(item.id)}
         >
-          Remove
+          {t('photos.remove')}
         </button>
       )}
     </li>
@@ -184,6 +184,8 @@ export function PhotoCapture({
   /** True while photos are being prepared, uploaded, or paused: leaving would lose them. */
   onPendingChange: (pending: boolean) => void;
 }) {
+  const t = useTranslations('capture');
+  const tApi = useTranslations('apiErrors');
   const projectId = detail.project.id;
   const { photos } = detail.readiness;
   const locked = detail.readiness.inputsLocked;
@@ -192,6 +194,8 @@ export function PhotoCapture({
   const refresh = useRefreshProject(projectId);
   const { queue, state } = usePhotoUploads({
     projectId,
+    t,
+    tApi,
     getCapacity: () => photos.max - photos.count,
     refresh,
   });
@@ -232,7 +236,7 @@ export function PhotoCapture({
           neighbour === undefined ? 'photos-heading' : `delete-photo-${neighbour.id}`;
         // The remaining count keeps repeated deletions distinct for a screen reader.
         setDeleteAnnouncement(
-          `Photo ${material.position} deleted. ${plural(stored.length - 1)} left.`,
+          t('photos.deleted', { position: material.position, left: stored.length - 1 }),
         );
       },
     });
@@ -251,29 +255,29 @@ export function PhotoCapture({
     <section aria-labelledby="photos-heading" className="card border border-base-300 bg-base-100">
       <div className="card-body gap-4">
         <h2 id="photos-heading" tabIndex={-1} className="card-title text-2xl">
-          Photos
+          {t('photos.title')}
         </h2>
 
         <div className="flex flex-wrap items-center gap-2">
           <p>
             <span className="font-medium">
-              {photos.count} of {photos.max}
-            </span>{' '}
-            photos
+              {t('photos.countOf', { count: photos.count, max: photos.max })}
+            </span>
             {photos.required && (
-              <span className="text-base-content/70"> · at least {photos.min} needed</span>
+              <span className="text-base-content/70">
+                {' '}
+                · {t('photos.atLeast', { min: photos.min })}
+              </span>
             )}
           </p>
           {photos.required && photos.count >= photos.min && (
-            <span className="badge badge-success">Enough photos</span>
+            <span className="badge badge-success">{t('photos.enough')}</span>
           )}
         </div>
 
         {locked ? (
           <div role="note" className="alert alert-info">
-            <span>
-              A run has been started, so the photos are locked: the run cites them as evidence.
-            </span>
+            <span>{t('photos.locked')}</span>
           </div>
         ) : (
           <div className="flex flex-col gap-2 sm:flex-row">
@@ -283,7 +287,7 @@ export function PhotoCapture({
               accept="image/*"
               capture="environment"
               className="hidden"
-              aria-label="Camera"
+              aria-label={t('photos.camera')}
               onChange={onChosen}
             />
             <input
@@ -292,7 +296,7 @@ export function PhotoCapture({
               accept="image/*"
               multiple
               className="hidden"
-              aria-label="Photo files"
+              aria-label={t('photos.files')}
               onChange={onChosen}
             />
             {/* The camera only exists as a separate action on touch devices; elsewhere the
@@ -303,7 +307,7 @@ export function PhotoCapture({
               disabled={full}
               onClick={() => cameraRef.current?.click()}
             >
-              Take photo
+              {t('photos.take')}
             </button>
             <button
               type="button"
@@ -311,14 +315,12 @@ export function PhotoCapture({
               disabled={full}
               onClick={() => pickRef.current?.click()}
             >
-              Choose photos
+              {t('photos.choose')}
             </button>
           </div>
         )}
         {!locked && full && (
-          <p className="text-sm text-base-content/70">
-            The project holds {photos.max} photos at most. Delete one to add another.
-          </p>
+          <p className="text-sm text-base-content/70">{t('photos.full', { max: photos.max })}</p>
         )}
         {state.notice !== null && (
           <div role="alert" className="alert alert-warning">
@@ -327,12 +329,14 @@ export function PhotoCapture({
         )}
         {remove.isError && (
           <div role="alert" className="alert alert-error">
-            <span>Could not delete the photo. {describeRequestFailure(remove.error)}</span>
+            <span>
+              {t('photos.deleteFailed', { reason: describeRequestFailure(tApi, remove.error) })}
+            </span>
           </div>
         )}
 
         {stored.length === 0 && state.items.length === 0 ? (
-          <p className="text-base-content/70">No photos yet.</p>
+          <p className="text-base-content/70">{t('photos.none')}</p>
         ) : (
           <ul
             aria-labelledby="photos-heading"

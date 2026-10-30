@@ -2,6 +2,7 @@ import type { RunExportFile, RunExportResponse } from '@evidomo/shared';
 import type { UseQueryResult } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useRef } from 'react';
+import { useFormatter, useTranslations } from 'use-intl';
 import { ApiRequestError } from '../lib/api';
 import { formatBytes } from '../lib/pack';
 import { useRunSource } from '../lib/run-source';
@@ -15,34 +16,37 @@ import { LoadErrorState, LoadingState, RunNotFound, SessionExpiredState } from '
  */
 export const PACK_SANDBOX = 'allow-same-origin allow-modals';
 
-const FILE_LABELS: Record<RunExportFile['role'], string> = {
-  html: 'Listing pack (HTML)',
-  portal_fields: 'Portal fields (JSON)',
-  image: 'Image',
-};
+const FILE_LABEL_KEYS = {
+  html: 'files.html',
+  portal_fields: 'files.portalFields',
+  image: 'files.image',
+} as const satisfies Record<RunExportFile['role'], string>;
 
 function FileRow({ file }: { file: RunExportFile }) {
+  const t = useTranslations('pack');
+  const format = useFormatter();
   return (
     <li className="flex flex-wrap items-center justify-between gap-2 rounded-box border border-base-300 bg-base-100 p-3">
       <div className="min-w-0">
         <p className="truncate font-medium">{file.fileName}</p>
         <p className="text-sm text-base-content/70">
-          {FILE_LABELS[file.role]} · {formatBytes(file.sizeBytes)}
+          {t(FILE_LABEL_KEYS[file.role])} · {formatBytes(t, format, file.sizeBytes)}
         </p>
       </div>
       <a
         href={file.downloadUrl}
         download={file.fileName}
         className="btn min-h-11"
-        aria-label={`Download ${file.fileName}`}
+        aria-label={t('downloadLabel', { name: file.fileName })}
       >
-        Download
+        {t('download')}
       </a>
     </li>
   );
 }
 
 function PackReady({ pack }: { pack: RunExportResponse }) {
+  const t = useTranslations('pack');
   const frame = useRef<HTMLIFrameElement>(null);
   const [html, ...rest] = pack.files;
   if (html === undefined) return null;
@@ -68,19 +72,18 @@ function PackReady({ pack }: { pack: RunExportResponse }) {
       {pack.readyToPublish ? (
         <div role="status" className="alert alert-success">
           <span>
-            <span aria-hidden>✓ </span>Ready to publish: every publication check passed.
+            <span aria-hidden>✓ </span>
+            {t('ready')}
           </span>
         </div>
       ) : (
         <div role="alert" className="alert alert-warning">
           <div>
             <h2 className="font-semibold">
-              <span aria-hidden>! </span>Not ready to publish
+              <span aria-hidden>! </span>
+              {t('notReady')}
             </h2>
-            <p className="text-sm">
-              At least one publication check failed. The checklist inside the pack shows which; fix
-              them before this listing goes out.
-            </p>
+            <p className="text-sm">{t('notReadyText')}</p>
           </div>
         </div>
       )}
@@ -88,20 +91,20 @@ function PackReady({ pack }: { pack: RunExportResponse }) {
       <section aria-labelledby="pack-preview-heading" className="flex flex-col gap-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 id="pack-preview-heading" className="text-xl font-semibold">
-            Preview
+            {t('preview')}
           </h2>
           <div className="flex flex-wrap gap-2">
             <button type="button" className="btn btn-primary min-h-11" onClick={print}>
-              Print / Save as PDF
+              {t('print')}
             </button>
             <a href={html.url} target="_blank" rel="noopener" className="btn min-h-11">
-              Open full screen
+              {t('fullScreen')}
             </a>
           </div>
         </div>
         <iframe
           ref={frame}
-          title="Listing pack preview"
+          title={t('previewTitle')}
           src={html.url}
           sandbox={PACK_SANDBOX}
           className="h-[70vh] w-full rounded-box border border-base-300 bg-base-100"
@@ -110,7 +113,7 @@ function PackReady({ pack }: { pack: RunExportResponse }) {
 
       <section aria-labelledby="pack-files-heading" className="flex flex-col gap-3">
         <h2 id="pack-files-heading" className="text-xl font-semibold">
-          Downloads
+          {t('downloads')}
         </h2>
         <ul className="flex flex-col gap-2">
           <FileRow file={html} />
@@ -119,7 +122,7 @@ function PackReady({ pack }: { pack: RunExportResponse }) {
         {images.length > 0 && (
           <details className="rounded-box border border-base-300 bg-base-100 px-3">
             <summary className="flex min-h-11 cursor-pointer items-center font-medium">
-              Images ({images.length})
+              {t('images', { count: images.length })}
             </summary>
             <ul className="flex flex-col gap-2 pb-3">
               {images.map((file) => (
@@ -134,18 +137,20 @@ function PackReady({ pack }: { pack: RunExportResponse }) {
 }
 
 function NotReady({ runId }: { runId: string }) {
+  const t = useTranslations('pack');
   const source = useRunSource();
   return (
     <div role="status" className="alert alert-info alert-vertical sm:alert-horizontal">
-      <span>The pack is not ready yet. It appears once the run has finished its export.</span>
+      <span>{t('notReadyYet')}</span>
       <Link href={source.hrefs.monitor(runId)} className="btn min-h-11">
-        Back to the run
+        {t('backToRun')}
       </Link>
     </div>
   );
 }
 
 function PackError({ query, runId }: { query: UseQueryResult<RunExportResponse>; runId: string }) {
+  const t = useTranslations('pack');
   const { error } = query;
   if (error instanceof ApiRequestError) {
     if (error.status === 404) return <RunNotFound />;
@@ -153,11 +158,7 @@ function PackError({ query, runId }: { query: UseQueryResult<RunExportResponse>;
     if (error.status === 401) return <SessionExpiredState next={`/runs/${runId}/pack`} />;
   }
   return (
-    <LoadErrorState
-      message="We could not load this pack. Check your connection and try again."
-      error={error}
-      onRetry={() => void query.refetch()}
-    />
+    <LoadErrorState message={t('loadError')} error={error} onRetry={() => void query.refetch()} />
   );
 }
 
@@ -168,6 +169,7 @@ export function PackViewer({
   query: UseQueryResult<RunExportResponse>;
   runId: string;
 }) {
+  const t = useTranslations('pack');
   const source = useRunSource();
   return (
     <div className="flex flex-col gap-6">
@@ -176,16 +178,16 @@ export function PackViewer({
           href={source.hrefs.monitor(runId)}
           className="link inline-flex min-h-11 w-fit items-center text-sm"
         >
-          Back to the run
+          {t('backToRun')}
         </Link>
-        <h1 className="card-title text-2xl">Listing pack</h1>
+        <h1 className="card-title text-2xl">{t('title')}</h1>
       </div>
       {query.data !== undefined ? (
         <PackReady pack={query.data} />
       ) : query.isError ? (
         <PackError query={query} runId={runId} />
       ) : (
-        <LoadingState label="Loading the pack…" rows={2} />
+        <LoadingState label={t('loading')} rows={2} />
       )}
     </div>
   );

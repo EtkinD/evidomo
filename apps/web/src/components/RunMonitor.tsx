@@ -1,28 +1,31 @@
 import type { RunSnapshot, RunStepSnapshot, RunStepViewStatus } from '@evidomo/shared';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import { useFormatter, useTranslations } from 'use-intl';
 import { ApiRequestError } from '../lib/api';
+import type { Translator } from '../lib/i18n';
 import { withNext } from '../lib/next-path';
 import { costShare, formatDuration, formatUsd, gateLabel } from '../lib/run-monitor';
 import { useRunSource } from '../lib/run-source';
 import { stepLabel } from '../lib/step-labels';
 import type { RunMonitor as RunMonitorState, StreamState } from '../lib/use-run-monitor';
 
-const STEP_BADGES: Record<RunStepViewStatus, { className: string; label: string }> = {
-  pending: { className: 'badge-outline', label: 'Waiting' },
-  queued: { className: 'badge-info badge-outline', label: 'Queued' },
-  running: { className: 'badge-info', label: 'Running' },
-  completed: { className: 'badge-success', label: 'Done' },
-  failed: { className: 'badge-error', label: 'Failed' },
-};
+// Labels are keys of the `run` messages, translated where the badge renders.
+const STEP_BADGES = {
+  pending: { className: 'badge-outline', label: 'stepStatus.pending' },
+  queued: { className: 'badge-info badge-outline', label: 'stepStatus.queued' },
+  running: { className: 'badge-info', label: 'stepStatus.running' },
+  completed: { className: 'badge-success', label: 'stepStatus.completed' },
+  failed: { className: 'badge-error', label: 'stepStatus.failed' },
+} as const satisfies Record<RunStepViewStatus, { className: string; label: string }>;
 
-const RUN_BADGES: Record<RunSnapshot['status'], { className: string; label: string }> = {
+const RUN_BADGES = {
   queued: STEP_BADGES.queued,
   running: STEP_BADGES.running,
-  awaiting_gate: { className: 'badge-secondary', label: 'Awaiting your review' },
-  completed: { className: 'badge-success', label: 'Completed' },
+  awaiting_gate: { className: 'badge-secondary', label: 'runStatus.awaitingGate' },
+  completed: { className: 'badge-success', label: 'runStatus.completed' },
   failed: STEP_BADGES.failed,
-};
+} as const satisfies Record<RunSnapshot['status'], { className: string; label: string }>;
 
 function CheckIcon() {
   return (
@@ -65,9 +68,10 @@ function isReviewStep(step: RunStepSnapshot, run: RunSnapshot): boolean {
 }
 
 function StepBadge({ step, review }: { step: RunStepSnapshot; review: boolean }) {
+  const t = useTranslations('run');
   const { status } = step;
   const { className, label } = review
-    ? { className: 'badge-secondary', label: 'Needs your review' }
+    ? { className: 'badge-secondary', label: 'stepStatus.needsReview' as const }
     : STEP_BADGES[status];
   const mark = review
     ? 'review'
@@ -81,7 +85,7 @@ function StepBadge({ step, review }: { step: RunStepSnapshot; review: boolean })
   return (
     <span className={`badge ${className} gap-1`}>
       <StatusMark kind={mark} />
-      {label}
+      {t(label)}
     </span>
   );
 }
@@ -95,9 +99,12 @@ function StepItem({
   index: number;
   run: RunSnapshot;
 }) {
+  const t = useTranslations('run');
+  const tSteps = useTranslations('steps');
+  const format = useFormatter();
   const cap = run.maxExecutionsPerAttempt;
-  const duration = formatDuration(step.startedAt, step.finishedAt);
-  const { label, description } = stepLabel(step.stepId);
+  const duration = formatDuration(t, step.startedAt, step.finishedAt);
+  const { label, description } = stepLabel(tSteps, step.stepId);
   const review = isReviewStep(step, run);
   const current = review || step.status === 'running';
   const showAttempts = step.attempts > 1 || step.executions > 1;
@@ -121,22 +128,24 @@ function StepItem({
       <dl className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-base-content/70">
         {showAttempts && (
           <div className="flex gap-1">
-            <dt>Attempts</dt>
+            <dt>{t('attempts')}</dt>
             <dd>
               {step.attempts}
-              {cap > 0 && step.executions > 1 ? ` (execution ${step.executions}/${cap})` : ''}
+              {cap > 0 && step.executions > 1
+                ? ` (${t('execution', { current: step.executions, max: cap })})`
+                : ''}
             </dd>
           </div>
         )}
         {step.costUsd !== undefined && (
           <div className="flex gap-1">
-            <dt>Cost</dt>
-            <dd>{formatUsd(step.costUsd)}</dd>
+            <dt>{t('cost')}</dt>
+            <dd>{formatUsd(format, step.costUsd)}</dd>
           </div>
         )}
         {duration !== null && (
           <div className="flex gap-1">
-            <dt>Duration</dt>
+            <dt>{t('duration.label')}</dt>
             <dd>{duration}</dd>
           </div>
         )}
@@ -150,6 +159,8 @@ function StepItem({
 
 /** Only when the server discloses costs (development); production snapshots carry none. */
 function CostCard({ run, costUsd }: { run: RunSnapshot; costUsd: string }) {
+  const t = useTranslations('run');
+  const format = useFormatter();
   const share = costShare(run);
   const cap = run.costCapUsd ?? null;
   const nearCap = share !== null && share >= 0.8;
@@ -160,16 +171,16 @@ function CostCard({ run, costUsd }: { run: RunSnapshot; costUsd: string }) {
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 id="run-cost-heading" className="text-lg font-semibold">
-          Cost so far
+          {t('costSoFar')}
         </h2>
-        <span className="badge badge-outline">Visible in development only</span>
+        <span className="badge badge-outline">{t('devOnly')}</span>
       </div>
       <p className="text-3xl font-bold">
-        {formatUsd(costUsd)}
+        {formatUsd(format, costUsd)}
         {cap !== null && (
           <span className="text-base font-normal text-base-content/70">
             {' '}
-            of {formatUsd(cap)} cap
+            {t('ofCap', { cap: formatUsd(format, cap) })}
           </span>
         )}
       </p>
@@ -179,15 +190,15 @@ function CostCard({ run, costUsd }: { run: RunSnapshot; costUsd: string }) {
             className={`progress w-full ${nearCap ? 'progress-error' : 'progress-primary'}`}
             value={Math.round(share * 100)}
             max={100}
-            aria-label="Run cost against the cap"
+            aria-label={t('costAgainstCap')}
           />
           <p className={`text-sm ${nearCap ? 'font-medium text-error' : 'text-base-content/70'}`}>
             {nearCap && <span aria-hidden>! </span>}
             {share >= 1
-              ? 'The run has reached its cost cap.'
+              ? t('capReached')
               : nearCap
-                ? 'The run is close to its cost cap.'
-                : `${Math.round(share * 100)}% of the cap. The run stops by itself at the cap.`}
+                ? t('capClose')
+                : t('capShare', { share: Math.round(share * 100) / 100 })}
           </p>
         </>
       )}
@@ -196,25 +207,23 @@ function CostCard({ run, costUsd }: { run: RunSnapshot; costUsd: string }) {
 }
 
 function GateNotice({ gate, runId }: { gate: NonNullable<RunSnapshot['gate']>; runId: string }) {
+  const t = useTranslations('run');
   const source = useRunSource();
   const demo = source.kind === 'demo';
   const conflicts = gate === 'fact_conflicts';
   return (
     <section
-      aria-label="Review needed"
+      aria-label={t('reviewNeeded')}
       className="flex flex-col gap-3 rounded-box border-2 border-secondary bg-base-100 p-4"
     >
       <div className="flex flex-wrap items-center gap-2">
         <span className="badge badge-secondary gap-1">
-          <span aria-hidden>!</span>Paused
+          <span aria-hidden>!</span>
+          {t('paused')}
         </span>
-        <h2 className="text-lg font-semibold">{gateLabel(gate)}</h2>
+        <h2 className="text-lg font-semibold">{gateLabel(t, gate)}</h2>
       </div>
-      <p className="text-sm text-base-content/70">
-        {demo
-          ? 'A live run pauses here until the agent finishes this review. In this replay the decisions were made already; open the review to see them, with the evidence behind each value.'
-          : 'The run is paused until you finish this review. It stays here for as long as you need; you can leave this page, and the run continues after your last decision.'}
-      </p>
+      <p className="text-sm text-base-content/70">{demo ? t('gateTextDemo') : t('gateText')}</p>
       <div>
         <Link
           href={conflicts ? source.hrefs.conflicts(runId) : source.hrefs.review(runId)}
@@ -222,11 +231,11 @@ function GateNotice({ gate, runId }: { gate: NonNullable<RunSnapshot['gate']>; r
         >
           {demo
             ? conflicts
-              ? 'See the conflicts'
-              : 'See the review'
+              ? t('seeConflicts')
+              : t('seeReview')
             : conflicts
-              ? 'Review conflicts'
-              : 'Review the pack'}
+              ? t('reviewConflicts')
+              : t('reviewPack')}
         </Link>
       </div>
     </section>
@@ -234,49 +243,52 @@ function GateNotice({ gate, runId }: { gate: NonNullable<RunSnapshot['gate']>; r
 }
 
 function FailureNotice({ reason }: { reason: string | null }) {
+  const t = useTranslations('run');
   return (
     <div role="alert" className="alert alert-error alert-vertical items-start sm:alert-horizontal">
       <div className="flex flex-col gap-1">
         <h2 className="font-semibold">
-          <span aria-hidden>× </span>The run failed
+          <span aria-hidden>× </span>
+          {t('failed')}
         </h2>
-        <p className="text-sm">{reason ?? 'No reason was recorded.'}</p>
-        <p className="text-sm">
-          Your photos, voice memo, and form are untouched; nothing was published.
-        </p>
+        <p className="text-sm">{reason ?? t('noReason')}</p>
+        <p className="text-sm">{t('untouched')}</p>
       </div>
     </div>
   );
 }
 
 function CompletedNotice({ run, runId }: { run: RunSnapshot; runId: string }) {
+  const t = useTranslations('run');
   const source = useRunSource();
   const { export: manifest } = run;
-  const duration = formatDuration(run.startedAt, run.finishedAt);
+  const duration = formatDuration(t, run.startedAt, run.finishedAt);
   return (
     <section
-      aria-label="Run finished"
+      aria-label={t('finishedLabel')}
       className="flex flex-col gap-3 rounded-box border-2 border-success bg-base-100 p-4"
     >
       <div className="flex flex-wrap items-center gap-2">
         <span className="badge badge-success gap-1">
           <CheckIcon />
-          Finished
+          {t('finished')}
         </span>
         <h2 className="text-lg font-semibold">
-          {source.kind === 'demo' ? 'The listing pack is ready' : 'Your listing pack is ready'}
+          {source.kind === 'demo' ? t('packReadyDemo') : t('packReady')}
         </h2>
       </div>
       <p role="status" className="text-sm text-base-content/70">
         {manifest !== null
-          ? `Export ready: ${manifest.fileCount} files${manifest.readyToPublish ? '' : ' (not yet ready to publish)'}.`
-          : 'The run finished without an export.'}
-        {duration !== null && ` It took ${duration}.`}
+          ? manifest.readyToPublish
+            ? t('exportReady', { count: manifest.fileCount })
+            : t('exportReadyNotPublishable', { count: manifest.fileCount })
+          : t('noExport')}
+        {duration !== null && ` ${t('tookTime', { duration })}`}
       </p>
       {manifest !== null && (
         <div>
           <Link href={source.hrefs.pack(runId)} className="btn btn-primary min-h-11">
-            View pack
+            {t('viewPack')}
           </Link>
         </div>
       )}
@@ -284,18 +296,22 @@ function CompletedNotice({ run, runId }: { run: RunSnapshot; runId: string }) {
   );
 }
 
-function announcement(run: RunSnapshot): string {
+function announcement(t: Translator<'run'>, tSteps: Translator<'steps'>, run: RunSnapshot): string {
   switch (run.status) {
     case 'queued':
-      return 'Run queued.';
+      return t('announce.queued');
     case 'running': {
       const step = run.steps.find((s) => s.stepId === run.currentStepId);
-      return step ? `Running step ${stepLabel(step.stepId).label}.` : 'Run in progress.';
+      return step
+        ? t('announce.runningStep', { step: stepLabel(tSteps, step.stepId).label })
+        : t('announce.inProgress');
     }
     case 'awaiting_gate':
-      return run.gate ? `Run paused: ${gateLabel(run.gate)}.` : 'Run paused for review.';
+      return run.gate
+        ? t('announce.pausedAt', { gate: gateLabel(t, run.gate) })
+        : t('announce.paused');
     case 'completed':
-      return 'Run completed.';
+      return t('announce.completed');
     case 'failed':
       // The failure alert announces itself; saying it here too would read it out twice.
       return '';
@@ -311,12 +327,13 @@ function StreamNotice({
   onRetry: () => void;
   demo: boolean;
 }) {
+  const t = useTranslations('run');
   if (state === 'unavailable' && demo) {
     return (
       <div role="alert" className="alert alert-warning alert-vertical sm:alert-horizontal">
-        <span>The replay could not continue. Try again in a few seconds.</span>
+        <span>{t('replayStopped')}</span>
         <button type="button" className="btn min-h-11" onClick={onRetry}>
-          Try again
+          {t('tryAgain')}
         </button>
       </div>
     );
@@ -325,21 +342,16 @@ function StreamNotice({
     return (
       <div role="status" className="flex items-center gap-2 text-sm text-base-content/70">
         <span className="loading loading-spinner loading-xs" aria-hidden />
-        {demo
-          ? 'The replay was interrupted. Reconnecting…'
-          : 'Live updates interrupted. Reconnecting…'}
+        {demo ? t('replayReconnecting') : t('liveReconnecting')}
       </div>
     );
   }
   if (state === 'unavailable') {
     return (
       <div role="alert" className="alert alert-warning alert-vertical sm:alert-horizontal">
-        <span>
-          Live updates are paused. What you see is the last known state. Try resuming; if it keeps
-          failing, reload the page.
-        </span>
+        <span>{t('liveUnavailable')}</span>
         <button type="button" className="btn min-h-11" onClick={onRetry}>
-          Resume live updates
+          {t('resumeLive')}
         </button>
       </div>
     );
@@ -349,19 +361,18 @@ function StreamNotice({
 
 /** Progress as a sentence and a bar: completed steps out of all steps. */
 function StepProgress({ run }: { run: RunSnapshot }) {
+  const t = useTranslations('run');
   const total = run.steps.length;
   const done = run.steps.filter((step) => step.status === 'completed').length;
   if (total === 0) return null;
   return (
     <div className="flex flex-col gap-1">
-      <p className="text-sm text-base-content/70">
-        {done} of {total} steps done
-      </p>
+      <p className="text-sm text-base-content/70">{t('stepsDone', { done, total })}</p>
       <progress
         className="progress progress-primary w-full"
         value={done}
         max={total}
-        aria-label="Steps done"
+        aria-label={t('stepsDoneLabel')}
       />
     </div>
   );
@@ -377,6 +388,8 @@ export function RunMonitorView({
   runId: string;
   controls?: ReactNode;
 }) {
+  const t = useTranslations('run');
+  const tSteps = useTranslations('steps');
   const demo = useRunSource().kind === 'demo';
   const run = monitor.snapshot.data;
   if (run === undefined) return <RunLoadState monitor={monitor} runId={runId} />;
@@ -395,17 +408,17 @@ export function RunMonitorView({
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
-        <h1 className="card-title text-2xl">{demo ? 'Sample run replay' : 'Run'}</h1>
+        <h1 className="card-title text-2xl">{demo ? t('titleDemo') : t('title')}</h1>
         <div className="flex flex-wrap items-center gap-2">
           <span className={`badge ${badge.className} gap-1`}>
             <StatusMark kind={badgeMark} />
-            {badge.label}
+            {t(badge.label)}
           </span>
           <span className="min-w-0 truncate font-mono text-sm text-base-content/70">{runId}</span>
         </div>
         {/* Announces transitions only; cost ticks are deliberately not in here. */}
         <p aria-live="polite" className="sr-only">
-          {announcement(run)}
+          {announcement(t, tSteps, run)}
         </p>
       </div>
 
@@ -416,11 +429,9 @@ export function RunMonitorView({
       ) : (
         monitor.refreshFailed && (
           <div role="status" className="flex flex-wrap items-center gap-2 text-sm">
-            <span className="text-base-content/70">
-              Could not refresh the run just now. What you see may be a little behind.
-            </span>
+            <span className="text-base-content/70">{t('refreshFailed')}</span>
             <button type="button" className="btn min-h-11" onClick={monitor.retryStream}>
-              Try again
+              {t('tryAgain')}
             </button>
           </div>
         )
@@ -440,7 +451,7 @@ export function RunMonitorView({
 
         <section aria-labelledby="run-steps-heading" className="flex flex-col gap-3">
           <h2 id="run-steps-heading" className="text-xl font-semibold">
-            Steps
+            {t('steps')}
           </h2>
           <StepProgress run={run} />
           <ol className="flex flex-col gap-2">
@@ -470,11 +481,12 @@ export function LoadingState({ label, rows = 3 }: { label: string; rows?: number
 }
 
 export function SessionExpiredState({ next }: { next: string }) {
+  const t = useTranslations('run');
   return (
     <div role="alert" className="alert alert-warning alert-vertical sm:alert-horizontal">
-      <span>Your session has expired.</span>
+      <span>{t('sessionExpired')}</span>
       <Link href={withNext('/login', next)} className="btn min-h-11">
-        Log in again
+        {t('logInAgain')}
       </Link>
     </div>
   );
@@ -493,6 +505,7 @@ export function LoadErrorState({
   onRetry: () => void;
   error?: unknown;
 }) {
+  const t = useTranslations('run');
   const demo = useRunSource().kind === 'demo';
   const limited = demo && error instanceof ApiRequestError && error.status === 429;
   const wait = error instanceof ApiRequestError ? error.retryAfterSeconds : null;
@@ -500,50 +513,48 @@ export function LoadErrorState({
     <div role="alert" className="alert alert-error alert-vertical sm:alert-horizontal">
       <span>
         {limited
-          ? `Too many requests right now. Wait ${wait !== null && wait > 0 && wait <= 120 ? `about ${wait} seconds` : 'a few seconds'} and try again.`
+          ? wait !== null && wait > 0 && wait <= 120
+            ? t('tooManyRequestsWait', { seconds: wait })
+            : t('tooManyRequests')
           : message}
       </span>
       <button type="button" className="btn min-h-11" onClick={onRetry}>
-        Try again
+        {t('tryAgain')}
       </button>
     </div>
   );
 }
 
 function RunLoadState({ monitor, runId }: { monitor: RunMonitorState; runId: string | null }) {
+  const t = useTranslations('run');
   const { error, isError, refetch } = monitor.snapshot;
-  if (!isError) return <LoadingState label="Loading the run…" rows={4} />;
+  if (!isError) return <LoadingState label={t('loading')} rows={4} />;
   if (error instanceof ApiRequestError && error.status === 404) {
     return <RunNotFound />;
   }
   if (error instanceof ApiRequestError && error.status === 401) {
     return <SessionExpiredState next={runId === null ? '/projects' : `/runs/${runId}`} />;
   }
-  return (
-    <LoadErrorState
-      message="We could not load this run. Check your connection and try again."
-      error={error}
-      onRetry={() => void refetch()}
-    />
-  );
+  return <LoadErrorState message={t('loadError')} error={error} onRetry={() => void refetch()} />;
 }
 
 export function RunNotFound() {
+  const t = useTranslations('run');
   if (useRunSource().kind === 'demo') {
     return (
       <div role="alert" className="alert alert-warning alert-vertical sm:alert-horizontal">
-        <span>This demo run was not found. It may no longer be published.</span>
+        <span>{t('demoNotFound')}</span>
         <Link href="/demo" className="btn min-h-11">
-          See the demo runs
+          {t('seeDemoRuns')}
         </Link>
       </div>
     );
   }
   return (
     <div role="alert" className="alert alert-warning alert-vertical sm:alert-horizontal">
-      <span>This run was not found. It may belong to another account or no longer exist.</span>
+      <span>{t('notFound')}</span>
       <Link href="/projects" className="btn min-h-11">
-        Go to your projects
+        {t('goToProjects')}
       </Link>
     </div>
   );

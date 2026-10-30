@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useTranslations } from 'use-intl';
 
 export interface ControlProps {
   id: string;
@@ -17,6 +18,7 @@ interface FieldProps {
 
 /** daisyUI fieldset recipe: label, control, helper text, and an error tied by `aria-describedby`. */
 export function Field({ id, label, required = false, hint, error, children }: FieldProps) {
+  const t = useTranslations('common');
   const hintId = `${id}-hint`;
   const errorId = `${id}-error`;
   const hasHint = hint !== null && hint !== undefined && hint !== '';
@@ -28,7 +30,7 @@ export function Field({ id, label, required = false, hint, error, children }: Fi
     <div className="fieldset">
       <label htmlFor={id} className="fieldset-legend">
         {label}
-        {required && <span className="font-normal text-base-content/70"> (required)</span>}
+        {required && <span className="font-normal text-base-content/70"> ({t('required')})</span>}
       </label>
       {children({
         id,

@@ -3,6 +3,7 @@ import { ApiRequestError } from '../lib/api';
 import { busyDelayMs, describeLimit, isTransientFailure } from '../lib/capture';
 import { isAbortError, uploadMaterial } from '../lib/upload';
 import { stubXhr } from './capture-helpers';
+import { testTranslator } from './test-utils';
 
 const MATERIAL = {
   id: '5f0c9d1e-2b3a-4c4d-8e5f-6a7b8c9d0e1f',
@@ -106,8 +107,8 @@ describe('transient failures', () => {
 
 describe('describeLimit', () => {
   it('writes minutes where it can', () => {
-    expect(describeLimit(600_000)).toBe('10 minutes');
-    expect(describeLimit(60_000)).toBe('1 minute');
-    expect(describeLimit(90_000)).toBe('90 seconds');
+    expect(describeLimit(testTranslator('capture'), 600_000)).toBe('10 minutes');
+    expect(describeLimit(testTranslator('capture'), 60_000)).toBe('1 minute');
+    expect(describeLimit(testTranslator('capture'), 90_000)).toBe('90 seconds');
   });
 });

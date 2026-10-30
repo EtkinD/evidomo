@@ -1,15 +1,17 @@
 import { useRouter } from 'next/router';
 import { useEffect, type ReactNode } from 'react';
+import { useTranslations } from 'use-intl';
 import { useMe } from '../lib/auth';
 import { safeNextPath, withNext } from '../lib/next-path';
 import type { PageAuth } from '../lib/page-auth';
 
 function SessionCheck() {
+  const t = useTranslations('auth');
   return (
     <main className="flex flex-1 items-center justify-center p-8">
       <div role="status" className="flex items-center gap-3 text-base-content/70">
         <span className="loading loading-spinner" aria-hidden="true" />
-        <span>Checking your session…</span>
+        <span>{t('checkingSession')}</span>
       </div>
     </main>
   );
@@ -23,6 +25,8 @@ function SessionCheck() {
  * the API, and the API's `requireUser` middleware is what actually enforces authentication.
  */
 export function RequireAuth({ children }: { children: ReactNode }) {
+  const t = useTranslations('auth');
+  const tc = useTranslations('common');
   const router = useRouter();
   const me = useMe();
   const signedOut = me.isSuccess && me.data === null;
@@ -39,9 +43,9 @@ export function RequireAuth({ children }: { children: ReactNode }) {
     return (
       <main className="flex flex-1 items-center justify-center p-4">
         <div role="alert" className="alert alert-error max-w-md">
-          <span>We could not check your session. Check your connection and try again.</span>
+          <span>{t('sessionCheckFailed')}</span>
           <button type="button" className="btn min-h-11" onClick={() => void me.refetch()}>
-            Try again
+            {tc('tryAgain')}
           </button>
         </div>
       </main>

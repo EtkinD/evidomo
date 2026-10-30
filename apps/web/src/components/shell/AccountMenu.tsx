@@ -1,3 +1,4 @@
+import { useTranslations } from 'use-intl';
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
 import { useLogout } from '../../lib/auth';
 
@@ -9,6 +10,7 @@ import { useLogout } from '../../lib/auth';
  * and a CSS focus dropdown breaks in Safari, which does not focus a tapped button.
  */
 export function AccountMenu({ email }: { email: string }) {
+  const t = useTranslations('shell');
   const logout = useLogout();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -63,7 +65,7 @@ export function AccountMenu({ email }: { email: string }) {
         <span aria-hidden className="hidden max-w-40 truncate text-sm sm:inline">
           {email}
         </span>
-        <span className="sr-only">Account menu</span>
+        <span className="sr-only">{t('accountMenu')}</span>
       </button>
       {open && (
         <ul
@@ -81,12 +83,12 @@ export function AccountMenu({ email }: { email: string }) {
               {logout.isPending && (
                 <span className="loading loading-spinner loading-xs" aria-hidden />
               )}
-              Log out
+              {t('logOut')}
             </button>
           </li>
           {logout.isError && (
             <li role="alert" className="px-3 py-1 text-sm text-error">
-              Could not log out. Try again.
+              {t('logOutFailed')}
             </li>
           )}
         </ul>

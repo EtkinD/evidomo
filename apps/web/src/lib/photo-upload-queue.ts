@@ -8,6 +8,7 @@ import {
   MAX_BUSY_RETRIES,
   uploadTiming,
 } from './capture';
+import type { Translator } from './i18n';
 import { DownscaleError, downscaleImage } from './image-downscale';
 import { isAbortError, uploadMaterial } from './upload';
 
@@ -46,6 +47,9 @@ export interface PhotoQueueState {
 
 export interface PhotoQueueConfig {
   projectId: string;
+  /** Translators for the messages the queue writes itself; refreshed on every render. */
+  t: Translator<'capture'>;
+  tApi: Translator<'apiErrors'>;
   /** How many more photos the project can take, counting the stored ones. */
   getCapacity: () => number;
   /** Refetches the project detail; resolves when the new readiness is in the cache. */
@@ -53,10 +57,6 @@ export interface PhotoQueueConfig {
 }
 
 const EMPTY_STATE: PhotoQueueState = { items: [], previews: {}, announcement: '', notice: null };
-
-function plural(count: number): string {
-  return count === 1 ? '1 photo' : `${count} photos`;
-}
 
 const ACTIVE: readonly PhotoItemStatus[] = [
   'queued',
@@ -152,8 +152,7 @@ export class PhotoUploadQueue {
     const room = Math.max(0, this.config.getCapacity() - active);
     const accepted = files.slice(0, room);
     const skipped = files.length - accepted.length;
-    const notice =
-      skipped > 0 ? `${plural(skipped)} not added: the project can hold no more photos.` : null;
+    const notice = skipped > 0 ? this.config.t('queue.notAdded', { count: skipped }) : null;
     if (accepted.length === 0) {
       this.set({ notice });
       return;
@@ -161,7 +160,7 @@ export class PhotoUploadQueue {
 
     if (!this.isBatchActive()) {
       this.batch = { done: 0, skipped: 0 };
-      this.announce(`Uploading ${plural(accepted.length)}.`);
+      this.announce(this.config.t('queue.uploading', { count: accepted.length }));
     }
     const added: PhotoItem[] = accepted.map((file) => {
       const id = `photo-${this.nextId++}`;
@@ -242,8 +241,8 @@ export class PhotoUploadQueue {
   private announceSummary(): void {
     const { done, skipped } = this.batch;
     const parts = [
-      done > 0 ? `${plural(done)} uploaded.` : '',
-      skipped > 0 ? `${plural(skipped)} skipped.` : '',
+      done > 0 ? this.config.t('queue.uploaded', { count: done }) : '',
+      skipped > 0 ? this.config.t('queue.skipped', { count: skipped }) : '',
     ].filter((part) => part !== '');
     if (parts.length > 0) this.announce(parts.join(' '));
   }
@@ -259,7 +258,7 @@ export class PhotoUploadQueue {
     if (existing !== undefined) return existing;
     const file = this.files.get(id);
     if (file === undefined) {
-      this.fail(id, describeDownscaleFailure('undecodable'));
+      this.fail(id, describeDownscaleFailure(this.config.t, 'undecodable'));
       return null;
     }
     this.patchItem(id, { status: 'preparing' });
@@ -275,8 +274,8 @@ export class PhotoUploadQueue {
       if (signal.aborted) return null;
       const message =
         error instanceof DownscaleError
-          ? describeDownscaleFailure(error.failure)
-          : describeDownscaleFailure('undecodable');
+          ? describeDownscaleFailure(this.config.t, error.failure)
+          : describeDownscaleFailure(this.config.t, 'undecodable');
       this.fail(id, message);
       return null;
     }
@@ -324,7 +323,7 @@ export class PhotoUploadQueue {
         if (isTooManyUploads(error) && busyRetries < MAX_BUSY_RETRIES) {
           busyRetries += 1;
           const delay = busyDelayMs(error);
-          this.announce(`The server is busy. Retrying in ${Math.ceil(delay / 1000)} seconds.`);
+          this.announce(this.config.t('queue.busy', { seconds: Math.ceil(delay / 1000) }));
           if (!(await this.wait(id, delay, signal))) return;
           continue;
         }
@@ -334,12 +333,15 @@ export class PhotoUploadQueue {
           if (!(await this.wait(id, backoff, signal))) return;
           continue;
         }
-        const failure = describeUploadFailure(error);
+        const failure = describeUploadFailure(this.config.t, this.config.tApi, error);
         if (failure.retryable) {
           const item = this.state.items.find((candidate) => candidate.id === id);
           this.patchItem(id, { status: 'paused', error: failure.message });
           this.announce(
-            `Upload paused on ${item?.name ?? 'a photo'}. ${failure.message} Retry or skip this photo.`,
+            this.config.t('queue.paused', {
+              name: item?.name ?? this.config.t('queue.aPhoto'),
+              message: failure.message,
+            }),
           );
           return;
         }

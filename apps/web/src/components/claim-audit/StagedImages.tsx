@@ -4,21 +4,31 @@ import {
   type IntegrityFallback,
 } from '@evidomo/shared';
 import { useRef } from 'react';
+import { useFormatter, useTranslations } from 'use-intl';
 import { describeAuditFailure, type ClaimAuditActions } from '../../lib/claim-audit';
+import type { Translator } from '../../lib/i18n';
 import { humanize } from '../../lib/project-view';
 import { useEvidenceUrls } from '../evidence/EvidenceProvider';
 
-const attemptText = (attempt: IntegrityAttemptSummary): string => {
+// The scaffolding is translated; reasons, targets, and class labels come from the pipeline.
+const attemptText = (t: Translator<'claimAudit'>, attempt: IntegrityAttemptSummary): string => {
   if (attempt.status === 'edit_failed') {
-    return `Attempt ${attempt.attempt}: the edit failed${attempt.reason === null ? '' : ` (${humanize(attempt.reason)})`}.`;
+    return attempt.reason === null
+      ? t('staged.attemptEditFailed', { n: attempt.attempt })
+      : t('staged.attemptEditFailedWhy', { n: attempt.attempt, reason: humanize(attempt.reason) });
   }
   if (attempt.status === 'unchecked') {
-    return `Attempt ${attempt.attempt}: could not be checked${attempt.target === null ? '' : ` (${attempt.target} image not segmented)`}.`;
+    return attempt.target === null
+      ? t('staged.attemptUnchecked', { n: attempt.attempt })
+      : t('staged.attemptUncheckedTarget', { n: attempt.attempt, target: attempt.target });
   }
+  const result = attempt.passed ? t('staged.passed') : t('staged.failed');
   const failed =
-    attempt.failedClasses.length === 0 ? '' : `, changed: ${attempt.failedClasses.join(', ')}`;
-  const privacy = attempt.privacyPassed === false ? ', a person was drawn in' : '';
-  return `Attempt ${attempt.attempt}: ${attempt.passed ? 'passed' : 'failed'}${failed}${privacy}.`;
+    attempt.failedClasses.length === 0
+      ? ''
+      : t('staged.changedClasses', { classes: attempt.failedClasses.join(', ') });
+  const privacy = attempt.privacyPassed === false ? t('staged.personDrawn') : '';
+  return t('staged.attemptResult', { n: attempt.attempt, result, failed, privacy });
 };
 
 function Photos({
@@ -33,18 +43,19 @@ function Photos({
   stagedLabel: string;
   operation: string;
 }) {
+  const t = useTranslations('claimAudit');
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
       <figure className="flex flex-col gap-1">
         {/* eslint-disable-next-line @next/next/no-img-element -- an owner-only API file; next/image cannot optimise it */}
         <img
           src={original}
-          alt={`Original photo for ${operation}`}
+          alt={t('staged.originalAlt', { operation })}
           loading="lazy"
           className="w-full rounded-box bg-base-200 object-contain"
         />
         <figcaption className="badge badge-outline h-auto w-fit whitespace-normal py-1">
-          Original
+          {t('staged.original')}
         </figcaption>
       </figure>
       {staged !== null && (
@@ -52,7 +63,7 @@ function Photos({
           {/* eslint-disable-next-line @next/next/no-img-element -- an owner-only API file; next/image cannot optimise it */}
           <img
             src={staged}
-            alt={`Staged version for ${operation}`}
+            alt={t('staged.stagedAlt', { operation })}
             loading="lazy"
             className="w-full rounded-box bg-base-200 object-contain"
           />
@@ -76,9 +87,12 @@ function ImageCard({
   readOnly: boolean;
   actions: ClaimAuditActions;
 }) {
+  const t = useTranslations('claimAudit');
+  const tApi = useTranslations('apiErrors');
+  const format = useFormatter();
   const urls = useEvidenceUrls();
   const statusRef = useRef<HTMLParagraphElement>(null);
-  const operation = `${humanize(image.operation.id)} (photo ${index + 1})`;
+  const operation = t('staged.operation', { name: humanize(image.operation.id), n: index + 1 });
   const decision = image.decision;
   const thisImage = actions.image.variables?.artifactId === image.artifactId;
   const failure = actions.image.isError && thisImage ? actions.image.error : null;
@@ -96,7 +110,7 @@ function ImageCard({
     <li>
       <div
         role="group"
-        aria-label={`Staged image: ${operation}`}
+        aria-label={t('staged.imageLabel', { operation })}
         className={`flex flex-col gap-3 rounded-box border bg-base-100 p-4 ${
           decision === null ? 'border-warning' : 'border-base-300'
         }`}
@@ -105,7 +119,7 @@ function ImageCard({
           <h3 className="font-semibold">{operation}</h3>
           <span className={`badge gap-1 ${decision === null ? 'badge-warning' : 'badge-success'}`}>
             <span aria-hidden>{decision === null ? '!' : '✓'}</span>
-            {decision === null ? 'Open' : 'Decided'}
+            {decision === null ? t('open') : t('decided')}
           </span>
         </div>
         <Photos
@@ -117,55 +131,65 @@ function ImageCard({
         <p className="text-sm font-medium">
           <span aria-hidden>✓ </span>
           {integrity.outcome === 'passed'
-            ? 'Integrity check passed: windows, doors and other fixed elements are unchanged.'
-            : 'Integrity check passed on the second attempt: windows, doors and other fixed elements are unchanged.'}
+            ? t('staged.integrityPassed')
+            : t('staged.integritySecond')}
         </p>
         <details className="rounded-box bg-base-200 px-3">
           <summary className="flex min-h-11 cursor-pointer items-center font-medium">
-            {`Integrity check for ${operation}`}
+            {t('staged.integrityFor', { operation })}
           </summary>
           <div className="flex flex-col gap-2 pb-3 text-sm">
             <p>
-              Outcome: {integrity.outcome === 'passed' ? 'passed' : 'passed on the second attempt'}.
-              Largest aspect change: {(integrity.aspectRatioChange * 100).toFixed(1)}%.
+              {integrity.outcome === 'passed'
+                ? t('staged.outcomePassed')
+                : t('staged.outcomeSecond')}{' '}
+              {t('staged.aspectChange', {
+                change: format.number(integrity.aspectRatioChange, {
+                  style: 'percent',
+                  minimumFractionDigits: 1,
+                  maximumFractionDigits: 1,
+                }),
+              })}
             </p>
-            <ul aria-label="Fixed elements" className="list-disc pl-5">
+            <ul aria-label={t('staged.fixedElements')} className="list-disc pl-5">
               {integrity.classes.map((entry) => (
                 <li key={entry.label}>
-                  {humanize(entry.label)}: {entry.originalCount} in the original, {entry.editCount}{' '}
-                  in the staged image
+                  {t('staged.classCount', {
+                    label: humanize(entry.label),
+                    original: entry.originalCount,
+                    edit: entry.editCount,
+                  })}
                 </li>
               ))}
             </ul>
-            <ul aria-label="Attempts" className="list-disc pl-5">
+            <ul aria-label={t('staged.attempts')} className="list-disc pl-5">
               {integrity.attempts.map((attempt) => (
-                <li key={attempt.attempt}>{attemptText(attempt)}</li>
+                <li key={attempt.attempt}>{attemptText(t, attempt)}</li>
               ))}
             </ul>
           </div>
         </details>
         <p ref={statusRef} tabIndex={-1} className="text-sm font-semibold">
           {decision === null
-            ? 'Needs your decision.'
+            ? t('status.needsDecision')
             : decision.choice === 'accept'
-              ? 'Accepted: the staged image is published next to the original.'
-              : 'Rejected: only the original is published.'}
+              ? t('staged.accepted')
+              : t('staged.rejected')}
         </p>
         {pending && (
           <p role="status" className="flex items-center gap-2 text-sm text-base-content/70">
             <span className="loading loading-spinner loading-xs" aria-hidden />
-            Saving your decision…
+            {t('saving')}
           </p>
         )}
         {failure !== null && (
           <p role="alert" className="text-sm text-error">
-            {describeAuditFailure(failure)}
+            {describeAuditFailure(t, tApi, failure)}
           </p>
         )}
         {!readOnly && (
           <p className="text-sm text-base-content/70">
-            Accept publishes the staged image next to the original, labelled “
-            {image.disclosureLabel}”. Reject publishes only the original.
+            {t('staged.explain', { label: image.disclosureLabel })}
           </p>
         )}
         {!readOnly && (
@@ -174,22 +198,22 @@ function ImageCard({
               <button
                 type="button"
                 className="btn btn-outline btn-success min-h-11"
-                aria-label={`Accept staged image: ${operation}`}
+                aria-label={t('staged.acceptLabel', { operation })}
                 disabled={actions.busy}
                 onClick={() => send('accept')}
               >
-                Accept and publish
+                {t('staged.accept')}
               </button>
             )}
             {decision?.choice !== 'reject' && (
               <button
                 type="button"
                 className="btn btn-outline btn-error min-h-11"
-                aria-label={`Reject staged image: ${operation}`}
+                aria-label={t('staged.rejectLabel', { operation })}
                 disabled={actions.busy}
                 onClick={() => send('reject')}
               >
-                Reject, keep the original
+                {t('staged.reject')}
               </button>
             )}
           </div>
@@ -210,12 +234,13 @@ export function StagedImages({
   readOnly: boolean;
   actions: ClaimAuditActions;
 }) {
+  const t = useTranslations('claimAudit');
   const urls = useEvidenceUrls();
   if (images.length === 0 && fallbacks.length === 0) return null;
   return (
     <section aria-labelledby="images-heading" className="flex flex-col gap-4">
       <h2 id="images-heading" className="text-xl font-semibold">
-        Staged images
+        {t('staged.title')}
       </h2>
       {images.length > 0 && (
         <ul className="flex flex-col gap-4">
@@ -232,10 +257,8 @@ export function StagedImages({
       )}
       {fallbacks.length > 0 && (
         <div className="flex flex-col gap-3">
-          <h3 className="font-semibold">Staging rejected by the integrity check</h3>
-          <p className="text-sm text-base-content/70">
-            Only the original photo is published for these.
-          </p>
+          <h3 className="font-semibold">{t('staged.fallbackTitle')}</h3>
+          <p className="text-sm text-base-content/70">{t('staged.fallbackText')}</p>
           <ul className="flex flex-col gap-3">
             {fallbacks.map((fallback) => {
               const name = humanize(fallback.operationId);
@@ -249,11 +272,11 @@ export function StagedImages({
                     original={urls.materialFile(fallback.materialId)}
                     staged={null}
                     stagedLabel=""
-                    operation={`${name} (rejected)`}
+                    operation={t('staged.rejectedName', { name })}
                   />
                   <ul className="list-disc pl-5 text-sm">
                     {fallback.attempts.map((attempt) => (
-                      <li key={attempt.attempt}>{attemptText(attempt)}</li>
+                      <li key={attempt.attempt}>{attemptText(t, attempt)}</li>
                     ))}
                   </ul>
                 </li>

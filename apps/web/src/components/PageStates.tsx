@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { useTranslations } from 'use-intl';
 import { ApiRequestError } from '../lib/api';
 import { withNext } from '../lib/next-path';
 
@@ -37,13 +38,14 @@ export function LoadError({
   message: string;
   onRetry?: () => void;
 }) {
+  const t = useTranslations('common');
   const router = useRouter();
   if (error instanceof ApiRequestError && error.status === 401) {
     return (
       <div role="alert" className="alert alert-warning">
-        <span>Your session has ended. Log in again to continue.</span>
+        <span>{t('sessionEnded')}</span>
         <Link href={withNext('/login', router.asPath)} className="btn min-h-11">
-          Log in
+          {t('logIn')}
         </Link>
       </div>
     );
@@ -53,7 +55,7 @@ export function LoadError({
       <span>{message}</span>
       {onRetry !== undefined && (
         <button type="button" className="btn min-h-11" onClick={onRetry}>
-          Try again
+          {t('tryAgain')}
         </button>
       )}
     </div>

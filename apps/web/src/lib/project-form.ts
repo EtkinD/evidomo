@@ -6,7 +6,10 @@ import {
   type UpdateProjectRequest,
 } from '@evidomo/shared';
 import { ApiRequestError } from './api';
+import type { Translator } from './i18n';
 import { describeRequestFailure } from './request-failure';
+
+type FormT = Translator<'projectForm'>;
 
 export interface OfficeProfileValues {
   agencyName: string;
@@ -90,24 +93,28 @@ function fieldForPath(path: readonly PropertyKey[]): ProjectFormField | null {
  * The schemas decide whether a field is valid; the message is derived from the field and the
  * submitted value so client and server failures read the same.
  */
-export function projectFieldMessage(field: ProjectFormField, values: CreateProjectValues): string {
+export function projectFieldMessage(
+  t: FormT,
+  field: ProjectFormField,
+  values: CreateProjectValues,
+): string {
   switch (field) {
     case 'title':
       return values.title.trim() === ''
-        ? 'Enter a project title.'
-        : 'Use at most 200 characters for the title.';
+        ? t('errors.titleEmpty')
+        : t('errors.titleTooLong', { max: 200 });
     case 'agencyName':
       return values.agencyName.trim() === ''
-        ? 'Enter your agency name.'
-        : 'Use at most 200 characters for the agency name.';
+        ? t('errors.agencyEmpty')
+        : t('errors.agencyTooLong', { max: 200 });
     case 'contactBlock':
-      return 'Use at most 2000 characters for the contact block.';
+      return t('errors.contactTooLong', { max: 2000 });
     case 'tone':
-      return 'Use at most 200 characters for the tone.';
+      return t('errors.toneTooLong', { max: 200 });
     case 'market':
-      return 'Choose a market.';
+      return t('errors.marketRequired');
     case 'outputLanguage':
-      return 'Choose one of the languages this market offers.';
+      return t('errors.languageRequired');
     default: {
       const unreachable: never = field;
       return unreachable;
@@ -118,7 +125,7 @@ export function projectFieldMessage(field: ProjectFormField, values: CreateProje
 export type CreateValidation =
   { ok: true; data: CreateProjectRequest } | { ok: false; errors: ProjectFormErrors };
 
-export function validateCreateProject(values: CreateProjectValues): CreateValidation {
+export function validateCreateProject(t: FormT, values: CreateProjectValues): CreateValidation {
   const market = parseMarketValue(values.market);
   const result = createProjectRequestSchema.safeParse({
     title: values.title,
@@ -141,7 +148,7 @@ export function validateCreateProject(values: CreateProjectValues): CreateValida
   for (const issue of result.error.issues) {
     const field = fieldForPath(issue.path);
     if (field !== null && errors[field] === undefined) {
-      errors[field] = projectFieldMessage(field, values);
+      errors[field] = projectFieldMessage(t, field, values);
     }
   }
   return { ok: false, errors };
@@ -152,6 +159,7 @@ export type DetailsValidation =
 
 /** Validates the details form; `officeProfile` is sent only when it is editable and changed. */
 export function validateProjectDetails(
+  t: FormT,
   values: CreateProjectValues,
   include: { title: boolean; officeProfile: boolean },
 ): DetailsValidation {
@@ -164,7 +172,7 @@ export function validateProjectDetails(
   for (const issue of result.error.issues) {
     const field = fieldForPath(issue.path);
     if (field !== null && errors[field] === undefined) {
-      errors[field] = projectFieldMessage(field, values);
+      errors[field] = projectFieldMessage(t, field, values);
     }
   }
   return { ok: false, errors };
@@ -175,6 +183,8 @@ export type ProjectFormFailure =
 
 /** Maps a failed create or update request to field errors or one form-level message. */
 export function describeProjectFailure(
+  t: FormT,
+  tApi: Translator<'apiErrors'>,
   error: unknown,
   values: CreateProjectValues,
 ): ProjectFormFailure {
@@ -183,12 +193,12 @@ export function describeProjectFailure(
     for (const issue of error.issues) {
       const field = fieldForPath(issue.path);
       if (field !== null && errors[field] === undefined) {
-        errors[field] = projectFieldMessage(field, values);
+        errors[field] = projectFieldMessage(t, field, values);
       }
     }
     return Object.keys(errors).length > 0
       ? { kind: 'fields', errors }
-      : { kind: 'message', message: 'Check the form and try again.' };
+      : { kind: 'message', message: t('errors.checkForm') };
   }
-  return { kind: 'message', message: describeRequestFailure(error) };
+  return { kind: 'message', message: describeRequestFailure(tApi, error) };
 }

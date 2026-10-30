@@ -48,3 +48,28 @@ describe('showcase stylesheet alias', () => {
     }
   });
 });
+
+describe('i18n routing', () => {
+  it('serves English unprefixed and four more locales under a prefix', () => {
+    const config = nextConfig(PHASE_PRODUCTION_BUILD);
+    expect(config.i18n).toEqual({
+      locales: ['en', 'tr', 'nl', 'it', 'es'],
+      defaultLocale: 'en',
+      // Detection is src/proxy.ts's job (Next's does not match regional tags like tr-TR).
+      localeDetection: false,
+    });
+  });
+
+  it('proxies /api to the API origin without a locale', async () => {
+    const config = nextConfig(PHASE_DEVELOPMENT_SERVER);
+    const rewrites = await config.rewrites?.();
+    // `locale: false` would stop Next from matching the unprefixed /api/... calls the browser
+    // makes (they would 404), so the rewrite stays a plain one; its destination is external.
+    expect(rewrites).toEqual([
+      {
+        source: '/api/:path*',
+        destination: expect.stringMatching(/^http:\/\/localhost:\d+\/api\/:path\*$/) as string,
+      },
+    ]);
+  });
+});

@@ -4,6 +4,7 @@ import type { ReactElement } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { setRoute } from './router-mock';
 import { jsonResponse } from './test-utils';
+import { IntlTest } from './test-utils';
 
 vi.mock('next/router', () => import('./router-mock'));
 
@@ -58,9 +59,11 @@ function stubFetch(withManifest: boolean): void {
 function renderPage(page: ReactElement) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
-    <QueryClientProvider client={queryClient}>
-      <ModeProvider>{page}</ModeProvider>
-    </QueryClientProvider>,
+    <IntlTest>
+      <QueryClientProvider client={queryClient}>
+        <ModeProvider>{page}</ModeProvider>
+      </QueryClientProvider>
+    </IntlTest>,
   );
 }
 

@@ -1,6 +1,7 @@
 import type { FactFormField, MarketForm, ProjectDetailResponse } from '@evidomo/shared';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useTranslations } from 'use-intl';
 import { ApiRequestError } from '../lib/api';
 import {
   draftFromValues,
@@ -48,16 +49,20 @@ function BooleanField({
   onChange: (value: string) => void;
 }) {
   const errorId = `${id}-error`;
+  const t = useTranslations('factForm');
+  const tCommon = useTranslations('common');
   const options = [
-    { value: 'yes', label: 'Yes' },
-    { value: 'no', label: 'No' },
-    { value: '', label: 'Unknown' },
+    { value: 'yes', label: t('yes') },
+    { value: 'no', label: t('no') },
+    { value: '', label: t('unknown') },
   ];
   return (
     <fieldset className="fieldset" aria-describedby={error === undefined ? undefined : errorId}>
       <legend className="fieldset-legend">
         {field.label}
-        {field.required && <span className="font-normal text-base-content/70"> (required)</span>}
+        {field.required && (
+          <span className="font-normal text-base-content/70"> ({tCommon('required')})</span>
+        )}
       </legend>
       <div className="flex flex-wrap gap-x-6 gap-y-2">
         {options.map((option, index) => (
@@ -100,6 +105,8 @@ function idFor(field: FactFormField): string {
  * untouched form simply shows the new values, and an edited one asks before discarding.
  */
 export function FactForm({ projectId, market, values, locked, onUnsavedChange }: FactFormProps) {
+  const t = useTranslations('factForm');
+  const tApi = useTranslations('apiErrors');
   const queryClient = useQueryClient();
   const mutation = useSaveFactForm(projectId);
   const saving = useRef(false);
@@ -163,7 +170,7 @@ export function FactForm({ projectId, market, values, locked, onUnsavedChange }:
     setFormError(null);
     setSaved(false);
 
-    const found = validateDraft(market.facts, draft);
+    const found = validateDraft(t, market.facts, draft);
     if (Object.keys(found).length > 0) {
       setErrors(found);
       requestFocus(found);
@@ -186,15 +193,15 @@ export function FactForm({ projectId, market, values, locked, onUnsavedChange }:
             for (const [key, problem] of Object.entries(error.fields)) {
               const field = market.facts.find((candidate) => candidate.key === key);
               if (field === undefined) unknownKeys.push(key);
-              else serverErrors[key] = factProblemMessage(field, problem);
+              else serverErrors[key] = factProblemMessage(t, field, problem);
             }
             setErrors(serverErrors);
             requestFocus(serverErrors);
             if (Object.keys(serverErrors).length === 0) {
               setFormError(
                 unknownKeys.length > 0
-                  ? `The server refused saved extra fields: ${unknownKeys.join(', ')}.`
-                  : 'Check the form and try again.',
+                  ? t('serverRefusedExtra', { fields: unknownKeys.join(', ') })
+                  : t('checkForm'),
               );
             }
             return;
@@ -203,7 +210,7 @@ export function FactForm({ projectId, market, values, locked, onUnsavedChange }:
             // Another tab started a run: show the locked state the server now reports.
             void queryClient.invalidateQueries({ queryKey: projectKey(projectId) });
           }
-          setFormError(describeRequestFailure(error));
+          setFormError(describeRequestFailure(tApi, error));
         },
         onSettled: () => {
           saving.current = false;
@@ -234,8 +241,12 @@ export function FactForm({ projectId, market, values, locked, onUnsavedChange }:
                 onChange={(event) => onChange(field.key, event.target.value)}
                 className={`select min-h-11 w-full ${error === undefined ? '' : 'select-error'}`}
               >
-                <option value="">Unknown</option>
-                {stale && <option value={value}>(invalid) {value}</option>}
+                <option value="">{t('unknown')}</option>
+                {stale && (
+                  <option value={value}>
+                    {t('invalidValue')} {value}
+                  </option>
+                )}
                 {field.values.map((option) => (
                   <option key={option} value={option}>
                     {humanize(option)}
@@ -269,7 +280,7 @@ export function FactForm({ projectId, market, values, locked, onUnsavedChange }:
             id={id}
             label={field.label}
             required={field.required}
-            hint={fieldHint(field)}
+            hint={fieldHint(t, field)}
             error={error}
           >
             {(control) => (
@@ -303,26 +314,20 @@ export function FactForm({ projectId, market, values, locked, onUnsavedChange }:
       )}
       {conflict && (
         <div role="alert" className="alert alert-warning">
-          <span>Saved values changed elsewhere. Your edits were not saved.</span>
+          <span>{t('changedElsewhere')}</span>
           <button type="button" className="btn min-h-11" onClick={discardEdits}>
-            Load saved values
+            {t('loadSaved')}
           </button>
         </div>
       )}
-      <p className="text-sm text-base-content/70">
-        Leave a fact empty when you do not know it. Required facts may stay empty while you draft,
-        but a run needs them.
-      </p>
+      <p className="text-sm text-base-content/70">{t('intro')}</p>
       <div className="grid gap-4 sm:grid-cols-2">
         {market.facts.map((field) => (
           <div key={field.key}>{renderField(field)}</div>
         ))}
       </div>
       {extras > 0 && (
-        <p className="text-sm text-base-content/70">
-          {extras} additional {extras === 1 ? 'field is' : 'fields are'} stored with this project
-          and kept as they are.
-        </p>
+        <p className="text-sm text-base-content/70">{t('extras', { count: extras })}</p>
       )}
       {!locked && (
         <div className="flex flex-wrap items-center gap-3">
@@ -334,17 +339,15 @@ export function FactForm({ projectId, market, values, locked, onUnsavedChange }:
             {mutation.isPending && (
               <span className="loading loading-spinner loading-sm" aria-hidden />
             )}
-            Save facts
+            {t('save')}
           </button>
           <span role="status" className="text-sm text-base-content/70">
-            {saved && !unsaved ? 'Facts saved.' : unsaved ? 'You have unsaved changes.' : ''}
+            {saved && !unsaved ? t('saved') : unsaved ? t('unsaved') : ''}
           </span>
           {errorCount > 0 && (
             <span className="text-sm text-error">
               <span aria-hidden>× </span>
-              {errorCount === 1
-                ? '1 field needs attention.'
-                : `${errorCount} fields need attention.`}
+              {t('needAttention', { count: errorCount })}
             </span>
           )}
         </div>

@@ -8,7 +8,7 @@ import { useRunMonitor } from '../lib/use-run-monitor';
 import RunPage from '../pages/runs/[runId]';
 import { FakeEventSource } from './fake-event-source';
 import { setRoute } from './router-mock';
-import { jsonResponse, meSignedIn, mockFetch, renderPage } from './test-utils';
+import { jsonResponse, meSignedIn, mockFetch, renderPage, testTranslator } from './test-utils';
 
 vi.mock('next/router', () => import('./router-mock'));
 
@@ -105,7 +105,7 @@ async function renderMonitor() {
 
 /** Finds a step card by its step ID, through the plain label the screen shows for it. */
 function stepItem(stepId: string): HTMLElement {
-  const name = stepLabel(stepId).label;
+  const name = stepLabel(testTranslator('steps'), stepId).label;
   const item = screen
     .getAllByRole('listitem')
     .find((li) => within(li).queryByText(name, { exact: true }) !== null);
@@ -637,7 +637,9 @@ describe('run monitor screen states and wording', () => {
     await renderMonitor();
     const item = stepItem('intake');
     expect(within(item).getByText('Reading the walkthrough')).toBeDefined();
-    expect(within(item).getByText(stepLabel('intake').description)).toBeDefined();
+    expect(
+      within(item).getByText(stepLabel(testTranslator('steps'), 'intake').description),
+    ).toBeDefined();
     expect(screen.queryByText('intake', { exact: true })).toBeNull();
     // An unknown ID falls back to a humanised name.
     expect(within(stepItem('extract')).getByText('Extract')).toBeDefined();

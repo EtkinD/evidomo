@@ -4,7 +4,14 @@ import { humanizeWait } from '../lib/access-code';
 import ProjectPage from '../pages/projects/[projectId]';
 import { PROJECT_ID, RUN_ID, marketForm, projectDetail, run } from './project-fixtures';
 import { mockRouter, setRoute } from './router-mock';
-import { jsonResponse, meSignedIn, mockFetch, renderPage, type FetchCall } from './test-utils';
+import {
+  jsonResponse,
+  meSignedIn,
+  mockFetch,
+  renderPage,
+  testTranslator,
+  type FetchCall,
+} from './test-utils';
 
 vi.mock('next/router', () => import('./router-mock'));
 
@@ -177,6 +184,6 @@ describe('humanizeWait', () => {
     [10_800, 'about 3 hours'],
     [90_000, 'about 2 days'],
   ])('%i seconds -> %s', (seconds, text) => {
-    expect(humanizeWait(seconds)).toBe(text);
+    expect(humanizeWait(testTranslator('readiness'), seconds)).toBe(text);
   });
 });

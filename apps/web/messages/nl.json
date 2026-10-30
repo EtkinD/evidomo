@@ -1,0 +1,914 @@
+{
+  "common": {
+    "tryAgain": "Probeer opnieuw",
+    "required": "verplicht",
+    "leaveMessage": "Er lopen nog uploads of een opname. Als je nu weggaat, gaan ze verloren. Toch weggaan?",
+    "sessionEnded": "Je sessie is verlopen. Log opnieuw in om verder te gaan.",
+    "logIn": "Inloggen",
+    "projectMissing": "Dit project bestaat niet.",
+    "projectLoadError": "We konden dit project niet laden. Controleer je verbinding en probeer het opnieuw.",
+    "loadingProject": "Project laden…",
+    "yes": "Ja",
+    "no": "Nee"
+  },
+  "shell": {
+    "accountMenu": "Accountmenu",
+    "logOut": "Uitloggen",
+    "logOutFailed": "Uitloggen is niet gelukt. Probeer het opnieuw.",
+    "navMain": "Hoofdmenu",
+    "navAccount": "Account",
+    "projects": "Projecten",
+    "demo": "Demo",
+    "logIn": "Inloggen",
+    "createAccount": "Account aanmaken",
+    "mastheadLine": "Bewijs voor elk huis.",
+    "footerTagline": "Advertentiepakketten met bewijs voor makelaars.",
+    "hackathon": "Gebouwd tijdens de Meta-hackathon, 26 okt – 4 nov 2026.",
+    "github": "Evidomo op GitHub",
+    "theme": "Thema",
+    "themeSystem": "Systeem",
+    "themeLight": "Licht",
+    "themeDark": "Donker",
+    "language": "Taal"
+  },
+  "auth": {
+    "checkingSession": "Je sessie wordt gecontroleerd…",
+    "sessionCheckFailed": "We konden je sessie niet controleren. Controleer je verbinding en probeer het opnieuw.",
+    "email": "E-mailadres",
+    "password": "Wachtwoord",
+    "emailTaken": "Er bestaat al een account met dit e-mailadres.",
+    "logInInstead": "Log in plaats daarvan in",
+    "passwordHint": "Minstens {min} tekens.",
+    "login": {
+      "pageTitle": "Inloggen — Evidomo",
+      "title": "Inloggen",
+      "description": "Terug naar je advertentiepakketten.",
+      "noAccount": "Nog geen account?",
+      "createAccountLink": "Maak een account aan",
+      "submit": "Inloggen"
+    },
+    "register": {
+      "pageTitle": "Account aanmaken — Evidomo",
+      "title": "Maak je account aan",
+      "description": "Maak van woningfoto’s en een gesproken rondleiding een advertentiepakket met bewijs.",
+      "haveAccount": "Heb je al een account?",
+      "logInLink": "Inloggen",
+      "submit": "Account aanmaken"
+    },
+    "errors": {
+      "emailEmpty": "Vul je e-mailadres in.",
+      "emailInvalid": "Vul een geldig e-mailadres in, zoals naam@voorbeeld.nl.",
+      "passwordEmptyLogin": "Vul je wachtwoord in.",
+      "passwordEmpty": "Vul een wachtwoord in.",
+      "passwordTooLong": "Gebruik maximaal {max} tekens.",
+      "passwordTooShort": "Gebruik minstens {min} tekens.",
+      "passwordRange": "Gebruik {min} tot {max} tekens.",
+      "unreachable": "Evidomo is niet bereikbaar. Controleer je verbinding en probeer het opnieuw.",
+      "generic": "Er ging iets mis aan onze kant. Probeer het zo meteen opnieuw.",
+      "checkForm": "Controleer het formulier en probeer het opnieuw.",
+      "invalidCredentials": "E-mailadres of wachtwoord is onjuist.",
+      "rateLimited": "Te veel pogingen. Wacht een paar minuten en probeer het opnieuw.",
+      "rateLimitedSeconds": "Te veel pogingen. Probeer het over {count, plural, one {# seconde} other {# seconden}} opnieuw.",
+      "rateLimitedMinutes": "Te veel pogingen. Probeer het over {count, plural, one {# minuut} other {# minuten}} opnieuw.",
+      "forbiddenOrigin": "Het verzoek is geblokkeerd omdat het niet van deze site kwam. Laad de pagina opnieuw en probeer het nog eens.",
+      "notSent": "Het formulier kon niet worden verzonden. Laad de pagina opnieuw en probeer het nog eens."
+    }
+  },
+  "meta": {
+    "tagline": "Bewijs voor elk huis.",
+    "ogImageAlt": "Evidomo: bewijs voor elk huis.",
+    "landingTitle": "Evidomo: advertentiepakketten waarin elke bewering een bron heeft",
+    "landingDescription": "Foto’s en een gesproken rondleiding erin, een advertentiepakket eruit. Elke bewering is gekoppeld aan het formulierveld, het gesproken fragment of de foto waar ze vandaan komt, en jij controleert alles vóór de export."
+  },
+  "landing": {
+    "actions": {
+      "goToProjects": "Ga naar je projecten",
+      "createAccount": "Account aanmaken",
+      "logIn": "Inloggen",
+      "seeDemo": "Bekijk een afgeronde verwerking"
+    },
+    "hero": {
+      "line1": "Elke bewering",
+      "line2": "in je advertentie,",
+      "line3": "gekoppeld aan het bewijs.",
+      "lede": "Loop door de woning, praat en maak foto’s. Evidomo stelt het advertentiepakket op en laat zien waar elke uitspraak vandaan komt, zodat jij feiten goedkeurt in plaats van gissingen.",
+      "footnote": "Open een willekeurige zin van een pakket en zie het formulierveld, het gesproken fragment of het deel van de foto waarop hij rust.",
+      "notesLabel": "Voorbeeldnotities bij de foto",
+      "claims": {
+        "windows": "Twee hoge ramen",
+        "brick": "Bakstenen accentmuur",
+        "area": "Woonoppervlak 38 m²"
+      },
+      "sources": {
+        "photo": "Foto",
+        "form": "Formulierveld"
+      },
+      "caption": "Een illustratief voorbeeld, geen echte advertentie. Elke genummerde notitie noemt de bron van een bewering."
+    },
+    "how": {
+      "title": "Van rondgang naar een pakket waar je achter staat",
+      "subtitle": "Drie stappen, en bij de tweede heb jij de regie.",
+      "packPreviewLabel": "Voorbeeld van een advertentiepakket: twee uitspraken, elk met zijn bron",
+      "previewLiving": {
+        "text": "Lichte woonkamer van 38 m².",
+        "source": "Formulier"
+      },
+      "previewGarden": {
+        "text": "Tuin op het zuiden.",
+        "source": "Stem, 0:42"
+      },
+      "steps": {
+        "capture": {
+          "title": "Vastleggen",
+          "text": "Fotografeer elke kamer, neem een gesproken rondleiding op in je eigen taal en bevestig de feiten die je kent. Het werkt op je telefoon, ter plekke."
+        },
+        "verify": {
+          "title": "Controleren",
+          "text": "Waar het formulier, de stem en de foto’s elkaar tegenspreken, stopt de verwerking en beslis jij. Elke zin van het concept is gekoppeld aan het bewijs erachter."
+        },
+        "pack": {
+          "title": "Pakket",
+          "text": "Download een drukklaar pakket: advertentietekst voor portalen en social media, vraag-en-antwoordkaarten voor kopers en gestructureerde portaalvelden. Elke bewering blijft herleidbaar."
+        }
+      }
+    },
+    "evidence": {
+      "title": "Elke bewering heeft een bron",
+      "text": "Open een willekeurige zin van een advertentiepakket en zie het formulierveld, het gesproken fragment of het deel van de foto waarop hij rust. Een bewering zonder bewijs wordt vóór de export aan jou voorgelegd.",
+      "caption": "Een illustratief voorbeeld, geen echte advertentie. Gemarkeerde zinsdelen zijn beweringen met bewijs.",
+      "verified": "Gecontroleerd",
+      "notesLabel": "Voorbeeldbewijs bij de gemarkeerde beweringen",
+      "sentence": "Een lichte <c1>woonkamer van 38 m²</c1> met een <c2>eikenhouten visgraatvloer</c2> en een <c3>tuin op het zuiden</c3>.",
+      "notes": {
+        "area": {
+          "claim": "Woonoppervlak is 38 m²",
+          "source": "Formulierveld",
+          "label": "Woonoppervlak:"
+        },
+        "floor": {
+          "claim": "Eikenhouten visgraatvloer",
+          "source": "Foto",
+          "region": "Het bewuste gebied is op de foto omlijnd."
+        },
+        "garden": {
+          "claim": "Tuin ligt op het zuiden",
+          "source": "Gesproken rondleiding, fragment op 0:42",
+          "quote": "“De tuin ligt op het zuiden, hij krijgt zon tot laat.”"
+        }
+      }
+    },
+    "trust": {
+      "title": "Gemaakt om gecontroleerd te worden",
+      "items": {
+        "calls": {
+          "title": "Jij beslist",
+          "text": "Twee controlemomenten geven jou de regie: eerst tegenstrijdige gegevens, daarna elke gemarkeerde zin en elke gestylede afbeelding. De verwerking wacht op jou."
+        },
+        "staging": {
+          "title": "Styling wordt vermeld",
+          "text": "Een virtueel gestylede afbeelding wordt als zodanig vermeld en altijd naast het origineel getoond."
+        },
+        "private": {
+          "title": "Privégegevens worden verwijderd",
+          "text": "Fotometadata, inclusief gps, wordt bij het uploaden verwijderd. Gezichten en kentekens worden in exports vervaagd."
+        },
+        "assists": {
+          "title": "Het helpt, het certificeert niet",
+          "text": "De publicatiechecklist helpt je ontbrekende punten te zien. Evidomo certificeert geen naleving van regels, taxeert geen woning en publiceert niet namens jou op portalen."
+        }
+      }
+    },
+    "cta": {
+      "title": "Klaar voor je volgende advertentie?",
+      "text": "Voeg foto’s en een gesproken rondleiding toe en controleer het concept voordat er iets naar buiten gaat."
+    },
+    "images": {
+      "hero": "Een lichte woonkamer in een grachtenpand met een groenkrijtwitte bakstenen muur, een beige bank, een groene fauteuil en een plant in een pot bij het raam",
+      "interior1": "Een eikenhouten visgraatvloer die overgaat in terracotta tegels, met bladschaduwen en een gele pot met een olijftak",
+      "interior2": "Een met kalk gewitte bakstenen open haard met een eikenhouten schouw, eucalyptus in een terracotta pot en berkenhout",
+      "illustration": "Een illustratie van een wit huis met een afgerond crèmekleurig dak, een open gele deur en een groene plant"
+    }
+  },
+  "notFound": {
+    "pageTitle": "Pagina niet gevonden — Evidomo",
+    "title": "Pagina niet gevonden",
+    "text": "De pagina die je zoekt bestaat niet of is verplaatst.",
+    "home": "Terug naar het begin"
+  },
+  "status": {
+    "queued": "In de wachtrij",
+    "running": "Bezig",
+    "awaiting_gate": "Wacht op jouw controle",
+    "completed": "Afgerond",
+    "failed": "Mislukt"
+  },
+  "steps": {
+    "intake": {
+      "label": "De rondleiding wordt gelezen",
+      "description": "Je spraakopname wordt omgezet in een transcript, fragment voor fragment."
+    },
+    "fact_extraction": {
+      "label": "De gegevens worden eruit gehaald",
+      "description": "Gegevens worden uit het transcript en je formulier gehaald, elk gekoppeld aan zijn herkomst."
+    },
+    "vision_inventory": {
+      "label": "De foto’s worden bekeken",
+      "description": "Elke foto wordt gecontroleerd op ruimtes, voorzieningen en staat."
+    },
+    "reconciliation": {
+      "label": "De gegevens worden vergeleken",
+      "description": "Gegevens die verschillen tussen het formulier, de stem en de foto’s worden opgespoord."
+    },
+    "creative": {
+      "label": "De advertentie wordt geschreven",
+      "description": "De portaaltekst en de social-mediatekst worden opgesteld op basis van de bevestigde gegevens."
+    },
+    "qa_cards": {
+      "label": "Kopersvragen worden voorbereid",
+      "description": "De vragen die kopers meestal stellen worden beantwoord, op basis van dezelfde gegevens."
+    },
+    "staging": {
+      "label": "De foto’s worden gestyled",
+      "description": "Gemeubileerde versies van lege kamers worden gemaakt, altijd vermeld als gestyled."
+    },
+    "integrity": {
+      "label": "De gestylede foto’s worden gecontroleerd",
+      "description": "Er wordt gecontroleerd dat de styling geen ramen, deuren of andere vaste onderdelen heeft veranderd."
+    },
+    "verification": {
+      "label": "Elke bewering wordt gecontroleerd",
+      "description": "Elke zin wordt getoetst aan de gegevens waarnaar hij verwijst."
+    },
+    "export": {
+      "label": "Het pakket wordt samengesteld",
+      "description": "Het HTML-pakket, de portaalvelden en de afbeeldingen worden samengesteld."
+    }
+  },
+  "apiErrors": {
+    "unreachable": "Evidomo is niet bereikbaar. Controleer je verbinding en probeer het opnieuw.",
+    "generic": "Er ging iets mis aan onze kant. Probeer het zo meteen opnieuw.",
+    "sessionEnded": "Je sessie is verlopen. Log opnieuw in om verder te gaan.",
+    "projectGone": "Dit project bestaat niet meer.",
+    "inputsLocked": "Er is een verwerking gestart, dus deze invoer kan niet meer worden gewijzigd.",
+    "forbiddenOrigin": "Het verzoek is geblokkeerd omdat het niet van deze site kwam. Laad de pagina opnieuw en probeer het nog eens.",
+    "rateLimited": "Te veel verzoeken. Wacht even en probeer het opnieuw."
+  },
+  "projects": {
+    "pageTitle": "Je projecten — Evidomo",
+    "title": "Je projecten",
+    "signedInAs": "Ingelogd als {email}",
+    "newProject": "Nieuw project",
+    "loading": "Je projecten laden…",
+    "loadError": "We konden je projecten niet laden. Controleer je verbinding en probeer het opnieuw.",
+    "unknownMarket": "Onbekende markt",
+    "noRunYet": "Nog geen verwerking",
+    "photoCount": "{count, plural, one {# foto} other {# foto’s}}",
+    "voiceMemoYes": "Spraakopname: ja",
+    "voiceMemoNo": "Spraakopname: nee",
+    "viewRun": "Verwerking bekijken",
+    "viewRunFor": "Verwerking bekijken voor {title}",
+    "emptyTitle": "Nog geen projecten",
+    "emptyText": "Een project bevat één woning: de foto’s, de gesproken rondleiding en het advertentiepakket. Begin er een zodra je voor de deur staat."
+  },
+  "newProject": {
+    "pageTitle": "Nieuw project — Evidomo",
+    "back": "Terug naar projecten",
+    "title": "Nieuw project",
+    "loadingMarkets": "Markten laden…",
+    "marketsError": "We konden de markten niet laden. Controleer je verbinding en probeer het opnieuw.",
+    "noMarkets": "Er zijn op deze server nog geen markten beschikbaar."
+  },
+  "projectForm": {
+    "title": "Projecttitel",
+    "marketAndLanguage": "Markt en taal",
+    "market": "Markt",
+    "outputLanguage": "Uitvoertaal",
+    "outputLanguageHint": "De taal van de advertentietekst.",
+    "create": "Project aanmaken",
+    "officeProfile": "Kantoorprofiel",
+    "agencyName": "Naam van het kantoor",
+    "contactBlock": "Contactgegevens",
+    "contactBlockHint": "Optioneel. Wordt getoond in het advertentiepakket, bijvoorbeeld adres, telefoonnummer en website.",
+    "tone": "Toon",
+    "toneHint": "Optioneel. Hoe de tekst moet klinken, bijvoorbeeld warm en professioneel.",
+    "officeLocked": "Er is een verwerking gestart, dus het kantoorprofiel is vergrendeld. De titel kun je nog wel wijzigen.",
+    "changedElsewhere": "Opgeslagen waarden zijn elders gewijzigd. Je wijzigingen zijn niet opgeslagen.",
+    "loadSaved": "Opgeslagen waarden laden",
+    "saveDetails": "Gegevens opslaan",
+    "detailsSaved": "Gegevens opgeslagen.",
+    "unsavedChanges": "Je hebt niet-opgeslagen wijzigingen.",
+    "errors": {
+      "titleEmpty": "Vul een projecttitel in.",
+      "titleTooLong": "Gebruik maximaal {max} tekens voor de titel.",
+      "agencyEmpty": "Vul de naam van je kantoor in.",
+      "agencyTooLong": "Gebruik maximaal {max} tekens voor de naam van het kantoor.",
+      "contactTooLong": "Gebruik maximaal {max} tekens voor de contactgegevens.",
+      "toneTooLong": "Gebruik maximaal {max} tekens voor de toon.",
+      "marketRequired": "Kies een markt.",
+      "languageRequired": "Kies een van de talen die deze markt biedt.",
+      "checkForm": "Controleer het formulier en probeer het opnieuw."
+    }
+  },
+  "projectPage": {
+    "pageTitle": "Project — Evidomo",
+    "pageTitleFor": "{title} — Evidomo",
+    "back": "Terug naar projecten",
+    "unknownMarket": "Onbekende markt",
+    "facts": "Woninggegevens",
+    "factsLocked": "Er is een verwerking gestart, dus deze gegevens zijn vergrendeld: de verwerking gebruikt ze als bewijs.",
+    "loadingFacts": "Gegevensformulier laden…",
+    "factsLoadError": "We konden het gegevensformulier niet laden. Controleer je verbinding en probeer het opnieuw.",
+    "details": "Projectgegevens"
+  },
+  "capture": {
+    "pageTitle": "Vastleggen — Evidomo",
+    "pageTitleFor": "Vastleggen · {title} — Evidomo",
+    "title": "Vastleggen",
+    "back": "Terug naar het project",
+    "stillNeeded": "Wat er nog nodig is",
+    "uploading": "De foto’s worden nog geüpload. Blijf op deze pagina.",
+    "recordingNow": "Er loopt een opname.",
+    "recordingUnsent": "Er staat een opname klaar die nog niet is geüpload.",
+    "inPlace": "De foto’s en de rondleiding zijn compleet.",
+    "factsMissing": "Op de projectpagina {count, plural, one {ontbreekt nog 1 verplicht gegeven} other {ontbreken nog # verplichte gegevens}}.",
+    "goToVoice": "Ga naar de gesproken rondleiding",
+    "continue": "Ga verder om de verwerking te starten",
+    "rejections": {
+      "empty_file": "Het bestand is leeg.",
+      "file_too_large": "Het bestand is te groot.",
+      "unsupported_format": "Dit bestandsformaat wordt niet ondersteund. Gebruik een jpeg-, png- of webp-foto.",
+      "heic_not_supported": "Heic-foto’s worden niet ondersteund. Kies in de camera-instellingen van je telefoon “Meest compatibel” (jpeg), of kies een jpeg.",
+      "too_many_pixels": "De foto heeft te veel pixels. Gebruik een lagere resolutie.",
+      "undecodable": "Het bestand kon niet worden gelezen. Het is mogelijk beschadigd.",
+      "too_long": "De opname is langer dan de toegestane lengte."
+    },
+    "downscale": {
+      "heic_unreadable": "Deze browser kan heic-foto’s niet lezen. Zet je camera op “Meest compatibel” (jpeg) of kies een jpeg.",
+      "undecodable": "Deze foto kon niet worden gelezen op je apparaat. Probeer een andere foto.",
+      "encode_failed": "Deze foto kon niet worden voorbereid op je apparaat. Probeer een andere foto."
+    },
+    "uploadErrors": {
+      "refused": "Het bestand is geweigerd.",
+      "photoLimit": "Het maximum aantal foto’s is bereikt.",
+      "locked": "Er is een verwerking gestart, dus er kunnen geen bestanden meer worden toegevoegd.",
+      "mediaType": "Dit bestandstype wordt niet ondersteund.",
+      "busy": "De server is bezig met andere uploads. Probeer het zo meteen opnieuw."
+    },
+    "audioFormat": "Dit audioformaat wordt niet ondersteund. Gebruik WebM, M4A, MP3 of WAV.",
+    "limit": {
+      "minutes": "{count, plural, one {# minuut} other {# minuten}}",
+      "seconds": "{count, plural, one {# seconde} other {# seconden}}"
+    },
+    "queue": {
+      "notAdded": "{count, plural, one {# foto} other {# foto’s}} niet toegevoegd: het project kan geen foto’s meer bevatten.",
+      "uploading": "{count, plural, one {# foto wordt} other {# foto’s worden}} geüpload.",
+      "uploaded": "{count, plural, one {# foto} other {# foto’s}} geüpload.",
+      "skipped": "{count, plural, one {# foto} other {# foto’s}} overgeslagen.",
+      "busy": "De server is bezig. Opnieuw proberen over {seconds, plural, one {# seconde} other {# seconden}}.",
+      "paused": "Upload gepauzeerd bij {name}. {message} Probeer opnieuw of sla deze foto over.",
+      "aPhoto": "een foto"
+    },
+    "photos": {
+      "title": "Foto’s",
+      "previewUnavailable": "Voorbeeld niet beschikbaar",
+      "photoN": "Foto {position}",
+      "deleteLabel": "Foto {position} verwijderen",
+      "delete": "Verwijderen",
+      "waiting": "Wacht op upload",
+      "preparing": "Voorbereiden…",
+      "uploadingLabel": "{name} wordt geüpload",
+      "busy": "Server bezig, we proberen het zo opnieuw…",
+      "paused": "Upload gepauzeerd: {error} De foto’s hierna wachten.",
+      "skippedWhy": "Overgeslagen: {error}",
+      "retryLabel": "{name} opnieuw proberen",
+      "retry": "Opnieuw proberen",
+      "skipLabel": "{name} overslaan",
+      "skip": "Deze foto overslaan",
+      "removeLabel": "{name} verwijderen",
+      "remove": "Verwijderen",
+      "deleted": "Foto {position} verwijderd. {left, plural, one {# foto} other {# foto’s}} over.",
+      "countOf": "{count} van {max} foto’s",
+      "atLeast": "minstens {min} nodig",
+      "enough": "Genoeg foto’s",
+      "locked": "Er is een verwerking gestart, dus de foto’s zijn vergrendeld: de verwerking gebruikt ze als bewijs.",
+      "camera": "Camera",
+      "files": "Fotobestanden",
+      "take": "Foto maken",
+      "choose": "Foto’s kiezen",
+      "full": "Een project bevat maximaal {max} foto’s. Verwijder er een om een andere toe te voegen.",
+      "deleteFailed": "De foto kon niet worden verwijderd. {reason}",
+      "none": "Nog geen foto’s."
+    },
+    "voice": {
+      "title": "Gesproken rondleiding",
+      "intro": "Loop door de woning en vertel wat je ziet: kamers, staat, alles wat de foto’s niet kunnen laten zien. Maximaal {limit}.",
+      "current": "Huidige rondleiding",
+      "previous": "Vorige rondleiding (wordt vervangen als je uploadt)",
+      "playbackFailed": "Afspelen is nu niet beschikbaar.",
+      "locked": "Er is een verwerking gestart, dus de rondleiding is vergrendeld: de verwerking gebruikt ze als bewijs.",
+      "replaces": "Een nieuwe opname of een nieuw bestand vervangt de huidige rondleiding.",
+      "insecure": "Opnemen vereist een beveiligde (https-)verbinding. Je kunt in plaats daarvan een audiobestand uploaden.",
+      "unsupported": "Deze browser kan geen audio opnemen. Je kunt in plaats daarvan een audiobestand uploaden.",
+      "requesting": "Wachten op toestemming voor de microfoon…",
+      "recording": "Opname loopt",
+      "timer": "Opnameduur",
+      "stop": "Opname stoppen",
+      "failures": {
+        "denied": "De toegang tot de microfoon is geblokkeerd. Sta de microfoon voor deze site toe in de instellingen van je browser en probeer het opnieuw. Je kunt ook een audiobestand uploaden.",
+        "no_microphone": "Op dit apparaat is geen microfoon gevonden. Je kunt in plaats daarvan een audiobestand uploaden.",
+        "unusable_format": "Deze browser neemt op in een formaat dat Evidomo niet kan accepteren. Upload in plaats daarvan een audiobestand.",
+        "error": "Het opnemen is mislukt. Probeer het opnieuw of upload een audiobestand."
+      },
+      "preview": "Voorbeeld: {label}",
+      "previewLabel": "Voorbeeld van de nieuwe rondleiding",
+      "recordingLabel": "Opname, {time}",
+      "upload": "Rondleiding uploaden",
+      "uploadAgain": "Upload opnieuw proberen",
+      "recordAgain": "Opnieuw opnemen",
+      "discard": "Weggooien",
+      "tryAgain": "Opnieuw proberen op te nemen",
+      "start": "Opname starten",
+      "recordNew": "Een nieuwe rondleiding opnemen",
+      "chooseFile": "Een audiobestand uploaden",
+      "fileLabel": "Audiobestand",
+      "announceStarted": "Opname gestart.",
+      "announceStopped": "Opname gestopt. Je kunt hem beluisteren voordat je uploadt.",
+      "announceDiscarded": "Opname weggegooid.",
+      "announceUploading": "De rondleiding wordt geüpload.",
+      "announceUploaded": "Rondleiding geüpload.",
+      "announceFailed": "Upload mislukt. {message}"
+    }
+  },
+  "readiness": {
+    "title": "Klaar om te starten?",
+    "activeRun": "Er loopt een verwerking voor dit project.",
+    "viewActiveRun": "Bekijk de actieve verwerking",
+    "stillNeeded": "Nog nodig voordat een verwerking kan starten:",
+    "allReady": "Alle invoer is compleet. Je kunt een verwerking starten.",
+    "inputsChanged": "Sommige invoer is gewijzigd sinds deze pagina is geladen. De lijst hierboven toont wat er nu ontbreekt.",
+    "alreadyActive": "Er loopt al een verwerking voor dit project.",
+    "budgetUsed": "Het verwerkingsbudget van vandaag is op. Je invoer is opgeslagen; start de verwerking morgen opnieuw.",
+    "codeRateLimited": "Te veel foute codes, probeer het later opnieuw.",
+    "runLimit": "Je hebt de limiet voor live verwerkingen van vandaag bereikt.",
+    "runLimitWait": "Je hebt de limiet voor live verwerkingen van vandaag bereikt. Je kunt er over {wait} nog een starten.",
+    "accessCode": "Toegangscode",
+    "accessCodeHint": "Live verwerkingen gebruiken betaalde modelaanroepen. Heb je een code gekregen, vul die dan in; laat het anders leeg.",
+    "accessCodeInvalid": "Deze toegangscode is niet geldig.",
+    "hide": "Verberg",
+    "show": "Toon",
+    "hideCode": "Toegangscode verbergen",
+    "showCode": "Toegangscode tonen",
+    "start": "Verwerking starten",
+    "saveFirst": "Sla eerst je wijzigingen op.",
+    "viewLatest": "Bekijk de laatste verwerking",
+    "viewPack": "Pakket bekijken",
+    "addPhotos": "Voeg minstens {min, plural, one {# foto} other {# foto’s}} toe (tot nu toe {count}).",
+    "removePhotos": "Verwijder {extra, plural, one {# foto} other {# foto’s}} (maximaal {max} toegestaan, tot nu toe {count}).",
+    "recordVoice": "Neem een gesproken rondleiding van de woning op.",
+    "factMissing": "Vul het verplichte gegeven in: {label}.",
+    "factInvalid": "Corrigeer de waarde van {label}: de opgeslagen waarde is niet meer geldig.",
+    "wait": {
+      "minute": "een minuut",
+      "minutes": "{count, plural, one {# minuut} other {# minuten}}",
+      "hours": "{count, plural, one {ongeveer een uur} other {ongeveer # uur}}",
+      "days": "{count, plural, one {ongeveer een dag} other {ongeveer # dagen}}"
+    }
+  },
+  "materials": {
+    "title": "Materiaal",
+    "previewUnavailable": "Voorbeeld niet beschikbaar",
+    "photos": "Foto’s",
+    "photosAdded": "{count} toegevoegd",
+    "photosAddedNeeded": "{count} toegevoegd ({min} tot {max} nodig)",
+    "previews": "Fotovoorbeelden",
+    "photoN": "Foto {position}",
+    "showing": "{shown} van {total} getoond.",
+    "voice": "Gesproken rondleiding",
+    "recorded": "Opgenomen",
+    "notRecorded": "Nog niet opgenomen",
+    "viewCapture": "Foto’s en rondleiding bekijken",
+    "addCapture": "Foto’s en rondleiding toevoegen"
+  },
+  "run": {
+    "pageTitle": "Verwerking — Evidomo",
+    "title": "Verwerking",
+    "titleDemo": "Herhaling van een voorbeeldverwerking",
+    "loading": "Verwerking laden…",
+    "loadError": "We konden deze verwerking niet laden. Controleer je verbinding en probeer het opnieuw.",
+    "notFound": "Deze verwerking is niet gevonden. Ze hoort mogelijk bij een ander account of bestaat niet meer.",
+    "demoNotFound": "Deze demoverwerking is niet gevonden. Ze is mogelijk niet meer gepubliceerd.",
+    "seeDemoRuns": "Bekijk de demoverwerkingen",
+    "goToProjects": "Ga naar je projecten",
+    "tryAgain": "Probeer opnieuw",
+    "sessionExpired": "Je sessie is verlopen.",
+    "logInAgain": "Opnieuw inloggen",
+    "steps": "Stappen",
+    "stepsDone": "{done} van {total} stappen gedaan",
+    "stepsDoneLabel": "Voltooide stappen",
+    "stepStatus": {
+      "pending": "Wachten",
+      "queued": "In de wachtrij",
+      "running": "Bezig",
+      "completed": "Klaar",
+      "failed": "Mislukt",
+      "needsReview": "Wacht op jouw controle"
+    },
+    "runStatus": {
+      "awaitingGate": "Wacht op jouw controle",
+      "completed": "Afgerond"
+    },
+    "attempts": "Pogingen",
+    "execution": "uitvoering {current}/{max}",
+    "cost": "Kosten",
+    "duration": {
+      "label": "Duur",
+      "seconds": "{seconds} sec",
+      "minutes": "{minutes} min {seconds} sec"
+    },
+    "costSoFar": "Kosten tot nu toe",
+    "devOnly": "Alleen zichtbaar in ontwikkeling",
+    "ofCap": "van het maximum van {cap}",
+    "costAgainstCap": "Verwerkingskosten ten opzichte van het maximum",
+    "capReached": "De verwerking heeft het kostenmaximum bereikt.",
+    "capClose": "De verwerking zit dicht bij het kostenmaximum.",
+    "capShare": "{share, number, percent} van het maximum. De verwerking stopt vanzelf bij het maximum.",
+    "reviewNeeded": "Controle nodig",
+    "paused": "Gepauzeerd",
+    "gate": {
+      "factConflicts": "Controle 1: tegenstrijdige gegevens oplossen",
+      "claimAudit": "Controle 2: het pakket nalopen"
+    },
+    "gateText": "De verwerking is gepauzeerd totdat je deze controle hebt afgerond. Ze wacht zolang als nodig; je kunt deze pagina verlaten, en na je laatste beslissing gaat de verwerking verder.",
+    "gateTextDemo": "Een live verwerking pauzeert hier totdat de makelaar deze controle heeft afgerond. In deze herhaling zijn de beslissingen al genomen; open de controle om ze te zien, met het bewijs achter elke waarde.",
+    "seeConflicts": "Bekijk de tegenstrijdigheden",
+    "seeReview": "Bekijk de controle",
+    "reviewConflicts": "Tegenstrijdigheden controleren",
+    "reviewPack": "Het pakket nalopen",
+    "failed": "De verwerking is mislukt",
+    "noReason": "Er is geen reden vastgelegd.",
+    "untouched": "Je foto’s, spraakopname en formulier zijn ongewijzigd; er is niets gepubliceerd.",
+    "finishedLabel": "Verwerking afgerond",
+    "finished": "Afgerond",
+    "packReady": "Je advertentiepakket is klaar",
+    "packReadyDemo": "Het advertentiepakket is klaar",
+    "exportReady": "Export klaar: {count, plural, one {# bestand} other {# bestanden}}.",
+    "exportReadyNotPublishable": "Export klaar: {count, plural, one {# bestand} other {# bestanden}} (nog niet klaar om te publiceren).",
+    "noExport": "De verwerking is afgerond zonder export.",
+    "tookTime": "Het duurde {duration}.",
+    "viewPack": "Pakket bekijken",
+    "announce": {
+      "queued": "Verwerking in de wachtrij.",
+      "runningStep": "Stap bezig: {step}.",
+      "inProgress": "Verwerking bezig.",
+      "pausedAt": "Verwerking gepauzeerd: {gate}.",
+      "paused": "Verwerking gepauzeerd voor controle.",
+      "completed": "Verwerking afgerond."
+    },
+    "replayStopped": "De herhaling kon niet doorgaan. Probeer het over een paar seconden opnieuw.",
+    "replayReconnecting": "De herhaling is onderbroken. Opnieuw verbinden…",
+    "liveReconnecting": "Live updates onderbroken. Opnieuw verbinden…",
+    "liveUnavailable": "Live updates zijn gepauzeerd. Wat je ziet is de laatst bekende stand. Probeer te hervatten; lukt dat niet, laad dan de pagina opnieuw.",
+    "resumeLive": "Live updates hervatten",
+    "refreshFailed": "De verwerking kon nu niet worden ververst. Wat je ziet loopt mogelijk een beetje achter.",
+    "tooManyRequests": "Op dit moment te veel verzoeken. Wacht een paar seconden en probeer het opnieuw.",
+    "tooManyRequestsWait": "Op dit moment te veel verzoeken. Wacht ongeveer {seconds, plural, one {# seconde} other {# seconden}} en probeer het opnieuw."
+  },
+  "evidence": {
+    "formField": "Formulierveld",
+    "voiceTurn": "Gesproken rondleiding, fragment op {time}",
+    "playTurn": "Speel het fragment op {time} af",
+    "stopTurn": "Stop het fragment op {time}",
+    "play": "Afspelen",
+    "stop": "Stoppen",
+    "timeRange": "{start} tot {end}",
+    "audioUnavailable": "De audio voor dit deel is niet beschikbaar: de opname eindigt vóór dit punt.",
+    "audioFailed": "De opname kon niet worden afgespeeld. Controleer je verbinding en probeer het opnieuw.",
+    "yourDecision": "Jouw beslissing",
+    "yourDecisionText": "Deze waarde heb je zelf ingevoerd tijdens het controleren van de tegenstrijdige gegevens.",
+    "photo": "Foto",
+    "photoEvidenceFor": "Fotobewijs voor {subject}",
+    "openLarger": "Open grotere foto voor {subject}",
+    "regionOutlined": "Het bewuste gebied is op de foto omlijnd.",
+    "regionHighlighted": "Het bewuste gebied is op de foto gemarkeerd.",
+    "photoFailed": "De foto kon niet worden geladen.",
+    "close": "Sluiten"
+  },
+  "demo": {
+    "pageTitle": "Demo — Evidomo",
+    "title": "Zie Evidomo aan het werk",
+    "intro": "Speel een afgeronde voorbeeldverwerking opnieuw af: bekijk de stappen en open daarna beide controles, het bewijs achter elke bewering en het advertentiepakket. Geen account nodig.",
+    "bannerLabel": "Over deze demo",
+    "bannerTitle": "Demo: een herhaling van een voorbeeldverwerking",
+    "bannerText": "De gegevens zijn verzonnen. Niets hier is live, er wordt niets naar een model gestuurd en niets wat je doet wordt opgeslagen.",
+    "controls": "Bediening van de herhaling",
+    "speed": "Afspeelsnelheid",
+    "restart": "Opnieuw afspelen vanaf het begin",
+    "finished": "De herhaling is afgelopen.",
+    "market": "Markt",
+    "language": "Taal",
+    "finishedOn": "Afgerond op",
+    "loadingRuns": "Demoverwerkingen laden…",
+    "tooManyRequests": "Op dit moment te veel verzoeken. Wacht een paar seconden en probeer het opnieuw.",
+    "loadError": "We konden de demoverwerkingen niet laden. Controleer je verbinding en probeer het opnieuw.",
+    "tryAgain": "Probeer opnieuw",
+    "noneYet": "Er is nog geen demo gepubliceerd. Een demoverwerking verschijnt hier zodra de beheerder een voorbeeldverwerking publiceert; tot die tijd valt er niets af te spelen.",
+    "home": "Terug naar de startpagina",
+    "pages": {
+      "monitor": {
+        "title": "Voorbeeldverwerking — Evidomo-demo",
+        "loading": "Verwerking laden…"
+      },
+      "conflicts": {
+        "title": "Tegenstrijdige gegevens — Evidomo-demo",
+        "loading": "Tegenstrijdige gegevens laden…"
+      },
+      "review": {
+        "title": "Pakketcontrole — Evidomo-demo",
+        "loading": "Controle laden…"
+      },
+      "pack": {
+        "title": "Advertentiepakket — Evidomo-demo",
+        "loading": "Pakket laden…"
+      }
+    }
+  },
+  "conflicts": {
+    "pageTitle": "Tegenstrijdige gegevens — Evidomo",
+    "loading": "Tegenstrijdige gegevens laden…",
+    "loadError": "We konden de tegenstrijdige gegevens niet laden. Controleer je verbinding en probeer het opnieuw.",
+    "backToRun": "Terug naar de verwerking",
+    "backToTheRun": "Terug naar de verwerking",
+    "title": "Tegenstrijdige gegevens",
+    "titleResolve": "Tegenstrijdige gegevens oplossen",
+    "allDecided": "Alle tegenstrijdigheden zijn beslist. De verwerking gaat verder.",
+    "notReached": "De verwerking is nog niet bij deze controle. De tegenstrijdigheden verschijnen hier zodra de gegevens zijn vergeleken.",
+    "suspended": "De verwerking is gestopt terwijl ze op deze controle wachtte, dus beslissingen zijn gepauzeerd. Hervat de verwerking vanaf haar pagina om de controle weer te openen; je genomen beslissingen blijven bewaard.",
+    "releasedNone": "Geen enkele tegenstrijdigheid vroeg om een beslissing.",
+    "releasedDemo": "Deze controle is afgerond in de oorspronkelijke verwerking. De genomen beslissingen staan hieronder.",
+    "released": "Deze controle is afgerond. Je beslissingen staan hieronder.",
+    "intro": "Deze gegevens spreken elkaar tegen. Vergelijk het bewijs voor elke waarde en kies er een, wijs ze allemaal af of voer de juiste waarde in. Na de laatste beslissing gaat de verwerking verder.",
+    "sourceKinds": {
+      "form": "formulierveld",
+      "voice": "gesproken rondleiding",
+      "photo": "foto",
+      "decision": "jouw beslissing"
+    },
+    "sourcesList": "{count, plural, one {# bron} other {# bronnen}}: {kinds}",
+    "sourceCount": "{count, plural, one {# bron} other {# bronnen}}",
+    "kept": "Behouden",
+    "useValueLabel": "Gebruik deze waarde: {value}",
+    "useValue": "Gebruik deze waarde",
+    "open": "Open",
+    "decided": "Beslist",
+    "valuesInConflict": "Waarden die elkaar tegenspreken",
+    "saving": "Je beslissing wordt opgeslagen…",
+    "rejectAllLabel": "Wijs alle waarden voor {label} af",
+    "rejectAll": "Alles afwijzen",
+    "enterValueLabel": "Voer een waarde in voor {label}",
+    "enterValue": "Waarde invoeren",
+    "loadingFieldType": "Veldtype laden…",
+    "progress": "Voortgang",
+    "progressText": "{open} van {total} {total, plural, one {tegenstrijdigheid} other {tegenstrijdigheden}} nog open",
+    "conflictsDecided": "Afgehandelde tegenstrijdigheden",
+    "edit": {
+      "numberChooseUnit": "Een getal. Kies hieronder de eenheid.",
+      "numberNoUnit": "Een getal, zonder eenheid.",
+      "numberInUnit": "Een getal, in {unit}.",
+      "unit": "Eenheid",
+      "basis": "Meetbasis",
+      "choose": "Kies…",
+      "noUnit": "Geen eenheid",
+      "noBasis": "Geen meetbasis",
+      "newValueFor": "Nieuwe waarde voor {label}",
+      "save": "Waarde opslaan",
+      "cancel": "Annuleren"
+    },
+    "failures": {
+      "gateNotOpen": "Deze controle is niet meer open, dus de beslissing is niet opgeslagen. De pagina toont nu de huidige stand.",
+      "notInConflict": "Die waarde maakt geen deel meer uit van deze tegenstrijdigheid. De pagina toont nu de huidige stand.",
+      "notAccepted": "Die waarde is niet geaccepteerd. Controleer ze en probeer het opnieuw.",
+      "notAcceptedReason": "Die waarde is niet geaccepteerd: {reason}",
+      "notFound": "Deze verwerking of tegenstrijdigheid is niet gevonden."
+    },
+    "summary": {
+      "kept": "Je hebt {value} behouden.",
+      "oneValue": "één waarde",
+      "entered": "Je hebt {value} ingevoerd.",
+      "rejected": "Je hebt alle waarden afgewezen. Voor dit gegeven wordt niets bewaard."
+    }
+  },
+  "factForm": {
+    "yes": "Ja",
+    "no": "Nee",
+    "unknown": "Onbekend",
+    "invalidValue": "(ongeldig)",
+    "serverRefusedExtra": "De server weigerde opgeslagen extra velden: {fields}.",
+    "checkForm": "Controleer het formulier en probeer het opnieuw.",
+    "changedElsewhere": "Opgeslagen waarden zijn elders gewijzigd. Je wijzigingen zijn niet opgeslagen.",
+    "loadSaved": "Opgeslagen waarden laden",
+    "intro": "Laat een gegeven leeg als je het niet weet. Verplichte gegevens mogen leeg blijven zolang je aan het opstellen bent, maar een verwerking heeft ze nodig.",
+    "extras": "{count, plural, one {# extra veld is} other {# extra velden zijn}} bij dit project opgeslagen en blijven ongewijzigd.",
+    "save": "Gegevens opslaan",
+    "saved": "Gegevens opgeslagen.",
+    "unsaved": "Je hebt niet-opgeslagen wijzigingen.",
+    "needAttention": "{count, plural, one {# veld heeft aandacht nodig.} other {# velden hebben aandacht nodig.}}",
+    "hints": {
+      "area": "In {unit}. Meetbasis: {basis}.",
+      "volume": "In {unit}.",
+      "money": "In {currency}.",
+      "integerRange": "Geheel getal van {min} tot {max}.",
+      "integerMin": "Geheel getal, minstens {min}.",
+      "integerMax": "Geheel getal, hoogstens {max}.",
+      "integer": "Geheel getal."
+    },
+    "problems": {
+      "chooseYesNo": "Kies ja, nee of onbekend.",
+      "chooseListed": "Kies een van de vermelde opties.",
+      "enterNumber": "Voer een getal in, met één komma of punt voor decimalen en zonder duizendtalscheidingstekens.",
+      "wholeNumber": "Voer een geheel getal in.",
+      "rangeBoth": "Voer een getal in van {min} tot {max}.",
+      "rangeMin": "Voer een getal in van minstens {min}.",
+      "rangeMax": "Voer een getal in van hoogstens {max}.",
+      "nonNegative": "Voer een getal in van 0 of meer.",
+      "chooseOneOf": "Kies een van: {options}.",
+      "notAllowed": "Deze waarde is niet toegestaan.",
+      "refused": "Deze waarde is geweigerd."
+    },
+    "edit": {
+      "enterValue": "Voer een waarde in.",
+      "chooseUnit": "Kies de eenheid van de waarde.",
+      "chooseBasis": "Kies de meetbasis van de waarde.",
+      "chooseYesNo": "Kies ja of nee.",
+      "tooLong": "Gebruik maximaal {max} tekens."
+    }
+  },
+  "claimAudit": {
+    "pageTitle": "Het pakket nalopen — Evidomo",
+    "loading": "Controle laden…",
+    "loadError": "We konden de controle niet laden. Controleer je verbinding en probeer het opnieuw.",
+    "backToRun": "Terug naar de verwerking",
+    "title": "Pakketcontrole",
+    "titleOpen": "Het pakket nalopen",
+    "notReached": "De verwerking is nog niet bij deze controle. De tekst en de gestylede afbeeldingen verschijnen hier zodra de controle klaar is.",
+    "suspended": "De verwerking is gestopt terwijl ze op deze controle wachtte, dus beslissingen zijn gepauzeerd. Hervat de verwerking vanaf haar pagina om de controle weer te openen; je genomen beslissingen blijven bewaard.",
+    "released": "Deze controle is afgerond. Je beslissingen staan hieronder.",
+    "releasedDemo": "Deze controle is afgerond in de oorspronkelijke verwerking. De genomen beslissingen staan hieronder.",
+    "openPack": "Open het pakket",
+    "select": "Selecteer een zin om de gegevens en bronnen erachter te zien. Gemarkeerde zinnen vragen om een beslissing.",
+    "copy": "Tekst",
+    "buyerQuestions": "Vragen van kopers",
+    "questionLabel": "Vraag {number}: {question}",
+    "dropped": "Verwijderd: deze kaart wordt niet gepubliceerd.",
+    "summary": "Samenvatting",
+    "flaggedClaims": "Gemarkeerde beweringen: {total} ({open} open)",
+    "stagedOffered": "Aangeboden gestylede afbeeldingen: {total} ({open} open)",
+    "warningsLabel": "Waarschuwingen",
+    "approveTitle": "Het pakket goedkeuren",
+    "stillOpen": "Nog open voordat je kunt goedkeuren:",
+    "openClaims": "{count, plural, one {# gemarkeerde bewering} other {# gemarkeerde beweringen}}",
+    "openImages": "{count, plural, one {# gestylede afbeelding} other {# gestylede afbeeldingen}}",
+    "allDecided": "Alles is beslist. Goedkeuren start de export van het pakket.",
+    "finishEditing": "Sla de tekst die je bewerkt eerst op of annuleer.",
+    "approve": "Pakket goedkeuren",
+    "noText": "Geen tekst.",
+    "open": "Open",
+    "decided": "Beslist",
+    "saving": "Je beslissing wordt opgeslagen…",
+    "evidenceFor": "Bewijs voor “{text}”",
+    "closeEvidence": "Bewijs sluiten",
+    "cites": "{count, plural, =0 {Dit tekstdeel verwijst naar geen enkel gegeven.} one {Dit tekstdeel verwijst naar 1 gegeven.} other {Dit tekstdeel verwijst naar # gegevens.}}",
+    "missingEvidence": "Ontbrekend bewijs: een gegeven waarnaar dit tekstdeel verwijst ({id}) maakt geen deel uit van deze controle.",
+    "showEvidenceFor": "Toon bewijs voor:",
+    "flaggedLabel": "Gemarkeerd: {name}",
+    "original": "Origineel: “{text}”",
+    "flagsLabel": "Markeringen",
+    "suggestion": "Suggestie: {text}",
+    "exclusionaryNote": "Als je dit onveranderd goedkeurt, blijft de uitsluitende formulering staan. De publicatiechecklist blijft er dan op falen.",
+    "dropNote": "Als je dit antwoord verwijdert, vervalt de hele kaart, inclusief de vraag.",
+    "checklistFails": "De publicatiechecklist blijft op deze formulering falen.",
+    "removalWarnings": "Waarschuwingen bij deze verwijdering",
+    "approveAsWrittenLabel": "Goedkeuren zoals geschreven: {name}",
+    "approveAsWritten": "Goedkeuren zoals geschreven",
+    "editLabel": "Bewerken: {name}",
+    "remove": "Verwijderen",
+    "removeLabel": "Verwijderen: {name}",
+    "failures": {
+      "gateNotOpen": "Deze controle is niet meer open, dus de beslissing is niet opgeslagen. De pagina toont nu de huidige stand.",
+      "decisionsPending": "Er wacht nog iets op een beslissing, dus het pakket is niet goedgekeurd. De pagina toont nu wat er open staat.",
+      "notFound": "Dit onderdeel is niet gevonden. De pagina toont nu de huidige stand.",
+      "editRejected": "Die tekst is de controle tegen de bijbehorende gegevens niet doorgekomen, dus is niet opgeslagen.",
+      "notAccepted": "Die beslissing is niet geaccepteerd. Controleer ze en probeer het opnieuw."
+    },
+    "categories": {
+      "claim_support": "Bewering niet onderbouwd",
+      "unverifiable_superlative": "Onverifieerbare superlatief",
+      "investment_promise": "Beleggingsbelofte",
+      "exclusionary": "Uitsluitende formulering",
+      "area_basis": "Meetbasis oppervlakte"
+    },
+    "stopReasons": {
+      "clean": "De controle vond geen resterende problemen in de tekst.",
+      "loop_limit": "De controle heeft de limiet voor herschrijvingen bereikt en sommige zinnen zijn nog gemarkeerd. Beslis hieronder over elke gemarkeerde zin.",
+      "budget": "De controle is vroegtijdig gestopt om binnen het kostenmaximum van de verwerking te blijven, dus sommige zinnen kunnen nog problemen hebben.",
+      "revision_failed": "Een herschrijving is mislukt, dus het laatst gecontroleerde concept wordt getoond met zijn markeringen."
+    },
+    "status": {
+      "needsDecision": "Wacht op jouw beslissing.",
+      "approved": "Goedgekeurd zoals geschreven.",
+      "edited": "Door jou bewerkt.",
+      "removedCard": "Verwijderd. De hele kaart valt weg uit het pakket.",
+      "removedFromPack": "Uit het pakket verwijderd.",
+      "removed": "Verwijderd.",
+      "moot": "Niet nodig: deze kaart valt weg."
+    },
+    "variants": {
+      "portal": "Portaaltekst",
+      "social": "Social-mediatekst"
+    },
+    "warnings": {
+      "variantEmpty": "{where}: alle tekstdelen zijn verwijderd, dus het pakket publiceert hiervoor geen tekst.",
+      "requiredUnmentioned": "{where}: het verplichte gegeven “{label}” wordt niet meer genoemd.",
+      "unmentioned": "{where}: het gegeven “{label}” wordt niet meer genoemd."
+    },
+    "edit": {
+      "empty": "Voer de nieuwe tekst in of annuleer.",
+      "newTextFor": "Nieuwe tekst voor “{text}”",
+      "hint": "De bronverwijzingen blijven gelijk. Getallen en eenheden moeten overeenkomen met de gegevens waarnaar deze tekst verwijst.",
+      "rejected": "Deze tekst is de controle tegen de bijbehorende gegevens niet doorgekomen:",
+      "save": "Tekst opslaan",
+      "cancel": "Annuleren",
+      "open": "Bewerken"
+    },
+    "staged": {
+      "attemptEditFailed": "Poging {n}: de bewerking is mislukt.",
+      "attemptEditFailedWhy": "Poging {n}: de bewerking is mislukt ({reason}).",
+      "attemptUnchecked": "Poging {n}: kon niet worden gecontroleerd.",
+      "attemptUncheckedTarget": "Poging {n}: kon niet worden gecontroleerd (afbeelding {target} niet gesegmenteerd).",
+      "passed": "geslaagd",
+      "failed": "mislukt",
+      "changedClasses": ", gewijzigd: {classes}",
+      "personDrawn": ", er is een persoon in getekend",
+      "attemptResult": "Poging {n}: {result}{failed}{privacy}.",
+      "originalAlt": "Originele foto voor {operation}",
+      "original": "Origineel",
+      "stagedAlt": "Gestylede versie voor {operation}",
+      "operation": "{name} (foto {n})",
+      "imageLabel": "Gestylede afbeelding: {operation}",
+      "integrityPassed": "Integriteitscontrole geslaagd: ramen, deuren en andere vaste onderdelen zijn ongewijzigd.",
+      "integritySecond": "Integriteitscontrole geslaagd bij de tweede poging: ramen, deuren en andere vaste onderdelen zijn ongewijzigd.",
+      "integrityFor": "Integriteitscontrole voor {operation}",
+      "outcomePassed": "Uitkomst: geslaagd.",
+      "outcomeSecond": "Uitkomst: geslaagd bij de tweede poging.",
+      "aspectChange": "Grootste wijziging in beeldverhouding: {change}.",
+      "fixedElements": "Vaste onderdelen",
+      "classCount": "{label}: {original} in het origineel, {edit} in de gestylede afbeelding",
+      "attempts": "Pogingen",
+      "accepted": "Geaccepteerd: de gestylede afbeelding wordt naast het origineel gepubliceerd.",
+      "rejected": "Afgewezen: alleen het origineel wordt gepubliceerd.",
+      "explain": "Accepteren publiceert de gestylede afbeelding naast het origineel, met het label “{label}”. Afwijzen publiceert alleen het origineel.",
+      "acceptLabel": "Gestylede afbeelding accepteren: {operation}",
+      "accept": "Accepteren en publiceren",
+      "rejectLabel": "Gestylede afbeelding afwijzen: {operation}",
+      "reject": "Afwijzen, het origineel houden",
+      "title": "Gestylede afbeeldingen",
+      "fallbackTitle": "Styling afgewezen door de integriteitscontrole",
+      "fallbackText": "Hiervoor wordt alleen de originele foto gepubliceerd.",
+      "rejectedName": "{name} (afgewezen)"
+    }
+  },
+  "pack": {
+    "pageTitle": "Advertentiepakket — Evidomo",
+    "loading": "Pakket laden…",
+    "title": "Advertentiepakket",
+    "backToRun": "Terug naar de verwerking",
+    "ready": "Klaar om te publiceren: alle publicatiecontroles zijn geslaagd.",
+    "notReady": "Nog niet klaar om te publiceren",
+    "notReadyText": "Minstens één publicatiecontrole is mislukt. De checklist in het pakket laat zien welke; los ze op voordat deze advertentie live gaat.",
+    "preview": "Voorbeeld",
+    "previewTitle": "Voorbeeld van het advertentiepakket",
+    "print": "Afdrukken / Opslaan als pdf",
+    "fullScreen": "Open op volledig scherm",
+    "downloads": "Downloads",
+    "images": "Afbeeldingen ({count})",
+    "files": {
+      "html": "Advertentiepakket (HTML)",
+      "portalFields": "Portaalvelden (JSON)",
+      "image": "Afbeelding"
+    },
+    "downloadLabel": "Download {name}",
+    "download": "Downloaden",
+    "notReadyYet": "Het pakket is nog niet klaar. Het verschijnt zodra de verwerking de export heeft afgerond.",
+    "loadError": "We konden dit pakket niet laden. Controleer je verbinding en probeer het opnieuw.",
+    "size": {
+      "bytes": "{value} B",
+      "kb": "{value} KB",
+      "mb": "{value} MB"
+    }
+  },
+  "serverError": {
+    "pageTitle": "Er ging iets mis — Evidomo",
+    "title": "Er ging iets mis",
+    "text": "De server kon dit verzoek niet verwerken. Probeer het zo meteen opnieuw; je opgeslagen werk blijft ongewijzigd.",
+    "home": "Terug naar het begin"
+  }
+}

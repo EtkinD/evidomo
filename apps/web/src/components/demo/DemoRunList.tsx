@@ -1,10 +1,14 @@
 import type { DemoRun } from '@evidomo/shared';
 import Link from 'next/link';
+import { useFormatter, useLocale, useTranslations } from 'use-intl';
 import { ApiRequestError } from '../../lib/api';
 import { formatDemoDate, languageLabel, marketLabel, useDemoRuns } from '../../lib/demo';
 import { LoadingBlock } from '../PageStates';
 
 function DemoRunCard({ run }: { run: DemoRun }) {
+  const t = useTranslations('demo');
+  const locale = useLocale();
+  const format = useFormatter();
   return (
     // The title is the link; `after:inset-0` stretches it over the whole card.
     <li className="card relative border border-base-300 bg-base-100">
@@ -19,17 +23,17 @@ function DemoRunCard({ run }: { run: DemoRun }) {
         </h2>
         <dl className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-base-content/70">
           <div className="flex gap-1">
-            <dt>Market</dt>
-            <dd>{marketLabel(run.marketProfileId)}</dd>
+            <dt>{t('market')}</dt>
+            <dd>{marketLabel(run.marketProfileId, locale)}</dd>
           </div>
           <div className="flex gap-1">
-            <dt>Language</dt>
-            <dd>{languageLabel(run.outputLanguage)}</dd>
+            <dt>{t('language')}</dt>
+            <dd>{languageLabel(run.outputLanguage, locale)}</dd>
           </div>
           {run.finishedAt !== null && (
             <div className="flex gap-1">
-              <dt>Finished</dt>
-              <dd>{formatDemoDate(run.finishedAt)}</dd>
+              <dt>{t('finishedOn')}</dt>
+              <dd>{formatDemoDate(format, run.finishedAt)}</dd>
             </div>
           )}
         </dl>
@@ -39,20 +43,17 @@ function DemoRunCard({ run }: { run: DemoRun }) {
 }
 
 export function DemoRunList() {
+  const t = useTranslations('demo');
   const query = useDemoRuns();
 
   if (query.data === undefined) {
-    if (!query.isError) return <LoadingBlock label="Loading the demo runs…" />;
+    if (!query.isError) return <LoadingBlock label={t('loadingRuns')} />;
     const limited = query.error instanceof ApiRequestError && query.error.status === 429;
     return (
       <div role="alert" className="alert alert-error alert-vertical sm:alert-horizontal">
-        <span>
-          {limited
-            ? 'Too many requests right now. Wait a few seconds and try again.'
-            : 'We could not load the demo runs. Check your connection and try again.'}
-        </span>
+        <span>{limited ? t('tooManyRequests') : t('loadError')}</span>
         <button type="button" className="btn min-h-11" onClick={() => void query.refetch()}>
-          Try again
+          {t('tryAgain')}
         </button>
       </div>
     );
@@ -61,12 +62,9 @@ export function DemoRunList() {
   if (query.data.runs.length === 0) {
     return (
       <div role="status" className="alert alert-info alert-vertical sm:alert-horizontal">
-        <span>
-          No demo is published yet. A demo run appears here once the operator has published a sample
-          run; until then, there is nothing to replay.
-        </span>
+        <span>{t('noneYet')}</span>
         <Link href="/" className="btn min-h-11">
-          Back to the home page
+          {t('home')}
         </Link>
       </div>
     );

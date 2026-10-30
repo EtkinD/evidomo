@@ -1,13 +1,18 @@
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { useTranslations } from 'use-intl';
 import { AuthCard } from '../components/AuthCard';
 import { AuthForm } from '../components/AuthForm';
 import { useRegister } from '../lib/auth';
 import { safeNextPath, withNext } from '../lib/next-path';
+import { getStaticProps } from '../lib/i18n-server';
 import type { NextPageWithAuth } from '../lib/page-auth';
 
+export { getStaticProps };
+
 const RegisterPage: NextPageWithAuth = () => {
+  const t = useTranslations('auth');
   const router = useRouter();
   const next = safeNextPath(router.query['next']);
   const register = useRegister();
@@ -15,19 +20,19 @@ const RegisterPage: NextPageWithAuth = () => {
   return (
     <>
       <Head>
-        <title>Create account — Evidomo</title>
+        <title>{t('register.pageTitle')}</title>
       </Head>
       <AuthCard
-        title="Create your account"
-        description="Turn property photos and a voice walkthrough into a listing pack with evidence."
+        title={t('register.title')}
+        description={t('register.description')}
         footer={
           <>
-            Already have an account?{' '}
+            {t('register.haveAccount')}{' '}
             <Link
               href={withNext('/login', next)}
               className="link inline-flex min-h-11 items-center"
             >
-              Log in
+              {t('register.logInLink')}
             </Link>
           </>
         }

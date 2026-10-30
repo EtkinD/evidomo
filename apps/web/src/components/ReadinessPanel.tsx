@@ -2,6 +2,7 @@ import type { MarketForm, ProjectDetailResponse } from '@evidomo/shared';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useId, useRef, useState, useSyncExternalStore } from 'react';
+import { useTranslations } from 'use-intl';
 import {
   describeAccessFailure,
   humanizeWait,
@@ -10,6 +11,7 @@ import {
   type AccessFailure,
 } from '../lib/access-code';
 import { ApiRequestError } from '../lib/api';
+import type { Translator } from '../lib/i18n';
 import { readinessMessage } from '../lib/project-view';
 import { useStartRun } from '../lib/projects';
 import { describeRequestFailure } from '../lib/request-failure';
@@ -25,7 +27,7 @@ type StartFailure =
   | { kind: 'budget' }
   | { kind: 'message'; message: string };
 
-function describeStartFailure(error: unknown): StartFailure {
+function describeStartFailure(tApi: Translator<'apiErrors'>, error: unknown): StartFailure {
   const access = describeAccessFailure(error);
   if (access !== null) return access;
   if (error instanceof ApiRequestError) {
@@ -33,7 +35,7 @@ function describeStartFailure(error: unknown): StartFailure {
     if (error.code === 'run_active') return { kind: 'run_active' };
     if (error.code === 'daily_budget_reached') return { kind: 'budget' };
   }
-  return { kind: 'message', message: describeRequestFailure(error) };
+  return { kind: 'message', message: describeRequestFailure(tApi, error) };
 }
 
 interface ReadinessPanelProps {
@@ -45,6 +47,8 @@ interface ReadinessPanelProps {
 
 /** What is still needed before a run, and the one action that starts it. */
 export function ReadinessPanel({ detail, market, hasUnsavedChanges }: ReadinessPanelProps) {
+  const t = useTranslations('readiness');
+  const tApi = useTranslations('apiErrors');
   const router = useRouter();
   const { project, readiness, latestRun } = detail;
   const mutation = useStartRun(project.id);
@@ -71,7 +75,7 @@ export function ReadinessPanel({ detail, market, hasUnsavedChanges }: ReadinessP
       },
       onError: (error) => {
         starting.current = false;
-        const next = describeStartFailure(error);
+        const next = describeStartFailure(tApi, error);
         // A refused code is not worth remembering: the next visit would repeat the refusal.
         if (next.kind === 'code_invalid') storeAccessCode('');
         setFailure(next);
@@ -86,49 +90,47 @@ export function ReadinessPanel({ detail, market, hasUnsavedChanges }: ReadinessP
     >
       <div className="card-body gap-4">
         <h2 id="readiness-heading" className="card-title text-2xl">
-          Ready to run?
+          {t('title')}
         </h2>
 
         {readiness.activeRunId !== null ? (
           <p>
-            A run is in progress for this project.{' '}
+            {t('activeRun')}{' '}
             <Link href={`/runs/${readiness.activeRunId}`} className="link font-medium">
-              View the active run
+              {t('viewActiveRun')}
             </Link>
           </p>
         ) : readiness.missing.length > 0 ? (
           <div>
-            <p className="font-medium">Still needed before a run can start:</p>
+            <p className="font-medium">{t('stillNeeded')}</p>
             <ul className="mt-2 list-disc space-y-1 pl-6">
               {readiness.missing.map((item) => (
                 <li key={item.kind === 'fact' ? `fact:${item.key}` : item.kind}>
-                  {readinessMessage(item, market)}
+                  {readinessMessage(t, item, market)}
                 </li>
               ))}
             </ul>
           </div>
         ) : (
-          <p>All inputs are in place. You can start a run.</p>
+          <p>{t('allReady')}</p>
         )}
 
         {failure?.kind === 'not_ready' && !readiness.canStartRun && (
           // The failure is recorded after the readiness refetch landed (the mutation waits for
           // it), so the list above is current. It clears once the inputs are complete again.
           <div role="alert" className="alert alert-warning">
-            <span>
-              Some inputs changed since this page loaded. The list above shows what is missing now.
-            </span>
+            <span>{t('inputsChanged')}</span>
           </div>
         )}
         {failure?.kind === 'run_active' && (
           <div role="alert" className="alert alert-info">
             <span>
-              A run is already in progress for this project.
+              {t('alreadyActive')}
               {readiness.activeRunId !== null && (
                 <>
                   {' '}
                   <Link href={`/runs/${readiness.activeRunId}`} className="link font-medium">
-                    View the active run
+                    {t('viewActiveRun')}
                   </Link>
                 </>
               )}
@@ -137,23 +139,20 @@ export function ReadinessPanel({ detail, market, hasUnsavedChanges }: ReadinessP
         )}
         {failure?.kind === 'budget' && (
           <div role="alert" className="alert alert-info">
-            <span>
-              Today&apos;s run budget has been used up. Your inputs are saved; start the run again
-              tomorrow.
-            </span>
+            <span>{t('budgetUsed')}</span>
           </div>
         )}
         {failure?.kind === 'code_rate_limited' && (
           <div role="alert" className="alert alert-warning">
-            <span>Too many wrong codes, try again later.</span>
+            <span>{t('codeRateLimited')}</span>
           </div>
         )}
         {failure?.kind === 'run_limit' && (
           <div role="alert" className="alert alert-info">
             <span>
-              You have reached today&apos;s live run limit.
-              {failure.retryAfterSeconds !== null &&
-                ` You can start another in ${humanizeWait(failure.retryAfterSeconds)}.`}
+              {failure.retryAfterSeconds === null
+                ? t('runLimit')
+                : t('runLimitWait', { wait: humanizeWait(t, failure.retryAfterSeconds) })}
             </span>
           </div>
         )}
@@ -165,9 +164,9 @@ export function ReadinessPanel({ detail, market, hasUnsavedChanges }: ReadinessP
 
         <Field
           id={codeId}
-          label="Access code"
-          hint="Live runs use paid model calls. If you were given a code, enter it; otherwise leave this empty."
-          error={failure?.kind === 'code_invalid' ? 'This access code is not valid.' : undefined}
+          label={t('accessCode')}
+          hint={t('accessCodeHint')}
+          error={failure?.kind === 'code_invalid' ? t('accessCodeInvalid') : undefined}
         >
           {(control) => (
             <div className="join w-full sm:max-w-sm">
@@ -190,8 +189,8 @@ export function ReadinessPanel({ detail, market, hasUnsavedChanges }: ReadinessP
                 aria-pressed={showCode}
                 onClick={() => setShowCode((value) => !value)}
               >
-                {showCode ? 'Hide' : 'Show'}
-                <span className="sr-only"> access code</span>
+                <span aria-hidden>{showCode ? t('hide') : t('show')}</span>
+                <span className="sr-only">{showCode ? t('hideCode') : t('showCode')}</span>
               </button>
             </div>
           )}
@@ -212,10 +211,10 @@ export function ReadinessPanel({ detail, market, hasUnsavedChanges }: ReadinessP
             {mutation.isPending && (
               <span className="loading loading-spinner loading-sm" aria-hidden />
             )}
-            Start run
+            {t('start')}
           </button>
           {hasUnsavedChanges && readiness.canStartRun && (
-            <span className="text-sm text-base-content/70">Save your changes first.</span>
+            <span className="text-sm text-base-content/70">{t('saveFirst')}</span>
           )}
           {latestRun !== null && readiness.activeRunId === null && (
             <span className="flex items-center gap-2 text-sm">
@@ -224,7 +223,7 @@ export function ReadinessPanel({ detail, market, hasUnsavedChanges }: ReadinessP
                 href={`/runs/${latestRun.id}`}
                 className="link inline-flex min-h-11 items-center"
               >
-                View latest run
+                {t('viewLatest')}
               </Link>
               {/* A completed run has stored its export; the pack page handles the rare gap. */}
               {latestRun.status === 'completed' && (
@@ -232,7 +231,7 @@ export function ReadinessPanel({ detail, market, hasUnsavedChanges }: ReadinessP
                   href={`/runs/${latestRun.id}/pack`}
                   className="link inline-flex min-h-11 items-center"
                 >
-                  View pack
+                  {t('viewPack')}
                 </Link>
               )}
             </span>

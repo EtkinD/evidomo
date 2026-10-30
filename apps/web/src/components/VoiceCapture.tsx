@@ -1,5 +1,6 @@
 import { UPLOAD_LIMITS, projectMaterialFileUrl, type ProjectDetailResponse } from '@evidomo/shared';
 import { useEffect, useRef, useState, type ChangeEvent, type ReactNode } from 'react';
+import { useTranslations } from 'use-intl';
 import {
   checkAudioFile,
   describeLimit,
@@ -7,7 +8,7 @@ import {
   formatDuration,
 } from '../lib/capture';
 import { useUploadVoiceMemo } from '../lib/materials';
-import { useVoiceRecorder, type RecorderState } from '../lib/voice-recorder';
+import { useVoiceRecorder } from '../lib/voice-recorder';
 
 interface Candidate {
   blob: Blob;
@@ -15,15 +16,6 @@ interface Candidate {
   url: string;
   label: string;
 }
-
-const FAILURE_MESSAGES: Record<Extract<RecorderState, { phase: 'failed' }>['reason'], string> = {
-  denied:
-    'Microphone access is blocked. Allow the microphone for this site in your browser settings, then try again. You can also upload an audio file.',
-  no_microphone: 'No microphone was found on this device. You can upload an audio file instead.',
-  unusable_format:
-    'This browser records in a format Evidomo cannot accept. Upload an audio file instead.',
-  error: 'Recording failed. Try again, or upload an audio file instead.',
-};
 
 function Alert({ children }: { children: ReactNode }) {
   return (
@@ -47,6 +39,8 @@ export function VoiceCapture({
   /** Anything but `idle` is lost when the page is left. */
   onStatusChange: (status: VoiceStatus) => void;
 }) {
+  const t = useTranslations('capture');
+  const tApi = useTranslations('apiErrors');
   const projectId = detail.project.id;
   const locked = detail.readiness.inputsLocked;
   const { maxSeconds } = detail.readiness.voiceMemo;
@@ -82,9 +76,9 @@ export function VoiceCapture({
 
   const recorderAnnouncement =
     recorder.state.phase === 'recording'
-      ? 'Recording started.'
+      ? t('voice.announceStarted')
       : recorder.state.phase === 'recorded'
-        ? 'Recording stopped. You can preview it before uploading.'
+        ? t('voice.announceStopped')
         : '';
   const recorded = recorder.state.phase === 'recorded' ? recorder.state : null;
   const candidate: Candidate | null =
@@ -95,7 +89,7 @@ export function VoiceCapture({
           blob: recorded.blob,
           contentType: recorded.blob.type,
           url: recorded.url,
-          label: `Recording, ${formatDuration(recorded.durationMs)}`,
+          label: t('voice.recordingLabel', { time: formatDuration(recorded.durationMs) }),
         });
 
   const recordingPhase = recorder.state.phase;
@@ -133,7 +127,7 @@ export function VoiceCapture({
     clearFileCandidate();
     recorder.reset();
     setUploadError(null);
-    setAnnouncement('Recording discarded.');
+    setAnnouncement(t('voice.announceDiscarded'));
     focusHeading();
   }
 
@@ -141,7 +135,7 @@ export function VoiceCapture({
     const file = event.target.files?.[0];
     event.target.value = '';
     if (file === undefined) return;
-    const check = checkAudioFile(file);
+    const check = checkAudioFile(t, file);
     if (!check.ok) {
       setFileError(check.message);
       return;
@@ -162,7 +156,7 @@ export function VoiceCapture({
     if (candidate === null || upload.isPending) return;
     setUploadError(null);
     setProgress(0);
-    setAnnouncement('Uploading the walkthrough.');
+    setAnnouncement(t('voice.announceUploading'));
     const sent = candidate;
     const abort = new AbortController();
     uploadAbort.current = abort;
@@ -179,13 +173,13 @@ export function VoiceCapture({
           setPlaybackFailed(false);
           clearFileCandidate();
           recorder.reset();
-          setAnnouncement('Walkthrough uploaded.');
+          setAnnouncement(t('voice.announceUploaded'));
           focusHeading();
         },
         onError: (error) => {
-          const message = describeUploadFailure(error).message;
+          const message = describeUploadFailure(t, tApi, error).message;
           setUploadError(message);
-          setAnnouncement(`Upload failed. ${message}`);
+          setAnnouncement(t('voice.announceFailed', { message }));
         },
       },
     );
@@ -205,20 +199,17 @@ export function VoiceCapture({
     <section aria-labelledby="voice-heading" className="card border border-base-300 bg-base-100">
       <div className="card-body gap-4">
         <h2 id="voice-heading" tabIndex={-1} className="card-title text-2xl">
-          Voice walkthrough
+          {t('voice.title')}
         </h2>
         <p className="text-base-content/70">
-          Walk through the property and say what you see: rooms, condition, anything the photos
-          cannot show. Up to {describeLimit(maxMs)}.
+          {t('voice.intro', { limit: describeLimit(t, maxMs) })}
         </p>
 
         {/* Hidden while recording, so the old memo cannot play into the microphone. */}
         {stored !== undefined && storedUrl !== null && !recording && (
           <div className="flex flex-col gap-2">
             <p className="font-medium">
-              {candidate === null
-                ? 'Current walkthrough'
-                : 'Previous walkthrough (replaced when you upload)'}
+              {candidate === null ? t('voice.current') : t('voice.previous')}
               {stored.durationMs !== null && (
                 <span className="font-normal text-base-content/70">
                   {' '}
@@ -230,28 +221,24 @@ export function VoiceCapture({
               controls
               preload="metadata"
               src={storedUrl}
-              aria-label="Current walkthrough"
+              aria-label={t('voice.current')}
               className="w-full"
               onError={() => setPlaybackFailed(true)}
             />
             {playbackFailed && (
-              <p className="text-sm text-base-content/70">Playback is not available right now.</p>
+              <p className="text-sm text-base-content/70">{t('voice.playbackFailed')}</p>
             )}
           </div>
         )}
 
         {locked ? (
           <div role="note" className="alert alert-info">
-            <span>
-              A run has been started, so the walkthrough is locked: the run cites it as evidence.
-            </span>
+            <span>{t('voice.locked')}</span>
           </div>
         ) : (
           <>
             {stored !== undefined && candidate === null && !recording && (
-              <p className="text-sm text-base-content/70">
-                A new recording or file replaces the current walkthrough.
-              </p>
+              <p className="text-sm text-base-content/70">{t('voice.replaces')}</p>
             )}
 
             {unsupported && (
@@ -259,8 +246,8 @@ export function VoiceCapture({
                 <span>
                   {recorder.support.status === 'unsupported' &&
                   recorder.support.reason === 'insecure_context'
-                    ? 'Recording needs a secure (HTTPS) connection. You can upload an audio file instead.'
-                    : 'This browser cannot record audio. You can upload an audio file instead.'}
+                    ? t('voice.insecure')
+                    : t('voice.unsupported')}
                 </span>
               </div>
             )}
@@ -268,7 +255,7 @@ export function VoiceCapture({
             {recorder.state.phase === 'requesting' && (
               <p className="flex items-center gap-2">
                 <span className="loading loading-spinner loading-sm" aria-hidden />
-                Waiting for microphone permission…
+                {t('voice.requesting')}
               </p>
             )}
 
@@ -282,9 +269,9 @@ export function VoiceCapture({
                       aria-hidden
                       className="size-3 animate-pulse rounded-full bg-error motion-reduce:animate-none"
                     />
-                    Recording
+                    {t('voice.recording')}
                   </span>
-                  <span role="timer" aria-label="Recording time">
+                  <span role="timer" aria-label={t('voice.timer')}>
                     {formatDuration(recorder.state.elapsedMs)} / {formatDuration(maxMs)}
                   </span>
                 </p>
@@ -295,28 +282,28 @@ export function VoiceCapture({
                   // The Start button this replaces had the focus.
                   autoFocus
                 >
-                  Stop recording
+                  {t('voice.stop')}
                 </button>
               </div>
             )}
 
             {recorder.state.phase === 'failed' && (
-              <Alert>{FAILURE_MESSAGES[recorder.state.reason]}</Alert>
+              <Alert>{t(`voice.failures.${recorder.state.reason}`)}</Alert>
             )}
 
             {candidate !== null && (
               <div className="flex flex-col gap-3">
-                <p className="font-medium">Preview: {candidate.label}</p>
+                <p className="font-medium">{t('voice.preview', { label: candidate.label })}</p>
                 <audio
                   controls
                   src={candidate.url}
-                  aria-label="Preview of the new walkthrough"
+                  aria-label={t('voice.previewLabel')}
                   className="w-full"
                 />
                 {upload.isPending && (
                   <progress
                     className="progress progress-secondary w-full"
-                    aria-label="Uploading the walkthrough"
+                    aria-label={t('voice.announceUploading')}
                     value={Math.round(progress * 100)}
                     max={100}
                   />
@@ -334,7 +321,7 @@ export function VoiceCapture({
                     {upload.isPending && (
                       <span className="loading loading-spinner loading-sm" aria-hidden />
                     )}
-                    {uploadError === null ? 'Upload walkthrough' : 'Try upload again'}
+                    {uploadError === null ? t('voice.upload') : t('voice.uploadAgain')}
                   </button>
                   <button
                     type="button"
@@ -342,7 +329,7 @@ export function VoiceCapture({
                     disabled={upload.isPending}
                     onClick={() => (fileCandidate === null ? void onStart() : onDiscard())}
                   >
-                    {fileCandidate === null ? 'Record again' : 'Discard'}
+                    {fileCandidate === null ? t('voice.recordAgain') : t('voice.discard')}
                   </button>
                 </div>
               </div>
@@ -358,10 +345,10 @@ export function VoiceCapture({
                     onClick={() => void onStart()}
                   >
                     {recorder.state.phase === 'failed'
-                      ? 'Try recording again'
+                      ? t('voice.tryAgain')
                       : stored === undefined
-                        ? 'Start recording'
-                        : 'Record a new walkthrough'}
+                        ? t('voice.start')
+                        : t('voice.recordNew')}
                   </button>
                 )}
                 <button
@@ -369,7 +356,7 @@ export function VoiceCapture({
                   className={`btn btn-outline ${ACTION}`}
                   onClick={() => fileInput.current?.click()}
                 >
-                  Upload an audio file
+                  {t('voice.chooseFile')}
                 </button>
               </div>
             )}
@@ -378,7 +365,7 @@ export function VoiceCapture({
               type="file"
               accept="audio/*"
               className="hidden"
-              aria-label="Audio file"
+              aria-label={t('voice.fileLabel')}
               onChange={onFileChosen}
             />
             {fileError !== null && <Alert>{fileError}</Alert>}

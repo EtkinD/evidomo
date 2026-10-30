@@ -177,7 +177,7 @@ describe('account menu', () => {
 });
 
 describe('footer', () => {
-  it('has the brand, the hackathon line, and the repository link, nothing else to click', async () => {
+  it('has the brand, the hackathon line, the repository link, and the language links', async () => {
     setRoute('/');
     mockFetch({ 'GET /api/auth/me': meSignedOut });
     renderPage(Home);
@@ -187,8 +187,23 @@ describe('footer', () => {
     expect(
       within(footer).getByText(/Built during the Meta hackathon, Oct 26 – Nov 4, 2026/),
     ).toBeDefined();
+    // The repository link, then the five languages (the language switcher).
     const links = within(footer).getAllByRole('link');
-    expect(links.map((link) => link.getAttribute('href'))).toEqual([REPOSITORY_URL]);
+    expect(links.map((link) => link.getAttribute('href'))).toEqual([
+      REPOSITORY_URL,
+      '/',
+      '/',
+      '/',
+      '/',
+      '/',
+    ]);
+    expect(links.slice(1).map((link) => link.textContent)).toEqual([
+      'English',
+      'Türkçe',
+      'Nederlands',
+      'Italiano',
+      'Español',
+    ]);
     expect(REPOSITORY_URL).toBe('https://github.com/EtkinD/evidomo');
   });
 });

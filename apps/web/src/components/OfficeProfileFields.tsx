@@ -1,3 +1,4 @@
+import { useTranslations } from 'use-intl';
 import type {
   OfficeProfileField,
   OfficeProfileValues,
@@ -21,10 +22,16 @@ export function OfficeProfileFields({
   disabled = false,
   onChange,
 }: OfficeProfileFieldsProps) {
+  const t = useTranslations('projectForm');
   return (
     <fieldset className="flex flex-col gap-4 rounded-box border border-base-300 p-4">
-      <legend className="px-2 font-semibold">Office profile</legend>
-      <Field id={`${idPrefix}-agencyName`} label="Agency name" required error={errors.agencyName}>
+      <legend className="px-2 font-semibold">{t('officeProfile')}</legend>
+      <Field
+        id={`${idPrefix}-agencyName`}
+        label={t('agencyName')}
+        required
+        error={errors.agencyName}
+      >
         {(control) => (
           <input
             {...control}
@@ -39,8 +46,8 @@ export function OfficeProfileFields({
       </Field>
       <Field
         id={`${idPrefix}-contactBlock`}
-        label="Contact block"
-        hint="Optional. Shown on the listing pack, for example address, phone, and website."
+        label={t('contactBlock')}
+        hint={t('contactBlockHint')}
         error={errors.contactBlock}
       >
         {(control) => (
@@ -55,12 +62,7 @@ export function OfficeProfileFields({
           />
         )}
       </Field>
-      <Field
-        id={`${idPrefix}-tone`}
-        label="Tone"
-        hint="Optional. How the copy should sound, for example warm and professional."
-        error={errors.tone}
-      >
+      <Field id={`${idPrefix}-tone`} label={t('tone')} hint={t('toneHint')} error={errors.tone}>
         {(control) => (
           <input
             {...control}

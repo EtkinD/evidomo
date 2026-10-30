@@ -5,9 +5,10 @@ import type {
   ClaimDecisionRequest,
 } from '@evidomo/shared';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useTranslations } from 'use-intl';
 import { ApiRequestError } from '../../lib/api';
 import {
-  FLAG_CATEGORY_LABELS,
+  flagCategoryLabel,
   decisionStatus,
   describeAuditFailure,
   hasExclusionaryFlag,
@@ -49,6 +50,8 @@ function EditForm({
   onSubmit: (text: string) => void;
   onCancel: () => void;
 }) {
+  const t = useTranslations('claimAudit');
+  const tApi = useTranslations('apiErrors');
   const [text, setText] = useState(initial);
   const [problem, setProblem] = useState<string | undefined>(undefined);
   const field = useRef<HTMLTextAreaElement>(null);
@@ -67,13 +70,14 @@ function EditForm({
 
   const findings = failure instanceof ApiRequestError ? failure.findings : [];
   const message =
-    problem ?? (failure !== null && findings.length === 0 ? describeAuditFailure(failure) : null);
+    problem ??
+    (failure !== null && findings.length === 0 ? describeAuditFailure(t, tApi, failure) : null);
   const rejected = failure instanceof ApiRequestError && failure.code === 'claim_edit_rejected';
 
   function submit(event: FormEvent) {
     event.preventDefault();
     if (text.trim() === '') {
-      setProblem('Enter the new text, or cancel.');
+      setProblem(t('edit.empty'));
       return;
     }
     setProblem(undefined);
@@ -84,7 +88,7 @@ function EditForm({
     <form noValidate onSubmit={submit} className="flex flex-col gap-3 rounded-box bg-base-200 p-4">
       <fieldset className="fieldset">
         <label htmlFor={id} className="fieldset-legend">
-          {`New text for “${segmentLabel(segment.text)}”`}
+          {t('edit.newTextFor', { text: segmentLabel(segment.text) })}
         </label>
         <textarea
           id={id}
@@ -98,13 +102,13 @@ function EditForm({
           aria-describedby={`${id}-hint${message !== null || rejected ? ` ${errorId}` : ''}`}
         />
         <p id={`${id}-hint`} className="text-sm text-base-content/70">
-          The citations stay the same. Numbers and units must match the facts this text cites.
+          {t('edit.hint')}
         </p>
         {(message !== null || rejected) && (
           <div id={errorId} role="alert" className="text-sm text-error">
             {rejected ? (
               <>
-                <p>This text did not pass the check against its facts:</p>
+                <p>{t('edit.rejected')}</p>
                 <ul className="list-disc pl-5">
                   {findings.map((finding, index) => (
                     <li key={`${finding.code}-${index}`}>{finding.detail}</li>
@@ -120,10 +124,10 @@ function EditForm({
       <div className="flex flex-wrap gap-2">
         <button type="submit" className="btn btn-outline min-h-11" disabled={busy}>
           {pending && <span className="loading loading-spinner loading-xs" aria-hidden />}
-          Save text
+          {t('edit.save')}
         </button>
         <button type="button" className="btn btn-ghost min-h-11" onClick={onCancel} disabled={busy}>
-          Cancel
+          {t('edit.cancel')}
         </button>
       </div>
     </form>
@@ -148,6 +152,8 @@ export function SegmentItem({
   /** The segment opens a new paragraph of the copy: extra space above it. */
   paragraphBreak?: boolean;
 }) {
+  const t = useTranslations('claimAudit');
+  const tApi = useTranslations('apiErrors');
   const { actions, readOnly, selectedId, onSelect, warnings } = context;
   const [editing, setEditing] = useState(false);
   const statusRef = useRef<HTMLParagraphElement>(null);
@@ -198,7 +204,7 @@ export function SegmentItem({
       aria-controls={selected ? 'evidence-panel' : undefined}
       onClick={() => onSelect(segment.claimId)}
     >
-      <span className="sr-only">Show evidence for: </span>
+      <span className="sr-only">{t('showEvidenceFor')} </span>
       {shownText}
     </button>
   );
@@ -211,52 +217,53 @@ export function SegmentItem({
     <li className={itemClass}>
       <div
         role="group"
-        aria-label={`Flagged: ${name}`}
+        aria-label={t('flaggedLabel', { name })}
         className="flex flex-col gap-3 rounded-box border-l-4 border-warning bg-base-100 p-2 pl-3 ring-1 ring-base-300"
       >
         {text}
         {decision?.choice === 'edit' && (
-          <p className="px-2 text-sm text-base-content/70">Original: “{segment.text}”</p>
+          <p className="px-2 text-sm text-base-content/70">
+            {t('original', { text: segment.text })}
+          </p>
         )}
-        <ul aria-label="Flags" className="flex flex-col gap-2 px-2">
+        <ul aria-label={t('flagsLabel')} className="flex flex-col gap-2 px-2">
           {segment.flags.map((flag, index) => (
             <li key={`${flag.category}-${index}`} className="flex flex-col gap-1">
               <span className="badge badge-warning w-fit">
                 <span aria-hidden>⚑ </span>
-                {FLAG_CATEGORY_LABELS[flag.category]}
+                {flagCategoryLabel(t, flag.category)}
               </span>
               <p className="text-sm">{flag.problem}</p>
               {flag.suggestion !== null && (
-                <p className="text-sm text-base-content/70">Suggestion: {flag.suggestion}</p>
+                <p className="text-sm text-base-content/70">
+                  {t('suggestion', { text: flag.suggestion })}
+                </p>
               )}
             </li>
           ))}
         </ul>
         {exclusionary && canDecide && (
           <p id={exclusionNoteId} className="px-2 text-sm font-medium">
-            Approving this as written keeps exclusionary wording. The publication checklist will
-            still fail for it.
+            {t('exclusionaryNote')}
           </p>
         )}
         {kind === 'qa' && canDecide && (
           <p id={dropNoteId} className="px-2 text-sm font-medium">
-            Removing this answer drops the whole card, question included.
+            {t('dropNote')}
           </p>
         )}
         <p ref={statusRef} tabIndex={-1} className="px-2 text-sm font-semibold">
-          {moot ? 'Not needed: this card is dropped.' : decisionStatus(segment, decision, kind)}
+          {moot ? t('status.moot') : decisionStatus(t, segment, decision, kind)}
         </p>
         {decision?.choice === 'accept' && exclusionary && (
-          <p className="px-2 text-sm">
-            The publication checklist will still fail for this wording.
-          </p>
+          <p className="px-2 text-sm">{t('checklistFails')}</p>
         )}
         {removalWarnings.length > 0 && (
-          <ul aria-label="Warnings for this removal" className="flex flex-col gap-1 px-2">
+          <ul aria-label={t('removalWarnings')} className="flex flex-col gap-1 px-2">
             {removalWarnings.map((warning, index) => (
               <li key={index} className="text-sm font-medium">
                 <span aria-hidden>⚠ </span>
-                {warningText(warning, context.factLabel)}
+                {warningText(t, warning, context.factLabel)}
               </li>
             ))}
           </ul>
@@ -264,12 +271,12 @@ export function SegmentItem({
         {pending && (
           <p role="status" className="flex items-center gap-2 px-2 text-sm text-base-content/70">
             <span className="loading loading-spinner loading-xs" aria-hidden />
-            Saving your decision…
+            {t('saving')}
           </p>
         )}
         {failure !== null && !editing && (
           <p role="alert" className="px-2 text-sm text-error">
-            {describeAuditFailure(failure)}
+            {describeAuditFailure(t, tApi, failure)}
           </p>
         )}
         {canDecide && !editing && (
@@ -278,36 +285,36 @@ export function SegmentItem({
               <button
                 type="button"
                 className="btn btn-outline min-h-11"
-                aria-label={`Approve as written: ${name}`}
+                aria-label={t('approveAsWrittenLabel', { name })}
                 aria-describedby={exclusionary ? exclusionNoteId : undefined}
                 disabled={busy}
                 onClick={() => send({ choice: 'accept' })}
               >
-                Approve as written
+                {t('approveAsWritten')}
               </button>
             )}
             <button
               type="button"
               className="btn btn-outline min-h-11"
-              aria-label={`Edit: ${name}`}
+              aria-label={t('editLabel', { name })}
               disabled={busy}
               onClick={() => {
                 actions.claim.reset();
                 setEditing(true);
               }}
             >
-              Edit
+              {t('edit.open')}
             </button>
             {decision?.choice !== 'remove' && (
               <button
                 type="button"
                 className="btn btn-outline btn-error min-h-11"
-                aria-label={`Remove: ${name}`}
+                aria-label={t('removeLabel', { name })}
                 aria-describedby={kind === 'qa' ? dropNoteId : undefined}
                 disabled={busy}
                 onClick={() => send({ choice: 'remove' })}
               >
-                Remove
+                {t('remove')}
               </button>
             )}
           </div>

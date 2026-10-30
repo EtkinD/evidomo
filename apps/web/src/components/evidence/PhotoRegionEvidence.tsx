@@ -1,5 +1,6 @@
 import type { FactSource } from '@evidomo/shared';
 import { useEffect, useId, useRef, useState } from 'react';
+import { useTranslations } from 'use-intl';
 import { regionInFrame } from '../../lib/evidence';
 import { useEvidenceUrls } from './EvidenceProvider';
 
@@ -19,6 +20,7 @@ interface PhotoFrameProps {
  * contain` centred in the same frame lines it up with the photo without any coordinate math.
  */
 function PhotoFrame({ factId, source, subject }: PhotoFrameProps) {
+  const t = useTranslations('evidence');
   const urls = useEvidenceUrls();
   const photoUrl = urls.materialFile(source.materialId);
   const maskUrl = source.maskArtifactId === undefined ? null : urls.factMask(factId);
@@ -49,13 +51,13 @@ function PhotoFrame({ factId, source, subject }: PhotoFrameProps) {
     <div className="relative aspect-4/3 w-full overflow-hidden rounded-box bg-base-200">
       {photoFailed ? (
         <p className="absolute inset-0 flex items-center justify-center p-4 text-center text-sm text-base-content/70">
-          The photo could not be loaded.
+          {t('photoFailed')}
         </p>
       ) : (
         // eslint-disable-next-line @next/next/no-img-element -- an owner-only API file (or the demo's); next/image cannot optimise it
         <img
           src={photoUrl}
-          alt={`Photo evidence for ${subject}`}
+          alt={t('photoEvidenceFor', { subject })}
           loading="lazy"
           decoding="async"
           className="absolute inset-0 h-full w-full object-contain"
@@ -99,6 +101,7 @@ export function PhotoRegionEvidence({
   source,
   subject,
 }: PhotoFrameProps & { source: PhotoSource }) {
+  const t = useTranslations('evidence');
   const dialogRef = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   const [open, setOpen] = useState(false);
@@ -111,17 +114,15 @@ export function PhotoRegionEvidence({
   }, [open]);
 
   const caption =
-    source.maskArtifactId === undefined
-      ? 'The region is outlined on the photo.'
-      : 'The region is highlighted on the photo.';
+    source.maskArtifactId === undefined ? t('regionOutlined') : t('regionHighlighted');
 
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-sm font-medium">Photo</p>
+      <p className="text-sm font-medium">{t('photo')}</p>
       <button
         type="button"
         className="block w-full cursor-zoom-in text-left"
-        aria-label={`Open larger photo for ${subject}`}
+        aria-label={t('openLarger', { subject })}
         onClick={() => setOpen(true)}
       >
         <PhotoFrame factId={factId} source={source} subject={subject} />
@@ -137,17 +138,17 @@ export function PhotoRegionEvidence({
           <>
             <div className="modal-box flex max-w-4xl flex-col gap-4">
               <h2 id={titleId} className="text-lg font-semibold">
-                Photo evidence for {subject}
+                {t('photoEvidenceFor', { subject })}
               </h2>
               <PhotoFrame factId={factId} source={source} subject={subject} />
               <p className="text-sm text-base-content/70">{caption}</p>
               <form method="dialog" className="modal-action">
-                <button className="btn min-h-11">Close</button>
+                <button className="btn min-h-11">{t('close')}</button>
               </form>
             </div>
             <form method="dialog" className="modal-backdrop">
               <button tabIndex={-1} aria-hidden>
-                Close
+                {t('close')}
               </button>
             </form>
           </>

@@ -5,6 +5,9 @@ import {
   registerRequestSchema,
 } from '@evidomo/shared';
 import { ApiRequestError } from './api';
+import type { Translator } from './i18n';
+
+type AuthT = Translator<'auth'>;
 
 export type AuthFormMode = 'login' | 'register';
 export type AuthField = 'email' | 'password';
@@ -32,25 +35,29 @@ function isAuthField(value: unknown): value is AuthField {
  * A human message for an invalid field. The schemas decide *whether* a field is valid; the
  * message is derived from the submitted value so client and server failures read the same.
  */
-export function fieldMessage(field: AuthField, mode: AuthFormMode, values: AuthFormValues): string {
+export function fieldMessage(
+  t: AuthT,
+  field: AuthField,
+  mode: AuthFormMode,
+  values: AuthFormValues,
+): string {
   if (field === 'email') {
-    return values.email.trim() === ''
-      ? 'Enter your email address.'
-      : 'Enter a valid email address, such as name@example.com.';
+    return values.email.trim() === '' ? t('errors.emailEmpty') : t('errors.emailInvalid');
   }
   const { password } = values;
-  if (password === '') return mode === 'login' ? 'Enter your password.' : 'Enter a password.';
+  if (password === '')
+    return mode === 'login' ? t('errors.passwordEmptyLogin') : t('errors.passwordEmpty');
   if (password.length > PASSWORD_MAX_LENGTH) {
-    return `Use at most ${PASSWORD_MAX_LENGTH} characters.`;
+    return t('errors.passwordTooLong', { max: PASSWORD_MAX_LENGTH });
   }
   if (mode === 'register' && password.length < PASSWORD_MIN_LENGTH) {
-    return `Use at least ${PASSWORD_MIN_LENGTH} characters.`;
+    return t('errors.passwordTooShort', { min: PASSWORD_MIN_LENGTH });
   }
   // The server counts characters after Unicode normalization, so a borderline value can pass
   // here and still be refused there.
   return mode === 'register'
-    ? `Use ${PASSWORD_MIN_LENGTH} to ${PASSWORD_MAX_LENGTH} characters.`
-    : 'Enter your password.';
+    ? t('errors.passwordRange', { min: PASSWORD_MIN_LENGTH, max: PASSWORD_MAX_LENGTH })
+    : t('errors.passwordEmptyLogin');
 }
 
 export type AuthFormValidation =
@@ -58,7 +65,11 @@ export type AuthFormValidation =
   { ok: true; data: AuthFormValues } | { ok: false; fields: FieldErrors };
 
 /** Client-side validation with the same shared schema the API applies. */
-export function validateAuthForm(mode: AuthFormMode, values: AuthFormValues): AuthFormValidation {
+export function validateAuthForm(
+  t: AuthT,
+  mode: AuthFormMode,
+  values: AuthFormValues,
+): AuthFormValidation {
   const schema = mode === 'login' ? loginRequestSchema : registerRequestSchema;
   const result = schema.safeParse(values);
   if (result.success) return { ok: true, data: result.data };
@@ -67,25 +78,15 @@ export function validateAuthForm(mode: AuthFormMode, values: AuthFormValues): Au
   for (const issue of result.error.issues) {
     const field = issue.path[0];
     if (isAuthField(field) && fields[field] === undefined) {
-      fields[field] = fieldMessage(field, mode, values);
+      fields[field] = fieldMessage(t, field, mode, values);
     }
   }
   return { ok: false, fields };
 }
 
-function formatWait(seconds: number): string {
-  if (seconds <= 60) {
-    const whole = Math.max(1, seconds);
-    return `${whole} ${whole === 1 ? 'second' : 'seconds'}`;
-  }
-  const minutes = Math.ceil(seconds / 60);
-  return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`;
-}
-
-const GENERIC_FAILURE = 'Something went wrong on our side. Try again in a moment.';
-
 /** Maps a failed login or registration request to what the form shows. */
 export function describeAuthFailure(
+  t: AuthT,
   error: unknown,
   mode: AuthFormMode,
   values: AuthFormValues,
@@ -94,10 +95,10 @@ export function describeAuthFailure(
   if (error instanceof TypeError) {
     return {
       kind: 'message',
-      message: 'Could not reach Evidomo. Check your connection and try again.',
+      message: t('errors.unreachable'),
     };
   }
-  if (!(error instanceof ApiRequestError)) return { kind: 'message', message: GENERIC_FAILURE };
+  if (!(error instanceof ApiRequestError)) return { kind: 'message', message: t('errors.generic') };
 
   switch (error.code) {
     case 'validation_failed': {
@@ -105,15 +106,15 @@ export function describeAuthFailure(
       for (const issue of error.issues) {
         const field = issue.path[0];
         if (isAuthField(field) && fields[field] === undefined) {
-          fields[field] = fieldMessage(field, mode, values);
+          fields[field] = fieldMessage(t, field, mode, values);
         }
       }
       return Object.keys(fields).length > 0
         ? { kind: 'fields', fields }
-        : { kind: 'message', message: 'Check the form and try again.' };
+        : { kind: 'message', message: t('errors.checkForm') };
     }
     case 'invalid_credentials':
-      return { kind: 'message', message: 'Email or password is incorrect.' };
+      return { kind: 'message', message: t('errors.invalidCredentials') };
     case 'email_taken':
       return { kind: 'email_taken' };
     case 'rate_limited':
@@ -121,21 +122,22 @@ export function describeAuthFailure(
         kind: 'message',
         message:
           error.retryAfterSeconds === null
-            ? 'Too many attempts. Wait a few minutes and try again.'
-            : `Too many attempts. Try again in ${formatWait(error.retryAfterSeconds)}.`,
+            ? t('errors.rateLimited')
+            : error.retryAfterSeconds <= 60
+              ? t('errors.rateLimitedSeconds', { count: Math.max(1, error.retryAfterSeconds) })
+              : t('errors.rateLimitedMinutes', { count: Math.ceil(error.retryAfterSeconds / 60) }),
       };
     case 'forbidden_origin':
       return {
         kind: 'message',
-        message:
-          'The request was blocked because it did not come from this site. Reload the page and try again.',
+        message: t('errors.forbiddenOrigin'),
       };
     case 'invalid_json':
     case 'unsupported_media_type':
     case 'payload_too_large':
       return {
         kind: 'message',
-        message: 'The form could not be sent. Reload the page and try again.',
+        message: t('errors.notSent'),
       };
     // Gate, run API, and project codes are never returned by the auth endpoints.
     case 'unauthenticated':
@@ -159,7 +161,7 @@ export function describeAuthFailure(
     case 'access_code_invalid':
     case 'run_limit_reached':
     case null:
-      return { kind: 'message', message: GENERIC_FAILURE };
+      return { kind: 'message', message: t('errors.generic') };
     default: {
       const unreachable: never = error.code;
       return unreachable;

@@ -67,7 +67,11 @@ describe('committed brand files', () => {
     ['icon-192.png', 192, 192],
     ['icon-512.png', 512, 512],
     ['icon-maskable-512.png', 512, 512],
-    ['og.png', 1200, 630],
+    ['og-en.png', 1200, 630],
+    ['og-tr.png', 1200, 630],
+    ['og-nl.png', 1200, 630],
+    ['og-it.png', 1200, 630],
+    ['og-es.png', 1200, 630],
   ])('%s is %i by %i pixels', (name, width, height) => {
     expect(pngSize(name)).toEqual({ width, height });
   });

@@ -94,7 +94,7 @@ describe('photo capture', () => {
     const tiles = within(grid).getAllByRole('listitem');
     expect(tiles).toHaveLength(3);
     expect(within(grid).getByText('Photo 3')).toBeDefined();
-    expect(screen.getByText('3 of 30')).toBeDefined();
+    expect(screen.getByText('3 of 30 photos')).toBeDefined();
     expect(screen.getByText('Enough photos')).toBeDefined();
   });
 
@@ -286,7 +286,7 @@ describe('photo capture', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Delete photo 1' }));
 
     await waitFor(() => expect(screen.queryByText('Enough photos')).toBeNull());
-    expect(screen.getByText('2 of 30')).toBeDefined();
+    expect(screen.getByText('2 of 30 photos')).toBeDefined();
     expect(screen.getByText('Photo 1 deleted. 2 photos left.')).toBeDefined();
     // Positions are renumbered by the server.
     expect(screen.queryByRole('button', { name: 'Delete photo 3' })).toBeNull();

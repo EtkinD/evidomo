@@ -8,7 +8,9 @@ import {
 } from '@evidomo/shared';
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { useTranslations } from 'use-intl';
 import { ApiRequestError } from '../lib/api';
+import type { Translator } from '../lib/i18n';
 import {
   buildEditRequest,
   editControlFor,
@@ -42,11 +44,12 @@ export interface Labels {
   value: (value: GateFact['value'], unit: string | null, basis: string | null) => string;
 }
 
-export function labelsFor(market: MarketForm | undefined): Labels {
+export function labelsFor(tCommon: Translator<'common'>, market: MarketForm | undefined): Labels {
   return {
     fact: (key) => market?.facts.find((fact) => fact.key === key)?.label ?? keyLabel(key),
     value: (value, unit, basis) =>
       formatFactValue(
+        tCommon,
         value,
         unit,
         basis,
@@ -55,11 +58,11 @@ export function labelsFor(market: MarketForm | undefined): Labels {
   };
 }
 
-const SOURCE_KIND_LABELS = {
-  form: 'form field',
-  transcript_turn: 'voice walkthrough',
-  photo_region: 'photo',
-  gate_decision: 'your decision',
+const SOURCE_KIND_KEYS = {
+  form: 'sourceKinds.form',
+  transcript_turn: 'sourceKinds.voice',
+  photo_region: 'sourceKinds.photo',
+  gate_decision: 'sourceKinds.decision',
 } as const;
 
 const NO_MEASURE = '__none__';
@@ -85,6 +88,8 @@ function EditValueForm({
   onSubmit: (result: Extract<EditResult, { ok: true }>) => void;
   onCancel: () => void;
 }) {
+  const t = useTranslations('conflicts');
+  const tFact = useTranslations('factForm');
   const [text, setText] = useState('');
   const [unitPick, setUnitPick] = useState('');
   const [basisPick, setBasisPick] = useState('');
@@ -109,18 +114,18 @@ function EditValueForm({
   const { unit: sharedUnit } = editedMeasure(conflict, control, picks);
   const hint =
     control.kind === 'market'
-      ? fieldHint(control.field)
+      ? fieldHint(tFact, control.field)
       : control.kind === 'number'
         ? unitOptions !== null
-          ? 'A number. Choose its unit below.'
+          ? t('edit.numberChooseUnit')
           : sharedUnit === null
-            ? 'A number, with no unit.'
-            : `A number, in ${displayUnit(sharedUnit)}.`
+            ? t('edit.numberNoUnit')
+            : t('edit.numberInUnit', { unit: displayUnit(sharedUnit) })
         : null;
 
   function submit(event: FormEvent) {
     event.preventDefault();
-    const result = buildEditRequest(control, conflict, text, picks);
+    const result = buildEditRequest(tFact, control, conflict, text, picks);
     if (!result.ok) {
       setProblem(result.message);
       return;
@@ -135,7 +140,7 @@ function EditValueForm({
     value: string,
     set: (value: string) => void,
   ) => (
-    <Field id={`${id}-${pick}`} label={pick === 'unit' ? 'Unit' : 'Basis'}>
+    <Field id={`${id}-${pick}`} label={pick === 'unit' ? t('edit.unit') : t('edit.basis')}>
       {(controlProps) => (
         <select
           {...controlProps}
@@ -144,10 +149,14 @@ function EditValueForm({
           onChange={(event) => set(event.target.value)}
           disabled={busy}
         >
-          <option value="">Choose…</option>
+          <option value="">{t('edit.choose')}</option>
           {options.map((option) => (
             <option key={option} value={option === '' ? NO_MEASURE : option}>
-              {option === '' ? (pick === 'unit' ? 'No unit' : 'No basis') : displayUnit(option)}
+              {option === ''
+                ? pick === 'unit'
+                  ? t('edit.noUnit')
+                  : t('edit.noBasis')
+                : displayUnit(option)}
             </option>
           ))}
         </select>
@@ -157,7 +166,7 @@ function EditValueForm({
 
   return (
     <form noValidate onSubmit={submit} className="flex flex-col gap-3 rounded-box bg-base-200 p-4">
-      <Field id={id} label={`New value for ${label}`} hint={hint} error={problem ?? error}>
+      <Field id={id} label={t('edit.newValueFor', { label })} hint={hint} error={problem ?? error}>
         {(controlProps) =>
           choices === null ? (
             <input
@@ -180,7 +189,7 @@ function EditValueForm({
               onChange={(event) => setText(event.target.value)}
               disabled={busy}
             >
-              <option value="">Choose…</option>
+              <option value="">{t('edit.choose')}</option>
               {choices.map((choice) => (
                 <option key={choice} value={choice}>
                   {humanize(choice)}
@@ -195,10 +204,10 @@ function EditValueForm({
       <div className="flex flex-wrap gap-2">
         <button type="submit" className="btn btn-primary min-h-11" disabled={busy}>
           {busy && <span className="loading loading-spinner loading-xs" aria-hidden />}
-          Save value
+          {t('edit.save')}
         </button>
         <button type="button" className="btn btn-ghost min-h-11" onClick={onCancel} disabled={busy}>
-          Cancel
+          {t('edit.cancel')}
         </button>
       </div>
     </form>
@@ -222,9 +231,10 @@ function SideCard({
   busy: boolean;
   onUse: () => void;
 }) {
+  const t = useTranslations('conflicts');
   const headingId = `${conflict.id}-${side.factIds[0]}`;
   const valueText = labels.value(side.value, side.unit, side.basis);
-  const kinds = [...new Set(side.sourceKinds)].map((kind) => SOURCE_KIND_LABELS[kind]);
+  const kinds = [...new Set(side.sourceKinds)].map((kind) => t(SOURCE_KIND_KEYS[kind]));
 
   return (
     <div
@@ -242,12 +252,12 @@ function SideCard({
           <p className="text-sm text-base-content/70">{labels.fact(side.key)}</p>
         )}
         <p className="text-sm text-base-content/70">
-          {side.facts.length === 1 ? '1 source' : `${side.facts.length} sources`}:{' '}
-          {kinds.join(', ')}
+          {t('sourcesList', { count: side.facts.length, kinds: kinds.join(', ') })}
         </p>
         {kept && (
           <span className="badge badge-success w-fit gap-1">
-            <span aria-hidden>✓</span>Kept
+            <span aria-hidden>✓</span>
+            {t('kept')}
           </span>
         )}
       </div>
@@ -267,11 +277,11 @@ function SideCard({
         <button
           type="button"
           className="btn btn-secondary min-h-11 self-start"
-          aria-label={`Use this value: ${valueText}`}
+          aria-label={t('useValueLabel', { value: valueText })}
           disabled={busy}
           onClick={onUse}
         >
-          Use this value
+          {t('useValue')}
         </button>
       )}
     </div>
@@ -297,6 +307,8 @@ function ConflictCard({
   editing: boolean;
   onEditingChange: (open: boolean) => void;
 }) {
+  const t = useTranslations('conflicts');
+  const tApi = useTranslations('apiErrors');
   const headingId = `${conflict.id}-title`;
   const headingRef = useRef<HTMLHeadingElement>(null);
   const label = labels.fact(conflict.key);
@@ -327,6 +339,7 @@ function ConflictCard({
     decision === null
       ? null
       : decisionSummary(
+          t,
           decision,
           (factIds) => {
             const side = conflict.sides.find((s) => s.factIds.some((id) => factIds.includes(id)));
@@ -350,11 +363,11 @@ function ConflictCard({
           </h2>
           <span className={`badge gap-1 ${decision === null ? 'badge-warning' : 'badge-success'}`}>
             <span aria-hidden>{decision === null ? '!' : '✓'}</span>
-            {decision === null ? 'Open' : 'Decided'}
+            {decision === null ? t('open') : t('decided')}
           </span>
         </div>
         <p>{conflict.explanation}</p>
-        <ul aria-label="Values in conflict" className="grid grid-cols-2 gap-2">
+        <ul aria-label={t('valuesInConflict')} className="grid grid-cols-2 gap-2">
           {conflict.sides.map((side) => (
             <li
               key={side.factIds.join()}
@@ -364,7 +377,7 @@ function ConflictCard({
                 {labels.value(side.value, side.unit, side.basis)}
               </span>
               <span className="text-sm text-base-content/70">
-                {side.facts.length === 1 ? '1 source' : `${side.facts.length} sources`}
+                {t('sourceCount', { count: side.facts.length })}
               </span>
             </li>
           ))}
@@ -393,12 +406,12 @@ function ConflictCard({
         {thisPending && (
           <p role="status" className="flex items-center gap-2 text-sm text-base-content/70">
             <span className="loading loading-spinner loading-xs" aria-hidden />
-            Saving your decision…
+            {t('saving')}
           </p>
         )}
         {failure !== null && !formFailure && (
           <p role="alert" className="text-sm text-error">
-            {describeDecisionFailure(failure)}
+            {describeDecisionFailure(t, tApi, failure)}
           </p>
         )}
         {!readOnly && (
@@ -407,29 +420,29 @@ function ConflictCard({
               <button
                 type="button"
                 className="btn btn-outline min-h-11"
-                aria-label={`Reject all values for ${label}`}
+                aria-label={t('rejectAllLabel', { label })}
                 disabled={busy}
                 onClick={() => send({ choice: 'reject' })}
               >
-                Reject all
+                {t('rejectAll')}
               </button>
             )}
             {!editing && (
               <button
                 type="button"
                 className="btn btn-outline min-h-11"
-                aria-label={`Enter a value for ${label}`}
+                aria-label={t('enterValueLabel', { label })}
                 disabled={busy || marketLoading}
                 onClick={() => {
                   decide.reset();
                   onEditingChange(true);
                 }}
               >
-                Enter a value
+                {t('enterValue')}
               </button>
             )}
             {marketLoading && (
-              <span className="text-sm text-base-content/70">Loading the field type…</span>
+              <span className="text-sm text-base-content/70">{t('loadingFieldType')}</span>
             )}
           </div>
         )}
@@ -439,7 +452,7 @@ function ConflictCard({
             control={control}
             label={label}
             busy={busy}
-            error={formFailure ? describeDecisionFailure(failure) : undefined}
+            error={formFailure ? describeDecisionFailure(t, tApi, failure) : undefined}
             onSubmit={(result) => send(result.body)}
             onCancel={() => onEditingChange(false)}
           />
@@ -450,19 +463,18 @@ function ConflictCard({
 }
 
 function Progress({ total, open }: { total: number; open: number }) {
+  const t = useTranslations('conflicts');
   return (
     <section
-      aria-label="Progress"
+      aria-label={t('progress')}
       className="flex flex-col gap-2 rounded-box border border-base-300 bg-base-100 p-4"
     >
-      <p className="font-medium">
-        {open} of {total} {total === 1 ? 'conflict' : 'conflicts'} still open
-      </p>
+      <p className="font-medium">{t('progressText', { open, total })}</p>
       <progress
         className="progress progress-primary w-full"
         value={total - open}
         max={total}
-        aria-label="Conflicts decided"
+        aria-label={t('conflictsDecided')}
       />
     </section>
   );
@@ -476,6 +488,8 @@ export function FactConflictsView({
   runId: string;
   urls?: EvidenceUrls;
 }) {
+  const t = useTranslations('conflicts');
+  const tCommon = useTranslations('common');
   const source = useRunSource();
   const demo = source.kind === 'demo';
   const gate = useFactConflicts(runId);
@@ -492,7 +506,7 @@ export function FactConflictsView({
   const marketLoading = snapshot.isLoading || marketQuery.isLoading;
   const [editingId, setEditingId] = useState<string | null>(null);
   const decide = useDecideConflict(runId);
-  const labels = useMemo(() => labelsFor(market), [market]);
+  const labels = useMemo(() => labelsFor(tCommon, market), [tCommon, market]);
   const urls = useMemo(
     () => urlsOverride ?? source.evidenceUrls(runId),
     [runId, source, urlsOverride],
@@ -500,7 +514,7 @@ export function FactConflictsView({
 
   if (gate.data === undefined) {
     if (!gate.isError) {
-      return <LoadingState label="Loading the fact conflicts…" rows={2} />;
+      return <LoadingState label={t('loading')} rows={2} />;
     }
     if (gate.error instanceof ApiRequestError && gate.error.status === 404) return <RunNotFound />;
     if (gate.error instanceof ApiRequestError && gate.error.status === 401) {
@@ -508,7 +522,7 @@ export function FactConflictsView({
     }
     return (
       <LoadErrorState
-        message="We could not load the fact conflicts. Check your connection and try again."
+        message={t('loadError')}
         error={gate.error}
         onRetry={() => void gate.refetch()}
       />
@@ -544,56 +558,47 @@ export function FactConflictsView({
             href={source.hrefs.monitor(runId)}
             className="link inline-flex min-h-11 w-fit items-center text-sm"
           >
-            Back to run
+            {t('backToRun')}
           </Link>
           <h1 className="card-title text-2xl">
-            {data.state === 'open' && !demo ? 'Resolve fact conflicts' : 'Fact conflicts'}
+            {data.state === 'open' && !demo ? t('titleResolve') : t('title')}
           </h1>
         </div>
 
         {decide.data?.resumed === true && (
           <div role="status" className="alert alert-success alert-vertical sm:alert-horizontal">
-            <span>All conflicts are decided. The run is continuing.</span>
+            <span>{t('allDecided')}</span>
             <Link href={source.hrefs.monitor(runId)} className="btn min-h-11">
-              Back to the run
+              {t('backToTheRun')}
             </Link>
           </div>
         )}
 
         {data.state === 'not_reached' && (
           <div role="status" className="alert alert-info alert-vertical sm:alert-horizontal">
-            <span>
-              The run has not reached this review yet. The conflicts appear here once the facts have
-              been compared.
-            </span>
+            <span>{t('notReached')}</span>
           </div>
         )}
         {data.state === 'suspended' && (
           <div role="alert" className="alert alert-warning">
-            <span>
-              The run stopped while waiting for this review, so decisions are paused. Resume the run
-              from its page to reopen the review; the decisions you made are kept.
-            </span>
+            <span>{t('suspended')}</span>
           </div>
         )}
         {data.state === 'released' && decide.data?.resumed !== true && (
           <div role="status" className="alert alert-info">
             <span>
               {data.conflictCount === 0
-                ? 'No conflicts needed a decision.'
+                ? t('releasedNone')
                 : demo
-                  ? 'This review was finished in the original run. The decisions made are shown below.'
-                  : 'This review is finished. Your decisions are shown below.'}
+                  ? t('releasedDemo')
+                  : t('released')}
             </span>
           </div>
         )}
 
         {data.state === 'open' && !demo && (
           <>
-            <p className="text-base-content/70">
-              These facts disagree. Compare the evidence for each value, then keep one, reject them
-              all, or enter the right value. The run continues after the last decision.
-            </p>
+            <p className="text-base-content/70">{t('intro')}</p>
             <Progress total={data.conflictCount} open={data.openCount} />
           </>
         )}

@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { knownStepIds, stepLabel } from '../lib/step-labels';
+import { testTranslator } from './test-utils';
 
 const DEFINITION = resolve(__dirname, '../../../../definitions/services/listing-launch.v1.yaml');
 
@@ -26,7 +27,7 @@ describe('step labels', () => {
 
   it('labels every step of the listing-launch definition with a description', () => {
     for (const id of definitionStepIds()) {
-      const { label, description } = stepLabel(id);
+      const { label, description } = stepLabel(testTranslator('steps'), id);
       expect(knownStepIds(), id).toContain(id);
       expect(label, id).not.toBe('');
       expect(description, id).not.toBe('');
@@ -40,7 +41,10 @@ describe('step labels', () => {
   });
 
   it('humanises an unknown step ID', () => {
-    expect(stepLabel('photo_check')).toEqual({ label: 'Photo check', description: '' });
-    expect(stepLabel('x-y')).toEqual({ label: 'X y', description: '' });
+    expect(stepLabel(testTranslator('steps'), 'photo_check')).toEqual({
+      label: 'Photo check',
+      description: '',
+    });
+    expect(stepLabel(testTranslator('steps'), 'x-y')).toEqual({ label: 'X y', description: '' });
   });
 });

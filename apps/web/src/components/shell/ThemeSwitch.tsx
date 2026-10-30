@@ -1,4 +1,5 @@
 import { useId, useSyncExternalStore } from 'react';
+import { useTranslations } from 'use-intl';
 import {
   THEME_CHOICES,
   applyTheme,
@@ -8,7 +9,11 @@ import {
   type ThemeChoice,
 } from '../../lib/theme';
 
-const LABELS: Record<ThemeChoice, string> = { system: 'System', light: 'Light', dark: 'Dark' };
+const LABEL_KEYS = {
+  system: 'themeSystem',
+  light: 'themeLight',
+  dark: 'themeDark',
+} as const satisfies Record<ThemeChoice, string>;
 
 /**
  * System / Light / Dark as a native radio group (arrow keys, announced as "1 of 3, selected").
@@ -16,12 +21,13 @@ const LABELS: Record<ThemeChoice, string> = { system: 'System', light: 'Light', 
  * by the inline script in _document) is picked up right after hydration.
  */
 export function ThemeSwitch() {
+  const t = useTranslations('shell');
   const name = useId();
   const choice = useSyncExternalStore(subscribeToTheme, currentTheme, () => 'system' as const);
 
   return (
     <fieldset className="flex flex-col gap-1">
-      <legend className="mb-1 text-sm text-base-content/70">Theme</legend>
+      <legend className="mb-1 text-sm text-base-content/70">{t('theme')}</legend>
       <div className="join">
         {THEME_CHOICES.map((option) => (
           <input
@@ -29,7 +35,7 @@ export function ThemeSwitch() {
             type="radio"
             name={name}
             value={option}
-            aria-label={LABELS[option]}
+            aria-label={t(LABEL_KEYS[option])}
             checked={choice === option}
             onChange={() => {
               applyTheme(option);

@@ -1,18 +1,21 @@
 import Head from 'next/head';
+import { useTranslations } from 'use-intl';
 import { LandingPage } from '../components/landing/LandingPage';
+import { getStaticProps } from '../lib/i18n-server';
 
-const TITLE = 'Evidomo: listing packs where every claim has a source';
-const DESCRIPTION =
-  'Photos and a voice walkthrough in, a listing pack out. Every statement links to the form field, spoken turn, or photo it came from, and you review it before export.';
+export { getStaticProps };
 
 export default function Home() {
+  const t = useTranslations('meta');
+  const title = t('landingTitle');
+  const description = t('landingDescription');
   return (
     <>
       <Head>
-        <title>{TITLE}</title>
-        <meta name="description" content={DESCRIPTION} />
-        <meta key="og:title" property="og:title" content={TITLE} />
-        <meta key="og:description" property="og:description" content={DESCRIPTION} />
+        <title>{title}</title>
+        <meta name="description" content={description} />
+        <meta key="og:title" property="og:title" content={title} />
+        <meta key="og:description" property="og:description" content={description} />
       </Head>
       <LandingPage />
     </>

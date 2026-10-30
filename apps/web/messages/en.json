@@ -1,0 +1,914 @@
+{
+  "common": {
+    "tryAgain": "Try again",
+    "required": "required",
+    "leaveMessage": "Uploads or a recording are still in progress. If you leave now they will be lost. Leave anyway?",
+    "sessionEnded": "Your session has ended. Log in again to continue.",
+    "logIn": "Log in",
+    "projectMissing": "This project does not exist.",
+    "projectLoadError": "We could not load this project. Check your connection and try again.",
+    "loadingProject": "Loading the project…",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "shell": {
+    "accountMenu": "Account menu",
+    "logOut": "Log out",
+    "logOutFailed": "Could not log out. Try again.",
+    "navMain": "Main",
+    "navAccount": "Account",
+    "projects": "Projects",
+    "demo": "Demo",
+    "logIn": "Log in",
+    "createAccount": "Create account",
+    "mastheadLine": "Evidence for every home.",
+    "footerTagline": "Evidence-linked listing packs for estate agents.",
+    "hackathon": "Built during the Meta hackathon, Oct 26 – Nov 4, 2026.",
+    "github": "Evidomo on GitHub",
+    "theme": "Theme",
+    "themeSystem": "System",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "language": "Language"
+  },
+  "auth": {
+    "checkingSession": "Checking your session…",
+    "sessionCheckFailed": "We could not check your session. Check your connection and try again.",
+    "email": "Email",
+    "password": "Password",
+    "emailTaken": "An account with this email already exists.",
+    "logInInstead": "Log in instead",
+    "passwordHint": "At least {min} characters.",
+    "login": {
+      "pageTitle": "Log in — Evidomo",
+      "title": "Log in",
+      "description": "Back to your listing packs.",
+      "noAccount": "No account yet?",
+      "createAccountLink": "Create an account",
+      "submit": "Log in"
+    },
+    "register": {
+      "pageTitle": "Create account — Evidomo",
+      "title": "Create your account",
+      "description": "Turn property photos and a voice walkthrough into a listing pack with evidence.",
+      "haveAccount": "Already have an account?",
+      "logInLink": "Log in",
+      "submit": "Create account"
+    },
+    "errors": {
+      "emailEmpty": "Enter your email address.",
+      "emailInvalid": "Enter a valid email address, such as name@example.com.",
+      "passwordEmptyLogin": "Enter your password.",
+      "passwordEmpty": "Enter a password.",
+      "passwordTooLong": "Use at most {max} characters.",
+      "passwordTooShort": "Use at least {min} characters.",
+      "passwordRange": "Use {min} to {max} characters.",
+      "unreachable": "Could not reach Evidomo. Check your connection and try again.",
+      "generic": "Something went wrong on our side. Try again in a moment.",
+      "checkForm": "Check the form and try again.",
+      "invalidCredentials": "Email or password is incorrect.",
+      "rateLimited": "Too many attempts. Wait a few minutes and try again.",
+      "rateLimitedSeconds": "Too many attempts. Try again in {count, plural, one {# second} other {# seconds}}.",
+      "rateLimitedMinutes": "Too many attempts. Try again in {count, plural, one {# minute} other {# minutes}}.",
+      "forbiddenOrigin": "The request was blocked because it did not come from this site. Reload the page and try again.",
+      "notSent": "The form could not be sent. Reload the page and try again."
+    }
+  },
+  "meta": {
+    "tagline": "Evidence for every home.",
+    "ogImageAlt": "Evidomo: evidence for every home.",
+    "landingTitle": "Evidomo: listing packs where every claim has a source",
+    "landingDescription": "Photos and a voice walkthrough in, a listing pack out. Every statement links to the form field, spoken turn, or photo it came from, and you review it before export."
+  },
+  "landing": {
+    "actions": {
+      "goToProjects": "Go to your projects",
+      "createAccount": "Create account",
+      "logIn": "Log in",
+      "seeDemo": "See a finished run"
+    },
+    "hero": {
+      "line1": "Every claim",
+      "line2": "in your listing,",
+      "line3": "linked to its evidence.",
+      "lede": "Walk the property, talk, and take photos. Evidomo drafts the listing pack and shows where each statement came from, so you approve facts, not guesses.",
+      "footnote": "Open any sentence of a pack to see the form field, the spoken turn, or the part of the photo it rests on.",
+      "notesLabel": "Example notes on the photo",
+      "claims": {
+        "windows": "Two tall windows",
+        "brick": "Brick feature wall",
+        "area": "Living area 38 m²"
+      },
+      "sources": {
+        "photo": "Photo",
+        "form": "Form field"
+      },
+      "caption": "An illustrative example, not a real listing. Each numbered note names the source of a claim."
+    },
+    "how": {
+      "title": "From a walk-through to a pack you can defend",
+      "subtitle": "Three steps, and you stay in control of the second.",
+      "packPreviewLabel": "Example of a listing pack: two statements, each with its source",
+      "previewLiving": {
+        "text": "Bright living room of 38 m².",
+        "source": "Form"
+      },
+      "previewGarden": {
+        "text": "South-facing garden.",
+        "source": "Voice, 0:42"
+      },
+      "steps": {
+        "capture": {
+          "title": "Capture",
+          "text": "Photograph each room, record a voice walkthrough in your own language, and confirm the facts you know. It works on a phone, at the property."
+        },
+        "verify": {
+          "title": "Verify",
+          "text": "Where the form, the voice, and the photos disagree, the run stops and you decide. Every sentence of the draft links to the evidence behind it."
+        },
+        "pack": {
+          "title": "Pack",
+          "text": "Download a print-ready pack: listing text for portals and social, buyer Q&A cards, and structured portal fields. Each claim stays traceable."
+        }
+      }
+    },
+    "evidence": {
+      "title": "Every claim has a source",
+      "text": "Open any sentence of a listing pack and see the form field, the spoken turn, or the part of the photo it rests on. A claim without evidence is flagged for your decision before export.",
+      "caption": "An illustrative example, not a real listing. Highlighted phrases are claims with evidence.",
+      "verified": "Verified",
+      "notesLabel": "Example evidence for the highlighted claims",
+      "sentence": "A bright <c1>living room of 38 m²</c1> with an <c2>oak herringbone floor</c2> and a <c3>garden facing south</c3>.",
+      "notes": {
+        "area": {
+          "claim": "Living area is 38 m²",
+          "source": "Form field",
+          "label": "Living area:"
+        },
+        "floor": {
+          "claim": "Herringbone oak floor",
+          "source": "Photo",
+          "region": "The region is outlined on the photo."
+        },
+        "garden": {
+          "claim": "Garden faces south",
+          "source": "Voice walkthrough, turn at 0:42",
+          "quote": "“The garden faces south, it gets sun until late.”"
+        }
+      }
+    },
+    "trust": {
+      "title": "Built to be checked",
+      "items": {
+        "calls": {
+          "title": "You make the calls",
+          "text": "Two reviews put you in charge: conflicting facts first, then every flagged sentence and staged image. The run waits for you."
+        },
+        "staging": {
+          "title": "Staging is labelled",
+          "text": "A virtually staged image is labelled as such and always shown next to the original."
+        },
+        "private": {
+          "title": "Private details are removed",
+          "text": "Photo metadata, including GPS, is stripped at upload. Faces and license plates are blurred in exports."
+        },
+        "assists": {
+          "title": "It assists, it does not certify",
+          "text": "The publication checklist helps you spot missing items. Evidomo does not certify legal compliance, value a property, or publish to portals for you."
+        }
+      }
+    },
+    "cta": {
+      "title": "Ready for your next listing?",
+      "text": "Add photos and a voice walkthrough, then review the draft before anything leaves."
+    },
+    "images": {
+      "hero": "A bright canal-house living room with a green-cream brick wall, a beige sofa, a green armchair, and a potted plant by the window",
+      "interior1": "An oak herringbone floor meeting terracotta tiles, with leaf shadows and a yellow pot holding an olive branch",
+      "interior2": "A limewashed brick fireplace with an oak mantel, eucalyptus in a terracotta pot, and birch logs",
+      "illustration": "An illustration of a white house with a rounded cream roof, an open yellow door, and a green plant"
+    }
+  },
+  "notFound": {
+    "pageTitle": "Page not found — Evidomo",
+    "title": "Page not found",
+    "text": "The page you are looking for does not exist or has moved.",
+    "home": "Back to the start"
+  },
+  "status": {
+    "queued": "Queued",
+    "running": "Running",
+    "awaiting_gate": "Waiting for your review",
+    "completed": "Completed",
+    "failed": "Failed"
+  },
+  "steps": {
+    "intake": {
+      "label": "Reading the walkthrough",
+      "description": "Turning your voice memo into a transcript, one speaker turn at a time."
+    },
+    "fact_extraction": {
+      "label": "Picking out the facts",
+      "description": "Pulling facts from the transcript and your form, each tied to where it came from."
+    },
+    "vision_inventory": {
+      "label": "Looking at the photos",
+      "description": "Checking each photo for rooms, fittings, and condition."
+    },
+    "reconciliation": {
+      "label": "Comparing the facts",
+      "description": "Finding facts that disagree between the form, the voice, and the photos."
+    },
+    "creative": {
+      "label": "Writing the listing",
+      "description": "Drafting the portal text and the social caption from the confirmed facts."
+    },
+    "qa_cards": {
+      "label": "Preparing buyer questions",
+      "description": "Answering the questions buyers usually ask, from the same facts."
+    },
+    "staging": {
+      "label": "Staging the photos",
+      "description": "Producing furnished versions of empty rooms, always labelled as staged."
+    },
+    "integrity": {
+      "label": "Checking the staged photos",
+      "description": "Making sure staging changed no windows, doors, or other fixed elements."
+    },
+    "verification": {
+      "label": "Checking every claim",
+      "description": "Testing each sentence against the facts it cites."
+    },
+    "export": {
+      "label": "Building the pack",
+      "description": "Assembling the HTML pack, the portal fields, and the images."
+    }
+  },
+  "apiErrors": {
+    "unreachable": "Could not reach Evidomo. Check your connection and try again.",
+    "generic": "Something went wrong on our side. Try again in a moment.",
+    "sessionEnded": "Your session has ended. Log in again to continue.",
+    "projectGone": "This project no longer exists.",
+    "inputsLocked": "A run has been started, so these inputs can no longer be changed.",
+    "forbiddenOrigin": "The request was blocked because it did not come from this site. Reload the page and try again.",
+    "rateLimited": "Too many requests. Wait a moment and try again."
+  },
+  "projects": {
+    "pageTitle": "Your projects — Evidomo",
+    "title": "Your projects",
+    "signedInAs": "Signed in as {email}",
+    "newProject": "New project",
+    "loading": "Loading your projects…",
+    "loadError": "We could not load your projects. Check your connection and try again.",
+    "unknownMarket": "Unknown market",
+    "noRunYet": "No run yet",
+    "photoCount": "{count, plural, one {# photo} other {# photos}}",
+    "voiceMemoYes": "Voice memo: yes",
+    "voiceMemoNo": "Voice memo: no",
+    "viewRun": "View run",
+    "viewRunFor": "View run for {title}",
+    "emptyTitle": "No projects yet",
+    "emptyText": "A project holds one property: its photos, voice walkthrough, and listing pack. Start one when you are at the door."
+  },
+  "newProject": {
+    "pageTitle": "New project — Evidomo",
+    "back": "Back to projects",
+    "title": "New project",
+    "loadingMarkets": "Loading markets…",
+    "marketsError": "We could not load the markets. Check your connection and try again.",
+    "noMarkets": "No markets are available on this server yet."
+  },
+  "projectForm": {
+    "title": "Project title",
+    "marketAndLanguage": "Market and language",
+    "market": "Market",
+    "outputLanguage": "Output language",
+    "outputLanguageHint": "The language of the listing copy.",
+    "create": "Create project",
+    "officeProfile": "Office profile",
+    "agencyName": "Agency name",
+    "contactBlock": "Contact block",
+    "contactBlockHint": "Optional. Shown on the listing pack, for example address, phone, and website.",
+    "tone": "Tone",
+    "toneHint": "Optional. How the copy should sound, for example warm and professional.",
+    "officeLocked": "A run has been started, so the office profile is locked. The title can still be changed.",
+    "changedElsewhere": "Saved values changed elsewhere. Your edits were not saved.",
+    "loadSaved": "Load saved values",
+    "saveDetails": "Save details",
+    "detailsSaved": "Details saved.",
+    "unsavedChanges": "You have unsaved changes.",
+    "errors": {
+      "titleEmpty": "Enter a project title.",
+      "titleTooLong": "Use at most {max} characters for the title.",
+      "agencyEmpty": "Enter your agency name.",
+      "agencyTooLong": "Use at most {max} characters for the agency name.",
+      "contactTooLong": "Use at most {max} characters for the contact block.",
+      "toneTooLong": "Use at most {max} characters for the tone.",
+      "marketRequired": "Choose a market.",
+      "languageRequired": "Choose one of the languages this market offers.",
+      "checkForm": "Check the form and try again."
+    }
+  },
+  "projectPage": {
+    "pageTitle": "Project — Evidomo",
+    "pageTitleFor": "{title} — Evidomo",
+    "back": "Back to projects",
+    "unknownMarket": "Unknown market",
+    "facts": "Property facts",
+    "factsLocked": "A run has been started, so these facts are locked: the run cites them as evidence.",
+    "loadingFacts": "Loading the fact form…",
+    "factsLoadError": "We could not load the fact form. Check your connection and try again.",
+    "details": "Project details"
+  },
+  "capture": {
+    "pageTitle": "Capture — Evidomo",
+    "pageTitleFor": "Capture · {title} — Evidomo",
+    "title": "Capture",
+    "back": "Back to the project",
+    "stillNeeded": "What is still needed",
+    "uploading": "Photos are still uploading. Stay on this page.",
+    "recordingNow": "A recording is in progress.",
+    "recordingUnsent": "A recording is ready but not uploaded yet.",
+    "inPlace": "Photos and walkthrough are in place.",
+    "factsMissing": "{count, plural, one {1 required fact is} other {# required facts are}} still missing on the project page.",
+    "goToVoice": "Go to the voice walkthrough",
+    "continue": "Continue to start the run",
+    "rejections": {
+      "empty_file": "The file is empty.",
+      "file_too_large": "The file is too large.",
+      "unsupported_format": "This file format is not supported. Use a JPEG, PNG, or WebP photo.",
+      "heic_not_supported": "HEIC photos are not supported. In your phone camera settings choose \"Most Compatible\" (JPEG), or pick a JPEG.",
+      "too_many_pixels": "The photo has too many pixels. Use a smaller resolution.",
+      "undecodable": "The file could not be read. It may be damaged.",
+      "too_long": "The recording is longer than the allowed length."
+    },
+    "downscale": {
+      "heic_unreadable": "This browser cannot read HEIC photos. Set your camera to \"Most Compatible\" (JPEG) or pick a JPEG.",
+      "undecodable": "This photo could not be read on your device. Try a different photo.",
+      "encode_failed": "This photo could not be prepared on your device. Try a different photo."
+    },
+    "uploadErrors": {
+      "refused": "The file was refused.",
+      "photoLimit": "The maximum number of photos is reached.",
+      "locked": "A run has been started, so no more files can be added.",
+      "mediaType": "This file type is not supported.",
+      "busy": "The server is busy with other uploads. Try again in a moment."
+    },
+    "audioFormat": "This audio format is not supported. Use WebM, M4A, MP3, or WAV.",
+    "limit": {
+      "minutes": "{count, plural, one {# minute} other {# minutes}}",
+      "seconds": "{count, plural, one {# second} other {# seconds}}"
+    },
+    "queue": {
+      "notAdded": "{count, plural, one {# photo} other {# photos}} not added: the project can hold no more photos.",
+      "uploading": "Uploading {count, plural, one {# photo} other {# photos}}.",
+      "uploaded": "{count, plural, one {# photo} other {# photos}} uploaded.",
+      "skipped": "{count, plural, one {# photo} other {# photos}} skipped.",
+      "busy": "The server is busy. Retrying in {seconds, plural, one {# second} other {# seconds}}.",
+      "paused": "Upload paused on {name}. {message} Retry or skip this photo.",
+      "aPhoto": "a photo"
+    },
+    "photos": {
+      "title": "Photos",
+      "previewUnavailable": "Preview unavailable",
+      "photoN": "Photo {position}",
+      "deleteLabel": "Delete photo {position}",
+      "delete": "Delete",
+      "waiting": "Waiting to upload",
+      "preparing": "Preparing…",
+      "uploadingLabel": "Uploading {name}",
+      "busy": "Server busy, trying again shortly…",
+      "paused": "Upload paused: {error} The photos after this one are waiting.",
+      "skippedWhy": "Skipped: {error}",
+      "retryLabel": "Retry {name}",
+      "retry": "Retry",
+      "skipLabel": "Skip {name}",
+      "skip": "Skip this photo",
+      "removeLabel": "Remove {name}",
+      "remove": "Remove",
+      "deleted": "Photo {position} deleted. {left, plural, one {# photo} other {# photos}} left.",
+      "countOf": "{count} of {max} photos",
+      "atLeast": "at least {min} needed",
+      "enough": "Enough photos",
+      "locked": "A run has been started, so the photos are locked: the run cites them as evidence.",
+      "camera": "Camera",
+      "files": "Photo files",
+      "take": "Take photo",
+      "choose": "Choose photos",
+      "full": "The project holds {max} photos at most. Delete one to add another.",
+      "deleteFailed": "Could not delete the photo. {reason}",
+      "none": "No photos yet."
+    },
+    "voice": {
+      "title": "Voice walkthrough",
+      "intro": "Walk through the property and say what you see: rooms, condition, anything the photos cannot show. Up to {limit}.",
+      "current": "Current walkthrough",
+      "previous": "Previous walkthrough (replaced when you upload)",
+      "playbackFailed": "Playback is not available right now.",
+      "locked": "A run has been started, so the walkthrough is locked: the run cites it as evidence.",
+      "replaces": "A new recording or file replaces the current walkthrough.",
+      "insecure": "Recording needs a secure (HTTPS) connection. You can upload an audio file instead.",
+      "unsupported": "This browser cannot record audio. You can upload an audio file instead.",
+      "requesting": "Waiting for microphone permission…",
+      "recording": "Recording",
+      "timer": "Recording time",
+      "stop": "Stop recording",
+      "failures": {
+        "denied": "Microphone access is blocked. Allow the microphone for this site in your browser settings, then try again. You can also upload an audio file.",
+        "no_microphone": "No microphone was found on this device. You can upload an audio file instead.",
+        "unusable_format": "This browser records in a format Evidomo cannot accept. Upload an audio file instead.",
+        "error": "Recording failed. Try again, or upload an audio file instead."
+      },
+      "preview": "Preview: {label}",
+      "previewLabel": "Preview of the new walkthrough",
+      "recordingLabel": "Recording, {time}",
+      "upload": "Upload walkthrough",
+      "uploadAgain": "Try upload again",
+      "recordAgain": "Record again",
+      "discard": "Discard",
+      "tryAgain": "Try recording again",
+      "start": "Start recording",
+      "recordNew": "Record a new walkthrough",
+      "chooseFile": "Upload an audio file",
+      "fileLabel": "Audio file",
+      "announceStarted": "Recording started.",
+      "announceStopped": "Recording stopped. You can preview it before uploading.",
+      "announceDiscarded": "Recording discarded.",
+      "announceUploading": "Uploading the walkthrough.",
+      "announceUploaded": "Walkthrough uploaded.",
+      "announceFailed": "Upload failed. {message}"
+    }
+  },
+  "readiness": {
+    "title": "Ready to run?",
+    "activeRun": "A run is in progress for this project.",
+    "viewActiveRun": "View the active run",
+    "stillNeeded": "Still needed before a run can start:",
+    "allReady": "All inputs are in place. You can start a run.",
+    "inputsChanged": "Some inputs changed since this page loaded. The list above shows what is missing now.",
+    "alreadyActive": "A run is already in progress for this project.",
+    "budgetUsed": "Today's run budget has been used up. Your inputs are saved; start the run again tomorrow.",
+    "codeRateLimited": "Too many wrong codes, try again later.",
+    "runLimit": "You have reached today's live run limit.",
+    "runLimitWait": "You have reached today's live run limit. You can start another in {wait}.",
+    "accessCode": "Access code",
+    "accessCodeHint": "Live runs use paid model calls. If you were given a code, enter it; otherwise leave this empty.",
+    "accessCodeInvalid": "This access code is not valid.",
+    "hide": "Hide",
+    "show": "Show",
+    "hideCode": "Hide access code",
+    "showCode": "Show access code",
+    "start": "Start run",
+    "saveFirst": "Save your changes first.",
+    "viewLatest": "View latest run",
+    "viewPack": "View pack",
+    "addPhotos": "Add at least {min, plural, one {# photo} other {# photos}} ({count} so far).",
+    "removePhotos": "Remove {extra, plural, one {# photo} other {# photos}} (at most {max} allowed, {count} so far).",
+    "recordVoice": "Record a voice walkthrough of the property.",
+    "factMissing": "Fill in the required fact: {label}.",
+    "factInvalid": "Fix the value of {label}: the saved value is no longer valid.",
+    "wait": {
+      "minute": "a minute",
+      "minutes": "{count, plural, one {# minute} other {# minutes}}",
+      "hours": "{count, plural, one {about an hour} other {about # hours}}",
+      "days": "{count, plural, one {about a day} other {about # days}}"
+    }
+  },
+  "materials": {
+    "title": "Materials",
+    "previewUnavailable": "Preview unavailable",
+    "photos": "Photos",
+    "photosAdded": "{count} added",
+    "photosAddedNeeded": "{count} added ({min} to {max} needed)",
+    "previews": "Photo previews",
+    "photoN": "Photo {position}",
+    "showing": "Showing {shown} of {total}.",
+    "voice": "Voice walkthrough",
+    "recorded": "Recorded",
+    "notRecorded": "Not recorded yet",
+    "viewCapture": "View photos and walkthrough",
+    "addCapture": "Add photos and walkthrough"
+  },
+  "run": {
+    "pageTitle": "Run — Evidomo",
+    "title": "Run",
+    "titleDemo": "Sample run replay",
+    "loading": "Loading the run…",
+    "loadError": "We could not load this run. Check your connection and try again.",
+    "notFound": "This run was not found. It may belong to another account or no longer exist.",
+    "demoNotFound": "This demo run was not found. It may no longer be published.",
+    "seeDemoRuns": "See the demo runs",
+    "goToProjects": "Go to your projects",
+    "tryAgain": "Try again",
+    "sessionExpired": "Your session has expired.",
+    "logInAgain": "Log in again",
+    "steps": "Steps",
+    "stepsDone": "{done} of {total} steps done",
+    "stepsDoneLabel": "Steps done",
+    "stepStatus": {
+      "pending": "Waiting",
+      "queued": "Queued",
+      "running": "Running",
+      "completed": "Done",
+      "failed": "Failed",
+      "needsReview": "Needs your review"
+    },
+    "runStatus": {
+      "awaitingGate": "Awaiting your review",
+      "completed": "Completed"
+    },
+    "attempts": "Attempts",
+    "execution": "execution {current}/{max}",
+    "cost": "Cost",
+    "duration": {
+      "label": "Duration",
+      "seconds": "{seconds} s",
+      "minutes": "{minutes} min {seconds} s"
+    },
+    "costSoFar": "Cost so far",
+    "devOnly": "Visible in development only",
+    "ofCap": "of {cap} cap",
+    "costAgainstCap": "Run cost against the cap",
+    "capReached": "The run has reached its cost cap.",
+    "capClose": "The run is close to its cost cap.",
+    "capShare": "{share, number, percent} of the cap. The run stops by itself at the cap.",
+    "reviewNeeded": "Review needed",
+    "paused": "Paused",
+    "gate": {
+      "factConflicts": "Gate 1: resolve fact conflicts",
+      "claimAudit": "Gate 2: review the pack"
+    },
+    "gateText": "The run is paused until you finish this review. It stays here for as long as you need; you can leave this page, and the run continues after your last decision.",
+    "gateTextDemo": "A live run pauses here until the agent finishes this review. In this replay the decisions were made already; open the review to see them, with the evidence behind each value.",
+    "seeConflicts": "See the conflicts",
+    "seeReview": "See the review",
+    "reviewConflicts": "Review conflicts",
+    "reviewPack": "Review the pack",
+    "failed": "The run failed",
+    "noReason": "No reason was recorded.",
+    "untouched": "Your photos, voice memo, and form are untouched; nothing was published.",
+    "finishedLabel": "Run finished",
+    "finished": "Finished",
+    "packReady": "Your listing pack is ready",
+    "packReadyDemo": "The listing pack is ready",
+    "exportReady": "Export ready: {count, plural, one {# file} other {# files}}.",
+    "exportReadyNotPublishable": "Export ready: {count, plural, one {# file} other {# files}} (not yet ready to publish).",
+    "noExport": "The run finished without an export.",
+    "tookTime": "It took {duration}.",
+    "viewPack": "View pack",
+    "announce": {
+      "queued": "Run queued.",
+      "runningStep": "Running step {step}.",
+      "inProgress": "Run in progress.",
+      "pausedAt": "Run paused: {gate}.",
+      "paused": "Run paused for review.",
+      "completed": "Run completed."
+    },
+    "replayStopped": "The replay could not continue. Try again in a few seconds.",
+    "replayReconnecting": "The replay was interrupted. Reconnecting…",
+    "liveReconnecting": "Live updates interrupted. Reconnecting…",
+    "liveUnavailable": "Live updates are paused. What you see is the last known state. Try resuming; if it keeps failing, reload the page.",
+    "resumeLive": "Resume live updates",
+    "refreshFailed": "Could not refresh the run just now. What you see may be a little behind.",
+    "tooManyRequests": "Too many requests right now. Wait a few seconds and try again.",
+    "tooManyRequestsWait": "Too many requests right now. Wait about {seconds, plural, one {# second} other {# seconds}} and try again."
+  },
+  "evidence": {
+    "formField": "Form field",
+    "voiceTurn": "Voice walkthrough, turn at {time}",
+    "playTurn": "Play the turn at {time}",
+    "stopTurn": "Stop the turn at {time}",
+    "play": "Play",
+    "stop": "Stop",
+    "timeRange": "{start} to {end}",
+    "audioUnavailable": "The audio for this part is not available: the recording ends before this point.",
+    "audioFailed": "The recording could not be played. Check your connection and try again.",
+    "yourDecision": "Your decision",
+    "yourDecisionText": "This value was entered by you when you reviewed the fact conflicts.",
+    "photo": "Photo",
+    "photoEvidenceFor": "Photo evidence for {subject}",
+    "openLarger": "Open larger photo for {subject}",
+    "regionOutlined": "The region is outlined on the photo.",
+    "regionHighlighted": "The region is highlighted on the photo.",
+    "photoFailed": "The photo could not be loaded.",
+    "close": "Close"
+  },
+  "demo": {
+    "pageTitle": "Demo — Evidomo",
+    "title": "See Evidomo at work",
+    "intro": "Replay a finished sample run: watch the steps, then open both review gates, the evidence behind every claim, and the listing pack. No account needed.",
+    "bannerLabel": "About this demo",
+    "bannerTitle": "Demo: a replay of a sample run",
+    "bannerText": "The data is invented. Nothing here is live, nothing is sent to a model, and nothing you do is saved.",
+    "controls": "Replay controls",
+    "speed": "Replay speed",
+    "restart": "Replay from the start",
+    "finished": "The replay has finished.",
+    "market": "Market",
+    "language": "Language",
+    "finishedOn": "Finished",
+    "loadingRuns": "Loading the demo runs…",
+    "tooManyRequests": "Too many requests right now. Wait a few seconds and try again.",
+    "loadError": "We could not load the demo runs. Check your connection and try again.",
+    "tryAgain": "Try again",
+    "noneYet": "No demo is published yet. A demo run appears here once the operator has published a sample run; until then, there is nothing to replay.",
+    "home": "Back to the home page",
+    "pages": {
+      "monitor": {
+        "title": "Sample run — Evidomo demo",
+        "loading": "Loading the run…"
+      },
+      "conflicts": {
+        "title": "Fact conflicts — Evidomo demo",
+        "loading": "Loading the fact conflicts…"
+      },
+      "review": {
+        "title": "Pack review — Evidomo demo",
+        "loading": "Loading the review…"
+      },
+      "pack": {
+        "title": "Listing pack — Evidomo demo",
+        "loading": "Loading the pack…"
+      }
+    }
+  },
+  "conflicts": {
+    "pageTitle": "Fact conflicts — Evidomo",
+    "loading": "Loading the fact conflicts…",
+    "loadError": "We could not load the fact conflicts. Check your connection and try again.",
+    "backToRun": "Back to run",
+    "backToTheRun": "Back to the run",
+    "title": "Fact conflicts",
+    "titleResolve": "Resolve fact conflicts",
+    "allDecided": "All conflicts are decided. The run is continuing.",
+    "notReached": "The run has not reached this review yet. The conflicts appear here once the facts have been compared.",
+    "suspended": "The run stopped while waiting for this review, so decisions are paused. Resume the run from its page to reopen the review; the decisions you made are kept.",
+    "releasedNone": "No conflicts needed a decision.",
+    "releasedDemo": "This review was finished in the original run. The decisions made are shown below.",
+    "released": "This review is finished. Your decisions are shown below.",
+    "intro": "These facts disagree. Compare the evidence for each value, then keep one, reject them all, or enter the right value. The run continues after the last decision.",
+    "sourceKinds": {
+      "form": "form field",
+      "voice": "voice walkthrough",
+      "photo": "photo",
+      "decision": "your decision"
+    },
+    "sourcesList": "{count, plural, one {# source} other {# sources}}: {kinds}",
+    "sourceCount": "{count, plural, one {# source} other {# sources}}",
+    "kept": "Kept",
+    "useValueLabel": "Use this value: {value}",
+    "useValue": "Use this value",
+    "open": "Open",
+    "decided": "Decided",
+    "valuesInConflict": "Values in conflict",
+    "saving": "Saving your decision…",
+    "rejectAllLabel": "Reject all values for {label}",
+    "rejectAll": "Reject all",
+    "enterValueLabel": "Enter a value for {label}",
+    "enterValue": "Enter a value",
+    "loadingFieldType": "Loading the field type…",
+    "progress": "Progress",
+    "progressText": "{open} of {total} {total, plural, one {conflict} other {conflicts}} still open",
+    "conflictsDecided": "Conflicts decided",
+    "edit": {
+      "numberChooseUnit": "A number. Choose its unit below.",
+      "numberNoUnit": "A number, with no unit.",
+      "numberInUnit": "A number, in {unit}.",
+      "unit": "Unit",
+      "basis": "Basis",
+      "choose": "Choose…",
+      "noUnit": "No unit",
+      "noBasis": "No basis",
+      "newValueFor": "New value for {label}",
+      "save": "Save value",
+      "cancel": "Cancel"
+    },
+    "failures": {
+      "gateNotOpen": "This review is no longer open, so the decision was not saved. The page now shows its current state.",
+      "notInConflict": "That value is no longer part of this conflict. The page now shows its current state.",
+      "notAccepted": "That value was not accepted. Check it and try again.",
+      "notAcceptedReason": "That value was not accepted: {reason}",
+      "notFound": "This run or conflict was not found."
+    },
+    "summary": {
+      "kept": "You kept {value}.",
+      "oneValue": "one value",
+      "entered": "You entered {value}.",
+      "rejected": "You rejected all values. Nothing is kept for this fact."
+    }
+  },
+  "factForm": {
+    "yes": "Yes",
+    "no": "No",
+    "unknown": "Unknown",
+    "invalidValue": "(invalid)",
+    "serverRefusedExtra": "The server refused saved extra fields: {fields}.",
+    "checkForm": "Check the form and try again.",
+    "changedElsewhere": "Saved values changed elsewhere. Your edits were not saved.",
+    "loadSaved": "Load saved values",
+    "intro": "Leave a fact empty when you do not know it. Required facts may stay empty while you draft, but a run needs them.",
+    "extras": "{count, plural, one {# additional field is} other {# additional fields are}} stored with this project and kept as they are.",
+    "save": "Save facts",
+    "saved": "Facts saved.",
+    "unsaved": "You have unsaved changes.",
+    "needAttention": "{count, plural, one {# field needs attention.} other {# fields need attention.}}",
+    "hints": {
+      "area": "In {unit}. Basis: {basis}.",
+      "volume": "In {unit}.",
+      "money": "In {currency}.",
+      "integerRange": "Whole number from {min} to {max}.",
+      "integerMin": "Whole number, at least {min}.",
+      "integerMax": "Whole number, at most {max}.",
+      "integer": "Whole number."
+    },
+    "problems": {
+      "chooseYesNo": "Choose yes, no, or unknown.",
+      "chooseListed": "Choose one of the listed options.",
+      "enterNumber": "Enter a number, using one comma or point for decimals and no thousands separators.",
+      "wholeNumber": "Enter a whole number.",
+      "rangeBoth": "Enter a number from {min} to {max}.",
+      "rangeMin": "Enter a number of at least {min}.",
+      "rangeMax": "Enter a number of at most {max}.",
+      "nonNegative": "Enter a number of 0 or more.",
+      "chooseOneOf": "Choose one of: {options}.",
+      "notAllowed": "This value is not allowed.",
+      "refused": "This value was refused."
+    },
+    "edit": {
+      "enterValue": "Enter a value.",
+      "chooseUnit": "Choose the unit of the value.",
+      "chooseBasis": "Choose the basis of the value.",
+      "chooseYesNo": "Choose yes or no.",
+      "tooLong": "Use at most {max} characters."
+    }
+  },
+  "claimAudit": {
+    "pageTitle": "Review the pack — Evidomo",
+    "loading": "Loading the review…",
+    "loadError": "We could not load the review. Check your connection and try again.",
+    "backToRun": "Back to run",
+    "title": "Pack review",
+    "titleOpen": "Review the pack",
+    "notReached": "The run has not reached this review yet. The copy and staged images appear here once the audit is done.",
+    "suspended": "The run stopped while waiting for this review, so decisions are paused. Resume the run from its page to reopen the review; the decisions you made are kept.",
+    "released": "This review is finished. Your decisions are shown below.",
+    "releasedDemo": "This review was finished in the original run. The decisions made are shown below.",
+    "openPack": "Open the pack",
+    "select": "Select any sentence to see the facts and sources behind it. Flagged sentences need a decision.",
+    "copy": "Copy",
+    "buyerQuestions": "Buyer questions",
+    "questionLabel": "Question {number}: {question}",
+    "dropped": "Dropped: this card is not published.",
+    "summary": "Summary",
+    "flaggedClaims": "Flagged claims: {total} ({open} open)",
+    "stagedOffered": "Staged images offered: {total} ({open} open)",
+    "warningsLabel": "Warnings",
+    "approveTitle": "Approve the pack",
+    "stillOpen": "Still open before you can approve:",
+    "openClaims": "{count, plural, one {# flagged claim} other {# flagged claims}}",
+    "openImages": "{count, plural, one {# staged image} other {# staged images}}",
+    "allDecided": "Everything is decided. Approving starts the export of the pack.",
+    "finishEditing": "Save or cancel the text you are editing first.",
+    "approve": "Approve pack",
+    "noText": "No text.",
+    "open": "Open",
+    "decided": "Decided",
+    "saving": "Saving your decision…",
+    "evidenceFor": "Evidence for “{text}”",
+    "closeEvidence": "Close evidence",
+    "cites": "{count, plural, =0 {This segment cites no facts.} one {This segment cites 1 fact.} other {This segment cites # facts.}}",
+    "missingEvidence": "Missing evidence: a fact this segment cites ({id}) is not part of this review.",
+    "showEvidenceFor": "Show evidence for:",
+    "flaggedLabel": "Flagged: {name}",
+    "original": "Original: “{text}”",
+    "flagsLabel": "Flags",
+    "suggestion": "Suggestion: {text}",
+    "exclusionaryNote": "Approving this as written keeps exclusionary wording. The publication checklist will still fail for it.",
+    "dropNote": "Removing this answer drops the whole card, question included.",
+    "checklistFails": "The publication checklist will still fail for this wording.",
+    "removalWarnings": "Warnings for this removal",
+    "approveAsWrittenLabel": "Approve as written: {name}",
+    "approveAsWritten": "Approve as written",
+    "editLabel": "Edit: {name}",
+    "remove": "Remove",
+    "removeLabel": "Remove: {name}",
+    "failures": {
+      "gateNotOpen": "This review is no longer open, so the decision was not saved. The page now shows its current state.",
+      "decisionsPending": "Something still needs a decision, so the pack was not approved. The page now shows what is open.",
+      "notFound": "This item was not found. The page now shows its current state.",
+      "editRejected": "That text did not pass the check against its facts, so it was not saved.",
+      "notAccepted": "That decision was not accepted. Check it and try again."
+    },
+    "categories": {
+      "claim_support": "Claim not supported",
+      "unverifiable_superlative": "Unverifiable superlative",
+      "investment_promise": "Investment promise",
+      "exclusionary": "Exclusionary wording",
+      "area_basis": "Area basis"
+    },
+    "stopReasons": {
+      "clean": "The check found no remaining problems in the copy.",
+      "loop_limit": "The check reached its limit for rewrites, and some sentences are still flagged. Decide each flagged sentence below.",
+      "budget": "The check stopped early to stay within the run’s cost cap, so some sentences may still have problems.",
+      "revision_failed": "A rewrite did not work, so the last checked draft is shown with its flags."
+    },
+    "status": {
+      "needsDecision": "Needs your decision.",
+      "approved": "Approved as written.",
+      "edited": "Edited by you.",
+      "removedCard": "Removed. The whole card is dropped from the pack.",
+      "removedFromPack": "Removed from the pack.",
+      "removed": "Removed.",
+      "moot": "Not needed: this card is dropped."
+    },
+    "variants": {
+      "portal": "Portal text",
+      "social": "Social caption"
+    },
+    "warnings": {
+      "variantEmpty": "{where}: every segment is removed, so the pack publishes no text for it.",
+      "requiredUnmentioned": "{where}: the required fact “{label}” is no longer mentioned.",
+      "unmentioned": "{where}: the fact “{label}” is no longer mentioned."
+    },
+    "edit": {
+      "empty": "Enter the new text, or cancel.",
+      "newTextFor": "New text for “{text}”",
+      "hint": "The citations stay the same. Numbers and units must match the facts this text cites.",
+      "rejected": "This text did not pass the check against its facts:",
+      "save": "Save text",
+      "cancel": "Cancel",
+      "open": "Edit"
+    },
+    "staged": {
+      "attemptEditFailed": "Attempt {n}: the edit failed.",
+      "attemptEditFailedWhy": "Attempt {n}: the edit failed ({reason}).",
+      "attemptUnchecked": "Attempt {n}: could not be checked.",
+      "attemptUncheckedTarget": "Attempt {n}: could not be checked ({target} image not segmented).",
+      "passed": "passed",
+      "failed": "failed",
+      "changedClasses": ", changed: {classes}",
+      "personDrawn": ", a person was drawn in",
+      "attemptResult": "Attempt {n}: {result}{failed}{privacy}.",
+      "originalAlt": "Original photo for {operation}",
+      "original": "Original",
+      "stagedAlt": "Staged version for {operation}",
+      "operation": "{name} (photo {n})",
+      "imageLabel": "Staged image: {operation}",
+      "integrityPassed": "Integrity check passed: windows, doors and other fixed elements are unchanged.",
+      "integritySecond": "Integrity check passed on the second attempt: windows, doors and other fixed elements are unchanged.",
+      "integrityFor": "Integrity check for {operation}",
+      "outcomePassed": "Outcome: passed.",
+      "outcomeSecond": "Outcome: passed on the second attempt.",
+      "aspectChange": "Largest aspect change: {change}.",
+      "fixedElements": "Fixed elements",
+      "classCount": "{label}: {original} in the original, {edit} in the staged image",
+      "attempts": "Attempts",
+      "accepted": "Accepted: the staged image is published next to the original.",
+      "rejected": "Rejected: only the original is published.",
+      "explain": "Accept publishes the staged image next to the original, labelled “{label}”. Reject publishes only the original.",
+      "acceptLabel": "Accept staged image: {operation}",
+      "accept": "Accept and publish",
+      "rejectLabel": "Reject staged image: {operation}",
+      "reject": "Reject, keep the original",
+      "title": "Staged images",
+      "fallbackTitle": "Staging rejected by the integrity check",
+      "fallbackText": "Only the original photo is published for these.",
+      "rejectedName": "{name} (rejected)"
+    }
+  },
+  "pack": {
+    "pageTitle": "Listing pack — Evidomo",
+    "loading": "Loading the pack…",
+    "title": "Listing pack",
+    "backToRun": "Back to the run",
+    "ready": "Ready to publish: every publication check passed.",
+    "notReady": "Not ready to publish",
+    "notReadyText": "At least one publication check failed. The checklist inside the pack shows which; fix them before this listing goes out.",
+    "preview": "Preview",
+    "previewTitle": "Listing pack preview",
+    "print": "Print / Save as PDF",
+    "fullScreen": "Open full screen",
+    "downloads": "Downloads",
+    "images": "Images ({count})",
+    "files": {
+      "html": "Listing pack (HTML)",
+      "portalFields": "Portal fields (JSON)",
+      "image": "Image"
+    },
+    "downloadLabel": "Download {name}",
+    "download": "Download",
+    "notReadyYet": "The pack is not ready yet. It appears once the run has finished its export.",
+    "loadError": "We could not load this pack. Check your connection and try again.",
+    "size": {
+      "bytes": "{value} B",
+      "kb": "{value} KB",
+      "mb": "{value} MB"
+    }
+  },
+  "serverError": {
+    "pageTitle": "Something went wrong — Evidomo",
+    "title": "Something went wrong",
+    "text": "The server could not handle this request. Try again in a moment; your saved work is not affected.",
+    "home": "Back to the start"
+  }
+}

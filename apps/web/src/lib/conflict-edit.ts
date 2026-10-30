@@ -5,6 +5,7 @@ import type {
   MarketForm,
 } from '@evidomo/shared';
 import { checkFact, factProblemMessage, parseNumberText } from './fact-form';
+import type { Translator } from './i18n';
 
 /** Longest text the API accepts for an edited value. */
 export const MAX_EDIT_TEXT = 300;
@@ -78,18 +79,19 @@ export type EditResult =
 
 /** Turns what was typed into the request, or says what is wrong with it. */
 export function buildEditRequest(
+  t: Translator<'factForm'>,
   control: EditControl,
   conflict: GateConflict,
   text: string,
   picks: Picks = {},
 ): EditResult {
   const trimmed = text.trim();
-  if (trimmed === '') return { ok: false, message: 'Enter a value.' };
+  if (trimmed === '') return { ok: false, message: t('edit.enterValue') };
 
   if (control.kind === 'market') {
     const { field } = control;
     const problem = checkFact(field, trimmed);
-    if (problem !== null) return { ok: false, message: factProblemMessage(field, problem) };
+    if (problem !== null) return { ok: false, message: factProblemMessage(t, field, problem) };
     // The profile fixes unit and basis for its own keys, so they are not sent.
     switch (field.type) {
       case 'enum':
@@ -99,7 +101,7 @@ export function buildEditRequest(
       default: {
         const number = parseNumberText(trimmed);
         return number === null
-          ? { ok: false, message: factProblemMessage(field, 'wrong_type') }
+          ? { ok: false, message: factProblemMessage(t, field, 'wrong_type') }
           : { ok: true, body: { choice: 'edit', value: number } };
       }
     }
@@ -107,7 +109,10 @@ export function buildEditRequest(
 
   for (const pick of ['unit', 'basis'] as const) {
     if (measureOptions(conflict, control, pick) !== null && picks[pick] === undefined) {
-      return { ok: false, message: `Choose the ${pick} of the value.` };
+      return {
+        ok: false,
+        message: pick === 'unit' ? t('edit.chooseUnit') : t('edit.chooseBasis'),
+      };
     }
   }
   const { unit, basis } = editedMeasure(conflict, control, picks);
@@ -118,18 +123,17 @@ export function buildEditRequest(
       return number === null
         ? {
             ok: false,
-            message:
-              'Enter a number, using one comma or point for decimals and no thousands separators.',
+            message: t('problems.enterNumber'),
           }
         : { ok: true, body: { choice: 'edit', value: number, ...measure } };
     }
     case 'boolean':
       return trimmed === 'yes' || trimmed === 'no'
         ? { ok: true, body: { choice: 'edit', value: trimmed === 'yes', ...measure } }
-        : { ok: false, message: 'Choose yes or no.' };
+        : { ok: false, message: t('edit.chooseYesNo') };
     case 'text':
       return trimmed.length > MAX_EDIT_TEXT
-        ? { ok: false, message: `Use at most ${MAX_EDIT_TEXT} characters.` }
+        ? { ok: false, message: t('edit.tooLong', { max: MAX_EDIT_TEXT }) }
         : { ok: true, body: { choice: 'edit', value: trimmed, ...measure } };
   }
 }

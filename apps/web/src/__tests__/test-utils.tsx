@@ -1,8 +1,12 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, type RenderResult } from '@testing-library/react';
+import type { ReactNode } from 'react';
+import { createTranslator, IntlProvider } from 'use-intl';
 import { vi, type Mock } from 'vitest';
+import en from '../../messages/en.json';
 import { AppShell } from '../components/AppShell';
 import { AuthGate } from '../components/AuthGate';
+import type { Translator } from '../lib/i18n';
 import type { NextPageWithAuth } from '../lib/page-auth';
 
 export const TEST_USER = {
@@ -50,19 +54,37 @@ export function mockFetch(routes: Record<string, Handler>): Mock<typeof fetch> {
 export const meSignedOut = (): Response => jsonResponse(401, { error: 'unauthenticated' });
 export const meSignedIn = (): Response => jsonResponse(200, { user: TEST_USER });
 
+/** English messages around a component, the way `_app` provides the active locale's. */
+export function IntlTest({ children }: { children: ReactNode }) {
+  return (
+    <IntlProvider locale="en" messages={en} timeZone="UTC">
+      {children}
+    </IntlProvider>
+  );
+}
+
+/** A translator over the English messages, for helpers that take one and for expected text. */
+export function testTranslator<NS extends Extract<keyof typeof en, string>>(
+  namespace: NS,
+): Translator<NS> {
+  return createTranslator({ locale: 'en', messages: en, namespace });
+}
+
 /** Renders a page the way `_app` does: shell, per-page auth gate, a fresh query cache. */
 export function renderPage(Page: NextPageWithAuth): RenderResult & { queryClient: QueryClient } {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
   const result = render(
-    <QueryClientProvider client={queryClient}>
-      <AppShell>
-        <AuthGate mode={Page.auth}>
-          <Page />
-        </AuthGate>
-      </AppShell>
-    </QueryClientProvider>,
+    <IntlTest>
+      <QueryClientProvider client={queryClient}>
+        <AppShell>
+          <AuthGate mode={Page.auth}>
+            <Page />
+          </AuthGate>
+        </AppShell>
+      </QueryClientProvider>
+    </IntlTest>,
   );
   return { ...result, queryClient };
 }

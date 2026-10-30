@@ -2,6 +2,7 @@ import type { ClaimAuditGateSegment } from '@evidomo/shared';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useCallback, useMemo, useState } from 'react';
+import { useTranslations } from 'use-intl';
 import { ApiRequestError } from '../lib/api';
 import {
   describeAuditFailure,
@@ -24,9 +25,10 @@ import { labelsFor } from './FactConflicts';
 import { LoadErrorState, LoadingState, RunNotFound, SessionExpiredState } from './RunMonitor';
 
 function Warnings({ lines }: { lines: string[] }) {
+  const t = useTranslations('claimAudit');
   if (lines.length === 0) return null;
   return (
-    <div role="region" aria-label="Warnings" className="alert alert-warning">
+    <div role="region" aria-label={t('warningsLabel')} className="alert alert-warning">
       <ul className="flex flex-col gap-1">
         {lines.map((line) => (
           <li key={line}>
@@ -48,19 +50,20 @@ function Summary({
   warningLines: string[];
   open: boolean;
 }) {
+  const t = useTranslations('claimAudit');
   const { counts } = data;
   return (
     <section aria-labelledby="summary-heading" className="flex flex-col gap-3">
       <h2 id="summary-heading" className="text-xl font-semibold">
-        Summary
+        {t('summary')}
       </h2>
-      {data.stopReason !== null && <p>{stopReasonText(data.stopReason)}</p>}
+      {data.stopReason !== null && <p>{stopReasonText(t, data.stopReason)}</p>}
       <ul className="grid gap-2 sm:grid-cols-2">
         <li className="rounded-box border border-base-300 bg-base-100 p-3">
-          Flagged claims: {counts.flaggedClaims} ({counts.openClaims} open)
+          {t('flaggedClaims', { total: counts.flaggedClaims, open: counts.openClaims })}
         </li>
         <li className="rounded-box border border-base-300 bg-base-100 p-3">
-          Staged images offered: {counts.offeredImages} ({counts.openImages} open)
+          {t('stagedOffered', { total: counts.offeredImages, open: counts.openImages })}
         </li>
       </ul>
       {!open && <Warnings lines={warningLines} />}
@@ -81,6 +84,8 @@ function ApproveSection({
   warningLines: string[];
   editingOpen: boolean;
 }) {
+  const t = useTranslations('claimAudit');
+  const tApi = useTranslations('apiErrors');
   const router = useRouter();
   const { approve } = actions;
   const { counts } = data;
@@ -92,34 +97,24 @@ function ApproveSection({
       className="flex flex-col gap-3 rounded-box border-2 border-secondary bg-base-100 p-4"
     >
       <h2 id="approve-heading" className="text-xl font-semibold">
-        Approve the pack
+        {t('approveTitle')}
       </h2>
       {data.openCount > 0 ? (
         <div className="flex flex-col gap-1">
-          <p className="font-medium">Still open before you can approve:</p>
+          <p className="font-medium">{t('stillOpen')}</p>
           <ul className="list-disc pl-5">
-            {counts.openClaims > 0 && (
-              <li>
-                {counts.openClaims} flagged {counts.openClaims === 1 ? 'claim' : 'claims'}
-              </li>
-            )}
-            {counts.openImages > 0 && (
-              <li>
-                {counts.openImages} staged {counts.openImages === 1 ? 'image' : 'images'}
-              </li>
-            )}
+            {counts.openClaims > 0 && <li>{t('openClaims', { count: counts.openClaims })}</li>}
+            {counts.openImages > 0 && <li>{t('openImages', { count: counts.openImages })}</li>}
           </ul>
         </div>
       ) : (
-        <p>Everything is decided. Approving starts the export of the pack.</p>
+        <p>{t('allDecided')}</p>
       )}
       <Warnings lines={warningLines} />
-      {editingOpen && (
-        <p className="text-sm font-medium">Save or cancel the text you are editing first.</p>
-      )}
+      {editingOpen && <p className="text-sm font-medium">{t('finishEditing')}</p>}
       {failure !== null && (
         <p role="alert" className="text-sm text-error">
-          {describeAuditFailure(failure)}
+          {describeAuditFailure(t, tApi, failure)}
         </p>
       )}
       <div>
@@ -132,7 +127,7 @@ function ApproveSection({
           }
         >
           {approve.isPending && <span className="loading loading-spinner loading-xs" aria-hidden />}
-          Approve pack
+          {t('approve')}
         </button>
       </div>
     </section>
@@ -148,6 +143,7 @@ function VariantBlock({
   segments: readonly ClaimAuditGateSegment[];
   context: ReviewContext;
 }) {
+  const t = useTranslations('claimAudit');
   const headingId = `variant-${title.replaceAll(' ', '-').toLowerCase()}`;
   return (
     <section aria-labelledby={headingId} className="flex flex-col gap-3">
@@ -155,7 +151,7 @@ function VariantBlock({
         {title}
       </h3>
       {segments.length === 0 ? (
-        <p className="text-base-content/70">No text.</p>
+        <p className="text-base-content/70">{t('noText')}</p>
       ) : (
         <ul className="flex flex-col gap-2">
           {segments.map((segment, index) => {
@@ -186,6 +182,8 @@ export function ClaimAuditView({
   runId: string;
   urls?: EvidenceUrls;
 }) {
+  const t = useTranslations('claimAudit');
+  const tCommon = useTranslations('common');
   const source = useRunSource();
   const demo = source.kind === 'demo';
   const gate = useClaimAudit(runId);
@@ -197,7 +195,7 @@ export function ClaimAuditView({
       : { id: snapshot.data.marketProfileId, version: snapshot.data.marketProfileVersion },
   );
   const market = marketQuery.data?.market;
-  const labels = useMemo(() => labelsFor(market), [market]);
+  const labels = useMemo(() => labelsFor(tCommon, market), [tCommon, market]);
   const urls = useMemo(
     () => urlsOverride ?? source.evidenceUrls(runId),
     [runId, source, urlsOverride],
@@ -217,7 +215,7 @@ export function ClaimAuditView({
 
   if (gate.data === undefined) {
     if (!gate.isError) {
-      return <LoadingState label="Loading the review…" rows={4} />;
+      return <LoadingState label={t('loading')} rows={4} />;
     }
     if (gate.error instanceof ApiRequestError && gate.error.status === 404) return <RunNotFound />;
     if (gate.error instanceof ApiRequestError && gate.error.status === 401) {
@@ -225,7 +223,7 @@ export function ClaimAuditView({
     }
     return (
       <LoadErrorState
-        message="We could not load the review. Check your connection and try again."
+        message={t('loadError')}
         error={gate.error}
         onRetry={() => void gate.refetch()}
       />
@@ -241,7 +239,7 @@ export function ClaimAuditView({
   ];
   const selected = allSegments.find((segment) => segment.claimId === selectedId);
   const warningLines = data.warnings.map((warning) =>
-    warningText(warning, (key) => labels.fact(key)),
+    warningText(t, warning, (key) => labels.fact(key)),
   );
 
   const closeEvidence = () => {
@@ -270,36 +268,26 @@ export function ClaimAuditView({
             href={source.hrefs.monitor(runId)}
             className="link inline-flex min-h-11 w-fit items-center text-sm"
           >
-            Back to run
+            {t('backToRun')}
           </Link>
-          <h1 className="card-title text-2xl">{open ? 'Review the pack' : 'Pack review'}</h1>
+          <h1 className="card-title text-2xl">{open ? t('titleOpen') : t('title')}</h1>
         </div>
 
         {data.state === 'not_reached' && (
           <div role="status" className="alert alert-info">
-            <span>
-              The run has not reached this review yet. The copy and staged images appear here once
-              the audit is done.
-            </span>
+            <span>{t('notReached')}</span>
           </div>
         )}
         {data.state === 'suspended' && (
           <div role="alert" className="alert alert-warning">
-            <span>
-              The run stopped while waiting for this review, so decisions are paused. Resume the run
-              from its page to reopen the review; the decisions you made are kept.
-            </span>
+            <span>{t('suspended')}</span>
           </div>
         )}
         {data.state === 'released' && (
           <div role="status" className="alert alert-info alert-vertical sm:alert-horizontal">
-            <span>
-              {demo
-                ? 'This review was finished in the original run. The decisions made are shown below.'
-                : 'This review is finished. Your decisions are shown below.'}
-            </span>
+            <span>{demo ? t('releasedDemo') : t('released')}</span>
             <Link href={source.hrefs.pack(runId)} className="btn btn-primary min-h-11">
-              Open the pack
+              {t('openPack')}
             </Link>
           </div>
         )}
@@ -308,20 +296,15 @@ export function ClaimAuditView({
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
             <div className="flex flex-col gap-8">
               <Summary data={data} warningLines={warningLines} open={open} />
-              {open && (
-                <p className="text-base-content/70">
-                  Select any sentence to see the facts and sources behind it. Flagged sentences need
-                  a decision.
-                </p>
-              )}
+              {open && <p className="text-base-content/70">{t('select')}</p>}
               <section aria-labelledby="copy-heading" className="flex flex-col gap-6">
                 <h2 id="copy-heading" className="text-xl font-semibold">
-                  Copy
+                  {t('copy')}
                 </h2>
                 {data.variants.map((variant) => (
                   <VariantBlock
                     key={variant.kind}
-                    title={variantTitle(variant.kind)}
+                    title={variantTitle(t, variant.kind)}
                     segments={variant.segments}
                     context={context}
                   />
@@ -330,22 +313,21 @@ export function ClaimAuditView({
               {data.qaCards.length > 0 && (
                 <section aria-labelledby="qa-heading" className="flex flex-col gap-4">
                   <h2 id="qa-heading" className="text-xl font-semibold">
-                    Buyer questions
+                    {t('buyerQuestions')}
                   </h2>
                   <ul className="flex flex-col gap-4">
                     {data.qaCards.map((card) => (
                       <li key={card.card}>
                         <div
                           role="group"
-                          aria-label={`Question ${card.card + 1}: ${card.question}`}
+                          aria-label={t('questionLabel', {
+                            number: card.card + 1,
+                            question: card.question,
+                          })}
                           className="flex flex-col gap-2 rounded-box border border-base-300 bg-base-100 p-3"
                         >
                           <p className="font-semibold">{card.question}</p>
-                          {card.dropped && (
-                            <p className="badge badge-neutral">
-                              Dropped: this card is not published.
-                            </p>
-                          )}
+                          {card.dropped && <p className="badge badge-neutral">{t('dropped')}</p>}
                           <ul className="flex flex-col gap-2">
                             {card.segments.map((segment) => (
                               <SegmentItem

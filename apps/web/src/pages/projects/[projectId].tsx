@@ -2,17 +2,24 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
+import { useLocale, useTranslations } from 'use-intl';
 import { FactForm } from '../../components/FactForm';
 import { MaterialsSummary } from '../../components/MaterialsSummary';
 import { ProjectDetailsForm } from '../../components/ProjectDetailsForm';
 import { LoadError, LoadingBlock } from '../../components/PageStates';
 import { ReadinessPanel } from '../../components/ReadinessPanel';
 import { ApiRequestError } from '../../lib/api';
+import { getServerSideProps } from '../../lib/i18n-server';
 import type { NextPageWithAuth } from '../../lib/page-auth';
 import { languageName } from '../../lib/project-view';
 import { useMarketForm, useProject } from '../../lib/projects';
 
+export { getServerSideProps };
+
 const ProjectPage: NextPageWithAuth = () => {
+  const t = useTranslations('projectPage');
+  const tCommon = useTranslations('common');
+  const locale = useLocale();
   const router = useRouter();
   const raw = router.query['projectId'];
   const projectId = router.isReady && typeof raw === 'string' ? raw : undefined;
@@ -28,17 +35,17 @@ const ProjectPage: NextPageWithAuth = () => {
     const missing = project.error instanceof ApiRequestError && project.error.status === 404;
     body = missing ? (
       <div role="alert" className="alert alert-error">
-        <span>This project does not exist.</span>
+        <span>{tCommon('projectMissing')}</span>
       </div>
     ) : (
       <LoadError
         error={project.error}
-        message="We could not load this project. Check your connection and try again."
+        message={tCommon('projectLoadError')}
         onRetry={() => void project.refetch()}
       />
     );
   } else if (detail === undefined) {
-    body = <LoadingBlock label="Loading the project…" cards={3} />;
+    body = <LoadingBlock label={tCommon('loadingProject')} cards={3} />;
   } else {
     const locked = detail.readiness.inputsLocked;
     body = (
@@ -46,8 +53,8 @@ const ProjectPage: NextPageWithAuth = () => {
         <header>
           <h1 className="text-3xl font-bold tracking-tight">{detail.project.title}</h1>
           <p className="text-base-content/70">
-            {detail.project.market.name ?? 'Unknown market'} ·{' '}
-            {languageName(detail.project.outputLanguage)}
+            {detail.project.market.name ?? t('unknownMarket')} ·{' '}
+            {languageName(detail.project.outputLanguage, locale)}
           </p>
         </header>
 
@@ -68,20 +75,18 @@ const ProjectPage: NextPageWithAuth = () => {
         >
           <div className="card-body gap-4">
             <h2 id="facts-heading" className="card-title text-2xl">
-              Property facts
+              {t('facts')}
             </h2>
             {locked && (
               <div role="note" className="alert alert-info">
-                <span>
-                  A run has been started, so these facts are locked: the run cites them as evidence.
-                </span>
+                <span>{t('factsLocked')}</span>
               </div>
             )}
-            {market.isPending && <LoadingBlock label="Loading the fact form…" cards={1} />}
+            {market.isPending && <LoadingBlock label={t('loadingFacts')} cards={1} />}
             {market.isError && (
               <LoadError
                 error={market.error}
-                message="We could not load the fact form. Check your connection and try again."
+                message={t('factsLoadError')}
                 onRetry={() => void market.refetch()}
               />
             )}
@@ -104,7 +109,7 @@ const ProjectPage: NextPageWithAuth = () => {
         >
           <div className="card-body gap-4">
             <h2 id="details-heading" className="card-title text-2xl">
-              Project details
+              {t('details')}
             </h2>
             <ProjectDetailsForm
               key={detail.project.id}
@@ -120,12 +125,14 @@ const ProjectPage: NextPageWithAuth = () => {
   return (
     <>
       <Head>
-        <title>{detail ? `${detail.project.title} — Evidomo` : 'Project — Evidomo'}</title>
+        <title>
+          {detail ? t('pageTitleFor', { title: detail.project.title }) : t('pageTitle')}
+        </title>
       </Head>
       <main className="flex-1 bg-base-200 px-4 py-8">
         <div className="mx-auto flex max-w-3xl flex-col gap-6">
           <Link href="/projects" className="link inline-flex min-h-11 w-fit items-center text-sm">
-            Back to projects
+            {t('back')}
           </Link>
           {body}
         </div>

@@ -1,4 +1,5 @@
 import { ApiRequestError } from './api';
+import type { Translator } from './i18n';
 
 const STORAGE_KEY = 'evidomo.liveRunAccessCode';
 
@@ -25,14 +26,14 @@ export function storeAccessCode(code: string): void {
 }
 
 /** "5 minutes", "about 3 hours": a wait the user can plan around, rounded up to a unit. */
-export function humanizeWait(seconds: number): string {
-  if (seconds < 90) return 'a minute';
+export function humanizeWait(t: Translator<'readiness'>, seconds: number): string {
+  if (seconds < 90) return t('wait.minute');
   const minutes = Math.ceil(seconds / 60);
-  if (minutes < 60) return `${minutes} minutes`;
+  if (minutes < 60) return t('wait.minutes', { count: minutes });
   const hours = Math.ceil(minutes / 60);
-  if (hours < 24) return hours === 1 ? 'about an hour' : `about ${hours} hours`;
+  if (hours < 24) return t('wait.hours', { count: hours });
   const days = Math.ceil(hours / 24);
-  return days === 1 ? 'about a day' : `about ${days} days`;
+  return t('wait.days', { count: days });
 }
 
 /** The access-code and limit failures of `POST /api/projects/:id/runs` (P4-10). */

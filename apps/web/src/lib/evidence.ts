@@ -1,4 +1,5 @@
 import { withDisplayUnit, type ImageRegion, type JsonValue } from '@evidomo/shared';
+import type { Translator } from './i18n';
 import { humanize } from './project-view';
 
 /** `mm:ss` of a position in the recording; minutes keep counting past 59. */
@@ -16,12 +17,13 @@ export function keyLabel(key: string): string {
 
 /** A stored fact value as a person reads it: units and basis follow the number. */
 export function formatFactValue(
+  t: Translator<'common'>,
   value: JsonValue,
   unit: string | null,
   basis: string | null,
   basisLabel?: (basisId: string) => string | undefined,
 ): string {
-  if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+  if (typeof value === 'boolean') return value ? t('yes') : t('no');
   const text = typeof value === 'string' ? value : JSON.stringify(value);
   // The same unit display as the exported pack (`withDisplayUnit` in @evidomo/shared).
   const withUnit = withDisplayUnit(text, unit);

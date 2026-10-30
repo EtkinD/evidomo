@@ -17,6 +17,7 @@ import {
   type UseQueryResult,
 } from '@tanstack/react-query';
 import { ApiRequestError, apiJson } from './api';
+import type { Translator } from './i18n';
 import { describeRequestFailure } from './request-failure';
 import { runQueryKey } from './run-monitor';
 import { runScopedKey, useRunSource } from './run-source';
@@ -90,36 +91,42 @@ export function useDecideConflict(
 }
 
 /** The message under a conflict after a failed decision. */
-export function describeDecisionFailure(error: unknown): string {
+export function describeDecisionFailure(
+  t: Translator<'conflicts'>,
+  tApi: Translator<'apiErrors'>,
+  error: unknown,
+): string {
   if (error instanceof ApiRequestError) {
     switch (error.code) {
       case 'gate_not_open':
-        return 'This review is no longer open, so the decision was not saved. The page now shows its current state.';
+        return t('failures.gateNotOpen');
       case 'fact_not_in_conflict':
-        return 'That value is no longer part of this conflict. The page now shows its current state.';
+        return t('failures.notInConflict');
       case 'validation_failed':
+        // The reason comes from the server and is shown as it was sent.
         return error.issues[0]?.message === undefined
-          ? 'That value was not accepted. Check it and try again.'
-          : `That value was not accepted: ${error.issues[0].message}`;
+          ? t('failures.notAccepted')
+          : t('failures.notAcceptedReason', { reason: error.issues[0].message });
       case 'not_found':
-        return 'This run or conflict was not found.';
+        return t('failures.notFound');
     }
   }
-  return describeRequestFailure(error);
+  return describeRequestFailure(tApi, error);
 }
 
 /** One line for a decided conflict; `describeValue` formats a stored value. */
 export function decisionSummary(
+  t: Translator<'conflicts'>,
   decision: FactConflictDecision,
   describeSide: (factIds: readonly string[]) => string | undefined,
   describeValue: (edit: Extract<FactConflictDecision, { choice: 'edit' }>) => string,
 ): string {
   switch (decision.choice) {
     case 'accept':
-      return `You kept ${describeSide(decision.factIds) ?? 'one value'}.`;
+      return t('summary.kept', { value: describeSide(decision.factIds) ?? t('summary.oneValue') });
     case 'edit':
-      return `You entered ${describeValue(decision)}.`;
+      return t('summary.entered', { value: describeValue(decision) });
     case 'reject':
-      return 'You rejected all values. Nothing is kept for this fact.';
+      return t('summary.rejected');
   }
 }

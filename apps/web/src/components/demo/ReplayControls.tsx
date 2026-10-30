@@ -1,3 +1,4 @@
+import { useTranslations } from 'use-intl';
 import { REPLAY_SPEEDS } from '../../lib/demo';
 
 /** Speed and restart. Neither writes anything: they only change how the stored events are played. */
@@ -12,13 +13,14 @@ export function ReplayControls({
   onRestart: () => void;
   finished: boolean;
 }) {
+  const t = useTranslations('demo');
   return (
     <section
-      aria-label="Replay controls"
+      aria-label={t('controls')}
       className="flex flex-wrap items-end gap-x-6 gap-y-3 rounded-box border border-base-300 bg-base-100 p-4"
     >
       <fieldset className="fieldset p-0">
-        <legend className="fieldset-legend">Replay speed</legend>
+        <legend className="fieldset-legend">{t('speed')}</legend>
         <div className="join">
           {REPLAY_SPEEDS.map((value) => (
             <input
@@ -34,11 +36,11 @@ export function ReplayControls({
         </div>
       </fieldset>
       <button type="button" className="btn btn-outline min-h-11" onClick={onRestart}>
-        Replay from the start
+        {t('restart')}
       </button>
       {finished && (
         <p role="status" className="text-sm text-base-content/70">
-          The replay has finished.
+          {t('finished')}
         </p>
       )}
     </section>

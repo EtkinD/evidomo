@@ -7,30 +7,15 @@ import {
   type RunStatus,
   type VolumeUnit,
 } from '@evidomo/shared';
+import type { Translator } from './i18n';
 
-const languageNames = new Intl.DisplayNames(['en'], { type: 'language', fallback: 'code' });
-
-export function languageName(code: string): string {
-  return languageNames.of(code) ?? code;
+/** A language's name in the interface language (`de` becomes "German", "Almanca", ...). */
+export function languageName(code: string, locale: string): string {
+  return new Intl.DisplayNames([locale], { type: 'language', fallback: 'code' }).of(code) ?? code;
 }
 
-export function runStatusLabel(status: RunStatus): string {
-  switch (status) {
-    case 'queued':
-      return 'Queued';
-    case 'running':
-      return 'Running';
-    case 'awaiting_gate':
-      return 'Waiting for your review';
-    case 'completed':
-      return 'Completed';
-    case 'failed':
-      return 'Failed';
-    default: {
-      const unreachable: never = status;
-      return unreachable;
-    }
-  }
+export function runStatusLabel(t: Translator<'status'>, status: RunStatus): string {
+  return t(status);
 }
 
 /** daisyUI badge modifier for a run status; the label always carries the meaning too. */
@@ -67,24 +52,27 @@ export function humanize(value: string): string {
   return spaced === '' ? value : spaced.charAt(0).toUpperCase() + spaced.slice(1);
 }
 
-/** One line describing what a field expects, shown under its label. */
-export function fieldHint(field: FactFormField): string | null {
+/**
+ * One line describing what a field expects, shown under its label. The basis label of an area
+ * field comes from the market profile and is shown as the profile wrote it.
+ */
+export function fieldHint(t: Translator<'factForm'>, field: FactFormField): string | null {
   switch (field.type) {
     case 'enum':
       return null;
     case 'area':
-      return `In ${areaUnitLabel(field.unit)}. Basis: ${field.basis.label}.`;
+      return t('hints.area', { unit: areaUnitLabel(field.unit), basis: field.basis.label });
     case 'volume':
-      return `In ${volumeUnitLabel(field.unit)}.`;
+      return t('hints.volume', { unit: volumeUnitLabel(field.unit) });
     case 'money':
-      return `In ${field.currency}.`;
+      return t('hints.money', { currency: field.currency });
     case 'integer': {
       if (field.min !== null && field.max !== null) {
-        return `Whole number from ${field.min} to ${field.max}.`;
+        return t('hints.integerRange', { min: field.min, max: field.max });
       }
-      if (field.min !== null) return `Whole number, at least ${field.min}.`;
-      if (field.max !== null) return `Whole number, at most ${field.max}.`;
-      return 'Whole number.';
+      if (field.min !== null) return t('hints.integerMin', { min: field.min });
+      if (field.max !== null) return t('hints.integerMax', { max: field.max });
+      return t('hints.integer');
     }
     case 'boolean':
       return null;
@@ -96,20 +84,22 @@ export function fieldHint(field: FactFormField): string | null {
 }
 
 /** The sentence for one readiness item; fact labels come from the market form when loaded. */
-export function readinessMessage(item: ReadinessItem, market: MarketForm | undefined): string {
+export function readinessMessage(
+  t: Translator<'readiness'>,
+  item: ReadinessItem,
+  market: MarketForm | undefined,
+): string {
   switch (item.kind) {
     case 'photos':
       if (item.count < item.min) {
-        return `Add at least ${item.min} ${item.min === 1 ? 'photo' : 'photos'} (${item.count} so far).`;
+        return t('addPhotos', { min: item.min, count: item.count });
       }
-      return `Remove ${item.count - item.max} ${item.count - item.max === 1 ? 'photo' : 'photos'} (at most ${item.max} allowed, ${item.count} so far).`;
+      return t('removePhotos', { extra: item.count - item.max, max: item.max, count: item.count });
     case 'voice_memo':
-      return 'Record a voice walkthrough of the property.';
+      return t('recordVoice');
     case 'fact': {
       const label = market?.facts.find((fact) => fact.key === item.key)?.label ?? item.key;
-      return item.problem === 'missing'
-        ? `Fill in the required fact: ${label}.`
-        : `Fix the value of ${label}: the saved value is no longer valid.`;
+      return item.problem === 'missing' ? t('factMissing', { label }) : t('factInvalid', { label });
     }
     default: {
       const unreachable: never = item;

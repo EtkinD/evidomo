@@ -41,7 +41,9 @@ describe('projects page', () => {
     });
     renderPage(ProjectsPage);
 
-    const items = await screen.findAllByRole('listitem');
+    // The footer's language list is a list too: wait for the projects before reading items.
+    await screen.findByRole('link', { name: 'Alder Falls Cottage 4' });
+    const items = screen.getAllByRole('listitem');
     const first = items.find((item) =>
       within(item).queryByRole('link', { name: 'Alder Falls Cottage 4' }),
     );

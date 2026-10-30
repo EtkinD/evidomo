@@ -4,7 +4,10 @@ import type {
   FactFormValue,
   FactFormValues,
 } from '@evidomo/shared';
+import type { Translator } from './i18n';
 import { humanize } from './project-view';
+
+type FactT = Translator<'factForm'>;
 
 /**
  * Text per field key, exactly what the controls hold: '' is unknown, booleans are 'yes' / 'no',
@@ -84,33 +87,37 @@ export function checkFact(field: FactFormField, text: string): FactFormFieldProb
 }
 
 /** The message under a field, for a problem found here or reported by the server. */
-export function factProblemMessage(field: FactFormField, problem: FactFormFieldProblem): string {
+export function factProblemMessage(
+  t: FactT,
+  field: FactFormField,
+  problem: FactFormFieldProblem,
+): string {
   switch (problem) {
     case 'wrong_type':
       return field.type === 'boolean'
-        ? 'Choose yes, no, or unknown.'
+        ? t('problems.chooseYesNo')
         : field.type === 'enum'
-          ? 'Choose one of the listed options.'
-          : 'Enter a number, using one comma or point for decimals and no thousands separators.';
+          ? t('problems.chooseListed')
+          : t('problems.enterNumber');
     case 'not_an_integer':
-      return 'Enter a whole number.';
+      return t('problems.wholeNumber');
     case 'out_of_range':
       if (field.type === 'integer') {
         if (field.min !== null && field.max !== null) {
-          return `Enter a number from ${field.min} to ${field.max}.`;
+          return t('problems.rangeBoth', { min: field.min, max: field.max });
         }
-        if (field.min !== null) return `Enter a number of at least ${field.min}.`;
-        if (field.max !== null) return `Enter a number of at most ${field.max}.`;
+        if (field.min !== null) return t('problems.rangeMin', { min: field.min });
+        if (field.max !== null) return t('problems.rangeMax', { max: field.max });
       }
-      return 'Enter a number of 0 or more.';
+      return t('problems.nonNegative');
     case 'not_allowed':
       return field.type === 'enum'
-        ? `Choose one of: ${field.values.map(humanize).join(', ')}.`
-        : 'This value is not allowed.';
+        ? t('problems.chooseOneOf', { options: field.values.map(humanize).join(', ') })
+        : t('problems.notAllowed');
     case 'invalid_key':
     case 'invalid_text':
     case 'too_many_fields':
-      return 'This value was refused.';
+      return t('problems.refused');
     default: {
       const unreachable: never = problem;
       return unreachable;
@@ -119,13 +126,14 @@ export function factProblemMessage(field: FactFormField, problem: FactFormFieldP
 }
 
 export function validateDraft(
+  t: FactT,
   fields: readonly FactFormField[],
   draft: FactDraft,
 ): Record<string, string> {
   const errors: Record<string, string> = {};
   for (const field of fields) {
     const problem = checkFact(field, draft[field.key] ?? '');
-    if (problem !== null) errors[field.key] = factProblemMessage(field, problem);
+    if (problem !== null) errors[field.key] = factProblemMessage(t, field, problem);
   }
   return errors;
 }

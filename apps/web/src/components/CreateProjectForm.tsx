@@ -1,6 +1,7 @@
 import type { MarketSummary } from '@evidomo/shared';
 import { useRouter } from 'next/router';
 import { useRef, useState, type FormEvent } from 'react';
+import { useLocale, useTranslations } from 'use-intl';
 import {
   describeProjectFailure,
   emptyOfficeProfile,
@@ -24,6 +25,9 @@ const ID = 'create-project';
  * effective language is computed from them, so there is no effect to keep the two in sync.
  */
 export function CreateProjectForm({ markets }: { markets: readonly MarketSummary[] }) {
+  const t = useTranslations('projectForm');
+  const tApi = useTranslations('apiErrors');
+  const locale = useLocale();
   const router = useRouter();
   const mutation = useCreateProject();
   // A ref, not mutation state: two submits in the same tick both see isPending as false.
@@ -63,7 +67,7 @@ export function CreateProjectForm({ markets }: { markets: readonly MarketSummary
     if (submitting.current || mutation.isPending || mutation.isSuccess) return;
     setFormError(null);
 
-    const validation = validateCreateProject(values);
+    const validation = validateCreateProject(t, values);
     if (!validation.ok) {
       setErrors(validation.errors);
       focusFirstInvalid(validation.errors);
@@ -78,7 +82,7 @@ export function CreateProjectForm({ markets }: { markets: readonly MarketSummary
       },
       onError: (error) => {
         submitting.current = false;
-        const failure = describeProjectFailure(error, values);
+        const failure = describeProjectFailure(t, tApi, error, values);
         if (failure.kind === 'fields') {
           setErrors(failure.errors);
           focusFirstInvalid(failure.errors);
@@ -110,7 +114,7 @@ export function CreateProjectForm({ markets }: { markets: readonly MarketSummary
         </div>
       )}
 
-      <Field id={`${ID}-title`} label="Project title" required error={errors.title}>
+      <Field id={`${ID}-title`} label={t('title')} required error={errors.title}>
         {(control) => (
           <input
             {...control}
@@ -134,8 +138,8 @@ export function CreateProjectForm({ markets }: { markets: readonly MarketSummary
       />
 
       <fieldset className="flex flex-col gap-4 rounded-box border border-base-300 p-4">
-        <legend className="px-2 font-semibold">Market and language</legend>
-        <Field id={`${ID}-market`} label="Market" required error={errors.market}>
+        <legend className="px-2 font-semibold">{t('marketAndLanguage')}</legend>
+        <Field id={`${ID}-market`} label={t('market')} required error={errors.market}>
           {(control) => (
             <select
               {...control}
@@ -157,9 +161,9 @@ export function CreateProjectForm({ markets }: { markets: readonly MarketSummary
         </Field>
         <Field
           id={`${ID}-outputLanguage`}
-          label="Output language"
+          label={t('outputLanguage')}
           required
-          hint="The language of the listing copy."
+          hint={t('outputLanguageHint')}
           error={errors.outputLanguage}
         >
           {(control) => (
@@ -175,7 +179,7 @@ export function CreateProjectForm({ markets }: { markets: readonly MarketSummary
             >
               {languages.map((code) => (
                 <option key={code} value={code}>
-                  {languageName(code)}
+                  {languageName(code, locale)}
                 </option>
               ))}
             </select>
@@ -189,7 +193,7 @@ export function CreateProjectForm({ markets }: { markets: readonly MarketSummary
         disabled={mutation.isPending || mutation.isSuccess}
       >
         {mutation.isPending && <span className="loading loading-spinner loading-sm" aria-hidden />}
-        Create project
+        {t('create')}
       </button>
     </form>
   );

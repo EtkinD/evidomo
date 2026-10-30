@@ -20,6 +20,7 @@ import {
 } from '@tanstack/react-query';
 import { ApiRequestError, apiJson } from './api';
 import { keyLabel } from './evidence';
+import type { Translator } from './i18n';
 import { humanize } from './project-view';
 import { describeRequestFailure } from './request-failure';
 import { runQueryKey } from './run-monitor';
@@ -121,43 +122,37 @@ export function useClaimAuditActions(runId: string): ClaimAuditActions {
 }
 
 /** The message under an item after a failed decision or approval. */
-export function describeAuditFailure(error: unknown): string {
+export function describeAuditFailure(
+  t: Translator<'claimAudit'>,
+  tApi: Translator<'apiErrors'>,
+  error: unknown,
+): string {
   if (error instanceof ApiRequestError) {
     switch (error.code) {
       case 'gate_not_open':
-        return 'This review is no longer open, so the decision was not saved. The page now shows its current state.';
+        return t('failures.gateNotOpen');
       case 'gate_decisions_pending':
-        return 'Something still needs a decision, so the pack was not approved. The page now shows what is open.';
+        return t('failures.decisionsPending');
       case 'not_found':
-        return 'This item was not found. The page now shows its current state.';
+        return t('failures.notFound');
       case 'claim_edit_rejected':
-        return 'That text did not pass the check against its facts, so it was not saved.';
+        return t('failures.editRejected');
       case 'validation_failed':
-        return 'That decision was not accepted. Check it and try again.';
+        return t('failures.notAccepted');
     }
   }
-  return describeRequestFailure(error);
+  return describeRequestFailure(tApi, error);
 }
 
-export const FLAG_CATEGORY_LABELS: Record<ClaimAuditCategory, string> = {
-  claim_support: 'Claim not supported',
-  unverifiable_superlative: 'Unverifiable superlative',
-  investment_promise: 'Investment promise',
-  exclusionary: 'Exclusionary wording',
-  area_basis: 'Area basis',
-};
+export function flagCategoryLabel(
+  t: Translator<'claimAudit'>,
+  category: ClaimAuditCategory,
+): string {
+  return t(`categories.${category}`);
+}
 
-export function stopReasonText(reason: ClaimAuditStopReason): string {
-  switch (reason) {
-    case 'clean':
-      return 'The check found no remaining problems in the copy.';
-    case 'loop_limit':
-      return 'The check reached its limit for rewrites, and some sentences are still flagged. Decide each flagged sentence below.';
-    case 'budget':
-      return 'The check stopped early to stay within the run’s cost cap, so some sentences may still have problems.';
-    case 'revision_failed':
-      return 'A rewrite did not work, so the last checked draft is shown with its flags.';
-  }
+export function stopReasonText(t: Translator<'claimAudit'>, reason: ClaimAuditStopReason): string {
+  return t(`stopReasons.${reason}`);
 }
 
 /** A short form of a segment for accessible names. */
@@ -169,42 +164,48 @@ export const hasExclusionaryFlag = (segment: ClaimAuditGateSegment): boolean =>
   segment.flags.some((flag) => flag.category === 'exclusionary');
 
 export function decisionStatus(
+  t: Translator<'claimAudit'>,
   segment: ClaimAuditGateSegment,
   decision: ClaimGateDecision | null,
   kind: 'copy' | 'qa',
 ): string {
-  if (decision === null) return 'Needs your decision.';
+  if (decision === null) return t('status.needsDecision');
   switch (decision.choice) {
     case 'accept':
-      return 'Approved as written.';
+      return t('status.approved');
     case 'edit':
-      return 'Edited by you.';
+      return t('status.edited');
     case 'remove':
       return kind === 'qa'
-        ? 'Removed. The whole card is dropped from the pack.'
+        ? t('status.removedCard')
         : segment.flags.length > 0
-          ? 'Removed from the pack.'
-          : 'Removed.';
+          ? t('status.removedFromPack')
+          : t('status.removed');
   }
 }
 
-export function variantTitle(kind: string): string {
-  return kind === 'portal' ? 'Portal text' : kind === 'social' ? 'Social caption' : humanize(kind);
+export function variantTitle(t: Translator<'claimAudit'>, kind: string): string {
+  return kind === 'portal'
+    ? t('variants.portal')
+    : kind === 'social'
+      ? t('variants.social')
+      : humanize(kind);
 }
 
 /** One sentence per warning; `factLabel` is the market's label for a fact key, if it has one. */
 export function warningText(
+  t: Translator<'claimAudit'>,
   warning: ClaimAuditWarning,
   factLabel: (key: string) => string | undefined,
 ): string {
-  const where = variantTitle(warning.variant);
+  const where = variantTitle(t, warning.variant);
   if (warning.kind === 'variant_empty') {
-    return `${where}: every segment is removed, so the pack publishes no text for it.`;
+    return t('warnings.variantEmpty', { where });
   }
   const label = factLabel(warning.factKey) ?? keyLabel(warning.factKey);
   return warning.required
-    ? `${where}: the required fact “${label}” is no longer mentioned.`
-    : `${where}: the fact “${label}” is no longer mentioned.`;
+    ? t('warnings.requiredUnmentioned', { where, label })
+    : t('warnings.unmentioned', { where, label });
 }
 
 export function warningsFor(

@@ -1,5 +1,6 @@
 import type { ClaimAuditGateSegment, GateFact } from '@evidomo/shared';
 import { useEffect, useRef } from 'react';
+import { useTranslations } from 'use-intl';
 import { segmentButtonId } from './SegmentItem';
 import { segmentLabel } from '../../lib/claim-audit';
 import type { Labels } from '../FactConflicts';
@@ -20,6 +21,7 @@ export function EvidencePanel({
   labels: Labels;
   onClose: () => void;
 }) {
+  const t = useTranslations('claimAudit');
   const heading = useRef<HTMLHeadingElement>(null);
   const entries = segment.factIds.map((id) => ({
     id,
@@ -58,26 +60,20 @@ export function EvidencePanel({
     >
       <div className="flex items-start justify-between gap-2">
         <h2 id="evidence-heading" ref={heading} tabIndex={-1} className="text-lg font-semibold">
-          {`Evidence for “${segmentLabel(segment.text)}”`}
+          {t('evidenceFor', { text: segmentLabel(segment.text) })}
         </h2>
         <button type="button" className="btn btn-ghost min-h-11" onClick={onClose}>
-          Close evidence
+          {t('closeEvidence')}
         </button>
       </div>
-      <p className="text-sm text-base-content/70">
-        {cited.length === 0
-          ? 'This segment cites no facts.'
-          : cited.length === 1
-            ? 'This segment cites 1 fact.'
-            : `This segment cites ${cited.length} facts.`}
-      </p>
+      <p className="text-sm text-base-content/70">{t('cites', { count: cited.length })}</p>
       <ul className="flex flex-col gap-3">
         {cited.map(({ id, fact }) => (
           <li key={id} className="border-t border-base-300 pt-3">
             {fact === undefined ? (
               <p role="alert" className="text-sm font-medium text-error">
                 <span aria-hidden>⚠ </span>
-                Missing evidence: a fact this segment cites ({id}) is not part of this review.
+                {t('missingEvidence', { id })}
               </p>
             ) : (
               <EvidenceInspector

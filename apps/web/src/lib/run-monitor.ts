@@ -5,6 +5,7 @@ import type {
   RunStreamEnd,
   RunStreamEvent,
 } from '@evidomo/shared';
+import type { Formatter, Translator } from './i18n';
 
 export const runQueryKey = (runId: string) => ['runs', runId] as const;
 
@@ -67,7 +68,7 @@ export function applyRunEvent(snapshot: RunSnapshot, event: RunStreamEvent): Run
         ...next,
         status: to,
         gate: to === 'awaiting_gate' ? (gate ?? null) : null,
-        failureReason: to === 'failed' ? (reason ?? 'The run failed.') : null,
+        failureReason: to === 'failed' ? (reason ?? null) : null,
         currentStepId: terminal ? null : next.currentStepId,
         startedAt: next.startedAt ?? (to === 'running' ? event.occurredAt : null),
         finishedAt: terminal ? event.occurredAt : null,
@@ -147,24 +148,24 @@ export function applyRunEnd(snapshot: RunSnapshot, end: RunStreamEnd): RunSnapsh
     status: end.status,
     gate: null,
     currentStepId: null,
-    failureReason: end.status === 'failed' ? (snapshot.failureReason ?? 'The run failed.') : null,
+    failureReason: end.status === 'failed' ? snapshot.failureReason : null,
     finishedAt: snapshot.finishedAt ?? snapshot.updatedAt,
     lastEventSeq: Math.max(snapshot.lastEventSeq, end.lastEventSeq),
   };
 }
 
-const GATE_LABELS: Record<Gate, string> = {
-  fact_conflicts: 'Gate 1: resolve fact conflicts',
-  claim_audit: 'Gate 2: review the pack',
-};
-
-export function gateLabel(gate: Gate): string {
-  return GATE_LABELS[gate];
+export function gateLabel(t: Translator<'run'>, gate: Gate): string {
+  return gate === 'fact_conflicts' ? t('gate.factConflicts') : t('gate.claimAudit');
 }
 
 /** Exact decimal string to a display amount. Display only; the strings stay the source of truth. */
-export function formatUsd(amount: string): string {
-  return `$${Number(amount).toFixed(4)}`;
+export function formatUsd(format: Formatter, amount: string): string {
+  return format.number(Number(amount), {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 4,
+    maximumFractionDigits: 4,
+  });
 }
 
 /** Share of the cap spent, 0–1, or null without a cap or without disclosed costs. */
@@ -175,11 +176,15 @@ export function costShare(snapshot: Pick<RunSnapshot, 'costUsd' | 'costCapUsd'>)
   return Math.min(1, Number(snapshot.costUsd) / cap);
 }
 
-export function formatDuration(startedAt: string | null, finishedAt: string | null): string | null {
+export function formatDuration(
+  t: Translator<'run'>,
+  startedAt: string | null,
+  finishedAt: string | null,
+): string | null {
   if (startedAt === null || finishedAt === null) return null;
   const seconds = Math.max(0, Math.round((Date.parse(finishedAt) - Date.parse(startedAt)) / 1000));
-  if (seconds < 60) return `${seconds} s`;
-  return `${Math.floor(seconds / 60)} min ${seconds % 60} s`;
+  if (seconds < 60) return t('duration.seconds', { seconds });
+  return t('duration.minutes', { minutes: Math.floor(seconds / 60), seconds: seconds % 60 });
 }
 
 /**

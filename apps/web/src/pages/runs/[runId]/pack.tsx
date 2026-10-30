@@ -1,9 +1,11 @@
 import { runParamsSchema } from '@evidomo/shared';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
+import { useTranslations } from 'use-intl';
 import { PackViewer } from '../../../components/PackViewer';
 import { LoadingState, RunNotFound } from '../../../components/RunMonitor';
 import { useExportManifest } from '../../../lib/pack';
+import { getServerSideProps } from '../../../lib/i18n-server';
 import type { NextPageWithAuth } from '../../../lib/page-auth';
 
 function PackPage({ runId }: { runId: string }) {
@@ -11,20 +13,23 @@ function PackPage({ runId }: { runId: string }) {
   return <PackViewer query={query} runId={runId} />;
 }
 
+export { getServerSideProps };
+
 const RunPackPage: NextPageWithAuth = () => {
+  const t = useTranslations('pack');
   const router = useRouter();
   const params = runParamsSchema.safeParse({ runId: router.query['runId'] });
 
   return (
     <>
       <Head>
-        <title>Listing pack — Evidomo</title>
+        <title>{t('pageTitle')}</title>
       </Head>
       <main className="flex-1 bg-base-200 px-4 py-8">
         <section className="card mx-auto max-w-4xl border border-base-300 bg-base-100">
           <div className="card-body gap-6">
             {!router.isReady ? (
-              <LoadingState label="Loading the pack…" />
+              <LoadingState label={t('loading')} />
             ) : params.success ? (
               <PackPage key={params.data.runId} runId={params.data.runId} />
             ) : (

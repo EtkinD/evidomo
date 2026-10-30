@@ -20,6 +20,16 @@ function apiProxyOrigin(): string {
   return url.origin;
 }
 
+// Locale-prefixed routes (/tr, /nl, /it, /es; English has no prefix). Keep the list in step with
+// src/lib/i18n.ts (a test compares them). Detection of the visitor's language on `/` is our own
+// (src/proxy.ts, with the NEXT_LOCALE cookie the language switcher writes): Next's built-in one
+// does not match a regional Accept-Language tag such as Safari's `tr-TR`.
+export const I18N = {
+  locales: ['en', 'tr', 'nl', 'it', 'es'],
+  defaultLocale: 'en',
+  localeDetection: false as const,
+};
+
 const DEFAULT_PAGE_EXTENSIONS = ['tsx', 'ts', 'jsx', 'js'];
 
 // `*.dev.mts` files under src/pages are routes only on the dev server (the design showcase).
@@ -44,6 +54,7 @@ export function showcaseStylesFor(phase: string): string {
 export default function nextConfig(phase: string): NextConfig {
   return {
     reactStrictMode: true,
+    i18n: I18N,
     poweredByHeader: false,
     // Isolated e2e runs a second dev server next to the developer's own; Next locks the dist
     // directory per dev server, so that stack builds elsewhere (playwright.config.ts).
@@ -60,7 +71,14 @@ export default function nextConfig(phase: string): NextConfig {
     ...(phase === PHASE_DEVELOPMENT_SERVER
       ? {
           rewrites: () => [
-            { source: '/api/:path*', destination: `${apiProxyOrigin()}/api/:path*` },
+            {
+              source: '/api/:path*',
+              destination: `${apiProxyOrigin()}/api/:path*`,
+              // The API has no locale prefix; without this Next would also serve /tr/api/...
+              // No `locale: false`: with it Next stops prefixing the source, so only a locale-prefixed
+              // path (/tr/api/...) would match and the browser's /api/... calls would 404. Without it
+              // the source matches both, and the API (an external URL) never sees a locale.
+            },
           ],
         }
       : {}),

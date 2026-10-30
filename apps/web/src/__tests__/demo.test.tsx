@@ -17,7 +17,14 @@ import { allDecided, auditGate, STAGED_ID, TEXT } from './claim-audit-fixtures';
 import { FakeEventSource } from './fake-event-source';
 import { gateWith, MATERIAL_ID, RUN_ID } from './gate-fixtures';
 import { setRoute } from './router-mock';
-import { jsonResponse, meSignedOut, mockFetch, renderPage, type FetchCall } from './test-utils';
+import {
+  jsonResponse,
+  meSignedOut,
+  mockFetch,
+  renderPage,
+  testTranslator,
+  type FetchCall,
+} from './test-utils';
 
 vi.mock('next/router', () => import('./router-mock'));
 
@@ -155,7 +162,7 @@ async function renderMonitor() {
 }
 
 const stepItem = (stepId: string): HTMLElement => {
-  const label = stepLabel(stepId).label;
+  const label = stepLabel(testTranslator('steps'), stepId).label;
   const item = screen
     .getAllByRole('listitem')
     .find((li) => within(li).queryByText(label, { exact: true }) !== null);
@@ -195,7 +202,7 @@ describe('demo list', () => {
     const card = link.closest('li');
     expect(card?.textContent).toContain('Netherlands');
     expect(card?.textContent).toContain('English');
-    expect(card?.textContent).toContain('29 Oct 2026');
+    expect(card?.textContent).toContain('Oct 29, 2026');
     expect(screen.queryByText(/redirect|log in to/i)).toBeNull();
     expectOnlyPublicReads(fetchMock);
   });

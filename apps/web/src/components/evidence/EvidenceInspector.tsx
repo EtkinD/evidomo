@@ -1,4 +1,5 @@
 import type { FactSource } from '@evidomo/shared';
+import { useTranslations } from 'use-intl';
 import { formatTimestamp } from '../../lib/evidence';
 import { PhotoRegionEvidence } from './PhotoRegionEvidence';
 import { useEvidenceAudio, useEvidenceUrls } from './EvidenceProvider';
@@ -6,9 +7,10 @@ import { useEvidenceAudio, useEvidenceUrls } from './EvidenceProvider';
 type SourceOf<K extends FactSource['kind']> = Extract<FactSource, { kind: K }>;
 
 export function FormFieldEvidence({ label, valueText }: { label: string; valueText: string }) {
+  const t = useTranslations('evidence');
   return (
     <div className="flex flex-col gap-1">
-      <p className="text-sm font-medium">Form field</p>
+      <p className="text-sm font-medium">{t('formField')}</p>
       <p>
         <span className="text-base-content/70">{label}:</span> {valueText}
       </p>
@@ -17,6 +19,7 @@ export function FormFieldEvidence({ label, valueText }: { label: string; valueTe
 }
 
 export function TranscriptTurnEvidence({ source }: { source: SourceOf<'transcript_turn'> }) {
+  const t = useTranslations('evidence');
   const urls = useEvidenceUrls();
   const { playingId, failedId, unavailableId, toggle } = useEvidenceAudio();
   // The same turn can back several facts; the clip identity is the turn, not the fact.
@@ -26,13 +29,13 @@ export function TranscriptTurnEvidence({ source }: { source: SourceOf<'transcrip
 
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-sm font-medium">Voice walkthrough, turn at {time}</p>
+      <p className="text-sm font-medium">{t('voiceTurn', { time })}</p>
       <blockquote className="border-l-4 border-secondary pl-3 italic">“{source.quote}”</blockquote>
       <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
           className="btn btn-outline min-h-11"
-          aria-label={`${playing ? 'Stop' : 'Play'} the turn at ${time}`}
+          aria-label={playing ? t('stopTurn', { time }) : t('playTurn', { time })}
           onClick={() =>
             toggle({
               id: clipId,
@@ -49,20 +52,20 @@ export function TranscriptTurnEvidence({ source }: { source: SourceOf<'transcrip
               <path d="M4 2.5v11l9-5.5z" />
             )}
           </svg>
-          {playing ? 'Stop' : 'Play'}
+          {playing ? t('stop') : t('play')}
         </button>
         <span className="text-sm text-base-content/70">
-          {time} to {formatTimestamp(source.endMs)}
+          {t('timeRange', { start: time, end: formatTimestamp(source.endMs) })}
         </span>
       </div>
       {unavailableId === clipId && (
         <p role="alert" className="text-sm text-error">
-          The audio for this part is not available: the recording ends before this point.
+          {t('audioUnavailable')}
         </p>
       )}
       {failedId === clipId && (
         <p role="alert" className="text-sm text-error">
-          The recording could not be played. Check your connection and try again.
+          {t('audioFailed')}
         </p>
       )}
     </div>
@@ -70,12 +73,11 @@ export function TranscriptTurnEvidence({ source }: { source: SourceOf<'transcrip
 }
 
 export function GateDecisionEvidence() {
+  const t = useTranslations('evidence');
   return (
     <div className="flex flex-col gap-1">
-      <p className="text-sm font-medium">Your decision</p>
-      <p className="text-base-content/70">
-        This value was entered by you when you reviewed the fact conflicts.
-      </p>
+      <p className="text-sm font-medium">{t('yourDecision')}</p>
+      <p className="text-base-content/70">{t('yourDecisionText')}</p>
     </div>
   );
 }

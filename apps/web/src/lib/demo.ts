@@ -1,6 +1,7 @@
 import { demoRunListResponseSchema, demoRunsUrl, type DemoRunListResponse } from '@evidomo/shared';
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 import { apiJson } from './api';
+import type { Formatter } from './i18n';
 
 export const DEMO_PATH = '/demo';
 
@@ -17,10 +18,10 @@ export function useDemoRuns(): UseQueryResult<DemoRunListResponse> {
   });
 }
 
-function displayName(type: 'region' | 'language', code: string): string {
+function displayName(type: 'region' | 'language', code: string, locale: string): string {
   try {
     return (
-      new Intl.DisplayNames(['en'], { type }).of(type === 'region' ? code.toUpperCase() : code) ??
+      new Intl.DisplayNames([locale], { type }).of(type === 'region' ? code.toUpperCase() : code) ??
       code
     );
   } catch {
@@ -29,16 +30,17 @@ function displayName(type: 'region' | 'language', code: string): string {
   }
 }
 
-export const marketLabel = (marketProfileId: string): string =>
-  displayName('region', marketProfileId);
-export const languageLabel = (code: string): string => displayName('language', code);
+export const marketLabel = (marketProfileId: string, locale: string): string =>
+  displayName('region', marketProfileId, locale);
+export const languageLabel = (code: string, locale: string): string =>
+  displayName('language', code, locale);
 
-/** "30 Oct 2026"; the stored time is UTC, and a day is all the list needs. */
-export function formatDemoDate(iso: string): string {
-  return new Intl.DateTimeFormat('en-GB', {
+/** "30 Oct 2026" in the reader's locale; the stored time is UTC, and a day is all the list needs. */
+export function formatDemoDate(format: Formatter, iso: string): string {
+  return format.dateTime(new Date(iso), {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
     timeZone: 'UTC',
-  }).format(new Date(iso));
+  });
 }

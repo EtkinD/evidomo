@@ -3,7 +3,8 @@ import { THEME_COLORS, THEME_INIT_SCRIPT } from '../lib/theme';
 
 export default function Document() {
   return (
-    <Html lang="en">
+    // No lang here: Next sets it from the active locale.
+    <Html>
       <Head>
         <link rel="icon" href="/favicon.ico" sizes="32x32" />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />

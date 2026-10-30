@@ -1,6 +1,7 @@
 import type { ProjectDetailResponse } from '@evidomo/shared';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useTranslations } from 'use-intl';
 import { ApiRequestError } from '../lib/api';
 import {
   describeProjectFailure,
@@ -50,6 +51,8 @@ export function ProjectDetailsForm({
   detail: ProjectDetailResponse;
   onUnsavedChange?: (unsaved: boolean) => void;
 }) {
+  const t = useTranslations('projectForm');
+  const tApi = useTranslations('apiErrors');
   const { project, readiness } = detail;
   const locked = readiness.inputsLocked;
   const queryClient = useQueryClient();
@@ -120,7 +123,7 @@ export function ProjectDetailsForm({
     setFormError(null);
     setJustSaved(false);
 
-    const validation = validateProjectDetails(values, {
+    const validation = validateProjectDetails(t, values, {
       title: titleChanged,
       officeProfile: officeChanged,
     });
@@ -144,7 +147,7 @@ export function ProjectDetailsForm({
           // A run started elsewhere: refetch so the form shows the locked state.
           void queryClient.invalidateQueries({ queryKey: projectKey(project.id) });
         }
-        const failure = describeProjectFailure(error, values);
+        const failure = describeProjectFailure(t, tApi, error, values);
         if (failure.kind === 'fields') {
           setErrors(failure.errors);
           const first = PROJECT_FORM_FIELDS.find((field) => failure.errors[field] !== undefined);
@@ -170,9 +173,7 @@ export function ProjectDetailsForm({
     <form noValidate onSubmit={onSubmit} className="flex flex-col gap-4">
       {locked && (
         <div role="note" className="alert alert-info">
-          <span>
-            A run has been started, so the office profile is locked. The title can still be changed.
-          </span>
+          <span>{t('officeLocked')}</span>
         </div>
       )}
       {formError !== null && (
@@ -182,13 +183,13 @@ export function ProjectDetailsForm({
       )}
       {conflict && (
         <div role="alert" className="alert alert-warning">
-          <span>Saved values changed elsewhere. Your edits were not saved.</span>
+          <span>{t('changedElsewhere')}</span>
           <button type="button" className="btn min-h-11" onClick={discardEdits}>
-            Load saved values
+            {t('loadSaved')}
           </button>
         </div>
       )}
-      <Field id={`${ID}-title`} label="Project title" required error={errors.title}>
+      <Field id={`${ID}-title`} label={t('title')} required error={errors.title}>
         {(control) => (
           <input
             {...control}
@@ -220,10 +221,10 @@ export function ProjectDetailsForm({
           {mutation.isPending && (
             <span className="loading loading-spinner loading-sm" aria-hidden />
           )}
-          Save details
+          {t('saveDetails')}
         </button>
         <span role="status" className="text-sm text-base-content/70">
-          {justSaved && !edited ? 'Details saved.' : edited ? 'You have unsaved changes.' : ''}
+          {justSaved && !edited ? t('detailsSaved') : edited ? t('unsavedChanges') : ''}
         </span>
       </div>
     </form>

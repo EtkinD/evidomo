@@ -1,0 +1,914 @@
+{
+  "common": {
+    "tryAgain": "Tekrar dene",
+    "required": "zorunlu",
+    "leaveMessage": "Yüklemeler veya bir kayıt hâlâ sürüyor. Şimdi ayrılırsan kaybolacaklar. Yine de ayrılmak istiyor musun?",
+    "sessionEnded": "Oturumun sona erdi. Devam etmek için yeniden giriş yap.",
+    "logIn": "Giriş yap",
+    "projectMissing": "Bu proje mevcut değil.",
+    "projectLoadError": "Bu proje yüklenemedi. Bağlantını kontrol edip tekrar dene.",
+    "loadingProject": "Proje yükleniyor…",
+    "yes": "Evet",
+    "no": "Hayır"
+  },
+  "shell": {
+    "accountMenu": "Hesap menüsü",
+    "logOut": "Çıkış yap",
+    "logOutFailed": "Çıkış yapılamadı. Tekrar dene.",
+    "navMain": "Ana menü",
+    "navAccount": "Hesap",
+    "projects": "Projeler",
+    "demo": "Demo",
+    "logIn": "Giriş yap",
+    "createAccount": "Hesap oluştur",
+    "mastheadLine": "Her ev için kanıt.",
+    "footerTagline": "Emlak danışmanları için kanıta bağlı ilan paketleri.",
+    "hackathon": "Meta hackathonu sırasında geliştirildi, 26 Ekim – 4 Kasım 2026.",
+    "github": "Evidomo GitHub’da",
+    "theme": "Tema",
+    "themeSystem": "Sistem",
+    "themeLight": "Açık",
+    "themeDark": "Koyu",
+    "language": "Dil"
+  },
+  "auth": {
+    "checkingSession": "Oturumun kontrol ediliyor…",
+    "sessionCheckFailed": "Oturumun kontrol edilemedi. Bağlantını kontrol edip tekrar dene.",
+    "email": "E-posta",
+    "password": "Parola",
+    "emailTaken": "Bu e-posta adresiyle zaten bir hesap var.",
+    "logInInstead": "Bunun yerine giriş yap",
+    "passwordHint": "En az {min} karakter.",
+    "login": {
+      "pageTitle": "Giriş yap — Evidomo",
+      "title": "Giriş yap",
+      "description": "İlan paketlerine geri dön.",
+      "noAccount": "Henüz hesabın yok mu?",
+      "createAccountLink": "Hesap oluştur",
+      "submit": "Giriş yap"
+    },
+    "register": {
+      "pageTitle": "Hesap oluştur — Evidomo",
+      "title": "Hesabını oluştur",
+      "description": "Mülk fotoğraflarını ve sesli turu kanıtlı bir ilan paketine dönüştür.",
+      "haveAccount": "Zaten hesabın var mı?",
+      "logInLink": "Giriş yap",
+      "submit": "Hesap oluştur"
+    },
+    "errors": {
+      "emailEmpty": "E-posta adresini gir.",
+      "emailInvalid": "Geçerli bir e-posta adresi gir, örneğin ad@ornek.com.",
+      "passwordEmptyLogin": "Parolanı gir.",
+      "passwordEmpty": "Bir parola gir.",
+      "passwordTooLong": "En fazla {max} karakter kullan.",
+      "passwordTooShort": "En az {min} karakter kullan.",
+      "passwordRange": "{min} ile {max} arasında karakter kullan.",
+      "unreachable": "Evidomo’ya ulaşılamadı. Bağlantını kontrol edip tekrar dene.",
+      "generic": "Bizim tarafta bir şeyler ters gitti. Birazdan tekrar dene.",
+      "checkForm": "Formu kontrol edip tekrar dene.",
+      "invalidCredentials": "E-posta veya parola hatalı.",
+      "rateLimited": "Çok fazla deneme yapıldı. Birkaç dakika bekleyip tekrar dene.",
+      "rateLimitedSeconds": "Çok fazla deneme yapıldı. {count} saniye sonra tekrar dene.",
+      "rateLimitedMinutes": "Çok fazla deneme yapıldı. {count} dakika sonra tekrar dene.",
+      "forbiddenOrigin": "İstek bu siteden gelmediği için engellendi. Sayfayı yenileyip tekrar dene.",
+      "notSent": "Form gönderilemedi. Sayfayı yenileyip tekrar dene."
+    }
+  },
+  "meta": {
+    "tagline": "Her ev için kanıt.",
+    "ogImageAlt": "Evidomo: her ev için kanıt.",
+    "landingTitle": "Evidomo: her iddianın bir kaynağı olduğu ilan paketleri",
+    "landingDescription": "Fotoğraflar ve sesli tur girer, ilan paketi çıkar. Her ifade, geldiği form alanına, konuşma bölümüne veya fotoğrafa bağlanır; dışa aktarmadan önce sen gözden geçirirsin."
+  },
+  "landing": {
+    "actions": {
+      "goToProjects": "Projelerine git",
+      "createAccount": "Hesap oluştur",
+      "logIn": "Giriş yap",
+      "seeDemo": "Tamamlanmış bir işlemi gör"
+    },
+    "hero": {
+      "line1": "İlanındaki",
+      "line2": "her iddia,",
+      "line3": "kanıtına bağlı.",
+      "lede": "Mülkü gez, konuş, fotoğraf çek. Evidomo ilan paketini hazırlar ve her ifadenin nereden geldiğini gösterir; böylece tahminleri değil, doğrulanmış bilgileri onaylarsın.",
+      "footnote": "Paketteki herhangi bir cümleyi aç; dayandığı form alanını, konuşma bölümünü veya fotoğraf bölgesini gör.",
+      "notesLabel": "Fotoğraf üzerindeki örnek notlar",
+      "claims": {
+        "windows": "İki uzun pencere",
+        "brick": "Tuğla duvar",
+        "area": "Yaşam alanı 38 m²"
+      },
+      "sources": {
+        "photo": "Fotoğraf",
+        "form": "Form alanı"
+      },
+      "caption": "Örnek bir gösterimdir, gerçek bir ilan değildir. Numaralı her not, bir iddianın kaynağını belirtir."
+    },
+    "how": {
+      "title": "Bir gezintiden, savunabileceğin bir pakete",
+      "subtitle": "Üç adım; ikincisinde kontrol sende.",
+      "packPreviewLabel": "İlan paketi örneği: her biri kaynağıyla birlikte iki ifade",
+      "previewLiving": {
+        "text": "38 m² aydınlık oturma odası.",
+        "source": "Form"
+      },
+      "previewGarden": {
+        "text": "Güneye bakan bahçe.",
+        "source": "Ses, 0:42"
+      },
+      "steps": {
+        "capture": {
+          "title": "Topla",
+          "text": "Her odayı fotoğrafla, kendi dilinde sesli bir tur kaydet ve bildiğin bilgileri onayla. Telefonda, mülkün içinde çalışır."
+        },
+        "verify": {
+          "title": "Doğrula",
+          "text": "Form, ses ve fotoğraflar birbiriyle çeliştiğinde işlem durur ve karar sana kalır. Taslaktaki her cümle, arkasındaki kanıta bağlıdır."
+        },
+        "pack": {
+          "title": "Paket",
+          "text": "Baskıya hazır bir paket indir: portallar ve sosyal medya için ilan metni, alıcı soru-cevap kartları ve yapılandırılmış portal alanları. Her iddia izlenebilir kalır."
+        }
+      }
+    },
+    "evidence": {
+      "title": "Her iddianın bir kaynağı var",
+      "text": "İlan paketindeki herhangi bir cümleyi aç; dayandığı form alanını, konuşma bölümünü veya fotoğraf bölgesini gör. Kanıtı olmayan bir iddia, dışa aktarmadan önce kararın için işaretlenir.",
+      "caption": "Örnek bir gösterimdir, gerçek bir ilan değildir. Vurgulanan ifadeler, kanıtı olan iddialardır.",
+      "verified": "Doğrulandı",
+      "notesLabel": "Vurgulanan iddialar için örnek kanıtlar",
+      "sentence": "<c1>38 m² aydınlık bir oturma odası</c1>, <c2>meşe balık sırtı parke</c2> ve <c3>güneye bakan bir bahçe</c3>.",
+      "notes": {
+        "area": {
+          "claim": "Yaşam alanı 38 m²",
+          "source": "Form alanı",
+          "label": "Yaşam alanı:"
+        },
+        "floor": {
+          "claim": "Meşe balık sırtı parke",
+          "source": "Fotoğraf",
+          "region": "İlgili bölge fotoğraf üzerinde çerçevelenir."
+        },
+        "garden": {
+          "claim": "Bahçe güneye bakıyor",
+          "source": "Sesli tur, 0:42’deki konuşma",
+          "quote": "“Bahçe güneye bakıyor, akşama kadar güneş alıyor.”"
+        }
+      }
+    },
+    "trust": {
+      "title": "Kontrol edilmek için tasarlandı",
+      "items": {
+        "calls": {
+          "title": "Kararlar senin",
+          "text": "İki gözden geçirme kontrolü sana verir: önce çelişen bilgiler, sonra işaretlenen her cümle ve düzenlenmiş görsel. İşlem seni bekler."
+        },
+        "staging": {
+          "title": "Sanal döşeme etiketli",
+          "text": "Sanal olarak döşenmiş bir görsel bu şekilde etiketlenir ve her zaman orijinalinin yanında gösterilir."
+        },
+        "private": {
+          "title": "Özel bilgiler kaldırılır",
+          "text": "GPS dahil fotoğraf üst verileri yükleme sırasında silinir. Dışa aktarımlarda yüzler ve plakalar bulanıklaştırılır."
+        },
+        "assists": {
+          "title": "Yardımcı olur, onaylamaz",
+          "text": "Yayın kontrol listesi eksikleri fark etmene yardımcı olur. Evidomo yasal uygunluğu onaylamaz, mülke değer biçmez ve senin yerine portallarda yayın yapmaz."
+        }
+      }
+    },
+    "cta": {
+      "title": "Sıradaki ilanına hazır mısın?",
+      "text": "Fotoğrafları ve sesli turu ekle, ardından hiçbir şey dışarı çıkmadan önce taslağı gözden geçir."
+    },
+    "images": {
+      "hero": "Yeşil-krem tuğla duvarlı, bej kanepeli, yeşil koltuklu ve pencerenin yanında saksı bitkisi olan, kanal evi tarzı aydınlık bir oturma odası",
+      "interior1": "Teraskota karolarla buluşan meşe balık sırtı parke; yaprak gölgeleri ve zeytin dalı tutan sarı bir saksı",
+      "interior2": "Meşe şömine rafı olan, kireç badanalı tuğla bir şömine; teraskota saksıda okaliptüs ve huş odunları",
+      "illustration": "Yuvarlak krem çatılı, açık sarı kapılı beyaz bir ev ve yeşil bir bitki illüstrasyonu"
+    }
+  },
+  "notFound": {
+    "pageTitle": "Sayfa bulunamadı — Evidomo",
+    "title": "Sayfa bulunamadı",
+    "text": "Aradığın sayfa yok ya da taşınmış.",
+    "home": "Başa dön"
+  },
+  "status": {
+    "queued": "Sırada",
+    "running": "Çalışıyor",
+    "awaiting_gate": "Gözden geçirmeni bekliyor",
+    "completed": "Tamamlandı",
+    "failed": "Başarısız"
+  },
+  "steps": {
+    "intake": {
+      "label": "Sesli tur dinleniyor",
+      "description": "Sesli notun, konuşma bölümü bölümü metne dökülüyor."
+    },
+    "fact_extraction": {
+      "label": "Bilgiler ayıklanıyor",
+      "description": "Metinden ve formdan bilgiler çıkarılıyor; her biri geldiği yere bağlanıyor."
+    },
+    "vision_inventory": {
+      "label": "Fotoğraflar inceleniyor",
+      "description": "Her fotoğraf; odalar, donanım ve durum açısından kontrol ediliyor."
+    },
+    "reconciliation": {
+      "label": "Bilgiler karşılaştırılıyor",
+      "description": "Form, ses ve fotoğraflar arasında birbirini tutmayan bilgiler bulunuyor."
+    },
+    "creative": {
+      "label": "İlan yazılıyor",
+      "description": "Onaylanan bilgilerden portal metni ve sosyal medya yazısı taslağı hazırlanıyor."
+    },
+    "qa_cards": {
+      "label": "Alıcı soruları hazırlanıyor",
+      "description": "Alıcıların sık sorduğu sorular, aynı bilgilerden yanıtlanıyor."
+    },
+    "staging": {
+      "label": "Fotoğraflar döşeniyor",
+      "description": "Boş odaların döşenmiş sürümleri üretiliyor; her zaman sanal olarak etiketlenir."
+    },
+    "integrity": {
+      "label": "Döşenen fotoğraflar kontrol ediliyor",
+      "description": "Döşemenin pencere, kapı veya diğer sabit öğeleri değiştirmediğinden emin olunuyor."
+    },
+    "verification": {
+      "label": "Her iddia kontrol ediliyor",
+      "description": "Her cümle, dayandığı bilgilerle sınanıyor."
+    },
+    "export": {
+      "label": "Paket hazırlanıyor",
+      "description": "HTML paketi, portal alanları ve görseller bir araya getiriliyor."
+    }
+  },
+  "apiErrors": {
+    "unreachable": "Evidomo’ya ulaşılamadı. Bağlantını kontrol edip tekrar dene.",
+    "generic": "Bizim tarafta bir şeyler ters gitti. Birazdan tekrar dene.",
+    "sessionEnded": "Oturumun sona erdi. Devam etmek için yeniden giriş yap.",
+    "projectGone": "Bu proje artık mevcut değil.",
+    "inputsLocked": "Bir işlem başlatıldığı için bu girdiler artık değiştirilemez.",
+    "forbiddenOrigin": "İstek bu siteden gelmediği için engellendi. Sayfayı yenileyip tekrar dene.",
+    "rateLimited": "Çok fazla istek yapıldı. Biraz bekleyip tekrar dene."
+  },
+  "projects": {
+    "pageTitle": "Projelerin — Evidomo",
+    "title": "Projelerin",
+    "signedInAs": "{email} olarak giriş yapıldı",
+    "newProject": "Yeni proje",
+    "loading": "Projelerin yükleniyor…",
+    "loadError": "Projelerin yüklenemedi. Bağlantını kontrol edip tekrar dene.",
+    "unknownMarket": "Bilinmeyen pazar",
+    "noRunYet": "Henüz işlem yok",
+    "photoCount": "{count} fotoğraf",
+    "voiceMemoYes": "Sesli not: var",
+    "voiceMemoNo": "Sesli not: yok",
+    "viewRun": "İşlemi gör",
+    "viewRunFor": "{title} için işlemi gör",
+    "emptyTitle": "Henüz proje yok",
+    "emptyText": "Bir proje tek bir mülkü kapsar: fotoğrafları, sesli turu ve ilan paketi. Kapıdan girdiğinde bir tane başlat."
+  },
+  "newProject": {
+    "pageTitle": "Yeni proje — Evidomo",
+    "back": "Projelere dön",
+    "title": "Yeni proje",
+    "loadingMarkets": "Pazarlar yükleniyor…",
+    "marketsError": "Pazarlar yüklenemedi. Bağlantını kontrol edip tekrar dene.",
+    "noMarkets": "Bu sunucuda henüz kullanılabilir pazar yok."
+  },
+  "projectForm": {
+    "title": "Proje başlığı",
+    "marketAndLanguage": "Pazar ve dil",
+    "market": "Pazar",
+    "outputLanguage": "Çıktı dili",
+    "outputLanguageHint": "İlan metninin dili.",
+    "create": "Projeyi oluştur",
+    "officeProfile": "Ofis profili",
+    "agencyName": "Ofis adı",
+    "contactBlock": "İletişim bilgileri",
+    "contactBlockHint": "İsteğe bağlı. İlan paketinde gösterilir; örneğin adres, telefon ve web sitesi.",
+    "tone": "Üslup",
+    "toneHint": "İsteğe bağlı. Metnin nasıl bir üslupta olacağı; örneğin sıcak ve profesyonel.",
+    "officeLocked": "Bir işlem başlatıldığı için ofis profili kilitli. Başlık yine de değiştirilebilir.",
+    "changedElsewhere": "Kaydedilmiş değerler başka bir yerde değişti. Düzenlemelerin kaydedilmedi.",
+    "loadSaved": "Kaydedilmiş değerleri yükle",
+    "saveDetails": "Ayrıntıları kaydet",
+    "detailsSaved": "Ayrıntılar kaydedildi.",
+    "unsavedChanges": "Kaydedilmemiş değişikliklerin var.",
+    "errors": {
+      "titleEmpty": "Bir proje başlığı gir.",
+      "titleTooLong": "Başlık için en fazla {max} karakter kullan.",
+      "agencyEmpty": "Ofis adını gir.",
+      "agencyTooLong": "Ofis adı için en fazla {max} karakter kullan.",
+      "contactTooLong": "İletişim bilgileri için en fazla {max} karakter kullan.",
+      "toneTooLong": "Üslup için en fazla {max} karakter kullan.",
+      "marketRequired": "Bir pazar seç.",
+      "languageRequired": "Bu pazarın sunduğu dillerden birini seç.",
+      "checkForm": "Formu kontrol edip tekrar dene."
+    }
+  },
+  "projectPage": {
+    "pageTitle": "Proje — Evidomo",
+    "pageTitleFor": "{title} — Evidomo",
+    "back": "Projelere dön",
+    "unknownMarket": "Bilinmeyen pazar",
+    "facts": "Mülk bilgileri",
+    "factsLocked": "Bir işlem başlatıldığı için bu bilgiler kilitli: işlem bunları kanıt olarak gösterir.",
+    "loadingFacts": "Bilgi formu yükleniyor…",
+    "factsLoadError": "Bilgi formu yüklenemedi. Bağlantını kontrol edip tekrar dene.",
+    "details": "Proje ayrıntıları"
+  },
+  "capture": {
+    "pageTitle": "Toplama — Evidomo",
+    "pageTitleFor": "Toplama · {title} — Evidomo",
+    "title": "Toplama",
+    "back": "Projeye dön",
+    "stillNeeded": "Neler hâlâ gerekli",
+    "uploading": "Fotoğraflar hâlâ yükleniyor. Bu sayfada kal.",
+    "recordingNow": "Bir kayıt sürüyor.",
+    "recordingUnsent": "Bir kayıt hazır ama henüz yüklenmedi.",
+    "inPlace": "Fotoğraflar ve sesli tur tamam.",
+    "factsMissing": "Proje sayfasında {count} zorunlu bilgi hâlâ eksik.",
+    "goToVoice": "Sesli ture git",
+    "continue": "İşlemi başlatmak için devam et",
+    "rejections": {
+      "empty_file": "Dosya boş.",
+      "file_too_large": "Dosya çok büyük.",
+      "unsupported_format": "Bu dosya biçimi desteklenmiyor. JPEG, PNG veya WebP bir fotoğraf kullan.",
+      "heic_not_supported": "HEIC fotoğrafları desteklenmiyor. Telefonunun kamera ayarlarında “En Uyumlu” (JPEG) seçeneğini seç ya da bir JPEG seç.",
+      "too_many_pixels": "Fotoğrafın piksel sayısı çok fazla. Daha düşük bir çözünürlük kullan.",
+      "undecodable": "Dosya okunamadı. Hasarlı olabilir.",
+      "too_long": "Kayıt, izin verilen süreden uzun."
+    },
+    "downscale": {
+      "heic_unreadable": "Bu tarayıcı HEIC fotoğraflarını okuyamıyor. Kameranı “En Uyumlu” (JPEG) olarak ayarla ya da bir JPEG seç.",
+      "undecodable": "Bu fotoğraf cihazında okunamadı. Başka bir fotoğraf dene.",
+      "encode_failed": "Bu fotoğraf cihazında hazırlanamadı. Başka bir fotoğraf dene."
+    },
+    "uploadErrors": {
+      "refused": "Dosya reddedildi.",
+      "photoLimit": "Fotoğraf sayısı üst sınırına ulaşıldı.",
+      "locked": "Bir işlem başlatıldığı için artık dosya eklenemez.",
+      "mediaType": "Bu dosya türü desteklenmiyor.",
+      "busy": "Sunucu başka yüklemelerle meşgul. Birazdan tekrar dene."
+    },
+    "audioFormat": "Bu ses biçimi desteklenmiyor. WebM, M4A, MP3 veya WAV kullan.",
+    "limit": {
+      "minutes": "{count} dakika",
+      "seconds": "{count} saniye"
+    },
+    "queue": {
+      "notAdded": "{count} fotoğraf eklenmedi: projeye daha fazla fotoğraf sığmıyor.",
+      "uploading": "{count} fotoğraf yükleniyor.",
+      "uploaded": "{count} fotoğraf yüklendi.",
+      "skipped": "{count} fotoğraf atlandı.",
+      "busy": "Sunucu meşgul. {seconds} saniye sonra tekrar denenecek.",
+      "paused": "Yükleme {name} üzerinde duraklatıldı. {message} Tekrar dene veya bu fotoğrafı atla.",
+      "aPhoto": "bir fotoğraf"
+    },
+    "photos": {
+      "title": "Fotoğraflar",
+      "previewUnavailable": "Önizleme yok",
+      "photoN": "Fotoğraf {position}",
+      "deleteLabel": "{position}. fotoğrafı sil",
+      "delete": "Sil",
+      "waiting": "Yükleme bekleniyor",
+      "preparing": "Hazırlanıyor…",
+      "uploadingLabel": "{name} yükleniyor",
+      "busy": "Sunucu meşgul, birazdan tekrar denenecek…",
+      "paused": "Yükleme duraklatıldı: {error} Bundan sonraki fotoğraflar bekliyor.",
+      "skippedWhy": "Atlandı: {error}",
+      "retryLabel": "{name} için tekrar dene",
+      "retry": "Tekrar dene",
+      "skipLabel": "{name} dosyasını atla",
+      "skip": "Bu fotoğrafı atla",
+      "removeLabel": "{name} dosyasını kaldır",
+      "remove": "Kaldır",
+      "deleted": "{position}. fotoğraf silindi. {left} fotoğraf kaldı.",
+      "countOf": "{max} fotoğraftan {count} tanesi",
+      "atLeast": "en az {min} gerekli",
+      "enough": "Yeterli fotoğraf var",
+      "locked": "Bir işlem başlatıldığı için fotoğraflar kilitli: işlem bunları kanıt olarak gösterir.",
+      "camera": "Kamera",
+      "files": "Fotoğraf dosyaları",
+      "take": "Fotoğraf çek",
+      "choose": "Fotoğraf seç",
+      "full": "Bir proje en fazla {max} fotoğraf alır. Yenisini eklemek için birini sil.",
+      "deleteFailed": "Fotoğraf silinemedi. {reason}",
+      "none": "Henüz fotoğraf yok."
+    },
+    "voice": {
+      "title": "Sesli tur",
+      "intro": "Mülkü gez ve gördüklerini anlat: odalar, durum, fotoğrafların gösteremediği her şey. En fazla {limit}.",
+      "current": "Mevcut sesli tur",
+      "previous": "Önceki sesli tur (yüklediğinde değiştirilir)",
+      "playbackFailed": "Oynatma şu an kullanılamıyor.",
+      "locked": "Bir işlem başlatıldığı için sesli tur kilitli: işlem onu kanıt olarak gösterir.",
+      "replaces": "Yeni bir kayıt veya dosya mevcut sesli turun yerini alır.",
+      "insecure": "Kayıt için güvenli (HTTPS) bir bağlantı gerekir. Bunun yerine bir ses dosyası yükleyebilirsin.",
+      "unsupported": "Bu tarayıcı ses kaydedemiyor. Bunun yerine bir ses dosyası yükleyebilirsin.",
+      "requesting": "Mikrofon izni bekleniyor…",
+      "recording": "Kaydediliyor",
+      "timer": "Kayıt süresi",
+      "stop": "Kaydı durdur",
+      "failures": {
+        "denied": "Mikrofon erişimi engellenmiş. Tarayıcı ayarlarında bu site için mikrofona izin ver, sonra tekrar dene. Bir ses dosyası da yükleyebilirsin.",
+        "no_microphone": "Bu cihazda mikrofon bulunamadı. Bunun yerine bir ses dosyası yükleyebilirsin.",
+        "unusable_format": "Bu tarayıcı, Evidomo’nun kabul edemediği bir biçimde kayıt yapıyor. Bunun yerine bir ses dosyası yükle.",
+        "error": "Kayıt başarısız oldu. Tekrar dene ya da bunun yerine bir ses dosyası yükle."
+      },
+      "preview": "Önizleme: {label}",
+      "previewLabel": "Yeni sesli turun önizlemesi",
+      "recordingLabel": "Kayıt, {time}",
+      "upload": "Sesli turu yükle",
+      "uploadAgain": "Yüklemeyi tekrar dene",
+      "recordAgain": "Tekrar kaydet",
+      "discard": "Vazgeç",
+      "tryAgain": "Tekrar kaydetmeyi dene",
+      "start": "Kaydı başlat",
+      "recordNew": "Yeni bir sesli tur kaydet",
+      "chooseFile": "Bir ses dosyası yükle",
+      "fileLabel": "Ses dosyası",
+      "announceStarted": "Kayıt başladı.",
+      "announceStopped": "Kayıt durdu. Yüklemeden önce önizleyebilirsin.",
+      "announceDiscarded": "Kayıt silindi.",
+      "announceUploading": "Sesli tur yükleniyor.",
+      "announceUploaded": "Sesli tur yüklendi.",
+      "announceFailed": "Yükleme başarısız oldu. {message}"
+    }
+  },
+  "readiness": {
+    "title": "Başlatmaya hazır mı?",
+    "activeRun": "Bu proje için bir işlem sürüyor.",
+    "viewActiveRun": "Etkin işlemi gör",
+    "stillNeeded": "İşlem başlamadan önce hâlâ gerekenler:",
+    "allReady": "Tüm girdiler hazır. Bir işlem başlatabilirsin.",
+    "inputsChanged": "Bu sayfa yüklendiğinden beri bazı girdiler değişti. Yukarıdaki liste şu an eksik olanları gösteriyor.",
+    "alreadyActive": "Bu proje için zaten bir işlem sürüyor.",
+    "budgetUsed": "Bugünkü işlem bütçesi doldu. Girdilerin kayıtlı; işlemi yarın tekrar başlat.",
+    "codeRateLimited": "Çok fazla yanlış kod girildi, daha sonra tekrar dene.",
+    "runLimit": "Bugünkü canlı işlem sınırına ulaştın.",
+    "runLimitWait": "Bugünkü canlı işlem sınırına ulaştın. {wait} sonra yeni bir tane başlatabilirsin.",
+    "accessCode": "Erişim kodu",
+    "accessCodeHint": "Canlı işlemler ücretli model çağrıları kullanır. Sana bir kod verildiyse gir; verilmediyse boş bırak.",
+    "accessCodeInvalid": "Bu erişim kodu geçerli değil.",
+    "hide": "Gizle",
+    "show": "Göster",
+    "hideCode": "Erişim kodunu gizle",
+    "showCode": "Erişim kodunu göster",
+    "start": "İşlemi başlat",
+    "saveFirst": "Önce değişikliklerini kaydet.",
+    "viewLatest": "Son işlemi gör",
+    "viewPack": "Paketi gör",
+    "addPhotos": "En az {min} fotoğraf ekle (şu ana kadar {count}).",
+    "removePhotos": "{extra} fotoğrafı kaldır (en fazla {max} kabul edilir, şu ana kadar {count}).",
+    "recordVoice": "Mülkün sesli turunu kaydet.",
+    "factMissing": "Zorunlu bilgiyi doldur: {label}.",
+    "factInvalid": "{label} değerini düzelt: kayıtlı değer artık geçerli değil.",
+    "wait": {
+      "minute": "bir dakika",
+      "minutes": "{count} dakika",
+      "hours": "yaklaşık {count} saat",
+      "days": "yaklaşık {count} gün"
+    }
+  },
+  "materials": {
+    "title": "Malzemeler",
+    "previewUnavailable": "Önizleme yok",
+    "photos": "Fotoğraflar",
+    "photosAdded": "{count} eklendi",
+    "photosAddedNeeded": "{count} eklendi ({min} ile {max} arası gerekli)",
+    "previews": "Fotoğraf önizlemeleri",
+    "photoN": "Fotoğraf {position}",
+    "showing": "{total} fotoğraftan {shown} tanesi gösteriliyor.",
+    "voice": "Sesli tur",
+    "recorded": "Kaydedildi",
+    "notRecorded": "Henüz kaydedilmedi",
+    "viewCapture": "Fotoğrafları ve sesli turu gör",
+    "addCapture": "Fotoğraf ve sesli tur ekle"
+  },
+  "run": {
+    "pageTitle": "İşlem — Evidomo",
+    "title": "İşlem",
+    "titleDemo": "Örnek işlem tekrarı",
+    "loading": "İşlem yükleniyor…",
+    "loadError": "Bu işlem yüklenemedi. Bağlantını kontrol edip tekrar dene.",
+    "notFound": "Bu işlem bulunamadı. Başka bir hesaba ait olabilir veya artık mevcut olmayabilir.",
+    "demoNotFound": "Bu demo işlemi bulunamadı. Artık yayında olmayabilir.",
+    "seeDemoRuns": "Demo işlemlerini gör",
+    "goToProjects": "Projelerine git",
+    "tryAgain": "Tekrar dene",
+    "sessionExpired": "Oturumunun süresi doldu.",
+    "logInAgain": "Yeniden giriş yap",
+    "steps": "Adımlar",
+    "stepsDone": "{total} adımın {done} tanesi tamamlandı",
+    "stepsDoneLabel": "Tamamlanan adımlar",
+    "stepStatus": {
+      "pending": "Bekliyor",
+      "queued": "Sırada",
+      "running": "Çalışıyor",
+      "completed": "Bitti",
+      "failed": "Başarısız",
+      "needsReview": "Gözden geçirmeni bekliyor"
+    },
+    "runStatus": {
+      "awaitingGate": "Gözden geçirmeni bekliyor",
+      "completed": "Tamamlandı"
+    },
+    "attempts": "Denemeler",
+    "execution": "çalıştırma {current}/{max}",
+    "cost": "Maliyet",
+    "duration": {
+      "label": "Süre",
+      "seconds": "{seconds} sn",
+      "minutes": "{minutes} dk {seconds} sn"
+    },
+    "costSoFar": "Şu ana kadarki maliyet",
+    "devOnly": "Yalnızca geliştirmede görünür",
+    "ofCap": "/ {cap} üst sınır",
+    "costAgainstCap": "İşlem maliyeti ve üst sınır",
+    "capReached": "İşlem maliyet üst sınırına ulaştı.",
+    "capClose": "İşlem maliyet üst sınırına yaklaştı.",
+    "capShare": "Üst sınırın {share, number, percent} kadarı. İşlem sınıra gelince kendiliğinden durur.",
+    "reviewNeeded": "Gözden geçirme gerekli",
+    "paused": "Duraklatıldı",
+    "gate": {
+      "factConflicts": "1. gözden geçirme: çelişen bilgileri çöz",
+      "claimAudit": "2. gözden geçirme: paketi incele"
+    },
+    "gateText": "İşlem, bu gözden geçirmeyi bitirene kadar duraklatılır. Ne kadar gerekirse burada bekler; sayfadan ayrılabilirsin, son kararından sonra işlem devam eder.",
+    "gateTextDemo": "Canlı bir işlem burada, danışman bu gözden geçirmeyi bitirene kadar durur. Bu tekrarda kararlar zaten verilmiş; her değerin arkasındaki kanıtla birlikte görmek için gözden geçirmeyi aç.",
+    "seeConflicts": "Çelişkileri gör",
+    "seeReview": "Gözden geçirmeyi gör",
+    "reviewConflicts": "Çelişkileri gözden geçir",
+    "reviewPack": "Paketi incele",
+    "failed": "İşlem başarısız oldu",
+    "noReason": "Herhangi bir neden kaydedilmedi.",
+    "untouched": "Fotoğrafların, sesli notun ve formun olduğu gibi duruyor; hiçbir şey yayınlanmadı.",
+    "finishedLabel": "İşlem bitti",
+    "finished": "Bitti",
+    "packReady": "İlan paketin hazır",
+    "packReadyDemo": "İlan paketi hazır",
+    "exportReady": "Dışa aktarma hazır: {count} dosya.",
+    "exportReadyNotPublishable": "Dışa aktarma hazır: {count} dosya (henüz yayına hazır değil).",
+    "noExport": "İşlem dışa aktarma olmadan bitti.",
+    "tookTime": "{duration} sürdü.",
+    "viewPack": "Paketi gör",
+    "announce": {
+      "queued": "İşlem sıraya alındı.",
+      "runningStep": "Adım çalışıyor: {step}.",
+      "inProgress": "İşlem sürüyor.",
+      "pausedAt": "İşlem duraklatıldı: {gate}.",
+      "paused": "İşlem, gözden geçirme için duraklatıldı.",
+      "completed": "İşlem tamamlandı."
+    },
+    "replayStopped": "Tekrar devam edemedi. Birkaç saniye sonra tekrar dene.",
+    "replayReconnecting": "Tekrar kesildi. Yeniden bağlanılıyor…",
+    "liveReconnecting": "Canlı güncellemeler kesildi. Yeniden bağlanılıyor…",
+    "liveUnavailable": "Canlı güncellemeler duraklatıldı. Gördüğün, bilinen son durumdur. Devam ettirmeyi dene; olmazsa sayfayı yenile.",
+    "resumeLive": "Canlı güncellemeleri sürdür",
+    "refreshFailed": "İşlem şu an yenilenemedi. Gördüğün bilgi biraz eski olabilir.",
+    "tooManyRequests": "Şu an çok fazla istek var. Birkaç saniye bekleyip tekrar dene.",
+    "tooManyRequestsWait": "Şu an çok fazla istek var. Yaklaşık {seconds} saniye bekleyip tekrar dene."
+  },
+  "evidence": {
+    "formField": "Form alanı",
+    "voiceTurn": "Sesli tur, {time} konumundaki konuşma",
+    "playTurn": "{time} konumundaki konuşmayı oynat",
+    "stopTurn": "{time} konumundaki konuşmayı durdur",
+    "play": "Oynat",
+    "stop": "Durdur",
+    "timeRange": "{start} – {end}",
+    "audioUnavailable": "Bu bölümün sesi mevcut değil: kayıt bu noktadan önce bitiyor.",
+    "audioFailed": "Kayıt oynatılamadı. Bağlantını kontrol edip tekrar dene.",
+    "yourDecision": "Senin kararın",
+    "yourDecisionText": "Bu değeri, çelişen bilgileri gözden geçirirken sen girdin.",
+    "photo": "Fotoğraf",
+    "photoEvidenceFor": "{subject} için fotoğraf kanıtı",
+    "openLarger": "{subject} için fotoğrafı büyük aç",
+    "regionOutlined": "İlgili bölge fotoğraf üzerinde çerçevelenir.",
+    "regionHighlighted": "İlgili bölge fotoğraf üzerinde vurgulanır.",
+    "photoFailed": "Fotoğraf yüklenemedi.",
+    "close": "Kapat"
+  },
+  "demo": {
+    "pageTitle": "Demo — Evidomo",
+    "title": "Evidomo iş başında",
+    "intro": "Tamamlanmış bir örnek işlemi tekrar oynat: adımları izle, ardından iki gözden geçirmeyi, her iddianın arkasındaki kanıtı ve ilan paketini aç. Hesap gerekmez.",
+    "bannerLabel": "Bu demo hakkında",
+    "bannerTitle": "Demo: örnek bir işlemin tekrarı",
+    "bannerText": "Veriler uydurmadır. Burada hiçbir şey canlı değil, hiçbir şey bir modele gönderilmiyor ve yaptığın hiçbir şey kaydedilmiyor.",
+    "controls": "Tekrar denetimleri",
+    "speed": "Tekrar hızı",
+    "restart": "Baştan oynat",
+    "finished": "Tekrar bitti.",
+    "market": "Pazar",
+    "language": "Dil",
+    "finishedOn": "Bitiş",
+    "loadingRuns": "Demo işlemleri yükleniyor…",
+    "tooManyRequests": "Şu an çok fazla istek var. Birkaç saniye bekleyip tekrar dene.",
+    "loadError": "Demo işlemleri yüklenemedi. Bağlantını kontrol edip tekrar dene.",
+    "tryAgain": "Tekrar dene",
+    "noneYet": "Henüz yayınlanmış bir demo yok. İşletmeci örnek bir işlemi yayınladığında demo işlemi burada görünür; o zamana kadar oynatılacak bir şey yok.",
+    "home": "Ana sayfaya dön",
+    "pages": {
+      "monitor": {
+        "title": "Örnek işlem — Evidomo demo",
+        "loading": "İşlem yükleniyor…"
+      },
+      "conflicts": {
+        "title": "Çelişen bilgiler — Evidomo demo",
+        "loading": "Çelişen bilgiler yükleniyor…"
+      },
+      "review": {
+        "title": "Paket incelemesi — Evidomo demo",
+        "loading": "Gözden geçirme yükleniyor…"
+      },
+      "pack": {
+        "title": "İlan paketi — Evidomo demo",
+        "loading": "Paket yükleniyor…"
+      }
+    }
+  },
+  "conflicts": {
+    "pageTitle": "Çelişen bilgiler — Evidomo",
+    "loading": "Çelişen bilgiler yükleniyor…",
+    "loadError": "Çelişen bilgiler yüklenemedi. Bağlantını kontrol edip tekrar dene.",
+    "backToRun": "İşleme dön",
+    "backToTheRun": "İşleme dön",
+    "title": "Çelişen bilgiler",
+    "titleResolve": "Çelişen bilgileri çöz",
+    "allDecided": "Tüm çelişkiler karara bağlandı. İşlem devam ediyor.",
+    "notReached": "İşlem bu gözden geçirmeye henüz gelmedi. Bilgiler karşılaştırıldığında çelişkiler burada görünür.",
+    "suspended": "İşlem bu gözden geçirmeyi beklerken durdu, bu yüzden kararlar duraklatıldı. Gözden geçirmeyi yeniden açmak için işlemi kendi sayfasından sürdür; verdiğin kararlar korunur.",
+    "releasedNone": "Karar gerektiren çelişki olmadı.",
+    "releasedDemo": "Bu gözden geçirme asıl işlemde tamamlanmıştı. Verilen kararlar aşağıda gösteriliyor.",
+    "released": "Bu gözden geçirme tamamlandı. Kararların aşağıda gösteriliyor.",
+    "intro": "Bu bilgiler birbiriyle çelişiyor. Her değerin kanıtını karşılaştır; sonra birini koru, hepsini reddet ya da doğru değeri gir. İşlem son karardan sonra devam eder.",
+    "sourceKinds": {
+      "form": "form alanı",
+      "voice": "sesli tur",
+      "photo": "fotoğraf",
+      "decision": "senin kararın"
+    },
+    "sourcesList": "{count} kaynak: {kinds}",
+    "sourceCount": "{count} kaynak",
+    "kept": "Korundu",
+    "useValueLabel": "Bu değeri kullan: {value}",
+    "useValue": "Bu değeri kullan",
+    "open": "Açık",
+    "decided": "Karara bağlandı",
+    "valuesInConflict": "Çelişen değerler",
+    "saving": "Kararın kaydediliyor…",
+    "rejectAllLabel": "{label} için tüm değerleri reddet",
+    "rejectAll": "Hepsini reddet",
+    "enterValueLabel": "{label} için bir değer gir",
+    "enterValue": "Bir değer gir",
+    "loadingFieldType": "Alan türü yükleniyor…",
+    "progress": "İlerleme",
+    "progressText": "{total} çelişkinin {open} tanesi hâlâ açık",
+    "conflictsDecided": "Karara bağlanan çelişkiler",
+    "edit": {
+      "numberChooseUnit": "Bir sayı. Birimini aşağıdan seç.",
+      "numberNoUnit": "Bir sayı, birimsiz.",
+      "numberInUnit": "Bir sayı, birim: {unit}.",
+      "unit": "Birim",
+      "basis": "Ölçüm esası",
+      "choose": "Seç…",
+      "noUnit": "Birim yok",
+      "noBasis": "Esas yok",
+      "newValueFor": "{label} için yeni değer",
+      "save": "Değeri kaydet",
+      "cancel": "Vazgeç"
+    },
+    "failures": {
+      "gateNotOpen": "Bu gözden geçirme artık açık değil, bu yüzden karar kaydedilmedi. Sayfa şimdi güncel durumu gösteriyor.",
+      "notInConflict": "Bu değer artık bu çelişkinin parçası değil. Sayfa şimdi güncel durumu gösteriyor.",
+      "notAccepted": "Bu değer kabul edilmedi. Kontrol edip tekrar dene.",
+      "notAcceptedReason": "Bu değer kabul edilmedi: {reason}",
+      "notFound": "Bu işlem veya çelişki bulunamadı."
+    },
+    "summary": {
+      "kept": "{value} değerini korudun.",
+      "oneValue": "bir değeri",
+      "entered": "{value} değerini girdin.",
+      "rejected": "Tüm değerleri reddettin. Bu bilgi için hiçbir şey korunmuyor."
+    }
+  },
+  "factForm": {
+    "yes": "Evet",
+    "no": "Hayır",
+    "unknown": "Bilinmiyor",
+    "invalidValue": "(geçersiz)",
+    "serverRefusedExtra": "Sunucu, kayıtlı ek alanları reddetti: {fields}.",
+    "checkForm": "Formu kontrol edip tekrar dene.",
+    "changedElsewhere": "Kaydedilmiş değerler başka bir yerde değişti. Düzenlemelerin kaydedilmedi.",
+    "loadSaved": "Kaydedilmiş değerleri yükle",
+    "intro": "Bilmediğin bir bilgiyi boş bırak. Zorunlu bilgiler taslak hazırlarken boş kalabilir, ancak işlemin başlaması için gereklidir.",
+    "extras": "Bu projeyle birlikte {count} ek alan saklanıyor ve olduğu gibi korunuyor.",
+    "save": "Bilgileri kaydet",
+    "saved": "Bilgiler kaydedildi.",
+    "unsaved": "Kaydedilmemiş değişikliklerin var.",
+    "needAttention": "{count} alan dikkat gerektiriyor.",
+    "hints": {
+      "area": "Birim: {unit}. Ölçüm esası: {basis}.",
+      "volume": "Birim: {unit}.",
+      "money": "Para birimi: {currency}.",
+      "integerRange": "{min} ile {max} arasında bir tam sayı.",
+      "integerMin": "Tam sayı, en az {min}.",
+      "integerMax": "Tam sayı, en fazla {max}.",
+      "integer": "Tam sayı."
+    },
+    "problems": {
+      "chooseYesNo": "Evet, hayır veya bilinmiyor seç.",
+      "chooseListed": "Listelenen seçeneklerden birini seç.",
+      "enterNumber": "Bir sayı gir; ondalık için tek bir virgül veya nokta kullan, binlik ayırıcı kullanma.",
+      "wholeNumber": "Bir tam sayı gir.",
+      "rangeBoth": "{min} ile {max} arasında bir sayı gir.",
+      "rangeMin": "En az {min} olan bir sayı gir.",
+      "rangeMax": "En fazla {max} olan bir sayı gir.",
+      "nonNegative": "0 veya daha büyük bir sayı gir.",
+      "chooseOneOf": "Şunlardan birini seç: {options}.",
+      "notAllowed": "Bu değere izin verilmiyor.",
+      "refused": "Bu değer reddedildi."
+    },
+    "edit": {
+      "enterValue": "Bir değer gir.",
+      "chooseUnit": "Değerin birimini seç.",
+      "chooseBasis": "Değerin ölçüm esasını seç.",
+      "chooseYesNo": "Evet veya hayır seç.",
+      "tooLong": "En fazla {max} karakter kullan."
+    }
+  },
+  "claimAudit": {
+    "pageTitle": "Paketi incele — Evidomo",
+    "loading": "Gözden geçirme yükleniyor…",
+    "loadError": "Gözden geçirme yüklenemedi. Bağlantını kontrol edip tekrar dene.",
+    "backToRun": "İşleme dön",
+    "title": "Paket incelemesi",
+    "titleOpen": "Paketi incele",
+    "notReached": "İşlem bu gözden geçirmeye henüz gelmedi. Metinler ve sanal döşenmiş görseller, denetim bitince burada görünür.",
+    "suspended": "İşlem bu gözden geçirmeyi beklerken durdu, bu yüzden kararlar duraklatıldı. Gözden geçirmeyi yeniden açmak için işlemi kendi sayfasından sürdür; verdiğin kararlar korunur.",
+    "released": "Bu gözden geçirme tamamlandı. Kararların aşağıda gösteriliyor.",
+    "releasedDemo": "Bu gözden geçirme asıl işlemde tamamlanmıştı. Verilen kararlar aşağıda gösteriliyor.",
+    "openPack": "Paketi aç",
+    "select": "Arkasındaki bilgileri ve kaynakları görmek için herhangi bir cümleyi seç. İşaretli cümleler için karar vermen gerekir.",
+    "copy": "Metin",
+    "buyerQuestions": "Alıcı soruları",
+    "questionLabel": "Soru {number}: {question}",
+    "dropped": "Çıkarıldı: bu kart yayınlanmıyor.",
+    "summary": "Özet",
+    "flaggedClaims": "İşaretli iddialar: {total} ({open} açık)",
+    "stagedOffered": "Sunulan sanal döşenmiş görseller: {total} ({open} açık)",
+    "warningsLabel": "Uyarılar",
+    "approveTitle": "Paketi onayla",
+    "stillOpen": "Onaylamadan önce hâlâ açık olanlar:",
+    "openClaims": "{count} işaretli iddia",
+    "openImages": "{count} sanal döşenmiş görsel",
+    "allDecided": "Her şey karara bağlandı. Onaylamak, paketin dışa aktarımını başlatır.",
+    "finishEditing": "Önce düzenlediğin metni kaydet veya vazgeç.",
+    "approve": "Paketi onayla",
+    "noText": "Metin yok.",
+    "open": "Açık",
+    "decided": "Karara bağlandı",
+    "saving": "Kararın kaydediliyor…",
+    "evidenceFor": "“{text}” için kanıt",
+    "closeEvidence": "Kanıtı kapat",
+    "cites": "{count, plural, =0 {Bu bölüm hiçbir bilgiye dayanmıyor.} other {Bu bölüm {count} bilgiye dayanıyor.}}",
+    "missingEvidence": "Eksik kanıt: bu bölümün dayandığı bir bilgi ({id}) bu gözden geçirmenin parçası değil.",
+    "showEvidenceFor": "Kanıtı göster:",
+    "flaggedLabel": "İşaretli: {name}",
+    "original": "Orijinal: “{text}”",
+    "flagsLabel": "İşaretler",
+    "suggestion": "Öneri: {text}",
+    "exclusionaryNote": "Bunu yazıldığı gibi onaylamak, dışlayıcı ifadeyi korur. Yayın kontrol listesi bu nedenle yine de başarısız olur.",
+    "dropNote": "Bu yanıtı kaldırmak, soru dahil tüm kartı çıkarır.",
+    "checklistFails": "Yayın kontrol listesi bu ifade yüzünden yine de başarısız olur.",
+    "removalWarnings": "Bu kaldırma için uyarılar",
+    "approveAsWrittenLabel": "Yazıldığı gibi onayla: {name}",
+    "approveAsWritten": "Yazıldığı gibi onayla",
+    "editLabel": "Düzenle: {name}",
+    "remove": "Kaldır",
+    "removeLabel": "Kaldır: {name}",
+    "failures": {
+      "gateNotOpen": "Bu gözden geçirme artık açık değil, bu yüzden karar kaydedilmedi. Sayfa şimdi güncel durumu gösteriyor.",
+      "decisionsPending": "Hâlâ karar bekleyen bir şey var, bu yüzden paket onaylanmadı. Sayfa şimdi açık olanları gösteriyor.",
+      "notFound": "Bu öğe bulunamadı. Sayfa şimdi güncel durumu gösteriyor.",
+      "editRejected": "Bu metin, dayandığı bilgilere karşı yapılan kontrolden geçemedi, bu yüzden kaydedilmedi.",
+      "notAccepted": "Bu karar kabul edilmedi. Kontrol edip tekrar dene."
+    },
+    "categories": {
+      "claim_support": "İddia desteklenmiyor",
+      "unverifiable_superlative": "Doğrulanamayan üstünlük ifadesi",
+      "investment_promise": "Yatırım vaadi",
+      "exclusionary": "Dışlayıcı ifade",
+      "area_basis": "Alan ölçüm esası"
+    },
+    "stopReasons": {
+      "clean": "Kontrol, metinde kalan bir sorun bulmadı.",
+      "loop_limit": "Kontrol, yeniden yazma sınırına ulaştı ve bazı cümleler hâlâ işaretli. İşaretli her cümle için aşağıda karar ver.",
+      "budget": "Kontrol, işlemin maliyet üst sınırı içinde kalmak için erken durdu; bu yüzden bazı cümlelerde hâlâ sorun olabilir.",
+      "revision_failed": "Bir yeniden yazma işe yaramadı, bu yüzden en son kontrol edilen taslak işaretleriyle gösteriliyor."
+    },
+    "status": {
+      "needsDecision": "Kararını bekliyor.",
+      "approved": "Yazıldığı gibi onaylandı.",
+      "edited": "Senin tarafından düzenlendi.",
+      "removedCard": "Kaldırıldı. Kartın tamamı paketten çıkarıldı.",
+      "removedFromPack": "Paketten kaldırıldı.",
+      "removed": "Kaldırıldı.",
+      "moot": "Gerek yok: bu kart çıkarıldı."
+    },
+    "variants": {
+      "portal": "Portal metni",
+      "social": "Sosyal medya yazısı"
+    },
+    "warnings": {
+      "variantEmpty": "{where}: tüm bölümler kaldırıldı, bu yüzden paket bunun için hiçbir metin yayınlamıyor.",
+      "requiredUnmentioned": "{where}: zorunlu bilgi “{label}” artık belirtilmiyor.",
+      "unmentioned": "{where}: “{label}” bilgisi artık belirtilmiyor."
+    },
+    "edit": {
+      "empty": "Yeni metni gir veya vazgeç.",
+      "newTextFor": "“{text}” için yeni metin",
+      "hint": "Atıflar aynı kalır. Sayılar ve birimler, bu metnin dayandığı bilgilerle eşleşmelidir.",
+      "rejected": "Bu metin, dayandığı bilgilere karşı yapılan kontrolden geçemedi:",
+      "save": "Metni kaydet",
+      "cancel": "Vazgeç",
+      "open": "Düzenle"
+    },
+    "staged": {
+      "attemptEditFailed": "Deneme {n}: düzenleme başarısız oldu.",
+      "attemptEditFailedWhy": "Deneme {n}: düzenleme başarısız oldu ({reason}).",
+      "attemptUnchecked": "Deneme {n}: kontrol edilemedi.",
+      "attemptUncheckedTarget": "Deneme {n}: kontrol edilemedi ({target} görseli bölümlenemedi).",
+      "passed": "geçti",
+      "failed": "geçemedi",
+      "changedClasses": ", değişenler: {classes}",
+      "personDrawn": ", içine bir kişi çizilmiş",
+      "attemptResult": "Deneme {n}: {result}{failed}{privacy}.",
+      "originalAlt": "{operation} için orijinal fotoğraf",
+      "original": "Orijinal",
+      "stagedAlt": "{operation} için sanal döşenmiş sürüm",
+      "operation": "{name} (fotoğraf {n})",
+      "imageLabel": "Sanal döşenmiş görsel: {operation}",
+      "integrityPassed": "Bütünlük kontrolü geçti: pencereler, kapılar ve diğer sabit öğeler değişmedi.",
+      "integritySecond": "Bütünlük kontrolü ikinci denemede geçti: pencereler, kapılar ve diğer sabit öğeler değişmedi.",
+      "integrityFor": "{operation} için bütünlük kontrolü",
+      "outcomePassed": "Sonuç: geçti.",
+      "outcomeSecond": "Sonuç: ikinci denemede geçti.",
+      "aspectChange": "En büyük en-boy oranı değişimi: {change}.",
+      "fixedElements": "Sabit öğeler",
+      "classCount": "{label}: orijinalde {original}, sanal döşenmiş görselde {edit}",
+      "attempts": "Denemeler",
+      "accepted": "Kabul edildi: sanal döşenmiş görsel, orijinalin yanında yayınlanır.",
+      "rejected": "Reddedildi: yalnızca orijinal yayınlanır.",
+      "explain": "Kabul etmek, sanal döşenmiş görseli “{label}” etiketiyle orijinalin yanında yayınlar. Reddetmek yalnızca orijinali yayınlar.",
+      "acceptLabel": "Sanal döşenmiş görseli kabul et: {operation}",
+      "accept": "Kabul et ve yayınla",
+      "rejectLabel": "Sanal döşenmiş görseli reddet: {operation}",
+      "reject": "Reddet, orijinali koru",
+      "title": "Sanal döşenmiş görseller",
+      "fallbackTitle": "Bütünlük kontrolünün reddettiği sanal döşemeler",
+      "fallbackText": "Bunlar için yalnızca orijinal fotoğraf yayınlanır.",
+      "rejectedName": "{name} (reddedildi)"
+    }
+  },
+  "pack": {
+    "pageTitle": "İlan paketi — Evidomo",
+    "loading": "Paket yükleniyor…",
+    "title": "İlan paketi",
+    "backToRun": "İşleme dön",
+    "ready": "Yayına hazır: tüm yayın kontrolleri geçti.",
+    "notReady": "Yayına hazır değil",
+    "notReadyText": "En az bir yayın kontrolü başarısız oldu. Hangisi olduğunu paketin içindeki kontrol listesi gösterir; bu ilan yayına çıkmadan önce düzelt.",
+    "preview": "Önizleme",
+    "previewTitle": "İlan paketi önizlemesi",
+    "print": "Yazdır / PDF olarak kaydet",
+    "fullScreen": "Tam ekran aç",
+    "downloads": "İndirilenler",
+    "images": "Görseller ({count})",
+    "files": {
+      "html": "İlan paketi (HTML)",
+      "portalFields": "Portal alanları (JSON)",
+      "image": "Görsel"
+    },
+    "downloadLabel": "{name} dosyasını indir",
+    "download": "İndir",
+    "notReadyYet": "Paket henüz hazır değil. İşlem dışa aktarmayı bitirdiğinde burada görünür.",
+    "loadError": "Bu paket yüklenemedi. Bağlantını kontrol edip tekrar dene.",
+    "size": {
+      "bytes": "{value} B",
+      "kb": "{value} KB",
+      "mb": "{value} MB"
+    }
+  },
+  "serverError": {
+    "pageTitle": "Bir şeyler ters gitti — Evidomo",
+    "title": "Bir şeyler ters gitti",
+    "text": "Sunucu bu isteği işleyemedi. Birazdan tekrar dene; kaydedilmiş çalışmanı etkilemez.",
+    "home": "Başa dön"
+  }
+}

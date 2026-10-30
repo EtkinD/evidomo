@@ -6,6 +6,7 @@ import { EvidenceProvider } from '../components/evidence/EvidenceProvider';
 import { demoEvidenceUrls, runEvidenceUrls, type EvidenceUrls } from '../lib/evidence-urls';
 import { formatTimestamp, regionInFrame } from '../lib/evidence';
 import { MASK_ID, MATERIAL_ID, RUN_ID, TRANSCRIPT_ID } from './gate-fixtures';
+import { IntlTest } from './test-utils';
 
 const FACT_ID = '10000000-0000-4000-8000-000000000001';
 
@@ -80,17 +81,19 @@ const turn = (
 
 function renderEvidence(sources: FactSource[], urls: EvidenceUrls = runEvidenceUrls(RUN_ID)) {
   return render(
-    <EvidenceProvider urls={urls}>
-      {sources.map((source, index) => (
-        <EvidenceInspector
-          key={index}
-          factId={FACT_ID}
-          source={source}
-          valueText="92 m2"
-          label="Living area"
-        />
-      ))}
-    </EvidenceProvider>,
+    <IntlTest>
+      <EvidenceProvider urls={urls}>
+        {sources.map((source, index) => (
+          <EvidenceInspector
+            key={index}
+            factId={FACT_ID}
+            source={source}
+            valueText="92 m2"
+            label="Living area"
+          />
+        ))}
+      </EvidenceProvider>
+    </IntlTest>,
   );
 }
 
