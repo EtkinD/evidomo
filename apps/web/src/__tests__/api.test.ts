@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   ApiRequestError,
   apiJson,
+  apiRequestErrorFrom,
   apiNoContent,
   isClientError,
   parseRetryAfter,
@@ -125,5 +126,18 @@ describe('fetchMe', () => {
   it('throws for other failures', async () => {
     mockFetch({ 'GET /api/auth/me': () => jsonResponse(500, { error: 'internal_error' }) });
     await expect(fetchMe()).rejects.toMatchObject({ status: 500, code: 'internal_error' });
+  });
+});
+
+describe('rawCode', () => {
+  it('keeps the error string of a code this client does not know yet', () => {
+    const error = apiRequestErrorFrom(409, { error: 'run_not_resumable' }, null);
+    expect(error.code).toBeNull();
+    expect(error.rawCode).toBe('run_not_resumable');
+  });
+
+  it('equals the typed code for a known one and is null for a body without an error', () => {
+    expect(apiRequestErrorFrom(404, { error: 'not_found' }, null).rawCode).toBe('not_found');
+    expect(apiRequestErrorFrom(502, '<html>', null).rawCode).toBeNull();
   });
 });

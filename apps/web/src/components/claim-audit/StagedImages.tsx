@@ -44,28 +44,28 @@ function Photos({
   operation: string;
 }) {
   const t = useTranslations('claimAudit');
+  // Two prints laid on the desk: the original and, beside it, the staged version with its
+  // disclosure label. A print has a white border and a caption strip; it tilts a little.
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-      <figure className="flex flex-col gap-1">
+    <div className="grid grid-cols-1 gap-5 bg-base-200 p-4 sm:grid-cols-2">
+      <figure className="tilt flex -rotate-1 flex-col gap-2 bg-base-100 p-2 pb-3 shadow-lift">
         {/* eslint-disable-next-line @next/next/no-img-element -- an owner-only API file; next/image cannot optimise it */}
         <img
           src={original}
           alt={t('staged.originalAlt', { operation })}
           loading="lazy"
-          className="w-full rounded-box bg-base-200 object-contain"
+          className="w-full bg-base-200 object-contain"
         />
-        <figcaption className="badge badge-outline h-auto w-fit whitespace-normal py-1">
-          {t('staged.original')}
-        </figcaption>
+        <figcaption className="px-1 text-sm font-medium">{t('staged.original')}</figcaption>
       </figure>
       {staged !== null && (
-        <figure className="flex flex-col gap-1">
+        <figure className="tilt flex rotate-1 flex-col gap-2 bg-base-100 p-2 pb-3 shadow-lift">
           {/* eslint-disable-next-line @next/next/no-img-element -- an owner-only API file; next/image cannot optimise it */}
           <img
             src={staged}
             alt={t('staged.stagedAlt', { operation })}
             loading="lazy"
-            className="w-full rounded-box bg-base-200 object-contain"
+            className="w-full bg-base-200 object-contain"
           />
           <figcaption className="badge badge-secondary h-auto w-fit whitespace-normal py-1 text-left">
             {stagedLabel}
@@ -111,12 +111,12 @@ function ImageCard({
       <div
         role="group"
         aria-label={t('staged.imageLabel', { operation })}
-        className={`flex flex-col gap-3 rounded-box border bg-base-100 p-4 ${
-          decision === null ? 'border-warning' : 'border-base-300'
+        className={`flex flex-col gap-3 border-l-4 bg-base-100 p-4 shadow-sheet ${
+          decision === null ? 'border-warning' : 'border-success'
         }`}
       >
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h3 className="font-semibold">{operation}</h3>
+          <h3 className="text-xl font-medium">{operation}</h3>
           <span className={`badge gap-1 ${decision === null ? 'badge-warning' : 'badge-success'}`}>
             <span aria-hidden>{decision === null ? '!' : '✓'}</span>
             {decision === null ? t('open') : t('decided')}
@@ -134,7 +134,7 @@ function ImageCard({
             ? t('staged.integrityPassed')
             : t('staged.integritySecond')}
         </p>
-        <details className="rounded-box bg-base-200 px-3">
+        <details className="bg-base-200 px-3">
           <summary className="flex min-h-11 cursor-pointer items-center font-medium">
             {t('staged.integrityFor', { operation })}
           </summary>
@@ -239,7 +239,7 @@ export function StagedImages({
   if (images.length === 0 && fallbacks.length === 0) return null;
   return (
     <section aria-labelledby="images-heading" className="flex flex-col gap-4">
-      <h2 id="images-heading" className="text-xl font-semibold">
+      <h2 id="images-heading" className="text-2xl font-medium">
         {t('staged.title')}
       </h2>
       {images.length > 0 && (
@@ -265,7 +265,7 @@ export function StagedImages({
               return (
                 <li
                   key={fallback.materialId}
-                  className="flex flex-col gap-2 rounded-box border border-base-300 p-3"
+                  className="flex flex-col gap-2 border-l-4 border-base-content/30 bg-base-100 p-3 shadow-sheet"
                 >
                   <p className="font-medium">{name}</p>
                   <Photos

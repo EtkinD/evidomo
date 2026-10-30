@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { Logo } from './brand/Logo';
 
-/** Centered single-card layout for the login and register pages; full width on a phone. */
+/** A single sheet on the desk, under the masthead: the heading rules off the form below it. */
 export function AuthCard({
   title,
   description,
@@ -14,21 +14,21 @@ export function AuthCard({
   footer: ReactNode;
 }) {
   return (
-    <main className="flex flex-1 items-start justify-center bg-base-200 px-4 py-10 sm:items-center sm:py-16">
-      <div className="card w-full max-w-sm border border-base-300 bg-base-100">
-        <div className="card-body gap-5">
-          <div className="flex flex-col items-center gap-2 text-center">
+    <main className="flex flex-1 items-start justify-center px-4 py-10 sm:items-center sm:py-16">
+      <div className="settle grain w-full max-w-md bg-base-100 shadow-sheet">
+        <div className="flex flex-col gap-6 p-6 sm:p-8">
+          <div className="relative flex flex-col gap-2 border-b border-base-content/40 pb-5 rule-double">
             {/* The header already names the site; the mark here is decoration. */}
             <div aria-hidden="true">
               <Logo size="lg" />
             </div>
-            <h1 className="card-title text-2xl">{title}</h1>
+            <h1 className="text-4xl leading-tight font-medium tracking-tight">{title}</h1>
             {description !== undefined && (
-              <p className="text-sm text-base-content/70">{description}</p>
+              <p className="font-display text-lg text-base-content/70 italic">{description}</p>
             )}
           </div>
           {children}
-          <p className="text-center text-sm">{footer}</p>
+          <p className="border-t border-base-content/20 pt-4 text-sm">{footer}</p>
         </div>
       </div>
     </main>

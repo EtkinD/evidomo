@@ -6,6 +6,7 @@ import { useFormatter, useTranslations } from 'use-intl';
 import { ApiRequestError } from '../lib/api';
 import { formatBytes } from '../lib/pack';
 import { useRunSource } from '../lib/run-source';
+import { PAGE_TITLE_CLASS } from './DossierPage';
 import { LoadErrorState, LoadingState, RunNotFound, SessionExpiredState } from './RunMonitor';
 
 /**
@@ -26,7 +27,7 @@ function FileRow({ file }: { file: RunExportFile }) {
   const t = useTranslations('pack');
   const format = useFormatter();
   return (
-    <li className="flex flex-wrap items-center justify-between gap-2 rounded-box border border-base-300 bg-base-100 p-3">
+    <li className="flex flex-wrap items-center justify-between gap-2 border-b border-base-content/20 py-2 last:border-b-0">
       <div className="min-w-0">
         <p className="truncate font-medium">{file.fileName}</p>
         <p className="text-sm text-base-content/70">
@@ -90,7 +91,7 @@ function PackReady({ pack }: { pack: RunExportResponse }) {
 
       <section aria-labelledby="pack-preview-heading" className="flex flex-col gap-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 id="pack-preview-heading" className="text-xl font-semibold">
+          <h2 id="pack-preview-heading" className="text-2xl font-medium">
             {t('preview')}
           </h2>
           <div className="flex flex-wrap gap-2">
@@ -102,25 +103,28 @@ function PackReady({ pack }: { pack: RunExportResponse }) {
             </a>
           </div>
         </div>
-        <iframe
-          ref={frame}
-          title={t('previewTitle')}
-          src={html.url}
-          sandbox={PACK_SANDBOX}
-          className="h-[70vh] w-full rounded-box border border-base-300 bg-base-100"
-        />
+        {/* The pack as a printed page lying on the desk. */}
+        <div className="bg-base-100 p-2 shadow-lift sm:p-5">
+          <iframe
+            ref={frame}
+            title={t('previewTitle')}
+            src={html.url}
+            sandbox={PACK_SANDBOX}
+            className="h-[70vh] w-full bg-base-100"
+          />
+        </div>
       </section>
 
       <section aria-labelledby="pack-files-heading" className="flex flex-col gap-3">
-        <h2 id="pack-files-heading" className="text-xl font-semibold">
+        <h2 id="pack-files-heading" className="text-2xl font-medium">
           {t('downloads')}
         </h2>
-        <ul className="flex flex-col gap-2">
+        <ul className="flex flex-col bg-base-100 px-4 py-2 shadow-sheet">
           <FileRow file={html} />
           {json !== undefined && <FileRow file={json} />}
         </ul>
         {images.length > 0 && (
-          <details className="rounded-box border border-base-300 bg-base-100 px-3">
+          <details className="bg-base-100 px-3 shadow-sheet">
             <summary className="flex min-h-11 cursor-pointer items-center font-medium">
               {t('images', { count: images.length })}
             </summary>
@@ -180,7 +184,7 @@ export function PackViewer({
         >
           {t('backToRun')}
         </Link>
-        <h1 className="card-title text-2xl">{t('title')}</h1>
+        <h1 className={PAGE_TITLE_CLASS}>{t('title')}</h1>
       </div>
       {query.data !== undefined ? (
         <PackReady pack={query.data} />

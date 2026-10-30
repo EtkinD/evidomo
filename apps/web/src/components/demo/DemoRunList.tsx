@@ -11,9 +11,9 @@ function DemoRunCard({ run }: { run: DemoRun }) {
   const format = useFormatter();
   return (
     // The title is the link; `after:inset-0` stretches it over the whole card.
-    <li className="card relative border border-base-300 bg-base-100">
-      <div className="card-body gap-2">
-        <h2 className="card-title">
+    <li className="lift relative bg-base-100 shadow-sheet">
+      <div className="flex flex-col gap-2 p-5">
+        <h2 className="text-2xl font-medium">
           <Link
             href={`/demo/runs/${run.id}`}
             className="inline-flex min-h-11 items-center after:absolute after:inset-0"

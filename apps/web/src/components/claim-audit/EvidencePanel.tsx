@@ -56,10 +56,15 @@ export function EvidencePanel({
     <aside
       id="evidence-panel"
       aria-labelledby="evidence-heading"
-      className="fixed inset-x-0 bottom-0 z-30 flex max-h-[70vh] flex-col gap-3 overflow-y-auto rounded-t-box border border-base-300 bg-base-100 p-4 shadow-lg lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:rounded-box lg:shadow-none"
+      className="fixed inset-x-0 bottom-0 z-30 flex max-h-[70vh] flex-col gap-3 overflow-y-auto border-t-4 border-accent bg-base-100 p-4 shadow-lift lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:border-t-0 lg:border-l-4 lg:shadow-sheet"
     >
       <div className="flex items-start justify-between gap-2">
-        <h2 id="evidence-heading" ref={heading} tabIndex={-1} className="text-lg font-semibold">
+        <h2
+          id="evidence-heading"
+          ref={heading}
+          tabIndex={-1}
+          className="text-xl leading-tight font-medium"
+        >
           {t('evidenceFor', { text: segmentLabel(segment.text) })}
         </h2>
         <button type="button" className="btn btn-ghost min-h-11" onClick={onClose}>
@@ -68,21 +73,29 @@ export function EvidencePanel({
       </div>
       <p className="text-sm text-base-content/70">{t('cites', { count: cited.length })}</p>
       <ul className="flex flex-col gap-3">
-        {cited.map(({ id, fact }) => (
-          <li key={id} className="border-t border-base-300 pt-3">
-            {fact === undefined ? (
-              <p role="alert" className="text-sm font-medium text-error">
-                <span aria-hidden>⚠ </span>
-                {t('missingEvidence', { id })}
-              </p>
-            ) : (
-              <EvidenceInspector
-                factId={fact.id}
-                source={fact.source}
-                valueText={labels.value(fact.value, fact.unit, fact.basis)}
-                label={labels.fact(fact.key)}
-              />
-            )}
+        {cited.map(({ id, fact }, index) => (
+          <li key={id} className="flex gap-3 border-t border-dashed border-base-content/30 pt-3">
+            <span
+              aria-hidden
+              className="flex size-6 shrink-0 items-center justify-center rounded-full bg-accent text-sm font-semibold text-accent-content"
+            >
+              {index + 1}
+            </span>
+            <div className="min-w-0 flex-1">
+              {fact === undefined ? (
+                <p role="alert" className="text-sm font-medium text-error">
+                  <span aria-hidden>⚠ </span>
+                  {t('missingEvidence', { id })}
+                </p>
+              ) : (
+                <EvidenceInspector
+                  factId={fact.id}
+                  source={fact.source}
+                  valueText={labels.value(fact.value, fact.unit, fact.basis)}
+                  label={labels.fact(fact.key)}
+                />
+              )}
+            </div>
           </li>
         ))}
       </ul>

@@ -32,6 +32,7 @@ import {
 import { fieldHint, humanize } from '../lib/project-view';
 import { useMarketForm } from '../lib/projects';
 import { useRunSource } from '../lib/run-source';
+import { PAGE_TITLE_CLASS } from './DossierPage';
 import { EvidenceInspector } from './evidence/EvidenceInspector';
 import { EvidenceProvider } from './evidence/EvidenceProvider';
 import { Field } from './FormField';
@@ -165,7 +166,7 @@ function EditValueForm({
   );
 
   return (
-    <form noValidate onSubmit={submit} className="flex flex-col gap-3 rounded-box bg-base-200 p-4">
+    <form noValidate onSubmit={submit} className="flex flex-col gap-3 bg-base-100 p-4 shadow-sheet">
       <Field id={id} label={t('edit.newValueFor', { label })} hint={hint} error={problem ?? error}>
         {(controlProps) =>
           choices === null ? (
@@ -237,53 +238,65 @@ function SideCard({
   const kinds = [...new Set(side.sourceKinds)].map((kind) => t(SOURCE_KIND_KEYS[kind]));
 
   return (
+    // A source sheet: a tab names where the values came from, the evidence hangs below as notes.
     <div
       role="group"
       aria-labelledby={headingId}
-      className={`flex flex-col gap-3 rounded-box bg-base-200 p-4 ${
-        kept ? 'border-2 border-success' : 'border-2 border-transparent'
-      }`}
+      className={`flex flex-col bg-base-100 shadow-sheet ${kept ? 'ring-2 ring-success' : ''}`}
     >
-      <div className="flex flex-col gap-1">
-        <p id={headingId} className="text-lg font-semibold">
-          {valueText}
-        </p>
-        {side.key !== conflict.key && (
-          <p className="text-sm text-base-content/70">{labels.fact(side.key)}</p>
-        )}
-        <p className="text-sm text-base-content/70">
-          {t('sourcesList', { count: side.facts.length, kinds: kinds.join(', ') })}
-        </p>
-        {kept && (
-          <span className="badge badge-success w-fit gap-1">
-            <span aria-hidden>✓</span>
-            {t('kept')}
-          </span>
+      <p className="bg-base-300 px-4 py-1.5 text-sm">
+        {t('sourcesList', { count: side.facts.length, kinds: kinds.join(', ') })}
+      </p>
+      <div className="flex flex-col gap-3 p-4">
+        <div className="flex flex-col gap-1">
+          <p id={headingId} className="font-display text-3xl leading-tight font-medium break-words">
+            {valueText}
+          </p>
+          {side.key !== conflict.key && (
+            <p className="text-sm text-base-content/70">{labels.fact(side.key)}</p>
+          )}
+          {kept && (
+            <span className="badge badge-success w-fit gap-1">
+              <span aria-hidden>✓</span>
+              {t('kept')}
+            </span>
+          )}
+        </div>
+        <ul className="flex flex-col gap-3">
+          {side.facts.map((fact, index) => (
+            <li
+              key={fact.id}
+              className="flex gap-3 border-t border-dashed border-base-content/30 pt-3"
+            >
+              <span
+                aria-hidden
+                className="flex size-6 shrink-0 items-center justify-center rounded-full bg-accent text-sm font-semibold text-accent-content"
+              >
+                {index + 1}
+              </span>
+              <div className="min-w-0 flex-1">
+                <EvidenceInspector
+                  factId={fact.id}
+                  source={fact.source}
+                  valueText={labels.value(fact.value, fact.unit, fact.basis)}
+                  label={labels.fact(fact.key)}
+                />
+              </div>
+            </li>
+          ))}
+        </ul>
+        {!readOnly && !kept && (
+          <button
+            type="button"
+            className="btn btn-secondary min-h-11 self-start"
+            aria-label={t('useValueLabel', { value: valueText })}
+            disabled={busy}
+            onClick={onUse}
+          >
+            {t('useValue')}
+          </button>
         )}
       </div>
-      <ul className="flex flex-col gap-3">
-        {side.facts.map((fact) => (
-          <li key={fact.id} className="border-t border-base-300 pt-3">
-            <EvidenceInspector
-              factId={fact.id}
-              source={fact.source}
-              valueText={labels.value(fact.value, fact.unit, fact.basis)}
-              label={labels.fact(fact.key)}
-            />
-          </li>
-        ))}
-      </ul>
-      {!readOnly && !kept && (
-        <button
-          type="button"
-          className="btn btn-secondary min-h-11 self-start"
-          aria-label={t('useValueLabel', { value: valueText })}
-          disabled={busy}
-          onClick={onUse}
-        >
-          {t('useValue')}
-        </button>
-      )}
     </div>
   );
 }
@@ -353,12 +366,17 @@ function ConflictCard({
       <div
         role="group"
         aria-labelledby={headingId}
-        className={`flex flex-col gap-4 rounded-box border bg-base-100 p-4 ${
-          decision === null ? 'border-warning' : 'border-base-300'
+        className={`flex flex-col gap-4 border-l-4 bg-base-200 p-3 sm:p-5 ${
+          decision === null ? 'border-warning' : 'border-success'
         }`}
       >
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 id={headingId} ref={headingRef} tabIndex={-1} className="text-lg font-semibold">
+          <h2
+            id={headingId}
+            ref={headingRef}
+            tabIndex={-1}
+            className="text-2xl leading-tight font-medium"
+          >
             {label}
           </h2>
           <span className={`badge gap-1 ${decision === null ? 'badge-warning' : 'badge-success'}`}>
@@ -367,12 +385,9 @@ function ConflictCard({
           </span>
         </div>
         <p>{conflict.explanation}</p>
-        <ul aria-label={t('valuesInConflict')} className="grid grid-cols-2 gap-2">
+        <ul aria-label={t('valuesInConflict')} className="grid grid-cols-2 gap-2 md:hidden">
           {conflict.sides.map((side) => (
-            <li
-              key={side.factIds.join()}
-              className="flex flex-col rounded-box border border-base-300 p-2"
-            >
+            <li key={side.factIds.join()} className="flex flex-col bg-base-100 p-2 shadow-sheet">
               <span className="font-semibold">
                 {labels.value(side.value, side.unit, side.basis)}
               </span>
@@ -382,7 +397,7 @@ function ConflictCard({
             </li>
           ))}
         </ul>
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-5 md:grid-cols-2">
           {conflict.sides.map((side) => (
             <SideCard
               key={side.factIds.join()}
@@ -467,7 +482,7 @@ function Progress({ total, open }: { total: number; open: number }) {
   return (
     <section
       aria-label={t('progress')}
-      className="flex flex-col gap-2 rounded-box border border-base-300 bg-base-100 p-4"
+      className="flex flex-col gap-2 border-y border-base-content/30 py-3"
     >
       <p className="font-medium">{t('progressText', { open, total })}</p>
       <progress
@@ -560,7 +575,7 @@ export function FactConflictsView({
           >
             {t('backToRun')}
           </Link>
-          <h1 className="card-title text-2xl">
+          <h1 className={PAGE_TITLE_CLASS}>
             {data.state === 'open' && !demo ? t('titleResolve') : t('title')}
           </h1>
         </div>

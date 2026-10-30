@@ -22,7 +22,7 @@ import {
   type UseMutationResult,
   type UseQueryResult,
 } from '@tanstack/react-query';
-import { apiJson } from './api';
+import { ApiRequestError, apiJson, apiNoContent } from './api';
 
 export const projectsKey = ['projects'] as const;
 export const projectKey = (projectId: string) => ['projects', projectId] as const;
@@ -132,6 +132,23 @@ export function useStartRun(
     onSettled: async () => {
       void queryClient.invalidateQueries({ queryKey: projectsKey, exact: true });
       await queryClient.invalidateQueries({ queryKey: projectKey(projectId) });
+    },
+  });
+}
+
+/**
+ * `DELETE /api/projects/:projectId` (204). A 404 means it is already gone, which the caller treats
+ * as done; 409 `run_in_progress` leaves everything as it is.
+ */
+export function useDeleteProject(projectId: string): UseMutationResult<void, Error, void> {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => apiNoContent(`/api/projects/${projectId}`, { method: 'DELETE' }),
+    onSettled: (_data, error) => {
+      // Only a project that is really gone leaves the caches; its detail must not refetch (404).
+      if (error !== null && !(error instanceof ApiRequestError && error.status === 404)) return;
+      queryClient.removeQueries({ queryKey: projectKey(projectId) });
+      void queryClient.invalidateQueries({ queryKey: projectsKey, exact: true });
     },
   });
 }

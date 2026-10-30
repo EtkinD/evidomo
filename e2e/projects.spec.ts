@@ -75,3 +75,30 @@ test('register, create a project, fill the fact form, and see what is still miss
   await expect(page.getByRole('link', { name: 'Zandmeer Lane 100' })).toBeVisible();
   await expect(page.getByText('No run yet')).toBeVisible();
 });
+
+test('delete a project after confirming, and land on the list with a message', async ({ page }) => {
+  const email = `e2e-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.test`;
+  await page.goto('/register?next=%2Fprojects%2Fnew');
+  await page.getByRole('textbox', { name: 'Email' }).fill(email);
+  await page.getByLabel('Password').fill(`e2e-password-${Date.now()}`);
+  await page.getByRole('button', { name: 'Create account' }).click();
+  await page.getByLabel('Project title').fill('Doomed Lane 1');
+  await page.getByLabel('Agency name').fill('E2E Realty');
+  await page.getByRole('button', { name: 'Create project' }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Doomed Lane 1' })).toBeVisible();
+
+  await page.getByRole('button', { name: 'Delete project…' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Delete “Doomed Lane 1”?' });
+  await expect(dialog).toBeVisible();
+  // The safe choice has focus; Escape closes without deleting.
+  await expect(dialog.getByRole('button', { name: 'Keep project' })).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(dialog).toBeHidden();
+  await expect(page.getByRole('button', { name: 'Delete project…' })).toBeFocused();
+
+  await page.getByRole('button', { name: 'Delete project…' }).click();
+  await dialog.getByRole('button', { name: 'Delete permanently' }).click();
+  await expect(page).toHaveURL('/projects');
+  await expect(page.getByText('“Doomed Lane 1” was deleted.')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'No projects yet' })).toBeVisible();
+});

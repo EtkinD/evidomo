@@ -1,12 +1,11 @@
 import type { MarketForm, ProjectDetailResponse } from '@evidomo/shared';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useId, useRef, useState, useSyncExternalStore } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslations } from 'use-intl';
 import {
   describeAccessFailure,
   humanizeWait,
-  readStoredAccessCode,
   storeAccessCode,
   type AccessFailure,
 } from '../lib/access-code';
@@ -15,10 +14,8 @@ import type { Translator } from '../lib/i18n';
 import { readinessMessage } from '../lib/project-view';
 import { useStartRun } from '../lib/projects';
 import { describeRequestFailure } from '../lib/request-failure';
-import { Field } from './FormField';
+import { AccessCodeField, useAccessCode } from './AccessCodeField';
 import { RunStatusBadge } from './RunStatusBadge';
-
-const subscribeNever = (): (() => void) => () => undefined;
 
 type StartFailure =
   | AccessFailure
@@ -55,12 +52,7 @@ export function ReadinessPanel({ detail, market, hasUnsavedChanges }: ReadinessP
   const [failure, setFailure] = useState<StartFailure | null>(null);
   // A ref: two clicks in the same tick both see the mutation as idle.
   const starting = useRef(false);
-  const codeId = useId();
-  const [typedCode, setTypedCode] = useState<string | null>(null);
-  const [showCode, setShowCode] = useState(false);
-  // The server snapshot is empty, so hydration matches; the stored code appears right after.
-  const storedCode = useSyncExternalStore(subscribeNever, readStoredAccessCode, () => '');
-  const accessCode = typedCode ?? storedCode;
+  const { code: accessCode, setCode } = useAccessCode();
 
   function onStart(): void {
     if (starting.current || mutation.isPending || mutation.isSuccess || hasUnsavedChanges) return;
@@ -96,7 +88,10 @@ export function ReadinessPanel({ detail, market, hasUnsavedChanges }: ReadinessP
         {readiness.activeRunId !== null ? (
           <p>
             {t('activeRun')}{' '}
-            <Link href={`/runs/${readiness.activeRunId}`} className="link font-medium">
+            <Link
+              href={`/runs/${readiness.activeRunId}`}
+              className="link inline-flex min-h-11 items-center font-medium"
+            >
               {t('viewActiveRun')}
             </Link>
           </p>
@@ -129,7 +124,10 @@ export function ReadinessPanel({ detail, market, hasUnsavedChanges }: ReadinessP
               {readiness.activeRunId !== null && (
                 <>
                   {' '}
-                  <Link href={`/runs/${readiness.activeRunId}`} className="link font-medium">
+                  <Link
+                    href={`/runs/${readiness.activeRunId}`}
+                    className="link inline-flex min-h-11 items-center font-medium"
+                  >
                     {t('viewActiveRun')}
                   </Link>
                 </>
@@ -162,39 +160,14 @@ export function ReadinessPanel({ detail, market, hasUnsavedChanges }: ReadinessP
           </div>
         )}
 
-        <Field
-          id={codeId}
-          label={t('accessCode')}
-          hint={t('accessCodeHint')}
+        <AccessCodeField
+          code={accessCode}
           error={failure?.kind === 'code_invalid' ? t('accessCodeInvalid') : undefined}
-        >
-          {(control) => (
-            <div className="join w-full sm:max-w-sm">
-              <input
-                {...control}
-                type={showCode ? 'text' : 'password'}
-                className={`input join-item min-h-11 w-full ${failure?.kind === 'code_invalid' ? 'input-error' : ''}`}
-                value={accessCode}
-                autoComplete="off"
-                autoCapitalize="none"
-                spellCheck={false}
-                onChange={(event) => {
-                  setTypedCode(event.target.value);
-                  if (failure?.kind === 'code_invalid') setFailure(null);
-                }}
-              />
-              <button
-                type="button"
-                className="btn join-item min-h-11"
-                aria-pressed={showCode}
-                onClick={() => setShowCode((value) => !value)}
-              >
-                <span aria-hidden>{showCode ? t('hide') : t('show')}</span>
-                <span className="sr-only">{showCode ? t('hideCode') : t('showCode')}</span>
-              </button>
-            </div>
-          )}
-        </Field>
+          onChange={(value) => {
+            setCode(value);
+            if (failure?.kind === 'code_invalid') setFailure(null);
+          }}
+        />
 
         <div className="flex flex-wrap items-center gap-3">
           <button

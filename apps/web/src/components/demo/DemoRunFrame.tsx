@@ -5,6 +5,7 @@ import type { ReactNode } from 'react';
 import { useTranslations } from 'use-intl';
 import { demoRunSource, RunSourceProvider } from '../../lib/run-source';
 import { LoadingState, RunNotFound } from '../RunMonitor';
+import { DossierPage } from '../DossierPage';
 import { DemoBanner } from './DemoBanner';
 
 /**
@@ -30,22 +31,15 @@ export function DemoRunFrame({
       <Head>
         <title>{t(`pages.${page}.title`)}</title>
       </Head>
-      <main className="flex-1 bg-base-200 px-4 py-8">
-        <div className={`mx-auto flex flex-col gap-4 ${widthClass}`}>
-          <DemoBanner />
-          <section className="card border border-base-300 bg-base-100">
-            <div className="card-body gap-6">
-              {!router.isReady ? (
-                <LoadingState label={t(`pages.${page}.loading`)} />
-              ) : params.success ? (
-                children(params.data.runId)
-              ) : (
-                <RunNotFound />
-              )}
-            </div>
-          </section>
-        </div>
-      </main>
+      <DossierPage widthClass={widthClass} banner={<DemoBanner />} bare={page === 'pack'}>
+        {!router.isReady ? (
+          <LoadingState label={t(`pages.${page}.loading`)} />
+        ) : params.success ? (
+          children(params.data.runId)
+        ) : (
+          <RunNotFound />
+        )}
+      </DossierPage>
     </RunSourceProvider>
   );
 }

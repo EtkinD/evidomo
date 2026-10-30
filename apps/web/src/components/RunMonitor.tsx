@@ -1,6 +1,6 @@
 import type { RunSnapshot, RunStepSnapshot, RunStepViewStatus } from '@evidomo/shared';
 import Link from 'next/link';
-import type { ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useFormatter, useTranslations } from 'use-intl';
 import { ApiRequestError } from '../lib/api';
 import type { Translator } from '../lib/i18n';
@@ -8,6 +8,8 @@ import { withNext } from '../lib/next-path';
 import { costShare, formatDuration, formatUsd, gateLabel } from '../lib/run-monitor';
 import { useRunSource } from '../lib/run-source';
 import { stepLabel } from '../lib/step-labels';
+import { PAGE_TITLE_CLASS } from './DossierPage';
+import { FailureNotice } from './RunFailure';
 import type { RunMonitor as RunMonitorState, StreamState } from '../lib/use-run-monitor';
 
 // Labels are keys of the `run` messages, translated where the badge renders.
@@ -67,9 +69,26 @@ function isReviewStep(step: RunStepSnapshot, run: RunSnapshot): boolean {
   );
 }
 
-function StepBadge({ step, review }: { step: RunStepSnapshot; review: boolean }) {
+function StepBadge({
+  step,
+  review,
+  retrying,
+}: {
+  step: RunStepSnapshot;
+  review: boolean;
+  retrying: boolean;
+}) {
   const t = useTranslations('run');
+  const tF = useTranslations('runFailure');
   const { status } = step;
+  if (retrying) {
+    return (
+      <span className="badge badge-warning gap-1">
+        <StatusMark kind="running" />
+        {tF('retrying')}
+      </span>
+    );
+  }
   const { className, label } = review
     ? { className: 'badge-secondary', label: 'stepStatus.needsReview' as const }
     : STEP_BADGES[status];
@@ -90,6 +109,15 @@ function StepBadge({ step, review }: { step: RunStepSnapshot; review: boolean })
   );
 }
 
+/** A failed execution waiting for (or in) its automatic retry; `error` says why it failed. */
+function isRetrying(step: RunStepSnapshot): boolean {
+  return (
+    step.error !== null &&
+    (step.status === 'queued' || (step.status === 'running' && step.executions > 1))
+  );
+}
+
+/** One line of the run's ledger: number, label, status, and the trace (attempts, cost, time). */
 function StepItem({
   step,
   index,
@@ -100,6 +128,7 @@ function StepItem({
   run: RunSnapshot;
 }) {
   const t = useTranslations('run');
+  const tF = useTranslations('runFailure');
   const tSteps = useTranslations('steps');
   const format = useFormatter();
   const cap = run.maxExecutionsPerAttempt;
@@ -107,52 +136,62 @@ function StepItem({
   const { label, description } = stepLabel(tSteps, step.stepId);
   const review = isReviewStep(step, run);
   const current = review || step.status === 'running';
+  const retrying = isRetrying(step);
   const showAttempts = step.attempts > 1 || step.executions > 1;
+  const tint = review ? 'bg-secondary/15' : step.status === 'failed' ? 'bg-error/10' : '';
   return (
     <li
       aria-current={current ? 'step' : undefined}
-      className={`flex flex-col gap-1 rounded-box border bg-base-100 p-3 ${
-        review ? 'border-secondary' : step.status === 'failed' ? 'border-error' : 'border-base-300'
-      }`}
+      className={`grid grid-cols-[2rem_minmax(0,1fr)] gap-x-3 border-b border-base-content/20 px-2 py-3 sm:grid-cols-[2.5rem_minmax(0,1fr)] ${tint}`}
     >
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <span className="flex items-center gap-2 font-semibold">
-          <span className="badge badge-ghost font-mono" aria-hidden>
-            {index + 1}
-          </span>
-          {label}
-        </span>
-        <StepBadge step={step} review={review} />
+      <span
+        aria-hidden
+        className="pt-0.5 font-display text-2xl leading-none text-base-content/70 tabular-nums"
+      >
+        {index + 1}
+      </span>
+      <div className="flex min-w-0 flex-col gap-1">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <span className="font-semibold">{label}</span>
+          {/* The ledger's dotted leader between the entry and its status. */}
+          <span
+            aria-hidden
+            className="mx-1 hidden h-px min-w-6 flex-1 border-b border-dotted border-base-content/40 sm:block"
+          />
+          <StepBadge step={step} review={review} retrying={retrying} />
+        </div>
+        {description !== '' && <p className="text-sm text-base-content/70">{description}</p>}
+        <dl className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-base-content/70">
+          {showAttempts && (
+            <div className="flex gap-1">
+              <dt>{t('attempts')}</dt>
+              <dd>
+                {step.attempts}
+                {cap > 0 && step.executions > 1
+                  ? ` (${t('execution', { current: step.executions, max: cap })})`
+                  : ''}
+              </dd>
+            </div>
+          )}
+          {step.costUsd !== undefined && (
+            <div className="flex gap-1">
+              <dt>{t('cost')}</dt>
+              <dd>{formatUsd(format, step.costUsd)}</dd>
+            </div>
+          )}
+          {duration !== null && (
+            <div className="flex gap-1">
+              <dt>{t('duration.label')}</dt>
+              <dd>{duration}</dd>
+            </div>
+          )}
+        </dl>
+        {step.error !== null && step.status !== 'completed' && (
+          <p className="border-l-2 border-error pl-2 text-sm break-words">
+            {retrying ? tF('retryingNote', { reason: step.error }) : step.error}
+          </p>
+        )}
       </div>
-      {description !== '' && <p className="text-sm text-base-content/70">{description}</p>}
-      <dl className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-base-content/70">
-        {showAttempts && (
-          <div className="flex gap-1">
-            <dt>{t('attempts')}</dt>
-            <dd>
-              {step.attempts}
-              {cap > 0 && step.executions > 1
-                ? ` (${t('execution', { current: step.executions, max: cap })})`
-                : ''}
-            </dd>
-          </div>
-        )}
-        {step.costUsd !== undefined && (
-          <div className="flex gap-1">
-            <dt>{t('cost')}</dt>
-            <dd>{formatUsd(format, step.costUsd)}</dd>
-          </div>
-        )}
-        {duration !== null && (
-          <div className="flex gap-1">
-            <dt>{t('duration.label')}</dt>
-            <dd>{duration}</dd>
-          </div>
-        )}
-      </dl>
-      {step.error !== null && step.status !== 'completed' && (
-        <p className="text-sm text-error">{step.error}</p>
-      )}
     </li>
   );
 }
@@ -167,15 +206,15 @@ function CostCard({ run, costUsd }: { run: RunSnapshot; costUsd: string }) {
   return (
     <section
       aria-labelledby="run-cost-heading"
-      className="flex flex-col gap-2 rounded-box border border-base-300 bg-base-100 p-4"
+      className="flex flex-col gap-2 bg-base-100 p-4 shadow-sheet"
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 id="run-cost-heading" className="text-lg font-semibold">
+        <h2 id="run-cost-heading" className="text-lg font-medium">
           {t('costSoFar')}
         </h2>
         <span className="badge badge-outline">{t('devOnly')}</span>
       </div>
-      <p className="text-3xl font-bold">
+      <p className="font-display text-4xl font-medium tabular-nums">
         {formatUsd(format, costUsd)}
         {cap !== null && (
           <span className="text-base font-normal text-base-content/70">
@@ -214,14 +253,14 @@ function GateNotice({ gate, runId }: { gate: NonNullable<RunSnapshot['gate']>; r
   return (
     <section
       aria-label={t('reviewNeeded')}
-      className="flex flex-col gap-3 rounded-box border-2 border-secondary bg-base-100 p-4"
+      className="flex flex-col gap-3 border-l-4 border-secondary bg-base-100 p-4 shadow-sheet"
     >
       <div className="flex flex-wrap items-center gap-2">
         <span className="badge badge-secondary gap-1">
           <span aria-hidden>!</span>
           {t('paused')}
         </span>
-        <h2 className="text-lg font-semibold">{gateLabel(t, gate)}</h2>
+        <h2 className="text-xl leading-tight font-medium">{gateLabel(t, gate)}</h2>
       </div>
       <p className="text-sm text-base-content/70">{demo ? t('gateTextDemo') : t('gateText')}</p>
       <div>
@@ -242,22 +281,6 @@ function GateNotice({ gate, runId }: { gate: NonNullable<RunSnapshot['gate']>; r
   );
 }
 
-function FailureNotice({ reason }: { reason: string | null }) {
-  const t = useTranslations('run');
-  return (
-    <div role="alert" className="alert alert-error alert-vertical items-start sm:alert-horizontal">
-      <div className="flex flex-col gap-1">
-        <h2 className="font-semibold">
-          <span aria-hidden>× </span>
-          {t('failed')}
-        </h2>
-        <p className="text-sm">{reason ?? t('noReason')}</p>
-        <p className="text-sm">{t('untouched')}</p>
-      </div>
-    </div>
-  );
-}
-
 function CompletedNotice({ run, runId }: { run: RunSnapshot; runId: string }) {
   const t = useTranslations('run');
   const source = useRunSource();
@@ -266,14 +289,14 @@ function CompletedNotice({ run, runId }: { run: RunSnapshot; runId: string }) {
   return (
     <section
       aria-label={t('finishedLabel')}
-      className="flex flex-col gap-3 rounded-box border-2 border-success bg-base-100 p-4"
+      className="flex flex-col gap-3 border-l-4 border-success bg-base-100 p-4 shadow-sheet"
     >
       <div className="flex flex-wrap items-center gap-2">
         <span className="badge badge-success gap-1">
           <CheckIcon />
           {t('finished')}
         </span>
-        <h2 className="text-lg font-semibold">
+        <h2 className="text-xl leading-tight font-medium">
           {source.kind === 'demo' ? t('packReadyDemo') : t('packReady')}
         </h2>
       </div>
@@ -369,7 +392,7 @@ function StepProgress({ run }: { run: RunSnapshot }) {
     <div className="flex flex-col gap-1">
       <p className="text-sm text-base-content/70">{t('stepsDone', { done, total })}</p>
       <progress
-        className="progress progress-primary w-full"
+        className="progress progress-primary h-2 w-full"
         value={done}
         max={total}
         aria-label={t('stepsDoneLabel')}
@@ -390,8 +413,17 @@ export function RunMonitorView({
 }) {
   const t = useTranslations('run');
   const tSteps = useTranslations('steps');
+  const tF = useTranslations('runFailure');
   const demo = useRunSource().kind === 'demo';
   const run = monitor.snapshot.data;
+  // After a resume the failure panel is gone: this line says what happened and holds focus.
+  const [resumedAt, setResumedAt] = useState<{ step: string | null } | null>(null);
+  const resumedRef = useRef<HTMLParagraphElement>(null);
+  const status = run?.status;
+  useEffect(() => {
+    // The snapshot lands a tick after the mutation resolves; focus once the line is on screen.
+    if (resumedAt !== null && status !== 'failed') resumedRef.current?.focus();
+  }, [resumedAt, status]);
   if (run === undefined) return <RunLoadState monitor={monitor} runId={runId} />;
 
   const badge = RUN_BADGES[run.status];
@@ -408,8 +440,8 @@ export function RunMonitorView({
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
-        <h1 className="card-title text-2xl">{demo ? t('titleDemo') : t('title')}</h1>
-        <div className="flex flex-wrap items-center gap-2">
+        <h1 className={PAGE_TITLE_CLASS}>{demo ? t('titleDemo') : t('title')}</h1>
+        <div className="flex flex-wrap items-center gap-2 border-b border-base-content/40 pb-4">
           <span className={`badge ${badge.className} gap-1`}>
             <StatusMark kind={badgeMark} />
             {t(badge.label)}
@@ -423,6 +455,16 @@ export function RunMonitorView({
       </div>
 
       {controls}
+      {resumedAt !== null && run.status !== 'failed' && (
+        <p
+          ref={resumedRef}
+          tabIndex={-1}
+          role="status"
+          className="border-l-4 border-success bg-base-100 p-3 text-sm shadow-sheet"
+        >
+          {resumedAt.step === null ? tF('resumedGeneric') : tF('resumed', { step: resumedAt.step })}
+        </p>
+      )}
       <StreamNotice state={monitor.streamState} onRetry={monitor.retryStream} demo={demo} />
       {monitor.sessionExpired ? (
         <SessionExpiredState next={`/runs/${runId}`} />
@@ -439,7 +481,9 @@ export function RunMonitorView({
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="flex flex-col gap-4 lg:order-last">
-          {run.status === 'failed' && <FailureNotice reason={run.failureReason} />}
+          {run.status === 'failed' && (
+            <FailureNotice run={run} runId={runId} onResumed={(step) => setResumedAt({ step })} />
+          )}
           {run.status === 'awaiting_gate' && run.gate !== null && (
             <GateNotice gate={run.gate} runId={runId} />
           )}
@@ -450,11 +494,11 @@ export function RunMonitorView({
         </div>
 
         <section aria-labelledby="run-steps-heading" className="flex flex-col gap-3">
-          <h2 id="run-steps-heading" className="text-xl font-semibold">
+          <h2 id="run-steps-heading" className="text-2xl font-medium">
             {t('steps')}
           </h2>
           <StepProgress run={run} />
-          <ol className="flex flex-col gap-2">
+          <ol className="flex flex-col border-t-2 border-base-content/40">
             {run.steps.map((step, index) => (
               <StepItem key={step.stepId} step={step} index={index} run={run} />
             ))}

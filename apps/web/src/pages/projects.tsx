@@ -1,10 +1,12 @@
 import type { ProjectSummary } from '@evidomo/shared';
 import Head from 'next/head';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { useLocale, useTranslations } from 'use-intl';
 import { LoadError, LoadingBlock } from '../components/PageStates';
 import { RunStatusBadge } from '../components/RunStatusBadge';
 import { useMe } from '../lib/auth';
+import { clearFlash, peekFlash, type Flash } from '../lib/flash';
 import { getStaticProps } from '../lib/i18n-server';
 import type { NextPageWithAuth } from '../lib/page-auth';
 import { languageName } from '../lib/project-view';
@@ -95,6 +97,12 @@ const ProjectsPage: NextPageWithAuth = () => {
   const t = useTranslations('projects');
   const { data: user } = useMe();
   const projects = useProjects();
+  const tDelete = useTranslations('deleteProject');
+  // Read in the initialiser (pure) and consumed in an effect, so a strict-mode remount keeps it.
+  const [flash, setFlash] = useState<Flash | null>(() => peekFlash());
+  useEffect(() => {
+    clearFlash();
+  }, []);
 
   return (
     <>
@@ -120,6 +128,19 @@ const ProjectsPage: NextPageWithAuth = () => {
               </Link>
             )}
           </div>
+
+          {flash !== null && (
+            <div role="status" className="alert alert-success alert-vertical sm:alert-horizontal">
+              <span>
+                {flash.kind === 'project_deleted'
+                  ? tDelete('deletedNotice', { title: flash.title })
+                  : tDelete('goneNotice')}
+              </span>
+              <button type="button" className="btn min-h-11" onClick={() => setFlash(null)}>
+                {tDelete('dismiss')}
+              </button>
+            </div>
+          )}
 
           {projects.isPending && <LoadingBlock label={t('loading')} cards={3} />}
 

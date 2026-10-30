@@ -197,28 +197,45 @@ export function SegmentItem({
     <button
       type="button"
       id={segmentButtonId(segment.claimId)}
-      className={`min-h-11 w-full rounded-field px-2 py-2 text-left hover:bg-base-200 ${
+      className={`min-h-11 w-full rounded-field px-2 py-2 text-left ${
         removed ? 'line-through opacity-80' : ''
-      } ${flagged ? 'bg-warning/20' : ''}`}
+      } ${selected ? 'bg-accent text-accent-content' : `hover:bg-base-200 ${flagged ? 'bg-warning/20' : ''}`}`}
       aria-expanded={selected}
       aria-controls={selected ? 'evidence-panel' : undefined}
       onClick={() => onSelect(segment.claimId)}
     >
       <span className="sr-only">{t('showEvidenceFor')} </span>
       {shownText}
+      {/* The footnote mark: how many pieces of evidence this claim cites. */}
+      <sup aria-hidden className="ml-1 font-sans text-xs font-semibold">
+        {segment.factIds.length}
+      </sup>
     </button>
   );
 
-  const itemClass = paragraphBreak ? 'mt-3' : undefined;
+  const itemClass = `relative ${paragraphBreak ? 'mt-3' : ''}`;
+  // The citation line: from the selected claim across the gutter to the evidence panel.
+  const leader = selected ? (
+    <span
+      aria-hidden
+      className="leader absolute top-1/2 left-full hidden w-6 [animation-delay:0ms] lg:block"
+    />
+  ) : null;
 
-  if (!flagged) return <li className={itemClass}>{text}</li>;
+  if (!flagged)
+    return (
+      <li className={itemClass}>
+        {text}
+        {leader}
+      </li>
+    );
 
   return (
     <li className={itemClass}>
       <div
         role="group"
         aria-label={t('flaggedLabel', { name })}
-        className="flex flex-col gap-3 rounded-box border-l-4 border-warning bg-base-100 p-2 pl-3 ring-1 ring-base-300"
+        className="flex flex-col gap-3 border-l-4 border-warning bg-base-100 p-2 pl-3 shadow-sheet"
       >
         {text}
         {decision?.choice === 'edit' && (
@@ -239,6 +256,7 @@ export function SegmentItem({
                   {t('suggestion', { text: flag.suggestion })}
                 </p>
               )}
+              {leader}
             </li>
           ))}
         </ul>

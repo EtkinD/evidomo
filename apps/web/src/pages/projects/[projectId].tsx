@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { useLocale, useTranslations } from 'use-intl';
+import { DeleteProject } from '../../components/DeleteProject';
 import { FactForm } from '../../components/FactForm';
 import { MaterialsSummary } from '../../components/MaterialsSummary';
 import { ProjectDetailsForm } from '../../components/ProjectDetailsForm';
@@ -118,6 +119,8 @@ const ProjectPage: NextPageWithAuth = () => {
             />
           </div>
         </section>
+
+        <DeleteProject detail={detail} />
       </>
     );
   }

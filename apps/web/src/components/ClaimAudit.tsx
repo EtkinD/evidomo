@@ -20,6 +20,7 @@ import { useRunSource } from '../lib/run-source';
 import { EvidencePanel } from './claim-audit/EvidencePanel';
 import { SegmentItem, segmentButtonId, type ReviewContext } from './claim-audit/SegmentItem';
 import { StagedImages } from './claim-audit/StagedImages';
+import { PAGE_TITLE_CLASS } from './DossierPage';
 import { EvidenceProvider } from './evidence/EvidenceProvider';
 import { labelsFor } from './FactConflicts';
 import { LoadErrorState, LoadingState, RunNotFound, SessionExpiredState } from './RunMonitor';
@@ -54,15 +55,15 @@ function Summary({
   const { counts } = data;
   return (
     <section aria-labelledby="summary-heading" className="flex flex-col gap-3">
-      <h2 id="summary-heading" className="text-xl font-semibold">
+      <h2 id="summary-heading" className="text-2xl font-medium">
         {t('summary')}
       </h2>
       {data.stopReason !== null && <p>{stopReasonText(t, data.stopReason)}</p>}
       <ul className="grid gap-2 sm:grid-cols-2">
-        <li className="rounded-box border border-base-300 bg-base-100 p-3">
+        <li className="border-l-4 border-accent bg-base-200 p-3">
           {t('flaggedClaims', { total: counts.flaggedClaims, open: counts.openClaims })}
         </li>
-        <li className="rounded-box border border-base-300 bg-base-100 p-3">
+        <li className="border-l-4 border-accent bg-base-200 p-3">
           {t('stagedOffered', { total: counts.offeredImages, open: counts.openImages })}
         </li>
       </ul>
@@ -94,9 +95,9 @@ function ApproveSection({
   return (
     <section
       aria-labelledby="approve-heading"
-      className="flex flex-col gap-3 rounded-box border-2 border-secondary bg-base-100 p-4"
+      className="flex flex-col gap-3 border-l-4 border-secondary bg-base-100 p-4 shadow-sheet"
     >
-      <h2 id="approve-heading" className="text-xl font-semibold">
+      <h2 id="approve-heading" className="text-2xl font-medium">
         {t('approveTitle')}
       </h2>
       {data.openCount > 0 ? (
@@ -147,13 +148,13 @@ function VariantBlock({
   const headingId = `variant-${title.replaceAll(' ', '-').toLowerCase()}`;
   return (
     <section aria-labelledby={headingId} className="flex flex-col gap-3">
-      <h3 id={headingId} className="text-lg font-semibold">
+      <h3 id={headingId} className="text-xl font-medium">
         {title}
       </h3>
       {segments.length === 0 ? (
         <p className="text-base-content/70">{t('noText')}</p>
       ) : (
-        <ul className="flex flex-col gap-2">
+        <ul className="flex flex-col gap-1 border-l-2 border-base-content/30 pl-3 font-display text-lg leading-relaxed sm:pl-5">
           {segments.map((segment, index) => {
             const startsParagraph =
               index > 0 && segments[index - 1]?.paragraph !== segment.paragraph;
@@ -270,7 +271,7 @@ export function ClaimAuditView({
           >
             {t('backToRun')}
           </Link>
-          <h1 className="card-title text-2xl">{open ? t('titleOpen') : t('title')}</h1>
+          <h1 className={PAGE_TITLE_CLASS}>{open ? t('titleOpen') : t('title')}</h1>
         </div>
 
         {data.state === 'not_reached' && (
@@ -298,7 +299,7 @@ export function ClaimAuditView({
               <Summary data={data} warningLines={warningLines} open={open} />
               {open && <p className="text-base-content/70">{t('select')}</p>}
               <section aria-labelledby="copy-heading" className="flex flex-col gap-6">
-                <h2 id="copy-heading" className="text-xl font-semibold">
+                <h2 id="copy-heading" className="text-2xl font-medium">
                   {t('copy')}
                 </h2>
                 {data.variants.map((variant) => (
@@ -312,7 +313,7 @@ export function ClaimAuditView({
               </section>
               {data.qaCards.length > 0 && (
                 <section aria-labelledby="qa-heading" className="flex flex-col gap-4">
-                  <h2 id="qa-heading" className="text-xl font-semibold">
+                  <h2 id="qa-heading" className="text-2xl font-medium">
                     {t('buyerQuestions')}
                   </h2>
                   <ul className="flex flex-col gap-4">
@@ -324,7 +325,7 @@ export function ClaimAuditView({
                             number: card.card + 1,
                             question: card.question,
                           })}
-                          className="flex flex-col gap-2 rounded-box border border-base-300 bg-base-100 p-3"
+                          className="flex flex-col gap-2 border-l-4 border-base-content/30 bg-base-200 p-3 sm:p-4"
                         >
                           <p className="font-semibold">{card.question}</p>
                           {card.dropped && <p className="badge badge-neutral">{t('dropped')}</p>}

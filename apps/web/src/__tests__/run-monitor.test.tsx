@@ -165,9 +165,14 @@ describe('run monitor', () => {
       );
     });
     await waitFor(() => {
-      expect(within(stepItem('extract')).getByText('Queued')).toBeDefined();
+      // A failed execution that will run again reads as a retry, with the API's reason.
+      expect(within(stepItem('extract')).getByText('Retrying')).toBeDefined();
     });
-    expect(within(stepItem('extract')).getByText(/timed out after 600 s/)).toBeDefined();
+    expect(
+      within(stepItem('extract')).getByText(
+        /Retrying automatically after: .*timed out after 600 s/,
+      ),
+    ).toBeDefined();
 
     act(() => {
       source.emit(event('step_started', { stepId: 'extract', attempt: 1, execution: 2 }));
