@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, screen, waitFor, within } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { stepLabel } from '../lib/step-labels';
 import { useRunMonitor } from '../lib/use-run-monitor';
 import RunPage from '../pages/runs/[runId]';
 import { FakeEventSource } from './fake-event-source';
@@ -102,7 +103,9 @@ async function renderMonitor() {
   return view;
 }
 
-function stepItem(name: string): HTMLElement {
+/** Finds a step card by its step ID, through the plain label the screen shows for it. */
+function stepItem(stepId: string): HTMLElement {
+  const name = stepLabel(stepId).label;
   const item = screen
     .getAllByRole('listitem')
     .find((li) => within(li).queryByText(name, { exact: true }) !== null);
@@ -125,13 +128,13 @@ describe('run monitor', () => {
     await renderMonitor();
 
     expect(FakeEventSource.last.url).toBe(`${RUN_PATH}/events?after=4`);
-    expect(within(stepItem('intake')).getByText('Completed')).toBeDefined();
+    expect(within(stepItem('intake')).getByText('Done')).toBeDefined();
     expect(within(stepItem('intake')).getByText('42 s')).toBeDefined();
-    expect(within(stepItem('extract')).getByText('Pending')).toBeDefined();
+    expect(within(stepItem('extract')).getByText('Waiting')).toBeDefined();
     const bar = screen.getByRole('progressbar', { name: 'Run cost against the cap' });
     expect(bar.getAttribute('value')).toBe('25');
     expect(
-      within(screen.getByRole('region', { name: 'Cost' })).getByText(/\$0\.5000/),
+      within(screen.getByRole('region', { name: 'Cost so far' })).getByText(/\$0\.5000/),
     ).toBeDefined();
   });
 
@@ -180,7 +183,7 @@ describe('run monitor', () => {
       );
     });
     await waitFor(() => {
-      expect(within(stepItem('extract')).getByText('Completed')).toBeDefined();
+      expect(within(stepItem('extract')).getByText('Done')).toBeDefined();
     });
     expect(within(stepItem('extract')).queryByText(/timed out/)).toBeNull();
   });
@@ -204,11 +207,13 @@ describe('run monitor', () => {
 
     await waitFor(() => {
       expect(
-        within(screen.getByRole('region', { name: 'Cost' })).getByText(/\$1\.0000/),
+        within(screen.getByRole('region', { name: 'Cost so far' })).getByText(/\$1\.0000/),
       ).toBeDefined();
     });
     expect(within(stepItem('intake')).getByText('$0.9000')).toBeDefined();
-    expect(screen.getByRole('progressbar').getAttribute('value')).toBe('50');
+    expect(
+      screen.getByRole('progressbar', { name: 'Run cost against the cap' }).getAttribute('value'),
+    ).toBe('50');
     expect(live?.textContent).toBe(before);
   });
 
@@ -480,7 +485,7 @@ describe('run monitor', () => {
     });
     // Seq 6 was a gap against the cached cursor, so it only asked for a snapshot; the stale
     // response did not roll anything back and the trailing one is what is shown.
-    await within(screen.getByRole('region', { name: 'Cost' })).findByText(/\$1\.0000/);
+    await within(screen.getByRole('region', { name: 'Cost so far' })).findByText(/\$1\.0000/);
   });
 
   it('keeps asking for a snapshot after a failed resync until one lands', async () => {
@@ -512,7 +517,7 @@ describe('run monitor', () => {
     await waitFor(() => {
       expect(calls).toBe(3);
     });
-    await within(screen.getByRole('region', { name: 'Cost' })).findByText(/\$0\.2500/);
+    await within(screen.getByRole('region', { name: 'Cost so far' })).findByText(/\$0\.2500/);
   });
 
   it('applies end immediately and offers a retry when the final refresh fails', async () => {
@@ -571,8 +576,8 @@ describe('run monitor', () => {
     }
 
     function expectNoCostUi(): void {
-      expect(screen.queryByRole('region', { name: 'Cost' })).toBeNull();
-      expect(screen.queryByRole('progressbar')).toBeNull();
+      expect(screen.queryByRole('region', { name: 'Cost so far' })).toBeNull();
+      expect(screen.queryByRole('progressbar', { name: 'Run cost against the cap' })).toBeNull();
       expect(screen.queryByText('Cost', { exact: true })).toBeNull();
       expect(screen.queryByText(/\$\d/)).toBeNull();
       expect(screen.queryByText(/cost cap/)).toBeNull();
@@ -581,7 +586,7 @@ describe('run monitor', () => {
     it('shows no cost card, step cost, or cap message', async () => {
       mockRun(hiddenSnapshot());
       await renderMonitor();
-      expect(within(stepItem('intake')).getByText('Completed')).toBeDefined();
+      expect(within(stepItem('intake')).getByText('Done')).toBeDefined();
       expectNoCostUi();
     });
 
@@ -616,6 +621,90 @@ describe('run monitor', () => {
       expect(calls()).toBe(1);
       expectNoCostUi();
     });
+  });
+});
+
+describe('run monitor screen states and wording', () => {
+  beforeEach(() => {
+    seq = 4;
+    FakeEventSource.instances = [];
+    vi.stubGlobal('EventSource', FakeEventSource);
+    setRoute(`/runs/${RUN_ID}?runId=${RUN_ID}`);
+  });
+
+  it('shows plain step names with their descriptions, never the raw step ID', async () => {
+    mockRun(snapshot());
+    await renderMonitor();
+    const item = stepItem('intake');
+    expect(within(item).getByText('Reading the walkthrough')).toBeDefined();
+    expect(within(item).getByText(stepLabel('intake').description)).toBeDefined();
+    expect(screen.queryByText('intake', { exact: true })).toBeNull();
+    // An unknown ID falls back to a humanised name.
+    expect(within(stepItem('extract')).getByText('Extract')).toBeDefined();
+  });
+
+  it('marks the step before an open review as needing the agent, with text', async () => {
+    mockRun(
+      snapshot({
+        status: 'awaiting_gate',
+        gate: 'fact_conflicts',
+        steps: [
+          step({
+            stepId: 'intake',
+            status: 'completed',
+            gateAfter: 'fact_conflicts',
+            attempts: 1,
+            executions: 1,
+            costUsd: '0.5',
+          }),
+          step({ stepId: 'extract' }),
+        ],
+      }),
+    );
+    await renderMonitor();
+    const item = stepItem('intake');
+    expect(within(item).getByText('Needs your review')).toBeDefined();
+    expect(item.getAttribute('aria-current')).toBe('step');
+    expect(screen.getAllByRole('link', { name: /^Review conflicts$/ })).toHaveLength(1);
+  });
+
+  it('points a completed run at its pack', async () => {
+    mockRun(
+      snapshot({
+        status: 'completed',
+        currentStepId: null,
+        finishedAt: '2026-10-29T10:02:00.000Z',
+        export: {
+          manifestArtifactId: '55555555-5555-4555-8555-555555555555',
+          readyToPublish: true,
+          fileCount: 6,
+        },
+      }),
+    );
+    renderPage(RunPage);
+    expect((await screen.findByRole('link', { name: 'View pack' })).getAttribute('href')).toBe(
+      `/runs/${RUN_ID}/pack`,
+    );
+    expect(screen.getByText(/Export ready: 6 files\./)).toBeDefined();
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it('shows a loading status while the run loads, then the run', async () => {
+    mockRun(snapshot());
+    renderPage(RunPage);
+    expect(await screen.findByText('Loading the run…')).toBeDefined();
+    await screen.findByRole('heading', { level: 1, name: 'Run' });
+  });
+
+  it('leads a missing run back to the projects', async () => {
+    mockFetch({
+      'GET /api/auth/me': meSignedIn,
+      [`GET ${RUN_PATH}`]: () => jsonResponse(404, { error: 'not_found' }),
+    });
+    renderPage(RunPage);
+    expect(
+      (await screen.findByRole('link', { name: 'Go to your projects' })).getAttribute('href'),
+    ).toBe('/projects');
   });
 });
 

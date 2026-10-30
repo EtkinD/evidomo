@@ -193,4 +193,20 @@ describe('pack viewer', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Try again' }, { timeout: 5000 }));
     await waitFor(() => expect(screen.getByTitle('Listing pack preview')).toBeDefined());
   });
+
+  it('shows a loading status, then offers a login link when the session expired', async () => {
+    setRoute(`/runs/${RUN_ID}/pack`);
+    mockRouter.query = { runId: RUN_ID };
+    mockFetch({
+      'GET /api/auth/me': meSignedIn,
+      [`GET ${EXPORT_PATH}`]: () => jsonResponse(401, { error: 'unauthenticated' }),
+    });
+    renderPage(RunPackPage);
+
+    expect(await screen.findByText('Loading the pack…')).toBeDefined();
+    const link = await screen.findByRole('link', { name: 'Log in again' });
+    expect(link.getAttribute('href')).toBe(
+      `/login?next=${encodeURIComponent(`/runs/${RUN_ID}/pack`)}`,
+    );
+  });
 });

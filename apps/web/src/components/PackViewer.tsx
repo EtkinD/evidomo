@@ -3,9 +3,8 @@ import type { UseQueryResult } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useRef } from 'react';
 import { ApiRequestError } from '../lib/api';
-import { withNext } from '../lib/next-path';
 import { formatBytes } from '../lib/pack';
-import { RunNotFound } from './RunMonitor';
+import { LoadErrorState, LoadingState, RunNotFound, SessionExpiredState } from './RunMonitor';
 
 /**
  * `allow-same-origin` lets the page call `contentWindow.print()`; `allow-modals` lets the framed
@@ -23,7 +22,7 @@ const FILE_LABELS: Record<RunExportFile['role'], string> = {
 
 function FileRow({ file }: { file: RunExportFile }) {
   return (
-    <li className="flex flex-wrap items-center justify-between gap-2 rounded-box border border-base-300 p-3">
+    <li className="flex flex-wrap items-center justify-between gap-2 rounded-box border border-base-300 bg-base-100 p-3">
       <div className="min-w-0">
         <p className="truncate font-medium">{file.fileName}</p>
         <p className="text-sm text-base-content/70">
@@ -67,12 +66,16 @@ function PackReady({ pack }: { pack: RunExportResponse }) {
     <>
       {pack.readyToPublish ? (
         <div role="status" className="alert alert-success">
-          <span>Ready to publish: every publication check passed.</span>
+          <span>
+            <span aria-hidden>✓ </span>Ready to publish: every publication check passed.
+          </span>
         </div>
       ) : (
         <div role="alert" className="alert alert-warning">
           <div>
-            <h2 className="font-semibold">Not ready to publish</h2>
+            <h2 className="font-semibold">
+              <span aria-hidden>! </span>Not ready to publish
+            </h2>
             <p className="text-sm">
               At least one publication check failed. The checklist inside the pack shows which; fix
               them before this listing goes out.
@@ -83,7 +86,7 @@ function PackReady({ pack }: { pack: RunExportResponse }) {
 
       <section aria-labelledby="pack-preview-heading" className="flex flex-col gap-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 id="pack-preview-heading" className="text-lg font-semibold">
+          <h2 id="pack-preview-heading" className="text-xl font-semibold">
             Preview
           </h2>
           <div className="flex flex-wrap gap-2">
@@ -105,7 +108,7 @@ function PackReady({ pack }: { pack: RunExportResponse }) {
       </section>
 
       <section aria-labelledby="pack-files-heading" className="flex flex-col gap-3">
-        <h2 id="pack-files-heading" className="text-lg font-semibold">
+        <h2 id="pack-files-heading" className="text-xl font-semibold">
           Downloads
         </h2>
         <ul className="flex flex-col gap-2">
@@ -113,9 +116,11 @@ function PackReady({ pack }: { pack: RunExportResponse }) {
           {json !== undefined && <FileRow file={json} />}
         </ul>
         {images.length > 0 && (
-          <details className="rounded-box border border-base-300 p-3">
-            <summary className="cursor-pointer font-medium">Images ({images.length})</summary>
-            <ul className="mt-3 flex flex-col gap-2">
+          <details className="rounded-box border border-base-300 bg-base-100 px-3">
+            <summary className="flex min-h-11 cursor-pointer items-center font-medium">
+              Images ({images.length})
+            </summary>
+            <ul className="flex flex-col gap-2 pb-3">
               {images.map((file) => (
                 <FileRow key={file.artifactId} file={file} />
               ))}
@@ -129,7 +134,7 @@ function PackReady({ pack }: { pack: RunExportResponse }) {
 
 function NotReady({ runId }: { runId: string }) {
   return (
-    <div role="status" className="alert alert-info">
+    <div role="status" className="alert alert-info alert-vertical sm:alert-horizontal">
       <span>The pack is not ready yet. It appears once the run has finished its export.</span>
       <Link href={`/runs/${runId}`} className="btn min-h-11">
         Back to the run
@@ -143,24 +148,13 @@ function PackError({ query, runId }: { query: UseQueryResult<RunExportResponse>;
   if (error instanceof ApiRequestError) {
     if (error.status === 404) return <RunNotFound />;
     if (error.status === 409) return <NotReady runId={runId} />;
-    if (error.status === 401) {
-      return (
-        <div role="alert" className="alert alert-warning">
-          <span>Your session has expired.</span>
-          <Link href={withNext('/login', `/runs/${runId}/pack`)} className="btn min-h-11">
-            Log in again
-          </Link>
-        </div>
-      );
-    }
+    if (error.status === 401) return <SessionExpiredState next={`/runs/${runId}/pack`} />;
   }
   return (
-    <div role="alert" className="alert alert-error">
-      <span>We could not load this pack. Check your connection and try again.</span>
-      <button type="button" className="btn min-h-11" onClick={() => void query.refetch()}>
-        Try again
-      </button>
-    </div>
+    <LoadErrorState
+      message="We could not load this pack. Check your connection and try again."
+      onRetry={() => void query.refetch()}
+    />
   );
 }
 
@@ -173,21 +167,21 @@ export function PackViewer({
 }) {
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="card-title text-2xl">Listing pack</h1>
-        <Link href={`/runs/${runId}`} className="link inline-flex min-h-11 items-center text-sm">
+      <div className="flex flex-col gap-2">
+        <Link
+          href={`/runs/${runId}`}
+          className="link inline-flex min-h-11 w-fit items-center text-sm"
+        >
           Back to the run
         </Link>
+        <h1 className="card-title text-2xl">Listing pack</h1>
       </div>
       {query.data !== undefined ? (
         <PackReady pack={query.data} />
       ) : query.isError ? (
         <PackError query={query} runId={runId} />
       ) : (
-        <div role="status" className="flex items-center gap-3 text-base-content/70">
-          <span className="loading loading-spinner" aria-hidden />
-          <span>Loading the pack…</span>
-        </div>
+        <LoadingState label="Loading the pack…" rows={2} />
       )}
     </div>
   );

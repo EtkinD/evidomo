@@ -787,6 +787,16 @@ describe('Gate 2 review page', () => {
       expect(screen.queryByRole('button', { name: 'Try again' })).toBeNull();
     });
 
+    it('shows a loading status before the review arrives', async () => {
+      mockAudit(serve(auditGate()));
+      renderPage(ReviewPage);
+
+      expect(await screen.findByText('Loading the review…')).toBeDefined();
+      expect(
+        await screen.findByRole('heading', { level: 1, name: 'Review the pack' }),
+      ).toBeDefined();
+    });
+
     it('offers a retry after a load error and shows the review when it works', async () => {
       let reads = 0;
       mockAudit(() => {

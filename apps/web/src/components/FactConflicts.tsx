@@ -27,13 +27,12 @@ import {
   useFactConflicts,
   useRunSnapshotRef,
 } from '../lib/fact-conflicts';
-import { withNext } from '../lib/next-path';
 import { fieldHint, humanize } from '../lib/project-view';
 import { useMarketForm } from '../lib/projects';
 import { EvidenceInspector } from './evidence/EvidenceInspector';
 import { EvidenceProvider } from './evidence/EvidenceProvider';
 import { Field } from './FormField';
-import { RunNotFound } from './RunMonitor';
+import { LoadErrorState, LoadingState, RunNotFound, SessionExpiredState } from './RunMonitor';
 
 type Decide = ReturnType<typeof useDecideConflict>;
 
@@ -230,7 +229,9 @@ function SideCard({
     <div
       role="group"
       aria-labelledby={headingId}
-      className="flex flex-col gap-3 rounded-box bg-base-200 p-4"
+      className={`flex flex-col gap-3 rounded-box bg-base-200 p-4 ${
+        kept ? 'border-2 border-success' : 'border-2 border-transparent'
+      }`}
     >
       <div className="flex flex-col gap-1">
         <p id={headingId} className="text-lg font-semibold">
@@ -243,7 +244,11 @@ function SideCard({
           {side.facts.length === 1 ? '1 source' : `${side.facts.length} sources`}:{' '}
           {kinds.join(', ')}
         </p>
-        {kept && <span className="badge badge-success w-fit">Kept</span>}
+        {kept && (
+          <span className="badge badge-success w-fit gap-1">
+            <span aria-hidden>✓</span>Kept
+          </span>
+        )}
       </div>
       <ul className="flex flex-col gap-3">
         {side.facts.map((fact) => (
@@ -334,13 +339,16 @@ function ConflictCard({
       <div
         role="group"
         aria-labelledby={headingId}
-        className="flex flex-col gap-4 rounded-box border border-base-300 p-4"
+        className={`flex flex-col gap-4 rounded-box border bg-base-100 p-4 ${
+          decision === null ? 'border-warning' : 'border-base-300'
+        }`}
       >
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 id={headingId} ref={headingRef} tabIndex={-1} className="text-lg font-semibold">
             {label}
           </h2>
-          <span className={`badge ${decision === null ? 'badge-warning' : 'badge-success'}`}>
+          <span className={`badge gap-1 ${decision === null ? 'badge-warning' : 'badge-success'}`}>
+            <span aria-hidden>{decision === null ? '!' : '✓'}</span>
             {decision === null ? 'Open' : 'Decided'}
           </span>
         </div>
@@ -442,7 +450,10 @@ function ConflictCard({
 
 function Progress({ total, open }: { total: number; open: number }) {
   return (
-    <section aria-label="Progress" className="flex flex-col gap-2">
+    <section
+      aria-label="Progress"
+      className="flex flex-col gap-2 rounded-box border border-base-300 bg-base-100 p-4"
+    >
       <p className="font-medium">
         {open} of {total} {total === 1 ? 'conflict' : 'conflicts'} still open
       </p>
@@ -453,17 +464,6 @@ function Progress({ total, open }: { total: number; open: number }) {
         aria-label="Conflicts decided"
       />
     </section>
-  );
-}
-
-function SessionExpired({ runId }: { runId: string }) {
-  return (
-    <div role="alert" className="alert alert-warning">
-      <span>Your session has expired.</span>
-      <Link href={withNext('/login', `/runs/${runId}/conflicts`)} className="btn min-h-11">
-        Log in again
-      </Link>
-    </div>
   );
 }
 
@@ -493,24 +493,17 @@ export function FactConflictsView({
 
   if (gate.data === undefined) {
     if (!gate.isError) {
-      return (
-        <div role="status" className="flex items-center gap-3 text-base-content/70">
-          <span className="loading loading-spinner" aria-hidden />
-          <span>Loading the fact conflicts…</span>
-        </div>
-      );
+      return <LoadingState label="Loading the fact conflicts…" rows={2} />;
     }
     if (gate.error instanceof ApiRequestError && gate.error.status === 404) return <RunNotFound />;
     if (gate.error instanceof ApiRequestError && gate.error.status === 401) {
-      return <SessionExpired runId={runId} />;
+      return <SessionExpiredState next={`/runs/${runId}/conflicts`} />;
     }
     return (
-      <div role="alert" className="alert alert-error">
-        <span>We could not load the fact conflicts. Check your connection and try again.</span>
-        <button type="button" className="btn min-h-11" onClick={() => void gate.refetch()}>
-          Try again
-        </button>
-      </div>
+      <LoadErrorState
+        message="We could not load the fact conflicts. Check your connection and try again."
+        onRetry={() => void gate.refetch()}
+      />
     );
   }
 
@@ -550,13 +543,16 @@ export function FactConflictsView({
         </div>
 
         {decide.data?.resumed === true && (
-          <div role="status" className="alert alert-success">
+          <div role="status" className="alert alert-success alert-vertical sm:alert-horizontal">
             <span>All conflicts are decided. The run is continuing.</span>
+            <Link href={`/runs/${runId}`} className="btn min-h-11">
+              Back to the run
+            </Link>
           </div>
         )}
 
         {data.state === 'not_reached' && (
-          <div role="status" className="alert alert-info">
+          <div role="status" className="alert alert-info alert-vertical sm:alert-horizontal">
             <span>
               The run has not reached this review yet. The conflicts appear here once the facts have
               been compared.

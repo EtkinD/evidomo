@@ -12,7 +12,6 @@ import {
   warningText,
 } from '../lib/claim-audit';
 import { runEvidenceUrls, type EvidenceUrls } from '../lib/evidence-urls';
-import { withNext } from '../lib/next-path';
 import { useRunSnapshotRef } from '../lib/fact-conflicts';
 import { useMarketForm } from '../lib/projects';
 import { EvidencePanel } from './claim-audit/EvidencePanel';
@@ -20,18 +19,7 @@ import { SegmentItem, segmentButtonId, type ReviewContext } from './claim-audit/
 import { StagedImages } from './claim-audit/StagedImages';
 import { EvidenceProvider } from './evidence/EvidenceProvider';
 import { labelsFor } from './FactConflicts';
-import { RunNotFound } from './RunMonitor';
-
-function SessionExpired({ runId }: { runId: string }) {
-  return (
-    <div role="alert" className="alert alert-warning">
-      <span>Your session has expired.</span>
-      <Link href={withNext('/login', `/runs/${runId}/review`)} className="btn min-h-11">
-        Log in again
-      </Link>
-    </div>
-  );
-}
+import { LoadErrorState, LoadingState, RunNotFound, SessionExpiredState } from './RunMonitor';
 
 function Warnings({ lines }: { lines: string[] }) {
   if (lines.length === 0) return null;
@@ -65,11 +53,11 @@ function Summary({
         Summary
       </h2>
       {data.stopReason !== null && <p>{stopReasonText(data.stopReason)}</p>}
-      <ul className="flex flex-col gap-1">
-        <li>
+      <ul className="grid gap-2 sm:grid-cols-2">
+        <li className="rounded-box border border-base-300 bg-base-100 p-3">
           Flagged claims: {counts.flaggedClaims} ({counts.openClaims} open)
         </li>
-        <li>
+        <li className="rounded-box border border-base-300 bg-base-100 p-3">
           Staged images offered: {counts.offeredImages} ({counts.openImages} open)
         </li>
       </ul>
@@ -97,7 +85,10 @@ function ApproveSection({
   const failure = approve.isError ? approve.error : null;
 
   return (
-    <section aria-labelledby="approve-heading" className="flex flex-col gap-3">
+    <section
+      aria-labelledby="approve-heading"
+      className="flex flex-col gap-3 rounded-box border-2 border-secondary bg-base-100 p-4"
+    >
       <h2 id="approve-heading" className="text-xl font-semibold">
         Approve the pack
       </h2>
@@ -218,24 +209,17 @@ export function ClaimAuditView({
 
   if (gate.data === undefined) {
     if (!gate.isError) {
-      return (
-        <div role="status" className="flex items-center gap-3 text-base-content/70">
-          <span className="loading loading-spinner" aria-hidden />
-          <span>Loading the review…</span>
-        </div>
-      );
+      return <LoadingState label="Loading the review…" rows={4} />;
     }
     if (gate.error instanceof ApiRequestError && gate.error.status === 404) return <RunNotFound />;
     if (gate.error instanceof ApiRequestError && gate.error.status === 401) {
-      return <SessionExpired runId={runId} />;
+      return <SessionExpiredState next={`/runs/${runId}/review`} />;
     }
     return (
-      <div role="alert" className="alert alert-error">
-        <span>We could not load the review. Check your connection and try again.</span>
-        <button type="button" className="btn min-h-11" onClick={() => void gate.refetch()}>
-          Try again
-        </button>
-      </div>
+      <LoadErrorState
+        message="We could not load the review. Check your connection and try again."
+        onRetry={() => void gate.refetch()}
+      />
     );
   }
 
@@ -298,9 +282,9 @@ export function ClaimAuditView({
           </div>
         )}
         {data.state === 'released' && (
-          <div role="status" className="alert alert-info">
+          <div role="status" className="alert alert-info alert-vertical sm:alert-horizontal">
             <span>This review is finished. Your decisions are shown below.</span>
-            <Link href={`/runs/${runId}/pack`} className="btn min-h-11">
+            <Link href={`/runs/${runId}/pack`} className="btn btn-primary min-h-11">
               Open the pack
             </Link>
           </div>
@@ -340,7 +324,7 @@ export function ClaimAuditView({
                         <div
                           role="group"
                           aria-label={`Question ${card.card + 1}: ${card.question}`}
-                          className="flex flex-col gap-2 rounded-box border border-base-300 p-3"
+                          className="flex flex-col gap-2 rounded-box border border-base-300 bg-base-100 p-3"
                         >
                           <p className="font-semibold">{card.question}</p>
                           {card.dropped && (

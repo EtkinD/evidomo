@@ -2,7 +2,7 @@ import { runParamsSchema } from '@evidomo/shared';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { PackViewer } from '../../../components/PackViewer';
-import { RunNotFound } from '../../../components/RunMonitor';
+import { LoadingState, RunNotFound } from '../../../components/RunMonitor';
 import { useExportManifest } from '../../../lib/pack';
 import type { NextPageWithAuth } from '../../../lib/page-auth';
 
@@ -21,9 +21,11 @@ const RunPackPage: NextPageWithAuth = () => {
         <title>Listing pack — Evidomo</title>
       </Head>
       <main className="flex-1 bg-base-200 px-4 py-8">
-        <section className="card mx-auto max-w-4xl bg-base-100 shadow-sm">
+        <section className="card mx-auto max-w-4xl border border-base-300 bg-base-100">
           <div className="card-body gap-6">
-            {!router.isReady ? null : params.success ? (
+            {!router.isReady ? (
+              <LoadingState label="Loading the pack…" />
+            ) : params.success ? (
               <PackPage key={params.data.runId} runId={params.data.runId} />
             ) : (
               <RunNotFound />

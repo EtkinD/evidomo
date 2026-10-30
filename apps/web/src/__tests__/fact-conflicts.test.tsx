@@ -422,6 +422,25 @@ describe('Gate 1 page', () => {
       renderPage(ConflictsPage);
 
       expect((await screen.findByRole('alert')).textContent).toContain('This run was not found');
+      expect(screen.getByRole('link', { name: 'Go to your projects' })).toBeDefined();
+    });
+
+    it('shows a loading status before the conflicts arrive', async () => {
+      mockGate(() => jsonResponse(200, openGate()));
+      renderPage(ConflictsPage);
+
+      expect(await screen.findByText('Loading the fact conflicts…')).toBeDefined();
+      expect(await screen.findByText('3 of 3 conflicts still open')).toBeDefined();
+    });
+
+    it('offers a login link with the way back when the session expired', async () => {
+      mockGate(() => jsonResponse(401, { error: 'unauthenticated' }));
+      renderPage(ConflictsPage);
+
+      const link = await screen.findByRole('link', { name: 'Log in again' });
+      expect(decodeURIComponent(link.getAttribute('href') ?? '')).toContain(
+        `/runs/${RUN_ID}/conflicts`,
+      );
     });
 
     it('offers a retry when loading fails', async () => {

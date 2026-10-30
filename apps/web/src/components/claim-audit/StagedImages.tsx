@@ -44,7 +44,9 @@ function Photos({
           loading="lazy"
           className="w-full rounded-box bg-base-200 object-contain"
         />
-        <figcaption className="text-sm text-base-content/70">Original</figcaption>
+        <figcaption className="badge badge-outline h-auto w-fit whitespace-normal py-1">
+          Original
+        </figcaption>
       </figure>
       {staged !== null && (
         <figure className="flex flex-col gap-1">
@@ -55,7 +57,9 @@ function Photos({
             loading="lazy"
             className="w-full rounded-box bg-base-200 object-contain"
           />
-          <figcaption className="text-sm text-base-content/70">{stagedLabel}</figcaption>
+          <figcaption className="badge badge-secondary h-auto w-fit whitespace-normal py-1 text-left">
+            {stagedLabel}
+          </figcaption>
         </figure>
       )}
     </div>
@@ -95,10 +99,16 @@ function ImageCard({
       <div
         role="group"
         aria-label={`Staged image: ${operation}`}
-        className="flex flex-col gap-3 rounded-box border border-base-300 p-4"
+        className={`flex flex-col gap-3 rounded-box border bg-base-100 p-4 ${
+          decision === null ? 'border-warning' : 'border-base-300'
+        }`}
       >
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="font-semibold">{operation}</h3>
+          <span className={`badge gap-1 ${decision === null ? 'badge-warning' : 'badge-success'}`}>
+            <span aria-hidden>{decision === null ? '!' : '✓'}</span>
+            {decision === null ? 'Open' : 'Decided'}
+          </span>
         </div>
         <Photos
           original={runMaterialFileUrl(runId, image.materialId)}
