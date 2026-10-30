@@ -15,5 +15,6 @@ paths:
   - **The look lives in the `evidomo-light` and `evidomo-dark` daisyUI themes** in `globals.css`. Change a token there instead of overriding it per component, then run the skill's contrast check.
 - **Touch targets are at least 44 px** (`min-h-11`, and `inline-flex min-h-11 items-center` on text links), never bare `btn-sm` for an action on a phone. When a clicked control disappears, move focus to the card heading or a status line.
 - Check layout with tests and DOM measurements (overflow via `scrollWidth`, sizes via `boundingBox()`), not by viewing screenshots (token budget, see `task-protocol`).
+- A new UI rule applies to the existing screens too: the change that adds it (here, in the `evidomo-theme` skill, or in a recipe) also finds and fixes the current violations, or lists them as a follow-up.
 - Imports use bundler resolution: no `.ts`/`.tsx` extensions in import paths.
 - Only `NEXT_PUBLIC_*` variables reach the browser; they must never hold secrets.

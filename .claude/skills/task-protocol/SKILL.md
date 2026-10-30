@@ -36,6 +36,14 @@ If the task cannot be finished within these limits, stop and report what blocks 
 - Live Meta API calls follow the brief's budget and stop line exactly. After each live session, report the actual new spend. In record mode the usage ledger also meters responses replayed from the cassette, so its total over-counts.
 - Re-recorded fixtures replace stale ones. Delete `.files/` blobs nothing references any more.
 
+## Local servers and databases
+
+The founder runs their own dev servers and data while you work.
+
+- Never start, stop, or reuse anything on ports 3000 and 4000, and never touch the `evidomo` database or its uploads. Start your own servers on 3110 and up (web) and 4110 and up (API), and stop them, by port, before you report.
+- For checks that need a database, create a separate one named `evidomo_check_<task-id>` on the existing local PostgreSQL, migrate it, and point `DATABASE_URL` and a scratchpad `STORAGE_DIR` at it. Leave it in place and name it in your report; the orchestrator asks the founder to drop it.
+- Point a separate web server at your API with `API_PROXY_ORIGIN`, and set the API's `APP_ORIGIN` to that web origin, or state-changing requests fail the Origin check.
+
 ## Images and screenshots (token budget)
 
 Every image you open costs thousands of tokens. A few careless reads can exhaust the session's usage limit for every agent.
