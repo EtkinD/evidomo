@@ -200,7 +200,7 @@ Design decisions are made in a dev-only showcase, and only what the founder appr
 - [x] **P4B-02 — Design language decision**
   - Depends on: P4B-01
   - Done when: the founder's showcase feedback is recorded in the `evidomo-theme` decision log, the chosen palette and typography are the `evidomo-light`/`evidomo-dark` tokens (contrast check passes), and the showcase's rejected candidates are removed.
-- [ ] **P4B-03 — Logo and brand assets**
+- [x] **P4B-03 — Logo and brand assets**
   - Depends on: P4B-02
   - Done when: the chosen logo exists as SVG (mark and wordmark, light and dark), with favicon, app icons, and an Open Graph image; it is used in the app shell and the HTML pack.
 - [ ] **P4B-04 — App shell**

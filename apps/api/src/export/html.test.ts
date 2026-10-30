@@ -265,6 +265,15 @@ describe('renderListingPackHtml', () => {
     expect(html.split(escaped).length - 1).toBeGreaterThanOrEqual(7);
   });
 
+  it('signs the footer with the inline Evidomo mark and name, no external image', () => {
+    const html = renderListingPackHtml(input(fields()));
+    const footer = html.slice(html.indexOf('<footer>'), html.indexOf('</footer>'));
+    expect(footer).toMatch(
+      /<p class="made"><svg [^>]*aria-hidden="true"[^>]*>.*<\/svg><span>Evidomo<\/span> · /,
+    );
+    expect(footer).not.toMatch(/<img|href=|url\(/);
+  });
+
   it('renders the copy by paragraph, the fact sheet, and the checklist items', () => {
     const html = renderListingPackHtml(input(fields()));
     expect(html).toContain(

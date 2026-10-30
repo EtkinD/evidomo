@@ -75,6 +75,8 @@ blockquote{margin:1mm 0 2mm;padding-left:3mm;border-left:.6mm solid #d0d0d0}
 .qa dt{font-weight:600;margin-top:2mm}
 .qa dd{margin:0.5mm 0 0}
 footer{margin-top:10mm;font-size:8.5pt;color:#555;border-top:.2mm solid #d0d0d0;padding-top:3mm}
+.made{display:flex;align-items:center;gap:1.5mm}
+.made svg{width:4mm;height:4mm;flex:none}
 @media screen{body{background:#f4f4f5}main{background:#fff;padding:14mm 15mm;margin:8mm auto;box-shadow:0 1px 4px rgba(0,0,0,.12)}}`;
 
 /** `2026-10-29T14:03:12.000Z` → `2026-10-29 14:03` (UTC), from the stored approval time. */
@@ -425,6 +427,16 @@ function renderContact(office: OfficeProfile): string {
   return [office.agencyName, ...lines].map(esc).join('<br>');
 }
 
+// The logo mark from apps/web/public/brand/evidomo-mark.svg, inline because the pack's CSP
+// allows no external images; decorative, since the name follows it as text.
+const EVIDOMO_MARK =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 62" aria-hidden="true" focusable="false">' +
+  '<g transform="translate(0 -1)"><path d="M6 30 32 9l26 21" stroke="#985438" stroke-width="6" ' +
+  'stroke-linecap="round" stroke-linejoin="round" fill="none"/>' +
+  '<rect x="15" y="29" width="34" height="27" rx="5" fill="#445a38"/>' +
+  '<path d="m24 42 6 6 11-12" stroke="#f6faf3" stroke-width="5" stroke-linecap="round" ' +
+  'stroke-linejoin="round" fill="none"/></g></svg>';
+
 /** Renders the pack. Deterministic: the same input always gives the same string. */
 export function renderListingPackHtml(input: ListingPackHtmlInput): string {
   const { fields } = input;
@@ -453,7 +465,8 @@ export function renderListingPackHtml(input: ListingPackHtmlInput): string {
     renderFacts(fields, t),
     renderPhotos(input, t),
     renderChecklist(input, t),
-    `<footer><p>${renderContact(input.office)}</p><p>${esc(t.generated(fields.runId))}</p></footer>`,
+    `<footer><p>${renderContact(input.office)}</p>` +
+      `<p class="made">${EVIDOMO_MARK}<span>Evidomo</span> · ${esc(t.generated(fields.runId))}</p></footer>`,
     '</main>',
     '</body>',
     '</html>',
