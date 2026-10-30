@@ -242,7 +242,7 @@ Design decisions are made in a dev-only showcase, and only what the founder appr
 - [ ] **P5-02 — Second property**
   - Depends on: P4-08, D-05
   - Done when: a second real property completes end to end on production; issues found are fixed or documented.
-- [ ] **P5-03 — Failure UX**
+- [x] **P5-03 — Failure UX**
   - Depends on: P4-05
   - Done when: failed steps, resumes, and budget-exceeded states are clearly shown and recoverable from the UI.
 - [x] **P5-04 — Project deletion**
