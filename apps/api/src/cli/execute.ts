@@ -1,3 +1,4 @@
+import type { Gate } from '@evidomo/shared';
 import { PgBoss } from 'pg-boss';
 import type { Database } from '../db/client.ts';
 import { createProject } from '../db/repositories/projects.ts';
@@ -8,6 +9,7 @@ import { ClaimAuditGateError, createClaimAuditGate } from '../gates/claim-audit.
 import { createFactConflictsGate, FactConflictsGateError } from '../gates/fact-conflicts.ts';
 import type { Logger } from '../logger.ts';
 import { createMetaClients } from '../meta/clients.ts';
+import type { MatchOptions } from '../meta/fixtures.ts';
 import { createMetaReplay, type MetaReplay } from '../meta/replay.ts';
 import { createStepHandlers } from '../pipeline/handlers.ts';
 import { createRunEngine } from '../runs/engine.ts';
@@ -62,18 +64,53 @@ export interface ExecutePipelineOptions {
   readonly progress: (line: string) => void;
   readonly timeoutMs: number;
   readonly target: PipelineTarget;
+  /**
+   * Leave the run `awaiting_gate` at this gate, before any scripted decision for it is applied
+   * (the development seed). The run stays resumable by the normal gate services.
+   */
+  readonly stopAtGate?: Gate;
 }
+
+/** What waits at the gate a run was left at (`stopAtGate`). */
+export type StoppedAtGate =
+  | {
+      readonly gate: 'fact_conflicts';
+      readonly conflictCount: number;
+      readonly conflicts: readonly string[];
+      /**
+       * The decisions the project's script would make, one line per conflict, in gate order; null
+       * when the script cannot decide them all. A run continued by a replay worker must be decided
+       * the same way, because later requests are matched on the decided facts.
+       */
+      readonly scriptedDecisions: readonly string[] | null;
+    }
+  | {
+      readonly gate: 'claim_audit';
+      readonly openClaims: number;
+      readonly openImages: number;
+    };
 
 export interface PipelineExecution {
   /** The run as it ended: completed, failed, or waiting at a gate after a script failure. */
   readonly run: Run;
   readonly scriptFailure: string | null;
   readonly gates: GateRecords;
+  /** Set when the run was left at `stopAtGate`. */
+  readonly stoppedAt: StoppedAtGate | null;
   /** Set in fixtures and record modes; stopped, its counters final. */
   readonly replay: MetaReplay | undefined;
   readonly aliases: FixtureImageAliases;
   /** Project file name per material ID. */
   readonly photoNames: ReadonlyMap<string, string>;
+}
+
+/**
+ * How a project's cassette matches requests. Intake always sends the memo as `voice-memo.wav`;
+ * the TTS walkthrough a run is recorded from may not be committed (docs/model-notes.md, P1-04),
+ * so audio matches by name. Everything that replays a project's cassette must use these options.
+ */
+export function fixtureMatchOptions(aliases: FixtureImageAliases): MatchOptions {
+  return { ignoreFileContentFields: ['audio'], imageAlias: aliases.alias };
 }
 
 function describeGateError(error: unknown): unknown {
@@ -142,9 +179,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
         mode: mode === 'record' ? 'record' : 'replay',
         env,
         extend: mode === 'record',
-        // Intake always sends the memo as `voice-memo.wav`; the TTS walkthrough a run is recorded
-        // from may not be committed (docs/model-notes.md, P1-04), so audio matches by name.
-        match: { ignoreFileContentFields: ['audio'], imageAlias: aliases.alias },
+        match: fixtureMatchOptions(aliases),
         onInteraction: aliases.onInteraction,
       });
       await replay.start();
@@ -213,10 +248,39 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
 
     const gates: GateRecords = { factConflicts: null, claimAudit: null, unused: [] };
     let scriptFailure: string | null = null;
+    let stoppedAt: StoppedAtGate | null = null;
     const run = await driveRun(created.id, {
       db,
       timeoutMs: options.timeoutMs,
       progress,
+      stopAtGate: options.stopAtGate,
+      async onStop(gateName) {
+        if (gateName === 'fact_conflicts') {
+          const gate = await factGate.get(user.id, created.id);
+          const conflicts = gate.conflicts.map((c) => `${c.id} ${c.key}`);
+          gates.factConflicts = { conflictCount: gate.conflictCount, conflicts, decisions: [] };
+          let scriptedDecisions: string[] | null = null;
+          try {
+            const plan = planFactConflictDecisions(gate, project.decisions.factConflicts);
+            scriptedDecisions = plan.decisions.map((d) => `${d.conflictId} ${d.key}: ${d.label}`);
+          } catch (error) {
+            if (!(error instanceof ScriptedDecisionError)) throw error;
+          }
+          stoppedAt = {
+            gate: 'fact_conflicts',
+            conflictCount: gate.conflictCount,
+            conflicts,
+            scriptedDecisions,
+          };
+          return;
+        }
+        const gate = await auditGate.get(user.id, created.id);
+        stoppedAt = {
+          gate: 'claim_audit',
+          openClaims: gate.counts.openClaims,
+          openImages: gate.counts.openImages,
+        };
+      },
       async onFactConflicts() {
         const gate = await factGate.get(user.id, created.id);
         gates.factConflicts = {
@@ -295,7 +359,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
     if (run.status === 'completed' && gates.factConflicts === null) {
       gates.factConflicts = { conflictCount: 0, conflicts: [], decisions: [] };
     }
-    return { run, scriptFailure, gates, replay, aliases, photoNames };
+    return { run, scriptFailure, gates, stoppedAt, replay, aliases, photoNames };
   } finally {
     await boss?.stop({ graceful: false }).catch((error: unknown) => {
       logger.error({ err: error }, 'error while stopping pg-boss');
@@ -308,11 +372,16 @@ interface DriveOptions {
   readonly db: Database;
   readonly timeoutMs: number;
   readonly progress: (line: string) => void;
+  readonly stopAtGate: Gate | undefined;
+  readonly onStop: (gate: Gate) => Promise<void>;
   readonly onFactConflicts: () => Promise<void>;
   readonly onClaimAudit: () => Promise<void>;
 }
 
-/** Follows the run's events, applies the gates' scripted decisions, and returns the final run. */
+/**
+ * Follows the run's events, applies the gates' scripted decisions, and returns the final run, or
+ * the run waiting at `stopAtGate` with that gate's decisions untouched.
+ */
 async function driveRun(runId: string, options: DriveOptions): Promise<Run> {
   const deadline = Date.now() + options.timeoutMs;
   let seq = 0;
@@ -326,6 +395,10 @@ async function driveRun(runId: string, options: DriveOptions): Promise<Run> {
     const run = await getRun(options.db, runId);
     if (run === undefined) throw new Error(`Run ${runId} disappeared`);
     if (run.status === 'completed' || run.status === 'failed') return run;
+    if (run.status === 'awaiting_gate' && run.gate !== null && run.gate === options.stopAtGate) {
+      await options.onStop(run.gate);
+      return run;
+    }
     if (run.status === 'awaiting_gate' && run.gate !== null && !decided.has(run.gate)) {
       decided.add(run.gate);
       if (run.gate === 'fact_conflicts') await options.onFactConflicts();

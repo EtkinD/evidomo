@@ -24,7 +24,9 @@ import { loadProject } from './project.ts';
 
 /** Prefix of the per-invocation pg-boss schema (see `seedDemoRun`). */
 export const DEMO_SEED_BOSS_SCHEMA_PREFIX = 'pgboss_demo_seed_';
-const BOSS_SCHEMA_PATTERN = /^pgboss_demo_seed_[0-9a-f]{12}$/;
+/** Prefix of the per-invocation pg-boss schema of `npm run dev:seed`. */
+export const DEV_SEED_BOSS_SCHEMA_PREFIX = 'pgboss_dev_seed_';
+const BOSS_SCHEMA_PATTERN = /^pgboss_(demo|dev)_seed_[0-9a-f]{12}$/;
 
 /** The project or the run did not meet the seed's guarantees; nothing should be published. */
 export class DemoSeedError extends Error {
@@ -80,17 +82,15 @@ async function ensureDemoOwner(db: Database): Promise<{ id: string; created: boo
   }
 }
 
-async function dropBossSchema(db: Database, schema: string, logger: Logger): Promise<void> {
+/** Drops a seed's throwaway pg-boss schema; anything not named like one is refused. */
+export async function dropBossSchema(db: Database, schema: string, logger: Logger): Promise<void> {
   // Our own throwaway schema, named by us: the pattern check keeps the raw identifier safe.
-  if (!BOSS_SCHEMA_PATTERN.test(schema)) throw new Error('Unexpected demo seed pg-boss schema');
+  if (!BOSS_SCHEMA_PATTERN.test(schema)) throw new Error('Unexpected seed pg-boss schema');
   try {
     await db.execute(sql.raw(`drop schema if exists "${schema}" cascade`));
   } catch (error) {
     // Harmless leftover (no worker reads it); reported so an operator can drop it by hand.
-    logger.error(
-      { err: errorForLog(error), schema },
-      'could not drop the demo seed pg-boss schema',
-    );
+    logger.error({ err: errorForLog(error), schema }, 'could not drop the seed pg-boss schema');
   }
 }
 
