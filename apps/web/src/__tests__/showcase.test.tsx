@@ -10,7 +10,9 @@ vi.mock('../showcase/fonts', () => ({ FONT_VARIABLE_CLASSES: '' }));
 
 const { fetchManifest, parseManifest } = await import('../showcase/assets');
 const { ModeProvider } = await import('../showcase/mode');
+const { bare } = await import('../showcase/bare');
 const { ColorsPage } = await import('../showcase/pages/ColorsPage');
+const { ComparePage } = await import('../showcase/pages/ComparePage');
 const { ComponentsPage } = await import('../showcase/pages/ComponentsPage');
 const { ImageryPage } = await import('../showcase/pages/ImageryPage');
 const { IndexPage } = await import('../showcase/pages/IndexPage');
@@ -23,10 +25,10 @@ const manifest = {
   toolsOff: 'generations',
   items: [
     {
-      id: 'A-LOGO-1',
-      direction: 'A',
+      id: 'B2-LOGO-1',
+      direction: 'B2',
       kind: 'logo-concept',
-      file: 'A/logo-1.webp',
+      file: 'B2/logo-1.webp',
       prompt: 'a mark',
       width: 1024,
       height: 1024,
@@ -72,8 +74,10 @@ describe('asset manifest', () => {
   it('rejects an unknown kind or direction', () => {
     const bad = { ...manifest, items: [{ ...manifest.items[0], kind: 'photo' }] };
     expect(parseManifest(bad).success).toBe(false);
-    const bad2 = { ...manifest, items: [{ ...manifest.items[0], direction: 'D' }] };
-    expect(parseManifest(bad2).success).toBe(false);
+    for (const direction of ['A', 'C', 'D']) {
+      const bad2 = { ...manifest, items: [{ ...manifest.items[0], direction }] };
+      expect(parseManifest(bad2).success).toBe(false);
+    }
   });
 
   it('reports missing for a 404 and for a non-JSON body', async () => {
@@ -102,7 +106,7 @@ describe('placeholders', () => {
     expect((await screen.findAllByRole('alert'))[0]?.textContent).toMatch(/does not match/i);
   });
 
-  it('shows a manifest image with its ID, and a placeholder for a direction with none', async () => {
+  it('shows a manifest image with its ID, and placeholders for the areas with none', async () => {
     stubManifest(jsonResponse(200, manifest));
     renderPage(<ImageryPage />);
     const figure = await screen.findByRole('figure', { name: /B-HERO-1/ });
@@ -113,11 +117,11 @@ describe('placeholders', () => {
   it('swaps a broken image for the placeholder', async () => {
     stubManifest(jsonResponse(200, manifest));
     renderPage(<LogoPage />);
-    const figure = await screen.findByRole('figure', { name: /A-LOGO-1/ });
+    const figure = await screen.findByRole('figure', { name: /B2-LOGO-1/ });
     const image = within(figure).getByRole('img');
     image.dispatchEvent(new Event('error'));
     await waitFor(() =>
-      expect(within(figure).getByText(/A\/logo-1.webp: not generated yet/)).toBeDefined(),
+      expect(within(figure).getByText(/B2\/logo-1.webp: not generated yet/)).toBeDefined(),
     );
   });
 });
@@ -129,7 +133,15 @@ describe('sub-pages render their candidate IDs', () => {
     missing();
     setRoute('/showcase');
     renderPage(<IndexPage />);
-    for (const name of ['Colours', 'Typography', 'Logo', 'Components', 'Imagery', 'Landing']) {
+    for (const name of [
+      'Colours',
+      'Typography',
+      'Logo',
+      'Components',
+      'Imagery',
+      'Landing',
+      'Compare',
+    ]) {
       const links = screen.getAllByRole('link', { name });
       expect(
         links.some(
@@ -140,15 +152,16 @@ describe('sub-pages render their candidate IDs', () => {
       ).toBe(true);
     }
     expect(screen.getByText(/stable ID/i)).toBeDefined();
-    for (const name of ['Ledger', 'Hearth', 'Signal']) {
-      expect(screen.getByRole('heading', { name: new RegExp(name) })).toBeDefined();
+    for (const name of ['B Hearth', 'B2 Hearth Clay', 'B3 Hearth Canal']) {
+      expect(screen.getByRole('heading', { name })).toBeDefined();
     }
+    expect(screen.queryByText(/Ledger|Signal/)).toBeNull();
   });
 
   it('colors: two palettes per direction, all contrast rows passing', () => {
     missing();
     renderPage(<ColorsPage />);
-    for (const id of ['A-COL-1', 'A-COL-2', 'B-COL-1', 'B-COL-2', 'C-COL-1', 'C-COL-2']) {
+    for (const id of ['B-COL-1', 'B-COL-2', 'B2-COL-1', 'B2-COL-2', 'B3-COL-1', 'B3-COL-2']) {
       expect(screen.getByRole('figure', { name: new RegExp(id) })).toBeDefined();
     }
     expect(screen.queryAllByText('Fail')).toHaveLength(0);
@@ -158,7 +171,7 @@ describe('sub-pages render their candidate IDs', () => {
   it('typography: scale and Dutch/English sample per direction', () => {
     missing();
     renderPage(<TypographyPage />);
-    for (const id of ['A-TYPE-1', 'A-TYPE-2', 'B-TYPE-1', 'B-TYPE-2', 'C-TYPE-1', 'C-TYPE-2']) {
+    for (const id of ['B-TYPE-1', 'B-TYPE-2', 'B2-TYPE-1', 'B2-TYPE-2', 'B3-TYPE-1', 'B3-TYPE-2']) {
       expect(screen.getByRole('figure', { name: new RegExp(id) })).toBeDefined();
     }
     expect(document.querySelectorAll('article[lang="nl"]')).toHaveLength(3);
@@ -168,7 +181,7 @@ describe('sub-pages render their candidate IDs', () => {
   it('logo: two SVG candidates per direction', () => {
     missing();
     renderPage(<LogoPage />);
-    for (const id of ['A-SVG-1', 'A-SVG-2', 'B-SVG-1', 'B-SVG-2', 'C-SVG-1', 'C-SVG-2']) {
+    for (const id of ['B-SVG-1', 'B-SVG-2', 'B2-SVG-1', 'B2-SVG-2', 'B3-SVG-1', 'B3-SVG-2']) {
       expect(screen.getByRole('figure', { name: new RegExp(id) })).toBeDefined();
     }
   });
@@ -176,7 +189,7 @@ describe('sub-pages render their candidate IDs', () => {
   it('components: every block per direction, with 44 px class on buttons', () => {
     missing();
     renderPage(<ComponentsPage />);
-    for (const direction of ['A', 'B', 'C']) {
+    for (const direction of ['B', 'B2', 'B3']) {
       for (const slug of ['BTN', 'INP', 'BDG', 'ALR', 'CARD', 'EVD', 'RUN', 'CNF']) {
         expect(
           screen.getByRole('figure', { name: new RegExp(`${direction}-${slug}-1`) }),
@@ -194,7 +207,7 @@ describe('sub-pages render their candidate IDs', () => {
   it('landing: a draft per direction with a placeholder hero when assets are missing', async () => {
     missing();
     renderPage(<LandingPage />);
-    for (const id of ['A-LAND-1', 'B-LAND-1', 'C-LAND-1']) {
+    for (const id of ['B-LAND-1', 'B2-LAND-1', 'B3-LAND-1']) {
       expect(screen.getByRole('figure', { name: new RegExp(id) })).toBeDefined();
     }
     await waitFor(() =>
@@ -202,14 +215,63 @@ describe('sub-pages render their candidate IDs', () => {
     );
   });
 
+  it('compare: the same six items for B, B2 and B3, switching IDs with the mode', () => {
+    missing();
+    const { unmount } = renderPage(<ComparePage />);
+    for (const direction of ['B', 'B2', 'B3']) {
+      for (const suffix of ['COL-1', 'TYPE-1', 'BTN-1', 'EVD-1', 'SVG-1', 'LAND-1']) {
+        expect(
+          screen.getByRole('figure', { name: new RegExp(`${direction}-${suffix}`) }),
+        ).toBeDefined();
+      }
+    }
+    expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual([
+      'Palette strip',
+      'Type pairing',
+      'Buttons',
+      'Evidence card',
+      'Logo',
+      'Landing hero',
+    ]);
+    // Primary, outline, and destructive buttons per direction; all keep the 44 px class.
+    expect(screen.getAllByRole('button', { name: 'Delete' })).toHaveLength(3);
+    for (const button of screen.getAllByRole('button')) {
+      expect(button.className).toContain('min-h-11');
+    }
+    unmount();
+
+    window.localStorage.setItem('evidomo-showcase-mode', 'dark');
+    renderPage(<ComparePage />);
+    expect(screen.getByRole('figure', { name: /B3-COL-2/ })).toBeDefined();
+  });
+
   it('the mode switch applies to the next render and is remembered', () => {
     missing();
     const { container, unmount } = renderPage(<IndexPage />);
     fireEvent.click(screen.getByRole('button', { name: 'Dark' }));
     expect(container.querySelector('[data-theme="evidomo-dark"]')).not.toBeNull();
-    expect(container.querySelector('[data-theme="ledger-dark"]')).not.toBeNull();
+    for (const theme of ['hearth-dark', 'clay-dark', 'canal-dark']) {
+      expect(container.querySelector(`[data-theme="${theme}"]`)).not.toBeNull();
+    }
     unmount();
     const again = renderPage(<IndexPage />);
-    expect(again.container.querySelector('[data-theme="hearth-dark"]')).not.toBeNull();
+    expect(again.container.querySelector('[data-theme="canal-dark"]')).not.toBeNull();
+  });
+
+  it('a route page wrapped by bare() mounts its own mode provider, so the switch works', () => {
+    missing();
+    const Route = bare(IndexPage);
+    expect(Route.bare).toBe(true);
+    const queryClient = new QueryClient();
+    const { container } = render(
+      <QueryClientProvider client={queryClient}>
+        <Route />
+      </QueryClientProvider>,
+    );
+    // The module-level fallback keeps an earlier test's choice, so start from an explicit one.
+    fireEvent.click(screen.getByRole('button', { name: 'Light' }));
+    expect(container.querySelector('[data-theme="clay-light"]')).not.toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Dark' }));
+    expect(container.querySelector('[data-theme="clay-dark"]')).not.toBeNull();
   });
 });

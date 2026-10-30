@@ -15,16 +15,17 @@ export function IndexPage() {
           How to give feedback
         </h2>
         <p className="mt-2">
-          Every candidate carries a stable ID in the form <code className="font-mono">A-COL-2</code>{' '}
-          (direction, area, number). Write feedback by ID, for example &ldquo;A-COL-2 keep, B-TYPE-1
-          too soft, C-BTN-1 keep with rounder corners&rdquo;. Use the Light/Dark switch above; it
-          applies to every sub-page. This area exists on the dev server only.
+          Every candidate carries a stable ID in the form{' '}
+          <code className="font-mono">B2-COL-2</code> (direction, area, number). Write feedback by
+          ID, for example &ldquo;B2-COL-2 keep, B3-TYPE-1 too sharp, B-BTN-1 keep with rounder
+          corners&rdquo;. Use the Light/Dark switch above; it applies to every sub-page. This area
+          exists on the dev server only.
         </p>
       </section>
 
       <section aria-labelledby="directions" className="mb-8">
         <h2 id="directions" className="mb-3 text-xl font-semibold">
-          Three directions
+          Three Hearth studies
         </h2>
         <ul className="grid gap-4 md:grid-cols-3">
           {DIRECTIONS.map((direction) => (

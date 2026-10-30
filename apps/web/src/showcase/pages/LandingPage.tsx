@@ -38,10 +38,53 @@ function HeroImage({ direction }: { direction: DirectionId }) {
   );
 }
 
+/** Header and hero of the draft; `stacked` keeps the copy above the image in narrow columns. */
+export function LandingHero({
+  direction,
+  stacked = false,
+}: {
+  direction: DirectionId;
+  stacked?: boolean;
+}) {
+  const logo = logoCandidatesFor(direction)[0];
+  return (
+    <>
+      <header className="flex flex-wrap items-center justify-between gap-2">
+        {logo && <Lockup candidate={logo} />}
+        <button type="button" className="btn btn-ghost min-h-11">
+          Log in
+        </button>
+      </header>
+      <section
+        aria-label="Hero"
+        className={`grid items-center gap-6 ${stacked ? '' : 'md:grid-cols-2'}`}
+      >
+        <div className="flex flex-col gap-4">
+          <h3 className={`sc-display font-bold leading-tight ${stacked ? 'text-3xl' : 'text-4xl'}`}>
+            Every claim in your listing, linked to its evidence.
+          </h3>
+          <p className="text-lg text-base-content/70">
+            Capture a property in minutes. Evidomo builds the listing and shows where every
+            statement came from.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <button type="button" className="btn btn-primary min-h-11">
+              Create account
+            </button>
+            <button type="button" className="btn btn-outline min-h-11">
+              See a demo
+            </button>
+          </div>
+        </div>
+        <HeroImage direction={direction} />
+      </section>
+    </>
+  );
+}
+
 function LandingDraft({ direction }: { direction: DirectionId }) {
   const { mode } = useMode();
   const info = directionById(direction);
-  const logo = logoCandidatesFor(direction)[0];
   return (
     <Candidate id={`${direction}-LAND-1`} title={`${info.name} landing draft`}>
       <DirectionScope
@@ -49,32 +92,7 @@ function LandingDraft({ direction }: { direction: DirectionId }) {
         mode={mode}
         className="flex flex-col gap-8 rounded-box p-4"
       >
-        <header className="flex flex-wrap items-center justify-between gap-2">
-          {logo && <Lockup candidate={logo} />}
-          <button type="button" className="btn btn-ghost min-h-11">
-            Log in
-          </button>
-        </header>
-        <section aria-label="Hero" className="grid items-center gap-6 md:grid-cols-2">
-          <div className="flex flex-col gap-4">
-            <h3 className="sc-display text-4xl font-bold leading-tight">
-              Every claim in your listing, linked to its evidence.
-            </h3>
-            <p className="text-lg text-base-content/70">
-              Capture a property in minutes. Evidomo builds the listing and shows where every
-              statement came from.
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <button type="button" className="btn btn-primary min-h-11">
-                Create account
-              </button>
-              <button type="button" className="btn btn-outline min-h-11">
-                See a demo
-              </button>
-            </div>
-          </div>
-          <HeroImage direction={direction} />
-        </section>
+        <LandingHero direction={direction} />
         <section aria-label="How it works" className="flex flex-col gap-4">
           <h3 className="sc-display text-2xl font-semibold">How it works</h3>
           <ol className="grid gap-3 md:grid-cols-3">

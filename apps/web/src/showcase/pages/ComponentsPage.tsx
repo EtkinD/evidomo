@@ -108,58 +108,77 @@ function SampleCard() {
   );
 }
 
+function FormEvidence() {
+  return (
+    <article className="card border border-base-300 bg-base-100">
+      <div className="card-body gap-2 p-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <h4 className="font-semibold">The kitchen was renewed in 2021</h4>
+          <span className="badge badge-success">Verified</span>
+        </div>
+        <p className="text-sm font-medium">Form field</p>
+        <p>
+          <span className="text-base-content/70">Kitchen renovated:</span>{' '}
+          <span className="sc-mono">2021</span>
+        </p>
+      </div>
+    </article>
+  );
+}
+
+/** Also used alone by the compare page. */
+export function VoiceEvidence() {
+  return (
+    <article className="card border border-base-300 bg-base-100">
+      <div className="card-body gap-2 p-4">
+        <h4 className="font-semibold">South-facing garden</h4>
+        <p className="text-sm font-medium">Voice walkthrough, turn at 0:42</p>
+        <blockquote className="border-l-4 border-secondary pl-3 italic">
+          &ldquo;The garden faces south, it gets sun until late.&rdquo;
+        </blockquote>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            className="btn btn-outline min-h-11"
+            aria-label="Play the turn at 0:42"
+          >
+            <svg viewBox="0 0 16 16" className="size-4" fill="currentColor" aria-hidden>
+              <path d="M4 2.5v11l9-5.5z" />
+            </svg>
+            Play
+          </button>
+          <span className="sc-mono text-sm text-base-content/70">0:42 to 0:51</span>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function PhotoEvidence() {
+  return (
+    <article className="card border border-base-300 bg-base-100">
+      <div className="card-body gap-2 p-4">
+        <h4 className="font-semibold">Wooden floor in the living room</h4>
+        <p className="text-sm font-medium">Photo</p>
+        <div
+          role="img"
+          aria-label="Synthetic photo with the floor area highlighted"
+          className="relative aspect-4/3 w-full overflow-hidden rounded-box bg-base-300"
+        >
+          <div className="absolute inset-x-0 bottom-0 h-1/3 border-4 border-accent bg-accent/60" />
+        </div>
+        <p className="text-sm text-base-content/70">Highlighted: floor, living room</p>
+      </div>
+    </article>
+  );
+}
+
 function EvidenceCard() {
   return (
     <div className="flex flex-col gap-3">
-      <article className="card border border-base-300 bg-base-100">
-        <div className="card-body gap-2 p-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <h4 className="font-semibold">The kitchen was renewed in 2021</h4>
-            <span className="badge badge-success">Verified</span>
-          </div>
-          <p className="text-sm font-medium">Form field</p>
-          <p>
-            <span className="text-base-content/70">Kitchen renovated:</span>{' '}
-            <span className="sc-mono">2021</span>
-          </p>
-        </div>
-      </article>
-      <article className="card border border-base-300 bg-base-100">
-        <div className="card-body gap-2 p-4">
-          <h4 className="font-semibold">South-facing garden</h4>
-          <p className="text-sm font-medium">Voice walkthrough, turn at 0:42</p>
-          <blockquote className="border-l-4 border-secondary pl-3 italic">
-            &ldquo;The garden faces south, it gets sun until late.&rdquo;
-          </blockquote>
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              className="btn btn-outline min-h-11"
-              aria-label="Play the turn at 0:42"
-            >
-              <svg viewBox="0 0 16 16" className="size-4" fill="currentColor" aria-hidden>
-                <path d="M4 2.5v11l9-5.5z" />
-              </svg>
-              Play
-            </button>
-            <span className="sc-mono text-sm text-base-content/70">0:42 to 0:51</span>
-          </div>
-        </div>
-      </article>
-      <article className="card border border-base-300 bg-base-100">
-        <div className="card-body gap-2 p-4">
-          <h4 className="font-semibold">Wooden floor in the living room</h4>
-          <p className="text-sm font-medium">Photo</p>
-          <div
-            role="img"
-            aria-label="Synthetic photo with the floor area highlighted"
-            className="relative aspect-4/3 w-full overflow-hidden rounded-box bg-base-300"
-          >
-            <div className="absolute inset-x-0 bottom-0 h-1/3 border-4 border-accent bg-accent/60" />
-          </div>
-          <p className="text-sm text-base-content/70">Highlighted: floor, living room</p>
-        </div>
-      </article>
+      <FormEvidence />
+      <VoiceEvidence />
+      <PhotoEvidence />
     </div>
   );
 }

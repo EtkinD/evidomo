@@ -17,39 +17,6 @@ interface MarkProps {
   className?: string;
 }
 
-/** A-SVG-1: a house outline holding a verification tick. */
-function LedgerHouse({ className = 'size-10' }: MarkProps) {
-  return (
-    <Svg className={className}>
-      <path
-        d="M9 31 32 10l23 21v22a3 3 0 0 1-3 3H12a3 3 0 0 1-3-3Z"
-        stroke="currentColor"
-        strokeWidth="5"
-        strokeLinejoin="round"
-      />
-      <path
-        d="m22 38 7 7 14-15"
-        className="stroke-accent"
-        strokeWidth="5.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
-
-/** A-SVG-2: an "E" built from ledger lines, one line marked. */
-function LedgerLines({ className = 'size-10' }: MarkProps) {
-  return (
-    <Svg className={className}>
-      <rect x="10" y="10" width="9" height="44" rx="2" fill="currentColor" />
-      <rect x="10" y="10" width="44" height="9" rx="2" fill="currentColor" />
-      <rect x="10" y="45" width="44" height="9" rx="2" fill="currentColor" />
-      <rect x="10" y="27.5" width="28" height="9" rx="2" className="fill-accent" />
-    </Svg>
-  );
-}
-
 /** B-SVG-1: an arched doorway with a warm light. */
 function HearthArch({ className = 'size-10' }: MarkProps) {
   return (
@@ -83,27 +50,69 @@ function HearthRoof({ className = 'size-10' }: MarkProps) {
   );
 }
 
-/** C-SVG-1: viewfinder corners around a highlighted region. */
-function SignalFrame({ className = 'size-10' }: MarkProps) {
+/** B2-SVG-1: the arch softened: rounded base corners, a wider rounded door. */
+function ClayArch({ className = 'size-10' }: MarkProps) {
   return (
     <Svg className={className}>
-      <path
-        d="M8 22V10a2 2 0 0 1 2-2h12M42 8h12a2 2 0 0 1 2 2v12M56 42v12a2 2 0 0 1-2 2H42M22 56H10a2 2 0 0 1-2-2V42"
-        stroke="currentColor"
-        strokeWidth="5"
-        strokeLinecap="square"
-      />
-      <rect x="20" y="20" width="24" height="24" className="fill-accent" />
+      <path d="M9 50V30a23 23 0 0 1 46 0v20a6 6 0 0 1-6 6H15a6 6 0 0 1-6-6Z" fill="currentColor" />
+      <path d="M23 56V39a9 9 0 0 1 18 0v17Z" className="fill-accent" />
     </Svg>
   );
 }
 
-/** C-SVG-2: a solid block "E" with a signal bar. */
-function SignalBlock({ className = 'size-10' }: MarkProps) {
+/** B2-SVG-2: the roof and window with thinner, fully rounded strokes and a pillowy window. */
+function ClayRoof({ className = 'size-10' }: MarkProps) {
   return (
     <Svg className={className}>
-      <path d="M8 8h48v10H20v8h26v10H20v8h36v10H8Z" fill="currentColor" />
-      <rect x="26" y="22" width="30" height="6" className="fill-accent" />
+      <path
+        d="M7 30 32 10l25 20"
+        stroke="currentColor"
+        strokeWidth="5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <rect x="14" y="29" width="36" height="27" rx="10" fill="currentColor" />
+      <path
+        d="m24 42 6 6 11-12"
+        className="stroke-accent"
+        strokeWidth="4.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+/** B3-SVG-1: the arch as a heavy geometric block: true semicircle, flat base slab. */
+function CanalArch({ className = 'size-10' }: MarkProps) {
+  return (
+    <Svg className={className}>
+      <path d="M8 52V32a24 24 0 0 1 48 0v20Z" fill="currentColor" />
+      <rect x="4" y="52" width="56" height="8" fill="currentColor" />
+      <path d="M22 52V40a10 10 0 0 1 20 0v12Z" className="fill-accent" />
+    </Svg>
+  );
+}
+
+/** B3-SVG-2: a mitred, heavy roof over a squared window with a square-capped tick. */
+function CanalRoof({ className = 'size-10' }: MarkProps) {
+  return (
+    <Svg className={className}>
+      <path
+        d="M4 31 32 8l28 23"
+        stroke="currentColor"
+        strokeWidth="8"
+        strokeLinecap="butt"
+        strokeLinejoin="miter"
+      />
+      <rect x="14" y="31" width="36" height="26" rx="2" fill="currentColor" />
+      <path
+        d="m23 44 7 7 12-13"
+        className="stroke-accent"
+        strokeWidth="6"
+        strokeLinecap="square"
+        strokeLinejoin="miter"
+      />
     </Svg>
   );
 }
@@ -119,20 +128,6 @@ export interface LogoCandidate {
 
 export const LOGO_CANDIDATES: readonly LogoCandidate[] = [
   {
-    id: 'A-SVG-1',
-    direction: 'A',
-    title: 'House with tick, tight wordmark',
-    Mark: LedgerHouse,
-    wordmarkClass: 'sc-display font-semibold tracking-tight',
-  },
-  {
-    id: 'A-SVG-2',
-    direction: 'A',
-    title: 'Ledger-line E, spaced wordmark',
-    Mark: LedgerLines,
-    wordmarkClass: 'sc-display font-medium tracking-wide',
-  },
-  {
     id: 'B-SVG-1',
     direction: 'B',
     title: 'Arched doorway, serif wordmark',
@@ -147,18 +142,32 @@ export const LOGO_CANDIDATES: readonly LogoCandidate[] = [
     wordmarkClass: 'sc-display font-bold tracking-tight',
   },
   {
-    id: 'C-SVG-1',
-    direction: 'C',
-    title: 'Viewfinder frame, bold wordmark',
-    Mark: SignalFrame,
+    id: 'B2-SVG-1',
+    direction: 'B2',
+    title: 'Soft arched doorway, soft serif wordmark',
+    Mark: ClayArch,
+    wordmarkClass: 'sc-display font-semibold',
+  },
+  {
+    id: 'B2-SVG-2',
+    direction: 'B2',
+    title: 'Rounded roof and window tick, soft serif wordmark',
+    Mark: ClayRoof,
     wordmarkClass: 'sc-display font-bold tracking-tight',
   },
   {
-    id: 'C-SVG-2',
-    direction: 'C',
-    title: 'Block E with signal bar, uppercase wordmark',
-    Mark: SignalBlock,
-    wordmarkClass: 'sc-display font-bold uppercase tracking-widest',
+    id: 'B3-SVG-1',
+    direction: 'B3',
+    title: 'Geometric arch on a base slab, editorial wordmark',
+    Mark: CanalArch,
+    wordmarkClass: 'sc-display font-semibold tracking-tight',
+  },
+  {
+    id: 'B3-SVG-2',
+    direction: 'B3',
+    title: 'Mitred roof and square tick, bold editorial wordmark',
+    Mark: CanalRoof,
+    wordmarkClass: 'sc-display font-bold tracking-tight',
   },
 ];
 

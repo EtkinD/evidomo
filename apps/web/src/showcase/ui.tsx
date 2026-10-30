@@ -72,7 +72,7 @@ export function ShowcaseShell({ title, children }: { title: string; children: Re
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
         <h1 className="mb-1 text-3xl font-bold">{title}</h1>
         <p className="mb-6 text-sm text-base-content/70">
-          Give feedback by ID, for example &ldquo;A-COL-2 yes, B-TYPE-1 no&rdquo;.
+          Give feedback by ID, for example &ldquo;B2-COL-2 yes, B3-TYPE-1 no&rdquo;.
         </p>
         {children}
       </main>

@@ -14,25 +14,25 @@ export interface Direction {
 
 export const DIRECTIONS: readonly Direction[] = [
   {
-    id: 'A',
-    name: 'Ledger',
-    tagline: 'Calm trust',
-    mood: 'Deep teal and slate on cool greys. Precise, quiet, modern Dutch/Scandinavian: the product disappears and the evidence speaks.',
-    fonts: { display: 'Inter', body: 'Inter', mono: 'IBM Plex Mono' },
-  },
-  {
     id: 'B',
     name: 'Hearth',
     tagline: 'Warm home',
-    mood: 'Terracotta and brick, cream, deep green. Warm, premium Dutch real estate: it feels like the home the agent is selling.',
+    mood: 'The round-1 favourite, unchanged: terracotta and brick, cream, deep green, Fraunces.',
     fonts: { display: 'Fraunces', body: 'Source Sans 3', mono: 'System mono' },
   },
   {
-    id: 'C',
-    name: 'Signal',
-    tagline: 'Editorial evidence',
-    mood: 'Ink navy, signal amber, verification green. Forensic and high-contrast: every claim reads like a cited source.',
-    fonts: { display: 'Space Grotesk', body: 'Inter', mono: 'JetBrains Mono' },
+    id: 'B2',
+    name: 'Hearth Clay',
+    tagline: 'Softer, airier',
+    mood: 'Lighter and rounder: linen surfaces, clay primary, sage secondary, honey accent, soft Fraunces with Figtree.',
+    fonts: { display: 'Fraunces Soft', body: 'Figtree', mono: 'System mono' },
+  },
+  {
+    id: 'B3',
+    name: 'Hearth Canal',
+    tagline: 'Deeper, editorial',
+    mood: 'Deeper and tighter: brick primary, canal teal, brass accent, a much deeper dark mode, Newsreader serif.',
+    fonts: { display: 'Newsreader', body: 'Source Sans 3', mono: 'System mono' },
   },
 ];
 
@@ -55,6 +55,11 @@ export const SUB_PAGES = [
   },
   { slug: 'imagery', label: 'Imagery', summary: 'Muse heroes, interiors and illustrations.' },
   { slug: 'landing', label: 'Landing', summary: 'Hero and how-it-works draft per direction.' },
+  {
+    slug: 'compare',
+    label: 'Compare',
+    summary: 'B, B2 and B3 side by side: palette, type, buttons, evidence card, logo, hero.',
+  },
 ] as const;
 
 export function directionById(id: DirectionId): Direction {

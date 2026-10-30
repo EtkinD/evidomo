@@ -19,7 +19,7 @@ function themeBlock(name: string): string {
   return match[0];
 }
 
-const directions: DirectionId[] = ['A', 'B', 'C'];
+const directions: DirectionId[] = ['B', 'B2', 'B3'];
 const modes: Mode[] = ['light', 'dark'];
 
 describe('showcase candidate themes', () => {
@@ -66,8 +66,13 @@ describe('showcase candidate themes', () => {
     expect(contrastRatio('oklch(100% 0 0)', 'oklch(0% 0 0)')).toBeCloseTo(21, 1);
   });
 
+  it('has no theme left for the removed directions', () => {
+    expect(css).not.toMatch(/ledger|signal/);
+    expect(css.match(/name: '/g)).toHaveLength(6);
+  });
+
   it('keeps candidate themes out of the product stylesheet', () => {
-    expect(globals).not.toMatch(/ledger|hearth|signal/);
+    expect(globals).not.toMatch(/ledger|hearth|signal|\bclay\b|\bcanal\b/);
     expect(globals).toContain("@source not '../showcase'");
     expect(globals).toContain("@source not '../pages/showcase'");
   });

@@ -16,80 +16,6 @@
 }
 
 @plugin "daisyui/theme" {
-  name: 'ledger-light';
-  default: false;
-  prefersdark: false;
-  color-scheme: light;
-
-  --color-base-100: oklch(99% 0.003 215);
-  --color-base-200: oklch(96.5% 0.006 215);
-  --color-base-300: oklch(92% 0.01 215);
-  --color-base-content: oklch(24% 0.025 235);
-  --color-primary: oklch(42% 0.085 195);
-  --color-primary-content: oklch(98% 0.01 195);
-  --color-secondary: oklch(42% 0.04 250);
-  --color-secondary-content: oklch(98% 0.008 250);
-  --color-accent: oklch(86% 0.07 190);
-  --color-accent-content: oklch(26% 0.05 200);
-  --color-neutral: oklch(30% 0.03 250);
-  --color-neutral-content: oklch(97% 0.005 250);
-  --color-info: oklch(48% 0.11 245);
-  --color-info-content: oklch(98% 0.01 245);
-  --color-success: oklch(46% 0.1 160);
-  --color-success-content: oklch(98% 0.01 160);
-  --color-warning: oklch(82% 0.14 85);
-  --color-warning-content: oklch(30% 0.06 65);
-  --color-error: oklch(49% 0.17 25);
-  --color-error-content: oklch(98% 0.01 25);
-
-  --radius-selector: 0.375rem;
-  --radius-field: 0.375rem;
-  --radius-box: 0.5rem;
-  --size-selector: 0.25rem;
-  --size-field: 0.25rem;
-  --border: 1px;
-  --depth: 0;
-  --noise: 0;
-}
-
-@plugin "daisyui/theme" {
-  name: 'ledger-dark';
-  default: false;
-  prefersdark: false;
-  color-scheme: dark;
-
-  --color-base-100: oklch(21% 0.02 235);
-  --color-base-200: oklch(18% 0.018 235);
-  --color-base-300: oklch(15% 0.015 235);
-  --color-base-content: oklch(93% 0.01 220);
-  --color-primary: oklch(76% 0.1 190);
-  --color-primary-content: oklch(20% 0.03 195);
-  --color-secondary: oklch(77% 0.05 250);
-  --color-secondary-content: oklch(20% 0.02 250);
-  --color-accent: oklch(82% 0.08 190);
-  --color-accent-content: oklch(22% 0.04 200);
-  --color-neutral: oklch(32% 0.03 250);
-  --color-neutral-content: oklch(93% 0.01 250);
-  --color-info: oklch(75% 0.1 245);
-  --color-info-content: oklch(20% 0.03 245);
-  --color-success: oklch(75% 0.12 160);
-  --color-success-content: oklch(20% 0.03 160);
-  --color-warning: oklch(83% 0.13 85);
-  --color-warning-content: oklch(24% 0.05 65);
-  --color-error: oklch(72% 0.15 25);
-  --color-error-content: oklch(20% 0.04 25);
-
-  --radius-selector: 0.375rem;
-  --radius-field: 0.375rem;
-  --radius-box: 0.5rem;
-  --size-selector: 0.25rem;
-  --size-field: 0.25rem;
-  --border: 1px;
-  --depth: 0;
-  --noise: 0;
-}
-
-@plugin "daisyui/theme" {
   name: 'hearth-light';
   default: false;
   prefersdark: false;
@@ -164,35 +90,35 @@
 }
 
 @plugin "daisyui/theme" {
-  name: 'signal-light';
+  name: 'clay-light';
   default: false;
   prefersdark: false;
   color-scheme: light;
 
-  --color-base-100: oklch(99% 0.002 265);
-  --color-base-200: oklch(96% 0.006 265);
-  --color-base-300: oklch(89% 0.012 265);
-  --color-base-content: oklch(18% 0.04 265);
-  --color-primary: oklch(30% 0.1 265);
-  --color-primary-content: oklch(98% 0.01 265);
-  --color-secondary: oklch(40% 0.04 265);
-  --color-secondary-content: oklch(98% 0.008 265);
-  --color-accent: oklch(80% 0.16 80);
-  --color-accent-content: oklch(22% 0.05 70);
-  --color-neutral: oklch(20% 0.04 265);
-  --color-neutral-content: oklch(97% 0.005 265);
-  --color-info: oklch(46% 0.13 250);
-  --color-info-content: oklch(98% 0.01 250);
-  --color-success: oklch(44% 0.12 155);
-  --color-success-content: oklch(98% 0.01 155);
-  --color-warning: oklch(80% 0.16 80);
-  --color-warning-content: oklch(24% 0.06 65);
-  --color-error: oklch(48% 0.19 25);
+  --color-base-100: oklch(98.8% 0.008 85);
+  --color-base-200: oklch(96.5% 0.014 85);
+  --color-base-300: oklch(92.5% 0.02 80);
+  --color-base-content: oklch(30% 0.025 50);
+  --color-primary: oklch(52% 0.1 42);
+  --color-primary-content: oklch(99% 0.008 70);
+  --color-secondary: oklch(44% 0.06 135);
+  --color-secondary-content: oklch(98% 0.01 135);
+  --color-accent: oklch(85% 0.1 85);
+  --color-accent-content: oklch(30% 0.05 65);
+  --color-neutral: oklch(36% 0.025 55);
+  --color-neutral-content: oklch(97% 0.01 80);
+  --color-info: oklch(48% 0.07 235);
+  --color-info-content: oklch(98% 0.01 235);
+  --color-success: oklch(47% 0.08 150);
+  --color-success-content: oklch(98% 0.01 150);
+  --color-warning: oklch(84% 0.12 85);
+  --color-warning-content: oklch(30% 0.06 65);
+  --color-error: oklch(50% 0.16 25);
   --color-error-content: oklch(98% 0.01 25);
 
-  --radius-selector: 0.125rem;
-  --radius-field: 0.125rem;
-  --radius-box: 0.25rem;
+  --radius-selector: 1rem;
+  --radius-field: 1rem;
+  --radius-box: 1.75rem;
   --size-selector: 0.25rem;
   --size-field: 0.25rem;
   --border: 1px;
@@ -201,35 +127,109 @@
 }
 
 @plugin "daisyui/theme" {
-  name: 'signal-dark';
+  name: 'clay-dark';
   default: false;
   prefersdark: false;
   color-scheme: dark;
 
-  --color-base-100: oklch(18% 0.03 265);
-  --color-base-200: oklch(14.5% 0.028 265);
-  --color-base-300: oklch(11.5% 0.025 265);
-  --color-base-content: oklch(95% 0.01 265);
-  --color-primary: oklch(78% 0.1 265);
-  --color-primary-content: oklch(18% 0.04 265);
-  --color-secondary: oklch(76% 0.04 265);
-  --color-secondary-content: oklch(18% 0.02 265);
-  --color-accent: oklch(83% 0.16 80);
-  --color-accent-content: oklch(22% 0.05 70);
-  --color-neutral: oklch(28% 0.04 265);
-  --color-neutral-content: oklch(95% 0.01 265);
-  --color-info: oklch(76% 0.11 250);
-  --color-info-content: oklch(18% 0.03 250);
-  --color-success: oklch(76% 0.15 155);
-  --color-success-content: oklch(18% 0.04 155);
-  --color-warning: oklch(83% 0.16 80);
-  --color-warning-content: oklch(22% 0.05 65);
-  --color-error: oklch(72% 0.16 25);
-  --color-error-content: oklch(18% 0.04 25);
+  --color-base-100: oklch(25% 0.016 55);
+  --color-base-200: oklch(22% 0.014 55);
+  --color-base-300: oklch(19% 0.012 55);
+  --color-base-content: oklch(93% 0.012 85);
+  --color-primary: oklch(77% 0.09 45);
+  --color-primary-content: oklch(22% 0.035 45);
+  --color-secondary: oklch(77% 0.07 135);
+  --color-secondary-content: oklch(21% 0.03 135);
+  --color-accent: oklch(84% 0.09 85);
+  --color-accent-content: oklch(25% 0.045 65);
+  --color-neutral: oklch(34% 0.022 55);
+  --color-neutral-content: oklch(93% 0.012 85);
+  --color-info: oklch(77% 0.07 235);
+  --color-info-content: oklch(21% 0.03 235);
+  --color-success: oklch(77% 0.09 150);
+  --color-success-content: oklch(21% 0.03 150);
+  --color-warning: oklch(84% 0.11 85);
+  --color-warning-content: oklch(25% 0.05 65);
+  --color-error: oklch(74% 0.13 25);
+  --color-error-content: oklch(21% 0.04 25);
 
-  --radius-selector: 0.125rem;
-  --radius-field: 0.125rem;
-  --radius-box: 0.25rem;
+  --radius-selector: 1rem;
+  --radius-field: 1rem;
+  --radius-box: 1.75rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}
+
+@plugin "daisyui/theme" {
+  name: 'canal-light';
+  default: false;
+  prefersdark: false;
+  color-scheme: light;
+
+  --color-base-100: oklch(97.5% 0.008 90);
+  --color-base-200: oklch(94.5% 0.012 90);
+  --color-base-300: oklch(89% 0.016 85);
+  --color-base-content: oklch(22% 0.025 40);
+  --color-primary: oklch(40% 0.14 22);
+  --color-primary-content: oklch(98% 0.01 60);
+  --color-secondary: oklch(36% 0.065 195);
+  --color-secondary-content: oklch(98% 0.01 195);
+  --color-accent: oklch(78% 0.11 90);
+  --color-accent-content: oklch(25% 0.05 70);
+  --color-neutral: oklch(27% 0.02 220);
+  --color-neutral-content: oklch(96% 0.01 90);
+  --color-info: oklch(44% 0.09 245);
+  --color-info-content: oklch(98% 0.01 245);
+  --color-success: oklch(42% 0.09 160);
+  --color-success-content: oklch(98% 0.01 160);
+  --color-warning: oklch(80% 0.13 85);
+  --color-warning-content: oklch(28% 0.06 65);
+  --color-error: oklch(46% 0.19 25);
+  --color-error-content: oklch(98% 0.01 25);
+
+  --radius-selector: 0.5rem;
+  --radius-field: 0.5rem;
+  --radius-box: 0.875rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}
+
+@plugin "daisyui/theme" {
+  name: 'canal-dark';
+  default: false;
+  prefersdark: false;
+  color-scheme: dark;
+
+  --color-base-100: oklch(17% 0.014 215);
+  --color-base-200: oklch(14% 0.012 215);
+  --color-base-300: oklch(11% 0.01 215);
+  --color-base-content: oklch(92% 0.012 90);
+  --color-primary: oklch(72% 0.13 25);
+  --color-primary-content: oklch(18% 0.04 25);
+  --color-secondary: oklch(74% 0.08 195);
+  --color-secondary-content: oklch(17% 0.03 195);
+  --color-accent: oklch(80% 0.11 90);
+  --color-accent-content: oklch(21% 0.045 70);
+  --color-neutral: oklch(26% 0.018 215);
+  --color-neutral-content: oklch(92% 0.012 90);
+  --color-info: oklch(74% 0.09 245);
+  --color-info-content: oklch(17% 0.03 245);
+  --color-success: oklch(74% 0.1 160);
+  --color-success-content: oklch(17% 0.03 160);
+  --color-warning: oklch(81% 0.12 85);
+  --color-warning-content: oklch(21% 0.05 65);
+  --color-error: oklch(70% 0.15 25);
+  --color-error-content: oklch(17% 0.04 25);
+
+  --radius-selector: 0.5rem;
+  --radius-field: 0.5rem;
+  --radius-box: 0.875rem;
   --size-selector: 0.25rem;
   --size-field: 0.25rem;
   --border: 1px;
@@ -242,22 +242,22 @@
  * (showcase/fonts.ts); neither daisyUI nor Tailwind can map a role to a family per direction
  * without arbitrary values, so the three roles are plain classes here.
  */
-[data-direction='A'] {
-  --sc-display: var(--font-sc-inter), system-ui, sans-serif;
-  --sc-body: var(--font-sc-inter), system-ui, sans-serif;
-  --sc-mono: var(--font-sc-plex-mono), ui-monospace, monospace;
-}
-
 [data-direction='B'] {
   --sc-display: var(--font-sc-fraunces), Georgia, serif;
   --sc-body: var(--font-sc-source-sans), system-ui, sans-serif;
   --sc-mono: ui-monospace, monospace;
 }
 
-[data-direction='C'] {
-  --sc-display: var(--font-sc-space-grotesk), system-ui, sans-serif;
-  --sc-body: var(--font-sc-inter), system-ui, sans-serif;
-  --sc-mono: var(--font-sc-jetbrains-mono), ui-monospace, monospace;
+[data-direction='B2'] {
+  --sc-display: var(--font-sc-fraunces-soft), Georgia, serif;
+  --sc-body: var(--font-sc-figtree), system-ui, sans-serif;
+  --sc-mono: ui-monospace, monospace;
+}
+
+[data-direction='B3'] {
+  --sc-display: var(--font-sc-newsreader), Georgia, serif;
+  --sc-body: var(--font-sc-source-sans), system-ui, sans-serif;
+  --sc-mono: ui-monospace, monospace;
 }
 
 .sc-display {
@@ -270,4 +270,14 @@
 
 .sc-mono {
   font-family: var(--sc-mono);
+}
+
+/*
+ * Clay softens Fraunces: the SOFT axis rounds the terminals, and every display weight steps down
+ * by 150 from what the utility asked for (Tailwind's font-bold sets --tw-font-weight), so the
+ * relative hierarchy between candidates stays while the face reads lighter.
+ */
+[data-direction='B2'] .sc-display {
+  font-variation-settings: 'SOFT' 100;
+  font-weight: calc(var(--tw-font-weight, 600) - 150);
 }

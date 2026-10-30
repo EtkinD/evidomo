@@ -34,7 +34,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isDirection(value: unknown): value is DirectionId {
-  return value === 'A' || value === 'B' || value === 'C';
+  return value === 'B' || value === 'B2' || value === 'B3';
 }
 
 function isKind(value: unknown): value is AssetKind {
@@ -50,7 +50,7 @@ function parseItem(value: unknown, index: number): AssetItem | string {
   if (!isRecord(value)) return `${at} is not an object`;
   const { id, direction, kind, file, prompt, width, height } = value;
   if (typeof id !== 'string' || id === '') return `${at}.id is missing`;
-  if (!isDirection(direction)) return `${at}.direction must be A, B, or C`;
+  if (!isDirection(direction)) return `${at}.direction must be B, B2, or B3`;
   if (!isKind(kind)) return `${at}.kind is not a known kind`;
   if (typeof file !== 'string' || file === '') return `${at}.file is missing`;
   if (typeof prompt !== 'string') return `${at}.prompt is missing`;
