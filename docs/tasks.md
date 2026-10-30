@@ -203,7 +203,7 @@ Design decisions are made in a dev-only showcase, and only what the founder appr
 - [x] **P4B-03 — Logo and brand assets**
   - Depends on: P4B-02
   - Done when: the chosen logo exists as SVG (mark and wordmark, light and dark), with favicon, app icons, and an Open Graph image; it is used in the app shell and the HTML pack.
-- [ ] **P4B-04 — App shell**
+- [x] **P4B-04 — App shell**
   - Depends on: P4B-02
   - Done when: header with logo and navigation, account menu, footer, and a light/dark theme switch work at phone and desktop widths.
 - [ ] **P4B-05 — Landing page**
