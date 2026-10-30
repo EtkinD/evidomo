@@ -226,6 +226,7 @@ export const MUSE_IMAGE_TOOLS_OFF = {
 } as const;
 
 export const IMAGE_EDITS_PATH = '/images/edits';
+export const IMAGE_GENERATIONS_PATH = '/images/generations';
 
 /** The response did not have the documented `Images Response` shape. */
 export class MetaImageResponseError extends Error {
@@ -303,9 +304,43 @@ export async function editMetaImageToolsOff(
     response_format: 'b64_json',
     tool_enablement: MUSE_IMAGE_TOOLS_OFF,
   };
+  return postImageRequestToolsOff(clients, IMAGE_EDITS_PATH, body, request);
+}
 
+export type MetaImageToolsOffGenerateRequest = Omit<MetaImageToolsOffEditRequest, 'image'>;
+
+/**
+ * Text-to-image with every built-in tool disabled: `POST /v1/images/generations` through the
+ * `openai` SDK. The generations JSON body parses `tool_enablement` booleans as strictly as the
+ * JSON edit body (a non-boolean is a 400 naming the field, P4B-01 probe); the AI SDK's
+ * {@link generateMetaImage} cannot send the field. Usage and errors as for
+ * {@link editMetaImageToolsOff}.
+ */
+export async function generateMetaImageToolsOff(
+  clients: MetaClients,
+  request: MetaImageToolsOffGenerateRequest,
+): Promise<MetaImageToolsOffEditResult> {
+  assertStandardModelId(request.modelId);
+  const body = {
+    model: request.modelId,
+    prompt: request.prompt,
+    n: 1,
+    size: request.size,
+    output_format: request.outputFormat,
+    response_format: 'b64_json',
+    tool_enablement: MUSE_IMAGE_TOOLS_OFF,
+  };
+  return postImageRequestToolsOff(clients, IMAGE_GENERATIONS_PATH, body, request);
+}
+
+async function postImageRequestToolsOff(
+  clients: MetaClients,
+  apiPath: typeof IMAGE_EDITS_PATH | typeof IMAGE_GENERATIONS_PATH,
+  body: Record<string, unknown>,
+  request: Pick<MetaImageToolsOffEditRequest, 'modelId' | 'abortSignal'>,
+): Promise<MetaImageToolsOffEditResult> {
   const startedAt = performance.now();
-  const raw = await clients.openai.post<unknown>(IMAGE_EDITS_PATH, {
+  const raw = await clients.openai.post<unknown>(apiPath, {
     body,
     ...(request.abortSignal === undefined ? {} : { signal: request.abortSignal }),
   });
@@ -332,7 +367,7 @@ export async function editMetaImageToolsOff(
     );
   }
   if (parsed.data.data.length === 0) {
-    throw new MetaImageEmptyError('The image edit returned no image');
+    throw new MetaImageEmptyError('The image request returned no image');
   }
 
   const images = parsed.data.data.map((item) => {

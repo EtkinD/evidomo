@@ -5,6 +5,7 @@ import {
   editMetaImage,
   editMetaImageToolsOff,
   generateMetaImage,
+  generateMetaImageToolsOff,
   ImageDecodeError,
   imageDimensions,
   MetaImageEmptyError,
@@ -259,6 +260,65 @@ describe('editMetaImageToolsOff (stubbed fetch, no network)', () => {
     stubResponse({ created: 1, data: [] });
     await expect(
       editMetaImageToolsOff(clients, { ...request, modelId: 'image-model-contributor' }),
+    ).rejects.toThrow(ForbiddenModelError);
+    expect(requests).toHaveLength(0);
+  });
+});
+
+describe('generateMetaImageToolsOff (stubbed fetch, no network)', () => {
+  const usage = createInMemoryUsageRecorder();
+  const estimateCost = createTokenPriceEstimator({ 'image-model': { usdPerImage: 0.01 } });
+  const clients = createMetaClients({ apiKey: 'k', usage, estimateCost, maxRetries: 0 });
+  const requests: Request[] = [];
+  const request = {
+    modelId: 'image-model',
+    prompt: 'a grey square',
+    size: '1024x1024',
+    outputFormat: 'png',
+  } as const;
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    requests.length = 0;
+    usage.clear();
+  });
+
+  it('posts the generations JSON body with every tool off and records one billed image', async () => {
+    vi.stubGlobal('fetch', (input: string | URL | Request, init?: RequestInit) => {
+      requests.push(new Request(input, init));
+      return Promise.resolve(
+        Response.json({ created: 1, data: [{ b64_json: PNG_5X3.toString('base64') }] }),
+      );
+    });
+    const result = await generateMetaImageToolsOff(clients, request);
+
+    expect(requests).toHaveLength(1);
+    expect(requests[0]?.url).toBe('https://api.meta.ai/v1/images/generations');
+    expect(await requests[0]?.json()).toEqual({
+      model: 'image-model',
+      prompt: 'a grey square',
+      n: 1,
+      size: '1024x1024',
+      output_format: 'png',
+      response_format: 'b64_json',
+      tool_enablement: {
+        enable_image_search: false,
+        enable_web_search: false,
+        enable_shell: false,
+      },
+    });
+    expect(result.images[0]).toMatchObject({ format: 'png', width: 5, height: 3 });
+    expect(usage.entries).toEqual([result.usage]);
+    expect(result.usage).toMatchObject({ sdk: 'openai', images: 1, estimatedCostUsd: 0.01 });
+  });
+
+  it('rejects Contributor-mode models before any request', async () => {
+    vi.stubGlobal('fetch', (input: string | URL | Request, init?: RequestInit) => {
+      requests.push(new Request(input, init));
+      return Promise.resolve(Response.json({ created: 1, data: [] }));
+    });
+    await expect(
+      generateMetaImageToolsOff(clients, { ...request, modelId: 'image-model-contributor' }),
     ).rejects.toThrow(ForbiddenModelError);
     expect(requests).toHaveLength(0);
   });

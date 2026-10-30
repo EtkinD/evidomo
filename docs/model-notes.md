@@ -110,10 +110,16 @@ transcript, speaker? }] }`. There is no `model` and no `usage`: the billed unit 
     (P1-08). The AI SDK cannot send `tool_enablement`, and the multipart form does not validate
     it. Implemented as `editMetaImageToolsOff` (P3-04); `editMetaImage` is for synthetic
     inputs only.
+  - **Text-to-image with tools off: `generateMetaImageToolsOff`** (`openai.post` to
+    `/images/generations`, P4B-01). The generations JSON body validates `tool_enablement`
+    booleans as strictly as the JSON edit body, so no synthetic base image is needed.
 - **Request:** `model`, `prompt`, `n`, `size` (aspect ratio only), `output_format`
   (`webp` by default), `response_format: b64_json`. Meta-only fields:
   - `reasoning_strength`: `low` or `high`, default `high`;
-  - `tool_enablement`: image search, web search, and shell, **all on by default**;
+  - `tool_enablement`: image search, web search, and shell, **all on by default**. Both JSON
+    bodies (generations and edits) reject a non-boolean value with a 400 naming the field, but
+    accept an unknown key inside the object silently (P4B-01), so a misspelt key would leave
+    that tool on: send the constant `MUSE_IMAGE_TOOLS_OFF`, never hand-written keys;
   - `temperature`.
 
   `mask` and `input_fidelity` return 400.
@@ -123,7 +129,9 @@ output_tokens, total_tokens } }`. There is no `id`, `model`, or `size`, and no f
   reports tool use.
 - **Measured:**
   - flat $0.01 per returned image (the tokens are informational);
-  - edits take 8.4–15.9 s, generations 9.3–29.4 s;
+  - edits take 8.4–15.9 s, generations 9.3–29.4 s (8.0–34.1 s for 30 tools-off generations,
+    P4B-01);
+  - generations return 1600×1600 for `size` 1024x1024 and 1920×1280 for 1536x1024 (P4B-01);
   - output is 1920×1280 for `size` 1536x1024, never the input size; without `size` the aspect
     drifts by 1.5%; `size` = the input's own `1024x682` is accepted and also gives 1920×1280
     (0.10% aspect change, P3-04);
@@ -136,7 +144,8 @@ output_tokens, total_tokens } }`. There is no `id`, `model`, or `size`, and no f
   - P3-04 edits customer photos through the JSON body with
     `tool_enablement: { enable_image_search: false, enable_web_search: false, enable_shell: false }`.
 - **Details:** [P1-06](#p1-06--muse-image-edits),
-  [P1-08](#p1-08--muse-image-with-tools-disabled), [P3-04](#p3-04--staging-variants).
+  [P1-08](#p1-08--muse-image-with-tools-disabled), [P3-04](#p3-04--staging-variants),
+  [P4B-01](#p4b-01--showcase-images-with-tools-off).
 
 ### SAM 3.1 (`sam-3.1`)
 
@@ -213,7 +222,8 @@ output_tokens, total_tokens } }`. There is no `id`, `model`, or `size`, and no f
   `!`/`~` marker, but `decodeMaskToRaster` requires the marker, so we keep it
   ([P1-05](#mask-decoding-meta-samparser-decision)).
 - **Muse Image `tool_enablement` defaults to all tools on** (image search, web search, shell).
-  - It is reachable only through the JSON edit body, which validates it strictly.
+  - Only the JSON bodies validate it: the edit body (P1-08) and the generations body (P4B-01).
+    Both accept unknown keys inside the object silently.
   - The multipart form accepted a non-boolean value and billed the edit.
   - Meta documents nothing about what the tools do with input images.
 
@@ -2898,3 +2908,51 @@ session hit the known `ERR_SSL_TOO_LONG` record-mode error on 4 vision requests 
 requests, 14 recorded); the SDK retried them within the same execution. Those 4 report no
 usage, so whether Meta billed them is unknown (at most ~$0.03 more). The session's ledger
 ($0.4253) over-reports, because served responses are metered again.
+
+## P4B-01 — Showcase images with tools off
+
+Status: done (pending review), 2026-10-30, against `openai@7.45.1`. Design-exploration images for
+the dev-only showcase must contain no third-party content, so image search and web search had to
+be provably off for text-to-image as well.
+
+### Probes
+
+Both calls were `openai.post('/images/generations')` with a neutral prompt, `size` 1024x1024,
+`output_format` `webp`, and `maxRetries: 0`:
+
+| #   | `tool_enablement`                                       | Result                                                                                                       | Cost  |
+| --- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ----- |
+| 1   | `enable_web_search: "nope"`, the other two `false`      | **400** in 0.8 s: `` `tool_enablement.enable_web_search`: invalid type: string "nope", expected a boolean `` | $0    |
+| 2   | all three `false` plus an unknown `enable_bogus: false` | **200** in 22.2 s, one image, usage 33,568 in / 1,364 out; the response keys are the documented five         | $0.01 |
+
+Findings:
+
+- **The generations JSON body parses `tool_enablement` like the JSON edit body** (P1-08): typed
+  booleans, the same error text. Text-to-image with tools off therefore needs no edit of a
+  synthetic base image. `generateMetaImageToolsOff` in `meta/images.ts` sends the same
+  `MUSE_IMAGE_TOOLS_OFF` constant as `editMetaImageToolsOff` and shares its response handling.
+- **Unknown keys inside `tool_enablement` are ignored, not rejected.** Validation proves the
+  types of the known fields only, so the key names must come from the shared constant; a typo
+  would silently leave a tool on. The P1-08 edit probe did not test unknown keys; assume the
+  same there.
+- As before, the response has no field that reports tool use, so "off" rests on the validated
+  request, not on an observed trace.
+
+### Generation run
+
+`apps/api/src/cli/generate-showcase-images.ts` (development only, refuses
+`NODE_ENV=production`, requires `--out` and `--max-usd`) generates the prompt list in
+`showcase-prompts.ts`: 3 directions × (4 logo concepts, 2 heroes, 2 interior details, 2 empty-state
+illustrations) = 30 images. The model is the stager's `image_model` from the service definition.
+Every prompt ends with the same constraints (no people, faces, text, numbers, logos, brand names,
+licence plates, house numbers, street signs, or recognisable real buildings or artworks). Output
+goes to the gitignored `apps/web/public/showcase-assets/` with a `manifest.json` (`toolsOff:
+"generations"`) that the web showcase reads.
+
+- 30 of 30 generated, no failures, no empty (safety-filtered) responses, concurrency 2;
+  8.0–34.1 s per image; 1600×1600 for square and 1920×1280 for 3:2; **$0.30**.
+- A downscaled contact-sheet check of all 30 found no visible text, people, faces, or plates, so
+  nothing was regenerated. Logo concepts follow the abstract-mark instruction only loosely (one
+  came out as a plain zigzag, one close to a letter form); they are exploration input, not a
+  final mark.
+- Session total, probes included: 31 billed images, **$0.31**.
