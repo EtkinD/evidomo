@@ -215,6 +215,12 @@ export interface MatchOptions {
    * bytes. Default: none.
    */
   readonly imageAlias?: (sha256: string) => string | undefined;
+  /**
+   * Awaited before `imageAlias` is consulted for a JSON body. Lets a caller name images it can
+   * only learn about when a request arrives (the dev replay worker reads photos that were
+   * uploaded through the web app after it started). Default: none.
+   */
+  readonly beforeImageAlias?: () => Promise<void>;
 }
 
 const DATA_URL = /^data:([a-z]+\/[a-z0-9.+-]+);base64,([A-Za-z0-9+/]+={0,2})$/;
@@ -273,6 +279,7 @@ export async function normalizedBodyHash(
     try {
       const json: unknown = JSON.parse(text);
       const { imageAlias } = options;
+      if (imageAlias !== undefined) await options.beforeImageAlias?.();
       return sha256(canonicalJson(imageAlias === undefined ? json : aliasImages(json, imageAlias)));
     } catch (error) {
       throw new FixtureError(

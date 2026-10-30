@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { access, readFile } from 'node:fs/promises';
+import { createDbClient, type DbClient } from '../db/client.ts';
 import type { Env } from '../env.ts';
 import { bootDefinitions } from '../definitions/boot.ts';
 import type { Logger } from '../logger.ts';
@@ -15,6 +16,7 @@ import { assertNotProduction, DEV_REPLAY_DAILY_CAP_USD, DevSeedError } from './d
 import { fixtureMatchOptions } from './execute.ts';
 import { createFixtureImageAliases } from './image-aliases.ts';
 import { loadProject } from './project.ts';
+import { createUploadPhotoAliaser } from './upload-aliases.ts';
 
 // `npm run dev:worker:replay` (docs/architecture.md §5 "Development seed"): the development
 // worker for runs made by `npm run dev:seed`. It registers the production step handlers, but its
@@ -36,6 +38,12 @@ export interface ReplayWorkerOptions {
   readonly logger: Logger;
   /** `NODE_ENV`; anything but production is accepted. */
   readonly nodeEnv: string | undefined;
+  /**
+   * Also name photos uploaded through the web app after the worker started, by their position
+   * (`upload-aliases.ts`), so a project created in the UI with the project directory's photos can
+   * be replayed. Off by default: the seed's photos are named from the files themselves.
+   */
+  readonly uploadedPhotos?: boolean;
 }
 
 export interface ReplayWorker {
@@ -57,17 +65,21 @@ export interface ReplayWorker {
 async function registerProjectPhotos(
   project: Awaited<ReturnType<typeof loadProject>>,
   aliases: ReturnType<typeof createFixtureImageAliases>,
-): Promise<void> {
+): Promise<readonly string[]> {
   const vision = project.service.steps.find((step) => step.agent === 'vision');
+  const sourceSha256s: string[] = [];
   for (const photo of project.photos) {
     const source = await readFile(photo.path);
     const prepared = await preparePhoto(photo.path);
+    const sourceSha256 = createHash('sha256').update(source).digest('hex');
+    sourceSha256s.push(sourceSha256);
     await aliases.registerPhoto(
       { bytes: new Uint8Array(prepared.data), width: prepared.width, height: prepared.height },
-      createHash('sha256').update(source).digest('hex'),
+      sourceSha256,
       vision?.agent === 'vision' ? vision.classification_long_edge_px : undefined,
     );
   }
+  return sourceSha256s;
 }
 
 export async function startReplayWorker(options: ReplayWorkerOptions): Promise<ReplayWorker> {
@@ -89,13 +101,32 @@ export async function startReplayWorker(options: ReplayWorkerOptions): Promise<R
   }
 
   const aliases = createFixtureImageAliases();
-  await registerProjectPhotos(project, aliases);
+  const sourceSha256s = await registerProjectPhotos(project, aliases);
+  const vision = project.service.steps.find((step) => step.agent === 'vision');
+  // Only used to name uploaded photos; the seed's own photos never need it.
+  let aliasDb: DbClient | undefined;
+  let beforeImageAlias: (() => Promise<void>) | undefined;
+  if (options.uploadedPhotos === true) {
+    aliasDb = createDbClient(options.env.DATABASE_URL, { logger });
+    beforeImageAlias = createUploadPhotoAliaser({
+      db: aliasDb.db,
+      storage: options.storage,
+      aliases,
+      sourceSha256s,
+      classificationLongEdgePx:
+        vision?.agent === 'vision' ? vision.classification_long_edge_px : undefined,
+    });
+  }
+  const match = {
+    ...fixtureMatchOptions(aliases),
+    ...(beforeImageAlias === undefined ? {} : { beforeImageAlias }),
+  };
   // Replay mode is fixed here; there is no flag, and the real MODEL_API_KEY is never read.
   const replay = createMetaReplay({
     cassette,
     fixturesDir: project.fixturesDir,
     mode: 'replay',
-    match: fixtureMatchOptions(aliases),
+    match,
     onInteraction: aliases.onInteraction,
   });
   await replay.start();
@@ -115,6 +146,7 @@ export async function startReplayWorker(options: ReplayWorkerOptions): Promise<R
     });
   } catch (error) {
     await replay.stop();
+    await aliasDb?.close();
     throw error;
   }
 
@@ -124,6 +156,7 @@ export async function startReplayWorker(options: ReplayWorkerOptions): Promise<R
       await runtime.shutdown();
     } finally {
       await replay.stop();
+      await aliasDb?.close();
     }
   }
   return {

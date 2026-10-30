@@ -141,6 +141,29 @@ describe('describeRequest', () => {
     );
   });
 
+  it('lets the caller learn image names when a request arrives', async () => {
+    const image = Buffer.from('an upload that was stored after the replay started');
+    const names = new Map<string, string>();
+    const match = {
+      imageAlias: (sha256: string) => names.get(sha256),
+      beforeImageAlias: async () => {
+        await Promise.resolve();
+        names.set(createHash('sha256').update(image).digest('hex'), 'photo:late');
+      },
+    };
+    const body = JSON.stringify({
+      image_url: `data:image/jpeg;base64,${image.toString('base64')}`,
+    });
+    const named = JSON.stringify({ image_url: 'image-alias:image/jpeg:photo:late' });
+    // Without the hook the image is keyed by its bytes; with it, by the name it learned.
+    expect(await describeRequest(jsonRequest(body))).not.toEqual(
+      await describeRequest(jsonRequest(named)),
+    );
+    expect(await describeRequest(jsonRequest(body), match)).toEqual(
+      await describeRequest(jsonRequest(named)),
+    );
+  });
+
   it('rejects a body that claims JSON but is not', async () => {
     await expect(describeRequest(jsonRequest('{not json'))).rejects.toThrow(FixtureError);
   });

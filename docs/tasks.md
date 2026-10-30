@@ -248,7 +248,7 @@ Design decisions are made in a dev-only showcase, and only what the founder appr
 - [x] **P5-04 — Project deletion**
   - Depends on: P2-01, P2-05
   - Done when: deleting a project hard-deletes materials, artifacts, and derived data (tested).
-- [ ] **P5-05 — E2E flow**
+- [x] **P5-05 — E2E flow**
   - Depends on: P4-09
   - Done when: Playwright covers capture → run → Gate 1 → Gate 2 → export against the stack in fixture mode.
 - [ ] **P5-06 — Demo run**

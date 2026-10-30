@@ -137,7 +137,10 @@ test('capture: photos in order, delete, an audio file, a recording, and readines
 
   await test.step('a new recording from the fake microphone replaces it', async () => {
     await page.getByRole('button', { name: 'Record a new walkthrough' }).click();
-    await expect(page.getByRole('timer', { name: 'Recording time' })).toBeVisible();
+    // Starting the fake microphone is slow when the pipeline journeys load the machine at once.
+    await expect(page.getByRole('timer', { name: 'Recording time' })).toBeVisible({
+      timeout: 20_000,
+    });
     await page.waitForTimeout(1500);
     await page.getByRole('button', { name: 'Stop recording' }).click();
     await expect(page.getByLabel('Preview of the new walkthrough')).toBeVisible();

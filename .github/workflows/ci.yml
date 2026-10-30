@@ -151,13 +151,16 @@ jobs:
 
       - run: npm ci --ignore-scripts
 
-      # The ubuntu image ships no ffmpeg, which the capture spec's audio upload needs.
+      # The ubuntu image ships no ffmpeg, which the audio uploads (capture spec, pipeline
+      # journeys) need.
       - name: Install ffmpeg
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
 
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
+      # Starts the API, the web server, and the replay worker (zero model calls, no MODEL_API_KEY
+      # anywhere in this job) through playwright.config.ts.
       - name: Playwright
         run: npm run test:e2e:isolated
 

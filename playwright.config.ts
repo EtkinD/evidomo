@@ -13,6 +13,8 @@ import { defineConfig, devices } from '@playwright/test';
 //   `evidomo_e2e` database (created and migrated by e2e/support/prepare-isolated.ts) and a
 //   throwaway storage directory. It never reuses a server, so it runs next to a developer's own
 //   servers and cannot touch their data. E2E_WEB_PORT, E2E_API_PORT, and E2E_DATABASE_URL override.
+//   It also starts the replay worker (`dev:worker:replay`), which works the run queue from the
+//   synthetic project's cassette: runs make zero model calls, and the real worker never starts.
 const externalBaseUrl = process.env['E2E_BASE_URL'];
 const isolated = process.env['E2E_ISOLATED'] === '1';
 const webPort = process.env['E2E_WEB_PORT'] ?? (isolated ? '3100' : '3000');
@@ -58,9 +60,40 @@ export default defineConfig({
               APP_ORIGIN: localBaseUrl,
               // Auth flows make no model calls; never hand a real key to the test stack.
               MODEL_API_KEY: '',
-              ...(isolated ? { STORAGE_DIR: isolatedStorageDir } : {}),
+              ...(isolated
+                ? {
+                    STORAGE_DIR: isolatedStorageDir,
+                    // The replay worker records as-if-live cost in the ledger; the e2e database
+                    // outlives a run, so the development default cap (5.00) would block the
+                    // eleventh journey. Nothing is spent.
+                    DAILY_BUDGET_USD: '9999.99',
+                  }
+                : {}),
             },
           },
+          ...(isolated
+            ? [
+                {
+                  // After the API (Playwright starts the servers in order), which creates the
+                  // queue schema. Called with `node`, not `npm run dev:worker:replay`, so no
+                  // repository .env is read; MODEL_API_KEY stays empty and the worker ignores it
+                  // anyway: its Meta clients can only reach the cassette (architecture.md §5).
+                  // --uploaded-photos: the browser re-encodes photos, so the recording's photo
+                  // names are matched by position (apps/api/src/cli/upload-aliases.ts).
+                  command: 'node apps/api/src/cli/dev-worker.ts --uploaded-photos',
+                  wait: { stderr: /Replay worker started/ },
+                  timeout: 60_000,
+                  gracefulShutdown: { signal: 'SIGTERM' as const, timeout: 10_000 },
+                  env: {
+                    NODE_ENV: 'development',
+                    LOG_LEVEL: 'warn',
+                    DATABASE_URL: localDatabaseUrl,
+                    STORAGE_DIR: isolatedStorageDir,
+                    MODEL_API_KEY: '',
+                  },
+                },
+              ]
+            : []),
           {
             // `dev:web` hard-codes --port 3000, and Next locks its dist directory per running dev
             // server, so the isolated stack runs `next dev` itself with its own port and dist dir.

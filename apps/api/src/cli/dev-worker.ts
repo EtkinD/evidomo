@@ -14,13 +14,18 @@ import { startReplayWorker } from './replay-worker.ts';
 // Exit codes: 0 stopped by a signal; 1 failed to start; 2 invalid invocation, environment, or
 // production.
 
-const USAGE = `Usage: npm run dev:worker:replay -- [project-dir]
+const USAGE = `Usage: npm run dev:worker:replay -- [--uploaded-photos] [project-dir]
 
 The development worker for runs seeded by "npm run dev:seed": it runs the real pipeline steps,
 but every Meta request is answered from the project's cassette (default project:
 fixtures/projects/synthetic-walkthrough), so continuing a run after a gate decision makes zero
 model calls. Use it instead of "npm run dev:worker", never beside it: both would work the same
 queue. Development only; refuses NODE_ENV=production.
+
+--uploaded-photos   also name photos uploaded through the web app by their position, so a
+                    project created in the UI with the project directory's photos replays
+                    (the browser re-encodes photos, so no file hash can match them). Used by
+                    the isolated Playwright stack.
 
 Only decisions the recording holds can be replayed: decide Gate 1 as one of the recorded paths
 "npm run dev:seed" prints. Any other decision fails the next step at once, with no live call.`;
@@ -42,7 +47,10 @@ async function main(): Promise<void> {
   }
   let parsed;
   try {
-    parsed = parseArgs({ allowPositionals: true, options: { help: { type: 'boolean' } } });
+    parsed = parseArgs({
+      allowPositionals: true,
+      options: { help: { type: 'boolean' }, 'uploaded-photos': { type: 'boolean' } },
+    });
   } catch (error) {
     fail(`${error instanceof Error ? error.message : String(error)}\n\n${USAGE}`, 2);
   }
@@ -70,6 +78,7 @@ async function main(): Promise<void> {
       storage: createLocalStorage({ rootDir: env.STORAGE_DIR }),
       logger,
       nodeEnv: env.NODE_ENV,
+      uploadedPhotos: parsed.values['uploaded-photos'] === true,
     });
     shutdownOnSignals({ engine: worker.runtime.engine, shutdown: () => worker.shutdown() }, logger);
     process.stderr.write(
