@@ -65,3 +65,99 @@ jobs:
 
       - name: Registry signatures and attestations
         run: npm audit signatures
+
+  # Builds the production images exactly as the deploy does (no push) and smoke-checks each one.
+  # A broken image used to reach main unnoticed because only the deploy built them.
+  images:
+    name: Image (${{ matrix.name }})
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: api
+            file: apps/api/Dockerfile
+            target: runtime
+          - name: migrate
+            file: apps/api/Dockerfile
+            target: migrate
+          - name: demo-seed
+            file: apps/api/Dockerfile
+            target: demo-seed
+          - name: web
+            file: apps/web/Dockerfile
+            target: runtime
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: docker/setup-buildx-action@v4
+
+      # Loaded into the local Docker daemon for the smoke check; nothing goes to a registry.
+      # The cache is scoped per image so the four builds do not evict each other.
+      - name: Build
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ${{ matrix.file }}
+          target: ${{ matrix.target }}
+          push: false
+          load: true
+          tags: evidomo-ci/${{ matrix.name }}:ci
+          cache-from: type=gha,scope=image-${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=image-${{ matrix.name }}
+
+      - name: Smoke check
+        run: .github/scripts/smoke-image.sh "${{ matrix.name }}" "evidomo-ci/${{ matrix.name }}:ci"
+
+  # The browser suite on its own stack (web :3100, API :4100, database evidomo_e2e), the same
+  # command as local `npm run test:e2e:isolated`. The service container matches docker-compose.yml.
+  e2e:
+    name: End-to-end (Playwright)
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: evidomo
+          POSTGRES_PASSWORD: evidomo
+          POSTGRES_DB: evidomo
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U evidomo -d evidomo"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci --ignore-scripts
+
+      # The ubuntu image ships no ffmpeg, which the capture spec's audio upload needs.
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Playwright
+        run: npm run test:e2e:isolated
+
+      - name: Upload report
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
