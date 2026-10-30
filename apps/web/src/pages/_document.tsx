@@ -1,9 +1,12 @@
 import { Head, Html, Main, NextScript } from 'next/document';
+import { THEME_INIT_SCRIPT } from '../lib/theme';
 
 export default function Document() {
   return (
     <Html lang="en">
       <Head>
+        {/* Applies the stored theme before first paint (no flash of the wrong theme). */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <link rel="icon" href="/favicon.ico" sizes="32x32" />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />

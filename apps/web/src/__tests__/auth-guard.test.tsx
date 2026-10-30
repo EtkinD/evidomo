@@ -129,7 +129,8 @@ describe('public pages and the header', () => {
       return Promise.resolve(true);
     });
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Log out' }));
+    fireEvent.click(await screen.findByRole('button', { name: /Account menu/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Log out' }));
 
     await waitFor(() => {
       expect(queryClient.getQueryData(meQueryKey)).toBeNull();
@@ -150,7 +151,8 @@ describe('public pages and the header', () => {
     });
     renderPage(ProjectsPage);
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Log out' }));
+    fireEvent.click(await screen.findByRole('button', { name: /Account menu/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Log out' }));
 
     expect((await screen.findByRole('alert')).textContent).toBe('Could not log out. Try again.');
     expect(screen.getByRole('heading', PROTECTED_HEADING)).toBeDefined();

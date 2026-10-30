@@ -28,6 +28,7 @@ test('register, log out, get redirected to login, and log back in', async ({ pag
   await expect(projectsHeading).toBeVisible();
 
   // Log out: back to the landing page, and the protected page redirects again.
+  await page.getByRole('button', { name: /Account menu/ }).click();
   await page.getByRole('button', { name: 'Log out' }).click();
   await expect(page).toHaveURL('/');
   await expect(page.getByRole('link', { name: 'Log in' })).toBeVisible();

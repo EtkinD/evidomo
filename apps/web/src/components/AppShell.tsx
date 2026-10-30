@@ -1,68 +1,13 @@
-import Link from 'next/link';
 import type { ReactNode } from 'react';
-import { useLogout, useMe } from '../lib/auth';
-import { Logo } from './brand/Logo';
-
-function AccountControls() {
-  const me = useMe();
-  const logout = useLogout();
-
-  // Nothing while the session check runs, so the header does not flash the wrong controls.
-  if (me.isPending) return null;
-
-  if (me.data) {
-    return (
-      <div className="flex items-center gap-2">
-        <Link href="/projects" className="btn btn-ghost min-h-11">
-          Projects
-        </Link>
-        <span className="hidden max-w-48 truncate text-sm text-base-content/70 sm:inline">
-          {me.data.email}
-        </span>
-        <button
-          type="button"
-          className="btn btn-outline min-h-11"
-          disabled={logout.isPending}
-          onClick={() => logout.mutate()}
-        >
-          {logout.isPending && <span className="loading loading-spinner loading-xs" aria-hidden />}
-          Log out
-        </button>
-        {logout.isError && (
-          <span role="alert" className="text-sm text-error">
-            Could not log out. Try again.
-          </span>
-        )}
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex items-center gap-2">
-      <Link href="/login" className="btn btn-ghost min-h-11">
-        Log in
-      </Link>
-      <Link href="/register" className="btn btn-primary min-h-11">
-        Create account
-      </Link>
-    </div>
-  );
-}
+import { AppFooter } from './shell/AppFooter';
+import { AppHeader } from './shell/AppHeader';
 
 export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-dvh flex-col">
-      <header className="navbar border-b border-base-300 bg-base-100 px-4">
-        <div className="navbar-start">
-          <Link href="/" className="inline-flex min-h-11 items-center">
-            <Logo size="sm" />
-          </Link>
-        </div>
-        <nav aria-label="Account" className="navbar-end">
-          <AccountControls />
-        </nav>
-      </header>
+      <AppHeader />
       {children}
+      <AppFooter />
     </div>
   );
 }
