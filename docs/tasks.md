@@ -22,7 +22,7 @@ The orchestrator (main session) delegates each task to its owner — see `.claud
 | P4-10                             | backend-developer                                                     |
 | P4B-01                            | ai-pipeline-engineer (Muse assets), then frontend-developer           |
 | P4B-02 … P4B-06                   | frontend-developer                                                    |
-| D-01, D-05, D-06                  | devops-engineer                                                       |
+| D-01, D-05 … D-08                 | devops-engineer                                                       |
 | D-02 … D-04                       | devops-engineer prepares, user executes (VPS, DNS, secrets)           |
 | P5-01                             | ai-pipeline-engineer                                                  |
 | P5-02, P5-06                      | orchestrator with the user                                            |
@@ -233,6 +233,12 @@ Design decisions are made in a dev-only showcase, and only what the founder appr
 - [x] **D-06 — Production smoke test**
   - Depends on: D-05, P0-07
   - Done when: the Playwright smoke suite passes against the production URL.
+- [ ] **D-07 — Resource limits and replicas**
+  - Depends on: D-01
+  - Done when: every service in `infra/compose.yaml` has CPU and memory limits, and the web and api replica counts come from `infra/.env` (generic defaults in `.env.example`); a documented sizing rule keeps the running stack at no more than 80% of the host's CPU and RAM, leaving room for builds; rate limits, open-stream caps, and database connections stay correct with more than one api replica (or the api stays single and the reason is documented); the stack runs locally with two web replicas behind Caddy.
+- [ ] **D-08 — Load test**
+  - Depends on: D-06, D-07
+  - Done when: a repeatable load test (k6 in Docker, public read-only routes, no accounts, no live runs) ramps to 1,000 concurrent users against production; it reports the concurrency at which p95 latency or the error rate first crosses the thresholds, or that 1,000 passed, with host CPU and RAM at the peak; the report is kept outside git (`data/load/`).
 
 ## Phase 5 — Hardening and evaluation
 
