@@ -220,17 +220,17 @@ Design decisions are made in a dev-only showcase, and only what the founder appr
   - Done when: production Dockerfiles (API/worker image includes ffmpeg) and a compose file with caddy, web, api, worker, postgres, healthchecks, and volumes run locally.
 - [ ] **D-02 — VPS provisioning**
   - Depends on: D-01
-  - Done when: a Linode VPS in an EU region runs Ubuntu with Docker, firewall limited to 22/80/443, and a non-root deploy user.
-- [ ] **D-03 — Domain and HTTPS**
+  - Done when: a VPS in an EU region runs Ubuntu with Docker, firewall limited to 22/80/443, and a non-root deploy user.
+- [x] **D-03 — Domain and HTTPS**
   - Depends on: D-02
   - Done when: the Squarespace domain's DNS points to the VPS and Caddy serves valid HTTPS.
-- [ ] **D-04 — Secrets**
+- [x] **D-04 — Secrets**
   - Depends on: D-02
   - Done when: the server `.env` has mode 600, is not in the repository, and `MODEL_API_KEY` is only available to api and worker.
-- [ ] **D-05 — Deploy script and backups**
+- [x] **D-05 — Deploy script and backups**
   - Depends on: D-03, D-04
   - Done when: one script pulls, builds, migrates, restarts, and runs a smoke check; a daily `pg_dump` is written to a volume.
-- [ ] **D-06 — Production smoke test**
+- [x] **D-06 — Production smoke test**
   - Depends on: D-05, P0-07
   - Done when: the Playwright smoke suite passes against the production URL.
 
