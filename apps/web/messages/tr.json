@@ -81,6 +81,101 @@
     "landingDescription": "Fotoğraflar ve sesli tur girer, ilan paketi çıkar. Her ifade, geldiği form alanına, konuşma bölümüne veya fotoğrafa bağlanır; dışa aktarmadan önce sen gözden geçirirsin."
   },
   "landing": {
+    "actions": {
+      "goToProjects": "Projelerine git",
+      "createAccount": "Hesap oluştur",
+      "openSample": "Örnek dosyayı aç"
+    },
+    "hero": {
+      "line1": "İlanındaki",
+      "line2": "her iddia,",
+      "line3": "kanıtına bağlı.",
+      "lede": "Mülkü gez, konuş, fotoğraf çek. Evidomo ilan paketini hazırlar ve her ifadenin nereden geldiğini gösterir.",
+      "notesLabel": "Fotoğraf üzerindeki örnek notlar",
+      "claims": {
+        "windows": "İki uzun pencere",
+        "brick": "Tuğla duvar",
+        "area": "Yaşam alanı 38 m²"
+      },
+      "sources": {
+        "photo": "Fotoğraf",
+        "form": "Form alanı"
+      },
+      "caption": "Örnek bir gösterimdir, gerçek bir ilan değildir."
+    },
+    "how": {
+      "title": "Bir gezintiden, savunabileceğin bir pakete",
+      "packPreviewLabel": "İlan paketi örneği: her biri kaynağıyla birlikte iki ifade",
+      "previewLiving": {
+        "text": "38 m² aydınlık oturma odası.",
+        "source": "Form"
+      },
+      "previewGarden": {
+        "text": "Güneye bakan bahçe.",
+        "source": "Ses, 0:42"
+      },
+      "steps": {
+        "capture": {
+          "title": "Topla",
+          "text": "Her odayı fotoğrafla, sesli tur kaydet, bildiğin bilgileri gir."
+        },
+        "verify": {
+          "title": "Doğrula",
+          "text": "Form, ses ve fotoğraflar çeliştiğinde işlem durur, karar sana kalır."
+        },
+        "pack": {
+          "title": "Paket",
+          "text": "Baskıya hazır bir paket indir. Her iddia izlenebilir kalır."
+        }
+      }
+    },
+    "evidence": {
+      "title": "Her iddianın bir kaynağı var",
+      "text": "Neye dayandığını görmek için bir iddia seç.",
+      "caption": "Örnek dosyadan: sentetik bir daire için kayıtlı model yanıtlarının tekrar oynatımı.",
+      "claimsLabel": "Bu cümledeki iddialar",
+      "rests": "“{claim}” neye dayanıyor",
+      "claims": {
+        "place": "Yer",
+        "area": "Yaşam alanı",
+        "floor": "Kat"
+      },
+      "fields": {
+        "place_name": "Yer",
+        "living_area": "Yaşam alanı"
+      }
+    },
+    "trust": {
+      "title": "Kontrol edilmek için tasarlandı",
+      "items": {
+        "calls": {
+          "title": "Kararlar senin",
+          "text": "Çelişkilerde işlem durur; sen onaylamadan hiçbir şey çıkmaz."
+        },
+        "staging": {
+          "title": "Sanal döşeme etiketli",
+          "text": "Döşenmiş görseller etiketlenir ve orijinalinin yanında gösterilir."
+        },
+        "private": {
+          "title": "Özel bilgiler kaldırılır",
+          "text": "GPS yüklemede silinir; dışa aktarımlarda yüzler ve plakalar bulanıklaştırılır."
+        },
+        "assists": {
+          "title": "Yardımcı olur, onaylamaz",
+          "text": "Değerleme yok, hukuki tavsiye yok, senin yerine yayın yok."
+        }
+      }
+    },
+    "cta": {
+      "title": "Sıradaki ilanına hazır mısın?",
+      "text": "Hiçbir şey çıkmadan önce taslağı gözden geçir."
+    },
+    "images": {
+      "hero": "Yeşil-krem tuğla duvarlı, bej kanepeli, yeşil koltuklu ve pencerenin yanında saksı bitkisi olan, kanal evi tarzı aydınlık bir oturma odası",
+      "interior1": "Teraskota karolarla buluşan meşe balık sırtı parke; yaprak gölgeleri ve zeytin dalı tutan sarı bir saksı",
+      "interior2": "Meşe şömine rafı olan, kireç badanalı tuğla bir şömine; teraskota saksıda okaliptüs ve huş odunları",
+      "illustration": "Yuvarlak krem çatılı, açık sarı kapılı beyaz bir ev ve yeşil bir bitki illüstrasyonu"
+    },
     "sources": {
       "switch": "Kaynakları göster",
       "on": "Açık",
@@ -100,15 +195,6 @@
       "evalRef": "README, Değerlendirme sonuçları ({date}, fixture modu)",
       "ruleRef": "docs/product.md, bölüm {section}",
       "number": "kaynak {n}"
-    },
-    "actions": {
-      "openSample": "Örnek dosyayı aç"
-    },
-    "hero": {
-      "line1": "İlanındaki",
-      "line2": "her iddia,",
-      "line3": "kanıtına bağlı.",
-      "lede": "Mülkü gez, konuş, fotoğraf çek. Evidomo ilan paketini hazırlar ve her ifadenin nereden geldiğini gösterir; böylece tahminleri değil, doğrulanmış bilgileri onaylarsın."
     },
     "specimen": {
       "label": "Örnek dosyadan bir cümle",

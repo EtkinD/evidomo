@@ -81,6 +81,101 @@
     "landingDescription": "Fotos y un recorrido por voz de entrada, un paquete de anuncio de salida. Cada frase enlaza con el campo del formulario, el fragmento hablado o la foto de donde procede, y tú la revisas antes de exportar."
   },
   "landing": {
+    "actions": {
+      "goToProjects": "Ir a tus proyectos",
+      "createAccount": "Crear cuenta",
+      "openSample": "Abrir el expediente de ejemplo"
+    },
+    "hero": {
+      "line1": "Cada afirmación",
+      "line2": "de tu anuncio,",
+      "line3": "vinculada a su evidencia.",
+      "lede": "Recorre el inmueble, habla y haz fotos. Evidomo redacta el paquete de anuncio y muestra de dónde sale cada frase.",
+      "notesLabel": "Notas de ejemplo sobre la foto",
+      "claims": {
+        "windows": "Dos ventanas altas",
+        "brick": "Pared de ladrillo visto",
+        "area": "Superficie habitable 38 m²"
+      },
+      "sources": {
+        "photo": "Foto",
+        "form": "Campo del formulario"
+      },
+      "caption": "Un ejemplo ilustrativo, no un anuncio real."
+    },
+    "how": {
+      "title": "De un recorrido a un paquete que puedes respaldar",
+      "packPreviewLabel": "Ejemplo de paquete de anuncio: dos frases, cada una con su fuente",
+      "previewLiving": {
+        "text": "Salón luminoso de 38 m².",
+        "source": "Formulario"
+      },
+      "previewGarden": {
+        "text": "Jardín orientado al sur.",
+        "source": "Voz, 0:42"
+      },
+      "steps": {
+        "capture": {
+          "title": "Captura",
+          "text": "Fotografía cada estancia, graba un recorrido de voz e introduce los datos que conoces."
+        },
+        "verify": {
+          "title": "Verifica",
+          "text": "Si formulario, voz y fotos no coinciden, el proceso se detiene y decides tú."
+        },
+        "pack": {
+          "title": "Paquete",
+          "text": "Descarga un paquete listo para imprimir. Cada afirmación sigue siendo rastreable."
+        }
+      }
+    },
+    "evidence": {
+      "title": "Cada afirmación tiene una fuente",
+      "text": "Elige una afirmación para ver en qué se apoya.",
+      "caption": "Del expediente de ejemplo: una reproducción de respuestas del modelo grabadas para un apartamento sintético.",
+      "claimsLabel": "Afirmaciones de esta frase",
+      "rests": "En qué se apoya “{claim}”",
+      "claims": {
+        "place": "Localidad",
+        "area": "Superficie habitable",
+        "floor": "Planta"
+      },
+      "fields": {
+        "place_name": "Localidad",
+        "living_area": "Superficie habitable"
+      }
+    },
+    "trust": {
+      "title": "Hecho para ser comprobado",
+      "items": {
+        "calls": {
+          "title": "Las decisiones son tuyas",
+          "text": "Si hay conflictos el proceso se detiene y nada sale sin tu aprobación."
+        },
+        "staging": {
+          "title": "El staging se indica",
+          "text": "Las imágenes amuebladas llevan etiqueta y se muestran junto al original."
+        },
+        "private": {
+          "title": "Los datos privados se eliminan",
+          "text": "El GPS se elimina al subir; las caras y matrículas se difuminan al exportar."
+        },
+        "assists": {
+          "title": "Asiste, no certifica",
+          "text": "Sin tasaciones, sin asesoría legal, sin publicar por ti."
+        }
+      }
+    },
+    "cta": {
+      "title": "¿Listo para tu próximo anuncio?",
+      "text": "Revisa el borrador antes de que algo salga."
+    },
+    "images": {
+      "hero": "Un salón luminoso en una casa de canal, con una pared de ladrillo verde crema, un sofá beige, un sillón verde y una planta en maceta junto a la ventana",
+      "interior1": "Un suelo de roble en espiga que se une a baldosas de terracota, con sombras de hojas y una maceta amarilla con una rama de olivo",
+      "interior2": "Una chimenea de ladrillo encalado con repisa de roble, eucalipto en una maceta de terracota y troncos de abedul",
+      "illustration": "Una ilustración de una casa blanca con tejado redondeado color crema, una puerta amarilla abierta y una planta verde"
+    },
     "sources": {
       "switch": "Mostrar fuentes",
       "on": "Activado",
@@ -100,15 +195,6 @@
       "evalRef": "README, Resultados de la evaluación ({date}, modo fixture)",
       "ruleRef": "docs/product.md, sección {section}",
       "number": "fuente {n}"
-    },
-    "actions": {
-      "openSample": "Abrir el expediente de ejemplo"
-    },
-    "hero": {
-      "line1": "Cada afirmación",
-      "line2": "de tu anuncio,",
-      "line3": "vinculada a su evidencia.",
-      "lede": "Recorre el inmueble, habla y haz fotos. Evidomo redacta el paquete de anuncio y muestra de dónde sale cada frase, para que apruebes hechos y no suposiciones."
     },
     "specimen": {
       "label": "Una frase del expediente de ejemplo",

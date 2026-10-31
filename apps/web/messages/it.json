@@ -81,6 +81,101 @@
     "landingDescription": "Foto e un tour vocale in ingresso, un pacchetto annuncio in uscita. Ogni frase rimanda al campo del modulo, al passaggio parlato o alla foto da cui deriva, e tu la verifichi prima dell’esportazione."
   },
   "landing": {
+    "actions": {
+      "goToProjects": "Vai ai tuoi progetti",
+      "createAccount": "Crea account",
+      "openSample": "Apri il fascicolo di esempio"
+    },
+    "hero": {
+      "line1": "Ogni affermazione",
+      "line2": "del tuo annuncio,",
+      "line3": "collegata alla sua prova.",
+      "lede": "Gira per l’immobile, parla e scatta foto. Evidomo prepara il pacchetto annuncio e mostra da dove viene ogni frase.",
+      "notesLabel": "Note di esempio sulla foto",
+      "claims": {
+        "windows": "Due finestre alte",
+        "brick": "Parete in mattoni",
+        "area": "Superficie abitabile 38 m²"
+      },
+      "sources": {
+        "photo": "Foto",
+        "form": "Campo del modulo"
+      },
+      "caption": "Un esempio illustrativo, non un annuncio reale."
+    },
+    "how": {
+      "title": "Da un sopralluogo a un pacchetto che puoi difendere",
+      "packPreviewLabel": "Esempio di pacchetto annuncio: due frasi, ciascuna con la sua fonte",
+      "previewLiving": {
+        "text": "Soggiorno luminoso di 38 m².",
+        "source": "Modulo"
+      },
+      "previewGarden": {
+        "text": "Giardino esposto a sud.",
+        "source": "Voce, 0:42"
+      },
+      "steps": {
+        "capture": {
+          "title": "Raccogli",
+          "text": "Fotografa ogni stanza, registra un tour vocale e inserisci i dati che conosci."
+        },
+        "verify": {
+          "title": "Verifica",
+          "text": "Se modulo, voce e foto non concordano, l’elaborazione si ferma e decidi tu."
+        },
+        "pack": {
+          "title": "Pacchetto",
+          "text": "Scarica un pacchetto pronto per la stampa. Ogni affermazione resta rintracciabile."
+        }
+      }
+    },
+    "evidence": {
+      "title": "Ogni affermazione ha una fonte",
+      "text": "Scegli un’affermazione per vedere su cosa si basa.",
+      "caption": "Dal fascicolo di esempio: il replay di risposte del modello registrate per un appartamento sintetico.",
+      "claimsLabel": "Affermazioni in questa frase",
+      "rests": "Su cosa si basa “{claim}”",
+      "claims": {
+        "place": "Località",
+        "area": "Superficie abitabile",
+        "floor": "Piano"
+      },
+      "fields": {
+        "place_name": "Località",
+        "living_area": "Superficie abitabile"
+      }
+    },
+    "trust": {
+      "title": "Pensato per essere verificato",
+      "items": {
+        "calls": {
+          "title": "Le decisioni sono tue",
+          "text": "Con i conflitti l’elaborazione si ferma e nulla esce senza la tua approvazione."
+        },
+        "staging": {
+          "title": "Lo staging è dichiarato",
+          "text": "Le immagini arredate hanno un’etichetta e stanno accanto all’originale."
+        },
+        "private": {
+          "title": "I dati privati vengono rimossi",
+          "text": "Il GPS viene rimosso al caricamento; volti e targhe sono sfocati nelle esportazioni."
+        },
+        "assists": {
+          "title": "Assiste, non certifica",
+          "text": "Nessuna stima, nessuna consulenza legale, nessuna pubblicazione al posto tuo."
+        }
+      }
+    },
+    "cta": {
+      "title": "Pronto per il tuo prossimo annuncio?",
+      "text": "Rivedi la bozza prima che qualcosa esca."
+    },
+    "images": {
+      "hero": "Un soggiorno luminoso in una casa sul canale, con una parete di mattoni verde crema, un divano beige, una poltrona verde e una pianta in vaso vicino alla finestra",
+      "interior1": "Un pavimento in rovere a spina di pesce che incontra piastrelle in terracotta, con ombre di foglie e un vaso giallo con un ramo d’ulivo",
+      "interior2": "Un camino in mattoni alla calce con mensola in rovere, eucalipto in un vaso di terracotta e ceppi di betulla",
+      "illustration": "Un’illustrazione di una casa bianca con tetto arrotondato color crema, una porta gialla aperta e una pianta verde"
+    },
     "sources": {
       "switch": "Mostra le fonti",
       "on": "Attivo",
@@ -100,15 +195,6 @@
       "evalRef": "README, Risultati della valutazione ({date}, modalità fixture)",
       "ruleRef": "docs/product.md, sezione {section}",
       "number": "fonte {n}"
-    },
-    "actions": {
-      "openSample": "Apri il fascicolo di esempio"
-    },
-    "hero": {
-      "line1": "Ogni affermazione",
-      "line2": "del tuo annuncio,",
-      "line3": "collegata alla sua prova.",
-      "lede": "Gira per l’immobile, parla e scatta foto. Evidomo prepara il pacchetto annuncio e mostra da dove viene ogni frase, così approvi fatti, non supposizioni."
     },
     "specimen": {
       "label": "Una frase dal fascicolo di esempio",

@@ -8,6 +8,9 @@ import {
   BUILD_YEAR,
   EVAL_ROWS,
   EVAL_RUN,
+  EXAMPLE_EVIDENCE,
+  EXAMPLE_PARTS,
+  EXAMPLE_SENTENCE,
   LEDGER_PARAMS,
   LEDGER_ROWS,
   SAMPLE_COUNTS,
@@ -96,6 +99,36 @@ describe('the specimen', () => {
     for (const item of forms) expect(String(project.factForm[item.field])).toBe(item.value);
     // The spoken year that replaced it.
     expect(turns.find((t) => t.startMs === 11180)?.transcript).toContain(String(BUILD_YEAR.voice));
+  });
+});
+
+describe('the landing page claim example', () => {
+  const portal = withKey('portal')[0] as {
+    portal: { paragraphs: { segments: { text: string }[] }[] };
+  };
+
+  it('is assembled from its parts without losing a character', () => {
+    expect(EXAMPLE_PARTS.map((part) => part.text).join('')).toBe(EXAMPLE_SENTENCE);
+  });
+
+  it('is a sentence of the approved copy the demo run replays (the recorded creative response)', () => {
+    const sentences = portal.portal.paragraphs.flatMap((p) => p.segments.map((s) => s.text));
+    expect(sentences).toContain(EXAMPLE_SENTENCE);
+  });
+
+  it('quotes real turns of the recorded walkthrough and the form values the sample project holds', () => {
+    for (const item of Object.values(EXAMPLE_EVIDENCE).flat()) {
+      if (item.kind === 'voice') {
+        const turn = turns.find((t) => t.startMs === item.startMs);
+        expect(turn, `a turn starts at ${item.startMs}`).toBeDefined();
+        expect(turn?.endMs).toBe(item.endMs);
+        expect(turn?.transcript).toContain(item.quote);
+      } else if (item.field === 'living_area') {
+        expect(`${String(project.factForm['living_area'])} m²`).toBe(item.value);
+      } else {
+        expect(project.factForm['place_name']).toBe(item.value);
+      }
+    }
   });
 });
 

@@ -24,11 +24,13 @@ test.describe('demo, signed out', () => {
 
     if (ids.length === 1) {
       // One published run: the entry opens the sample file itself, with its folder tabs.
-      await expect(page).toHaveURL(new RegExp(`/demo/runs/${ids[0]}$`));
+      // (The dev server compiles the run screen on its first visit, which can take a while.)
+      const slow = { timeout: 30_000 };
+      await expect(page).toHaveURL(new RegExp(`/demo/runs/${ids[0]}$`), slow);
       await expect(
         page.getByRole('navigation', { name: 'Sections of the sample file' }),
-      ).toBeVisible();
-      await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+      ).toBeVisible(slow);
+      await expect(page.getByRole('heading', { level: 1 })).toBeVisible(slow);
     } else {
       await expect(page).toHaveURL(/\/demo$/);
       await expect(
@@ -51,6 +53,7 @@ test.describe('demo, signed out', () => {
       .click();
     await expect(page).toHaveURL(
       ids.length === 1 ? new RegExp(`/demo/runs/${ids[0]}$`) : /\/demo$/,
+      { timeout: 30_000 },
     );
   });
 
@@ -61,10 +64,7 @@ test.describe('demo, signed out', () => {
     const ids = await publishedRunIds(request);
     test.skip(ids.length !== 1, 'needs exactly one published demo run');
     await page.goto('/?sources=on');
-    await page
-      .getByRole('main')
-      .getByRole('link', { name: 'Fact conflicts, K01, K02, K03' })
-      .click();
+    await page.getByRole('main').getByRole('link', { name: 'Fact conflicts' }).click();
     // The dev server compiles the run screen on its first visit, which can take a while.
     await expect(page).toHaveURL(new RegExp(`/demo/runs/${ids[0]}/conflicts$`), {
       timeout: 30_000,

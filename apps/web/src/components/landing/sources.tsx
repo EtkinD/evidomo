@@ -102,7 +102,7 @@ export function SourceNotes({ ids }: { ids: readonly SourceNoteId[] }) {
           key={id}
           data-source-note={id}
           id={`source-note-${id}`}
-          className="source-in flex gap-2 bg-base-100 p-2 shadow-sheet"
+          className="source-in flex gap-2 bg-base-100 p-2 text-base-content shadow-sheet"
           style={{ '--i': index } as CSSProperties}
         >
           <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-accent text-sm font-semibold text-accent-content">
@@ -130,12 +130,12 @@ export function Sourced({ id, children }: { id: SourceNoteId; children: ReactNod
       <mark
         data-claim-source={id}
         aria-describedby={`source-note-${id}`}
-        className="claim-on bg-transparent text-base-content"
+        className="claim-on bg-transparent"
       >
         {children}
       </mark>
       {/* The number is read as "source 3", and the claim points at its note. */}
-      <sup className="ml-0.5 text-[0.7em] font-semibold text-primary">
+      <sup className="ml-0.5 text-[0.7em] font-semibold">
         <span aria-hidden>{noteNumber(id)}</span>
         <span className="sr-only">{t('number', { n: noteNumber(id) })}</span>
       </sup>

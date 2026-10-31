@@ -1,14 +1,19 @@
-import { cleanup, fireEvent, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import en from '../../messages/en.json';
+import { Boundaries } from '../components/landing/Boundaries';
 import { DEMO_HREF } from '../components/landing/LandingPage';
+import { Ledger } from '../components/landing/Ledger';
+import { Numbers } from '../components/landing/Numbers';
+import { Specimen } from '../components/landing/Specimen';
+import { LANDING_IMAGES, landingSrc } from '../lib/landing-images';
 import { SOURCE_NOTE_IDS } from '../lib/landing-sources';
-import { SAMPLE_PHOTOS, samplePhotoSrc } from '../lib/sample-run';
-import { resetShowSources, SOURCES_STORAGE_KEY } from '../lib/sources';
+import { resetShowSources, setShowSources, SOURCES_STORAGE_KEY } from '../lib/sources';
 import Home from '../pages/index';
 import { setRoute } from './router-mock';
-import { meSignedIn, meSignedOut, mockFetch, renderPage } from './test-utils';
+import { IntlTest, meSignedIn, meSignedOut, mockFetch, renderPage } from './test-utils';
 
 vi.mock('next/router', () => import('./router-mock'));
 
@@ -22,19 +27,43 @@ afterEach(() => {
   cleanup();
 });
 
-function renderLanding(route = '/'): HTMLElement {
+/** The notes the landing page marks: the claims a visitor would doubt, and no more. */
+const LANDING_NOTES = ['lede', 'stops', 'example', 'labelled', 'private', 'limits'];
+
+async function renderLanding(route = '/'): Promise<HTMLElement> {
   setRoute(route);
   mockFetch({ 'GET /api/auth/me': meSignedOut });
   renderPage(Home);
-  return screen.getByRole('main');
+  const main = screen.getByRole('main');
+  // The secondary action appears once the session check settles.
+  await within(main).findByRole('link', { name: 'Create account' });
+  return main;
 }
 
-/** The switch exists twice in the DOM (masthead on desktop, sticky bar on a phone). */
+/** The switch exists twice in the DOM (masthead on desktop, hero on a phone). */
 const switches = () => screen.getAllByRole('button', { name: 'Show sources' });
 
+/** Every string the landing page shows, from the messages (what a visitor has to read). */
+function bodyWords(): number {
+  const landing: Record<string, unknown> = { ...en.landing };
+  for (const key of [
+    'images',
+    'sources',
+    'specimen',
+    'ledger',
+    'numbers',
+    'boundaries',
+    'photos',
+  ]) {
+    delete landing[key];
+  }
+  const text = JSON.stringify(landing).replace(/"[A-Za-z_]+":/g, ' ');
+  return text.split(/\s+/).filter((word) => /\w/.test(word)).length;
+}
+
 describe('landing page: structure', () => {
-  it('leads with the product promise as the only h1', () => {
-    renderLanding();
+  it('leads with the product promise as the only h1', async () => {
+    await renderLanding();
     expect(
       screen.getByRole('heading', {
         level: 1,
@@ -44,38 +73,36 @@ describe('landing page: structure', () => {
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
   });
 
-  it('has one action, Open the sample file, and no account buttons in the page body', async () => {
-    const main = renderLanding();
+  it('has Open the sample file as the one primary action and Create account as the one secondary', async () => {
+    const main = await renderLanding();
     expect(DEMO_HREF).toBe('/demo');
-    // The action is in the first screen (desktop) and in the sticky bar (phone), one visible each.
     const open = within(main).getAllByRole('link', { name: 'Open the sample file' });
-    expect(open.length).toBeGreaterThanOrEqual(2);
+    expect(open).toHaveLength(2); // the hero and the closing band
     for (const link of open) expect(link.getAttribute('href')).toBe('/demo');
-    expect(within(main).queryByRole('link', { name: 'Create account' })).toBeNull();
+    const create = within(main).getAllByRole('link', { name: 'Create account' });
+    expect(create).toHaveLength(1);
+    expect(create[0]?.getAttribute('href')).toBe('/register');
+    expect(main.querySelectorAll('.btn-primary')).toHaveLength(1);
+    // Log in is in the masthead only.
     expect(within(main).queryByRole('link', { name: 'Log in' })).toBeNull();
-    // Accounts live in the masthead.
-    expect(
-      await within(screen.getByRole('banner')).findByRole('link', { name: 'Create account' }),
-    ).toBeDefined();
+    expect(within(screen.getByRole('banner')).getByRole('link', { name: 'Log in' })).toBeDefined();
   });
 
-  it('shows Projects in the masthead for a signed-in agent, with the same page body', async () => {
+  it('offers a signed-in agent the projects instead of an account', async () => {
     setRoute('/');
     mockFetch({ 'GET /api/auth/me': meSignedIn });
     renderPage(Home);
-    expect(
-      await within(screen.getByRole('banner')).findByRole('link', { name: 'Projects' }),
-    ).toBeDefined();
-    expect(
-      within(screen.getByRole('main')).queryByRole('link', { name: 'Create account' }),
-    ).toBeNull();
+    const main = screen.getByRole('main');
+    const link = await within(main).findByRole('link', { name: 'Go to your projects' });
+    expect(link.getAttribute('href')).toBe('/projects');
+    expect(within(main).queryByRole('link', { name: 'Create account' })).toBeNull();
+    expect(within(main).getAllByRole('link', { name: 'Open the sample file' })).toHaveLength(2);
   });
 
-  it('orders headings: one h1, h2 sections for the ledger, numbers, and boundaries', () => {
-    const main = renderLanding();
-    const levels = within(main)
-      .getAllByRole('heading')
-      .map((h) => Number(h.tagName.slice(1)));
+  it('orders headings: one h1, then h2 sections with h3 items, no skipped level', async () => {
+    const main = await renderLanding();
+    const headings = within(main).getAllByRole('heading');
+    const levels = headings.map((h) => Number(h.tagName.slice(1)));
     levels.forEach((level, i) => {
       if (i > 0) expect(level - (levels[i - 1] ?? 0)).toBeLessThanOrEqual(1);
     });
@@ -84,171 +111,203 @@ describe('landing page: structure', () => {
         .getAllByRole('heading', { level: 2 })
         .map((h) => h.textContent),
     ).toEqual([
-      'What happened to this listing',
-      'The numbers, and their limits',
-      'What it will not do',
+      'From a walk-through to a pack you can defend',
+      'Every claim has a source',
+      'Built to be checked',
+      'Ready for your next listing?',
     ]);
-    // The ledger lists the run's ten steps and its two stops.
     expect(
-      within(main).getByRole('heading', { name: 'Review 1 of 2: fact conflicts' }),
-    ).toBeDefined();
-    expect(within(main).getByRole('heading', { name: 'Checking every claim' })).toBeDefined();
+      within(main)
+        .getAllByRole('heading', { level: 3 })
+        .slice(0, 3)
+        .map((h) => h.textContent),
+    ).toEqual(['Capture', 'Verify', 'Pack']);
   });
 
-  it('removed the template sections', () => {
-    const main = renderLanding();
+  it('keeps the page short: well under main’s text, within the per-block budgets', () => {
+    // Main's landing had 447 words of messages; the budgets of the round 5b brief follow.
+    expect(bodyWords()).toBeLessThanOrEqual(260);
+    const words = (text: string): number => text.split(/\s+/).length;
+    expect(words(en.landing.hero.lede)).toBeLessThanOrEqual(25);
+    for (const step of Object.values(en.landing.how.steps)) {
+      expect(words(step.text)).toBeLessThanOrEqual(15);
+    }
+    expect(
+      words(en.landing.evidence.text) + words(en.landing.evidence.caption),
+    ).toBeLessThanOrEqual(30);
+    for (const item of Object.values(en.landing.trust.items)) {
+      expect(words(item.text)).toBeLessThanOrEqual(12);
+    }
+    expect(words(en.landing.cta.title) + words(en.landing.cta.text)).toBeLessThanOrEqual(12);
+  });
+
+  it('shows no round 5 detail section: no ledger, eval table, or boundaries list', async () => {
+    const main = await renderLanding();
     const text = main.textContent ?? '';
-    expect(text).not.toMatch(
-      /Ready for your next listing|Built to be checked|Capture.*Verify.*Pack/,
-    );
+    expect(text).not.toMatch(/What happened to this listing|The numbers, and their limits/);
+    expect(text).not.toMatch(/What it will not do|Review 1 of 2/);
+    expect(main.querySelector('table')).toBeNull();
   });
 
-  it('lazy-loads every sample photo, with alt text, intrinsic size, and files that exist', () => {
-    const main = renderLanding();
-    const photos = within(main).getAllByRole('img');
-    expect(photos.length).toBeGreaterThanOrEqual(3);
+  it('gives every image alt text and intrinsic size, and loads only the hero eagerly', async () => {
+    const main = await renderLanding();
+    const photos = within(main)
+      .getAllByRole('img')
+      .filter((img) => img.tagName === 'IMG');
+    expect(photos).toHaveLength(4);
     for (const img of photos) {
       expect(img.getAttribute('alt')?.length ?? 0).toBeGreaterThan(20);
       expect(Number(img.getAttribute('width'))).toBeGreaterThan(0);
       expect(Number(img.getAttribute('height'))).toBeGreaterThan(0);
-      expect(img.getAttribute('srcset')).toContain('480w');
-      expect(img.getAttribute('loading')).toBe('lazy');
+      expect(img.getAttribute('srcset')).toContain('640w');
     }
-    for (const photo of Object.values(SAMPLE_PHOTOS)) {
-      for (const width of photo.widths) {
-        expect(
-          existsSync(resolve(__dirname, '../../public', `.${samplePhotoSrc(photo, width)}`)),
-        ).toBe(true);
-      }
-    }
+    const [hero, ...rest] = photos;
+    expect(hero?.getAttribute('loading')).toBe('eager');
+    for (const img of rest) expect(img.getAttribute('loading')).toBe('lazy');
   });
 
-  it('keeps clear of claims the product does not back', () => {
-    const text = renderLanding().textContent ?? '';
+  it('keeps clear of claims the product does not back', async () => {
+    const text = (await renderLanding()).textContent ?? '';
     expect(text).not.toMatch(/\bEU\b|\bGDPR\b|Europe/);
-    // (No "guarantee" here: the page says that only market facts are guaranteed by code, a limit.)
-    expect(text).not.toMatch(/testimonial|trusted by|customers|award|100%|never wrong/i);
-    expect(text).toMatch(/does not certify legal compliance/);
-    // The limits are stated on the page, not only in the README.
-    expect(text).toMatch(/one synthetic apartment/);
+    expect(text).not.toMatch(/testimonial|trusted by|customers|award|guarantee|100%|never wrong/i);
+    // It says what it does not do, in a few words.
+    expect(text).toMatch(/No valuations, no legal advice, no publishing for you/);
+    // The hero's own example says it is one.
+    expect(text).toMatch(/An illustrative example, not a real listing/);
   });
 });
 
-describe('landing page: the specimen', () => {
-  it('opens the first claim on load, with its voice turn and the form value it replaced', () => {
-    renderLanding();
-    const year = screen.getByRole('button', { name: /Build year/ });
-    expect(year.getAttribute('aria-pressed')).toBe('true');
-    const evidence = screen.getByRole('region', { name: /What “1987” rests on/ });
-    expect(evidence.textContent).toContain('Voice walkthrough, turn at 00:11');
-    expect(evidence.textContent).toContain('“in 1987 gebouwd”');
-    expect(evidence.textContent).toContain('Build year: 1986');
-    expect(evidence.textContent).toContain('the spoken 1987 was kept');
+describe('landing page: the claim example', () => {
+  it('uses a real sentence of the sample run, says it is a replay, and opens one claim', async () => {
+    const main = await renderLanding();
+    const sentence = main.querySelector('blockquote[lang="en"]');
+    // (The footnote numbers sit inside the sentence.)
+    expect(sentence?.textContent).toMatch(
+      /^This apartment in Zandmeer\d offers 92 m²\d of living space on floor 2\d\.$/,
+    );
+    expect(main.textContent).toMatch(
+      /replay of recorded model responses for a synthetic apartment/,
+    );
+    const area = within(main).getByRole('button', { name: /Living area/ });
+    expect(area.getAttribute('aria-pressed')).toBe('true');
+    const evidence = within(main).getByRole('region', { name: /What “92 m²” rests on/ });
+    expect(evidence.textContent).toContain('Form field');
+    expect(evidence.textContent).toContain('“92 vierkante meter”');
+    expect(evidence.textContent).toContain('turn at 00:19');
     expect(within(evidence).getByText('Verified')).toBeDefined();
-    expect(within(evidence).getByText('Not used')).toBeDefined();
   });
 
-  it('moves the evidence with the selected claim', () => {
-    renderLanding();
-    fireEvent.click(screen.getByRole('button', { name: /Energy label/ }));
-    expect(screen.getByRole('button', { name: /Energy label/ }).getAttribute('aria-pressed')).toBe(
+  it('highlights only the open claim and moves the evidence with the selection', async () => {
+    const main = await renderLanding();
+    expect(main.querySelectorAll('mark.claim')).toHaveLength(1);
+    fireEvent.click(within(main).getByRole('button', { name: /Floor/ }));
+    expect(main.querySelectorAll('mark.claim')).toHaveLength(1);
+    expect(main.querySelector('mark.claim')?.textContent).toBe('floor 2');
+    expect(within(main).getByRole('button', { name: /Floor/ }).getAttribute('aria-pressed')).toBe(
       'true',
     );
-    expect(screen.getByRole('button', { name: /Build year/ }).getAttribute('aria-pressed')).toBe(
-      'false',
-    );
-    const evidence = screen.getByRole('region', { name: /energy label B/ });
-    expect(evidence.textContent).toContain('Energy label: B');
-    expect(evidence.textContent).toContain('“Het energielabel is B”');
-    expect(evidence.textContent).toContain('turn at 02:37');
-    expect(evidence.textContent).not.toContain('1986');
+    expect(
+      within(main)
+        .getByRole('button', { name: /Living area/ })
+        .getAttribute('aria-pressed'),
+    ).toBe('false');
+    const evidence = within(main).getByRole('region', { name: /What “floor 2” rests on/ });
+    expect(evidence.textContent).toContain('“op de tweede verdieping”');
+    expect(evidence.textContent).toContain('turn at 00:00');
+    expect(evidence.textContent).not.toContain('Form field');
   });
 
-  it('keeps the model sentence in English and marks the Dutch quotes', () => {
-    const main = renderLanding();
-    const sentence = main.querySelector('blockquote[lang="en"]');
-    expect(sentence?.textContent).toContain('The building dates from 1987');
-    expect(screen.getByText('“in 1987 gebouwd”').getAttribute('lang')).toBe('nl');
+  it('marks the Dutch quote as Dutch and announces only the heading', async () => {
+    const main = await renderLanding();
+    expect(screen.getByText('“92 vierkante meter”').getAttribute('lang')).toBe('nl');
+    expect(
+      within(main)
+        .getByRole('region', { name: /rests on/ })
+        .getAttribute('aria-live'),
+    ).toBeNull();
+    expect(document.getElementById('claim-evidence-title')?.getAttribute('aria-live')).toBe(
+      'polite',
+    );
+  });
+
+  it('has no underlined or highlighted text outside the open claim while sources are off', async () => {
+    const main = await renderLanding();
+    expect(main.querySelectorAll('.claim, .claim-on, mark[data-claim-source]')).toHaveLength(1);
+    expect(main.querySelectorAll('[class*="underline"]')).toHaveLength(0);
+    expect(main.querySelectorAll('[data-source-note]')).toHaveLength(0);
   });
 });
 
 describe('landing page: Show sources', () => {
-  it('is off by default: no notes, no highlights outside the specimen', () => {
-    const main = renderLanding();
+  it('is off by default', async () => {
+    await renderLanding();
     for (const button of switches()) expect(button.getAttribute('aria-pressed')).toBe('false');
-    expect(main.querySelectorAll('[data-source-note]')).toHaveLength(0);
-    expect(main.querySelectorAll('[data-claim-source]')).toHaveLength(0);
   });
 
-  it('turns every claim into a numbered, highlighted claim with a source note', () => {
-    const main = renderLanding();
+  it('marks only the few claims a visitor would doubt, each with one compact note', async () => {
+    const main = await renderLanding();
     fireEvent.click(switches()[0] as HTMLElement);
     for (const button of switches()) expect(button.getAttribute('aria-pressed')).toBe('true');
 
-    const notes = main.querySelectorAll('[data-source-note]');
-    const marks = main.querySelectorAll('[data-claim-source]');
-    expect(marks.length).toBeGreaterThanOrEqual(20);
-    // Every highlighted claim has its note, and the other way round.
-    expect([...notes].map((n) => n.getAttribute('data-source-note')).sort()).toEqual(
-      [...marks].map((m) => m.getAttribute('data-claim-source')).sort(),
-    );
-    // The page marks exactly the claims the registry knows: no claim without an entry, and no
-    // entry nobody uses (an orphan note would be a source for nothing).
-    const marked = [...marks].map((m) => m.getAttribute('data-claim-source') ?? '').sort();
-    expect(marked).toEqual([...SOURCE_NOTE_IDS].sort());
-    // A screen-reader user hears which source a claim has, and the claim points at its note.
+    const marks = [...main.querySelectorAll('[data-claim-source]')];
+    const notes = [...main.querySelectorAll('[data-source-note]')];
+    expect(marks.map((m) => m.getAttribute('data-claim-source'))).toEqual(LANDING_NOTES);
+    expect(notes.map((n) => n.getAttribute('data-source-note'))).toEqual(LANDING_NOTES);
+    expect(marks.length).toBeLessThanOrEqual(6);
+    // The registry lists the landing's notes first, so its footnotes read 1 to 6.
+    expect(SOURCE_NOTE_IDS.slice(0, LANDING_NOTES.length)).toEqual(LANDING_NOTES);
     for (const mark of marks) {
       const id = mark.getAttribute('data-claim-source') ?? '';
       expect(mark.getAttribute('aria-describedby')).toBe(`source-note-${id}`);
       expect(main.querySelector(`#source-note-${id}`)).not.toBeNull();
       expect(mark.nextElementSibling?.textContent).toMatch(/^\d+source \d+$/);
     }
-    // Each note names a source type and links somewhere real.
     for (const note of notes) {
       expect(within(note as HTMLElement).getAllByRole('link').length).toBeGreaterThan(0);
     }
+    expect(within(main).queryAllByRole('complementary')).toHaveLength(0);
+  });
+
+  it('names the source type and points code notes at GitHub on main', async () => {
+    const main = await renderLanding();
+    fireEvent.click(switches()[0] as HTMLElement);
     const kinds = new Set(
       [...main.querySelectorAll('[data-source-note] li > span')].map((s) => s.textContent),
     );
-    expect(kinds).toEqual(
-      new Set(['Sample run', 'Eval report', 'Enforced in code', 'Product rule']),
-    );
-  });
-
-  it('points code notes at GitHub on main and sample notes at the sample file', () => {
-    const main = renderLanding();
-    fireEvent.click(switches()[0] as HTMLElement);
+    expect(kinds).toEqual(new Set(['Sample run', 'Enforced in code', 'Product rule']));
     const hrefs = within(main)
       .getAllByRole('link')
       .map((link) => link.getAttribute('href') ?? '');
     expect(hrefs).toContain(
       'https://github.com/EtkinD/evidomo/blob/main/apps/api/src/media/image.ts',
     );
-    expect(hrefs).toContain('https://github.com/EtkinD/evidomo/blob/main/README.md#eval-results');
+    expect(hrefs).toContain(
+      'https://github.com/EtkinD/evidomo/blob/main/docs/product.md#8-hard-boundaries',
+    );
     expect(hrefs).toContain('/demo?tab=conflicts');
   });
 
-  it('is remembered per viewer', () => {
-    renderLanding();
+  it('is remembered per viewer', async () => {
+    await renderLanding();
     fireEvent.click(switches()[0] as HTMLElement);
     expect(window.localStorage.getItem(SOURCES_STORAGE_KEY)).toBe('on');
 
     cleanup();
     resetShowSources();
-    renderLanding();
+    await renderLanding();
     for (const button of switches()) expect(button.getAttribute('aria-pressed')).toBe('true');
 
     fireEvent.click(switches()[0] as HTMLElement);
     expect(window.localStorage.getItem(SOURCES_STORAGE_KEY)).toBeNull();
   });
 
-  it('can be turned on from the address with ?sources=on, without storing it', () => {
-    renderLanding('/?sources=on');
+  it('can be turned on from the address with ?sources=on, without storing it', async () => {
+    await renderLanding('/?sources=on');
     for (const button of switches()) expect(button.getAttribute('aria-pressed')).toBe('true');
     expect(window.localStorage.getItem(SOURCES_STORAGE_KEY)).toBeNull();
   });
 
-  it('works when storage is blocked: reading and writing fail, the switch still switches', () => {
+  it('works when storage is blocked: reading and writing fail, the switch still switches', async () => {
     const blocked = {
       getItem: () => {
         throw new DOMException('blocked', 'SecurityError');
@@ -262,7 +321,7 @@ describe('landing page: Show sources', () => {
     };
     vi.stubGlobal('localStorage', blocked);
     resetShowSources();
-    const main = renderLanding();
+    const main = await renderLanding();
     expect(switches()[0]?.getAttribute('aria-pressed')).toBe('false');
 
     fireEvent.click(switches()[0] as HTMLElement);
@@ -270,47 +329,8 @@ describe('landing page: Show sources', () => {
     expect(main.querySelectorAll('[data-source-note]').length).toBeGreaterThan(0);
   });
 
-  it('adds no landmark per note: the landmark list stays usable', () => {
-    const main = renderLanding();
-    fireEvent.click(switches()[0] as HTMLElement);
-    expect(main.querySelectorAll('[data-source-note]').length).toBeGreaterThan(20);
-    expect(within(main).queryAllByRole('complementary')).toHaveLength(0);
-  });
-
-  it('says plainly that the sample file is a replay with a stand-in for the audio', () => {
-    const main = renderLanding();
-    expect(main.textContent).toMatch(/replay.*recorded once.*synthetic speech.*silent stand-in/s);
-    fireEvent.click(switches()[0] as HTMLElement);
-    const note = main.querySelector('[data-claim-source="replay"]');
-    expect(note).not.toBeNull();
-    const links = within(main.querySelector('#source-note-replay') as HTMLElement).getAllByRole(
-      'link',
-    );
-    expect(links.map((l) => l.textContent)).toContain(
-      'fixtures/projects/synthetic-walkthrough/README.md',
-    );
-  });
-
-  it('captions every sample photo as a model-generated input or the staging result', () => {
-    const main = renderLanding();
-    const captions = [...main.querySelectorAll('figcaption')].map((c) => c.textContent ?? '');
-    expect(captions.length).toBeGreaterThanOrEqual(3);
-    for (const caption of captions) expect(caption).toMatch(/model-generated/);
-    // "Virtually staged" is only ever said of the staging step's own result.
-    expect(captions.filter((c) => /Virtually staged/.test(c))).toHaveLength(1);
-  });
-
-  it('announces only the claim heading when the selection changes', () => {
-    renderLanding();
-    const region = screen.getByRole('region', { name: /rests on/ });
-    expect(region.getAttribute('aria-live')).toBeNull();
-    expect(document.getElementById('specimen-evidence-title')?.getAttribute('aria-live')).toBe(
-      'polite',
-    );
-  });
-
-  it('is a real button: keyboard focusable, with the state written next to the label', () => {
-    renderLanding();
+  it('is a real button: focusable, 44 px, with the state written next to the label', async () => {
+    await renderLanding();
     const button = switches()[0] as HTMLButtonElement;
     expect(button.tagName).toBe('BUTTON');
     expect(button.type).toBe('button');
@@ -319,13 +339,48 @@ describe('landing page: Show sources', () => {
     fireEvent.click(button);
     expect(button.textContent).toContain('On');
   });
-});
 
-describe('landing page: only the landing page has the switch', () => {
-  it('is not in the masthead of other pages', () => {
+  it('is in the masthead of the landing page only', () => {
     setRoute('/login');
     mockFetch({ 'GET /api/auth/me': meSignedOut });
     renderPage(() => <main />);
     expect(screen.queryByRole('button', { name: 'Show sources' })).toBeNull();
+  });
+});
+
+describe('the landing images', () => {
+  it('references only files that exist in public/images/landing', () => {
+    for (const image of Object.values(LANDING_IMAGES)) {
+      for (const width of image.widths) {
+        expect(existsSync(resolve(__dirname, '../../public', `.${landingSrc(image, width)}`))).toBe(
+          true,
+        );
+      }
+    }
+  });
+});
+
+// The round 5 detail components are not on the landing page (a detail page will show them), but
+// they stay in the code and must keep working: they mark the rest of the notes registry.
+describe('the sample-run detail components (not on the landing page)', () => {
+  it('render with their notes, and together with the landing mark every note of the registry', () => {
+    setShowSources(true);
+    const { container } = render(
+      <IntlTest>
+        <Specimen />
+        <Ledger />
+        <Numbers />
+        <Boundaries />
+      </IntlTest>,
+    );
+    const detail = [...container.querySelectorAll('[data-claim-source]')].map((m) =>
+      m.getAttribute('data-claim-source'),
+    );
+    expect(detail.sort()).toEqual(
+      SOURCE_NOTE_IDS.filter((id) => !LANDING_NOTES.includes(id)).sort(),
+    );
+    expect(container.textContent).toContain('What happened to this listing');
+    expect(container.textContent).toContain('This is a replay');
+    expect(container.querySelector('table')).not.toBeNull();
   });
 });

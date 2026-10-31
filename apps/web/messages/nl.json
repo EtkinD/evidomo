@@ -81,6 +81,101 @@
     "landingDescription": "Foto’s en een gesproken rondleiding erin, een advertentiepakket eruit. Elke bewering is gekoppeld aan het formulierveld, het gesproken fragment of de foto waar ze vandaan komt, en jij controleert alles vóór de export."
   },
   "landing": {
+    "actions": {
+      "goToProjects": "Ga naar je projecten",
+      "createAccount": "Account aanmaken",
+      "openSample": "Open het voorbeelddossier"
+    },
+    "hero": {
+      "line1": "Elke bewering",
+      "line2": "in je advertentie,",
+      "line3": "gekoppeld aan het bewijs.",
+      "lede": "Loop door de woning, praat en maak foto’s. Evidomo stelt het advertentiepakket op en laat zien waar elke uitspraak vandaan komt.",
+      "notesLabel": "Voorbeeldnotities bij de foto",
+      "claims": {
+        "windows": "Twee hoge ramen",
+        "brick": "Bakstenen accentmuur",
+        "area": "Woonoppervlak 38 m²"
+      },
+      "sources": {
+        "photo": "Foto",
+        "form": "Formulierveld"
+      },
+      "caption": "Een illustratief voorbeeld, geen echte advertentie."
+    },
+    "how": {
+      "title": "Van rondgang naar een pakket waar je achter staat",
+      "packPreviewLabel": "Voorbeeld van een advertentiepakket: twee uitspraken, elk met zijn bron",
+      "previewLiving": {
+        "text": "Lichte woonkamer van 38 m².",
+        "source": "Formulier"
+      },
+      "previewGarden": {
+        "text": "Tuin op het zuiden.",
+        "source": "Stem, 0:42"
+      },
+      "steps": {
+        "capture": {
+          "title": "Vastleggen",
+          "text": "Fotografeer elke ruimte, spreek een rondleiding in en vul de feiten in die je kent."
+        },
+        "verify": {
+          "title": "Controleren",
+          "text": "Spreken formulier, stem en foto’s elkaar tegen, dan stopt de verwerking en beslis jij."
+        },
+        "pack": {
+          "title": "Pakket",
+          "text": "Download een printklaar pakket. Elke bewering blijft herleidbaar."
+        }
+      }
+    },
+    "evidence": {
+      "title": "Elke bewering heeft een bron",
+      "text": "Kies een bewering om te zien waarop ze rust.",
+      "caption": "Uit het voorbeelddossier: een herhaling van opgenomen modelantwoorden voor een synthetisch appartement.",
+      "claimsLabel": "Beweringen in deze zin",
+      "rests": "Waarop “{claim}” rust",
+      "claims": {
+        "place": "Plaats",
+        "area": "Woonoppervlak",
+        "floor": "Verdieping"
+      },
+      "fields": {
+        "place_name": "Plaats",
+        "living_area": "Woonoppervlak"
+      }
+    },
+    "trust": {
+      "title": "Gemaakt om gecontroleerd te worden",
+      "items": {
+        "calls": {
+          "title": "Jij beslist",
+          "text": "Bij conflicten stopt de verwerking en niets gaat weg zonder jouw goedkeuring."
+        },
+        "staging": {
+          "title": "Styling wordt vermeld",
+          "text": "Ingerichte foto’s krijgen een label en staan naast het origineel."
+        },
+        "private": {
+          "title": "Privégegevens worden verwijderd",
+          "text": "GPS wordt bij het uploaden verwijderd; gezichten en kentekens worden in exports vervaagd."
+        },
+        "assists": {
+          "title": "Het helpt, het certificeert niet",
+          "text": "Geen taxaties, geen juridisch advies, niet publiceren voor jou."
+        }
+      }
+    },
+    "cta": {
+      "title": "Klaar voor je volgende advertentie?",
+      "text": "Controleer het concept voordat er iets uitgaat."
+    },
+    "images": {
+      "hero": "Een lichte woonkamer in een grachtenpand met een groenkrijtwitte bakstenen muur, een beige bank, een groene fauteuil en een plant in een pot bij het raam",
+      "interior1": "Een eikenhouten visgraatvloer die overgaat in terracotta tegels, met bladschaduwen en een gele pot met een olijftak",
+      "interior2": "Een met kalk gewitte bakstenen open haard met een eikenhouten schouw, eucalyptus in een terracotta pot en berkenhout",
+      "illustration": "Een illustratie van een wit huis met een afgerond crèmekleurig dak, een open gele deur en een groene plant"
+    },
     "sources": {
       "switch": "Toon bronnen",
       "on": "Aan",
@@ -100,15 +195,6 @@
       "evalRef": "README, Evaluatieresultaten ({date}, fixture-modus)",
       "ruleRef": "docs/product.md, sectie {section}",
       "number": "bron {n}"
-    },
-    "actions": {
-      "openSample": "Open het voorbeelddossier"
-    },
-    "hero": {
-      "line1": "Elke bewering",
-      "line2": "in je advertentie,",
-      "line3": "gekoppeld aan het bewijs.",
-      "lede": "Loop door de woning, praat en maak foto’s. Evidomo stelt het advertentiepakket op en laat zien waar elke uitspraak vandaan komt, zodat jij feiten goedkeurt in plaats van gissingen."
     },
     "specimen": {
       "label": "Een zin uit het voorbeelddossier",

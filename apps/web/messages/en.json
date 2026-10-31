@@ -81,6 +81,101 @@
     "landingDescription": "Photos and a voice walkthrough in, a listing pack out. Every statement links to the form field, spoken turn, or photo it came from, and you review it before export."
   },
   "landing": {
+    "actions": {
+      "goToProjects": "Go to your projects",
+      "createAccount": "Create account",
+      "openSample": "Open the sample file"
+    },
+    "hero": {
+      "line1": "Every claim",
+      "line2": "in your listing,",
+      "line3": "linked to its evidence.",
+      "lede": "Walk the property, talk, and take photos. Evidomo drafts the listing pack and shows where each statement came from.",
+      "notesLabel": "Example notes on the photo",
+      "claims": {
+        "windows": "Two tall windows",
+        "brick": "Brick feature wall",
+        "area": "Living area 38 m²"
+      },
+      "sources": {
+        "photo": "Photo",
+        "form": "Form field"
+      },
+      "caption": "An illustrative example, not a real listing."
+    },
+    "how": {
+      "title": "From a walk-through to a pack you can defend",
+      "packPreviewLabel": "Example of a listing pack: two statements, each with its source",
+      "previewLiving": {
+        "text": "Bright living room of 38 m².",
+        "source": "Form"
+      },
+      "previewGarden": {
+        "text": "South-facing garden.",
+        "source": "Voice, 0:42"
+      },
+      "steps": {
+        "capture": {
+          "title": "Capture",
+          "text": "Photograph each room, record a voice walkthrough, and enter the facts you know."
+        },
+        "verify": {
+          "title": "Verify",
+          "text": "When form, voice, and photos disagree, the run stops and you decide."
+        },
+        "pack": {
+          "title": "Pack",
+          "text": "Download a print-ready pack. Every claim stays traceable."
+        }
+      }
+    },
+    "evidence": {
+      "title": "Every claim has a source",
+      "text": "Select a claim to see what it rests on.",
+      "caption": "From the sample file, a replay of recorded model responses for a synthetic apartment.",
+      "claimsLabel": "Claims in this sentence",
+      "rests": "What “{claim}” rests on",
+      "claims": {
+        "place": "Place",
+        "area": "Living area",
+        "floor": "Floor"
+      },
+      "fields": {
+        "place_name": "Place",
+        "living_area": "Living area"
+      }
+    },
+    "trust": {
+      "title": "Built to be checked",
+      "items": {
+        "calls": {
+          "title": "You make the calls",
+          "text": "The run stops for conflicts, and nothing ships until you approve."
+        },
+        "staging": {
+          "title": "Staging is labelled",
+          "text": "Staged images are marked and shown next to the original."
+        },
+        "private": {
+          "title": "Private details are removed",
+          "text": "GPS is stripped at upload; faces and plates are blurred in exports."
+        },
+        "assists": {
+          "title": "It assists, it does not certify",
+          "text": "No valuations, no legal advice, no publishing for you."
+        }
+      }
+    },
+    "cta": {
+      "title": "Ready for your next listing?",
+      "text": "Review the draft before anything leaves."
+    },
+    "images": {
+      "hero": "A bright canal-house living room with a green-cream brick wall, a beige sofa, a green armchair, and a potted plant by the window",
+      "interior1": "An oak herringbone floor meeting terracotta tiles, with leaf shadows and a yellow pot holding an olive branch",
+      "interior2": "A limewashed brick fireplace with an oak mantel, eucalyptus in a terracotta pot, and birch logs",
+      "illustration": "An illustration of a white house with a rounded cream roof, an open yellow door, and a green plant"
+    },
     "sources": {
       "switch": "Show sources",
       "on": "On",
@@ -100,15 +195,6 @@
       "evalRef": "README, Eval results ({date}, fixture mode)",
       "ruleRef": "docs/product.md, section {section}",
       "number": "source {n}"
-    },
-    "actions": {
-      "openSample": "Open the sample file"
-    },
-    "hero": {
-      "line1": "Every claim",
-      "line2": "in your listing,",
-      "line3": "linked to its evidence.",
-      "lede": "Walk the property, talk, and take photos. Evidomo drafts the listing pack and shows where each statement came from, so you approve facts, not guesses."
     },
     "specimen": {
       "label": "A sentence from the sample file",

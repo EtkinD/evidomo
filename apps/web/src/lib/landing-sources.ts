@@ -22,7 +22,21 @@ const sample = (screen: SampleScreen, detail?: string): SourceRef =>
 
 /** In document order: the footnote number of a note is its position here plus one. */
 export const SOURCE_NOTES = {
+  // The claims the landing page marks, in page order (so its footnotes read 1 to 6): the ones a
+  // visitor would doubt. Each has one source of one kind, or two where the claim has two halves.
   lede: [{ kind: 'code', path: 'apps/api/src/pipeline/claims/validator.ts' }],
+  stops: [sample('conflicts')],
+  example: [
+    sample('review'),
+    { kind: 'sampleFile', path: 'fixtures/projects/synthetic-walkthrough/README.md' },
+  ],
+  labelled: [sample('review')],
+  private: [
+    { kind: 'code', path: 'apps/api/src/media/image.ts' },
+    { kind: 'code', path: 'apps/api/src/export/blur.ts' },
+  ],
+  limits: [{ kind: 'rule', section: 8 }],
+  // The claims of the sample-run detail components (specimen, ledger, numbers, boundaries).
   replay: [
     { kind: 'sampleFile', path: 'fixtures/projects/synthetic-walkthrough/README.md' },
     { kind: 'sampleFile', path: 'docs/architecture.md' },

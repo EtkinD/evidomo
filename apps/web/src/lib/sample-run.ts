@@ -78,6 +78,43 @@ export const SPECIMEN_EVIDENCE: Record<SpecimenClaimId, readonly SpecimenEvidenc
 /** The claim open when the page loads: the one with a conflict behind it. */
 export const SPECIMEN_FIRST_CLAIM: SpecimenClaimId = 'year';
 
+export type ExampleClaimId = 'place' | 'area' | 'floor';
+
+/**
+ * The landing page's claim example: the first sentence of the sample run's approved portal copy
+ * (model output in English, never translated). It carries no conflict, so the example stays short;
+ * the conflict stories belong on a detail page.
+ */
+export const EXAMPLE_SENTENCE =
+  'This apartment in Zandmeer offers 92 m² of living space on floor 2.';
+
+export const EXAMPLE_PARTS: readonly (
+  { text: string } | { claim: ExampleClaimId; text: string }
+)[] = [
+  { text: 'This apartment in ' },
+  { claim: 'place', text: 'Zandmeer' },
+  { text: ' offers ' },
+  { claim: 'area', text: '92 m²' },
+  { text: ' of living space on ' },
+  { claim: 'floor', text: 'floor 2' },
+  { text: '.' },
+];
+
+export type ExampleEvidence =
+  | { kind: 'voice'; startMs: number; endMs: number; quote: string }
+  | { kind: 'form'; field: 'place_name' | 'living_area'; value: string };
+
+export const EXAMPLE_EVIDENCE: Record<ExampleClaimId, readonly ExampleEvidence[]> = {
+  place: [{ kind: 'form', field: 'place_name', value: 'Zandmeer' }],
+  area: [
+    { kind: 'form', field: 'living_area', value: '92 m²' },
+    { kind: 'voice', startMs: 19500, endMs: 26940, quote: '92 vierkante meter' },
+  ],
+  floor: [{ kind: 'voice', startMs: 60, endMs: 10780, quote: 'op de tweede verdieping' }],
+};
+
+export const EXAMPLE_FIRST_CLAIM: ExampleClaimId = 'area';
+
 /** The ten steps of the run in order, with the two review gates after their steps. */
 export const LEDGER_ROWS = [
   { id: 'intake', kind: 'step' },

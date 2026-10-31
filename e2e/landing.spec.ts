@@ -3,19 +3,24 @@ import { expect, test } from '@playwright/test';
 // The landing page is an audited page: a specimen, the sample run's ledger, the eval numbers, and
 // the boundaries, with a "Show sources" switch that marks every claim with its source.
 test.describe('landing page', () => {
-  test('opens on a real sentence of the sample run with its first claim open', async ({ page }) => {
+  test('the claim example is a real sentence of the sample run, one claim open at a time', async ({
+    page,
+  }) => {
     await page.goto('/');
-    await expect(page.getByRole('button', { name: 'Build year' })).toHaveAttribute(
+    await expect(page.getByRole('button', { name: 'Living area' })).toHaveAttribute(
       'aria-pressed',
       'true',
     );
-    const evidence = page.getByRole('region', { name: /What “1987” rests on/ });
-    await expect(evidence).toContainText('“in 1987 gebouwd”');
-
-    await page.getByRole('button', { name: 'Energy label' }).click();
-    await expect(page.getByRole('region', { name: /energy label B/ })).toContainText(
-      '“Het energielabel is B”',
+    await expect(page.getByRole('region', { name: /What “92 m²” rests on/ })).toContainText(
+      '“92 vierkante meter”',
     );
+    await expect(page.locator('mark.claim')).toHaveCount(1);
+
+    await page.getByRole('button', { name: 'Floor' }).click();
+    await expect(page.getByRole('region', { name: /What “floor 2” rests on/ })).toContainText(
+      '“op de tweede verdieping”',
+    );
+    await expect(page.locator('mark.claim')).toHaveCount(1);
   });
 
   test('Show sources marks the claims, is keyboard operable, and is remembered', async ({
@@ -30,7 +35,7 @@ test.describe('landing page', () => {
     await toggle.focus();
     await page.keyboard.press('Space');
     await expect(toggle).toHaveAttribute('aria-pressed', 'true');
-    expect(await main.locator('[data-source-note]').count()).toBeGreaterThan(20);
+    await expect(main.locator('[data-source-note]')).toHaveCount(6);
     await expect(main.getByRole('link', { name: 'apps/api/src/media/image.ts' })).toHaveAttribute(
       'href',
       'https://github.com/EtkinD/evidomo/blob/main/apps/api/src/media/image.ts',
@@ -53,7 +58,7 @@ test.describe('landing page', () => {
     await expect(
       page.getByRole('banner').getByRole('button', { name: 'Show sources' }),
     ).toHaveAttribute('aria-pressed', 'true');
-    expect(await page.locator('[data-source-note]').count()).toBeGreaterThan(20);
+    await expect(page.locator('[data-source-note]')).toHaveCount(6);
   });
 
   test('the sample file is one action away from every width', async ({ page }) => {
@@ -67,7 +72,7 @@ test.describe('landing page', () => {
   });
 
   for (const width of [320, 390]) {
-    test(`fits ${width} px without horizontal scroll, with 44 px targets and the bar in reach`, async ({
+    test(`fits ${width} px without horizontal scroll, with 44 px targets and the action in reach`, async ({
       page,
     }) => {
       await page.setViewportSize({ width, height: 800 });
@@ -80,12 +85,12 @@ test.describe('landing page', () => {
       );
       expect(overflow).toBeLessThanOrEqual(0);
 
-      // The phone bar holds the switch and the action; the masthead copy of the switch is hidden.
+      // On a phone the switch sits in the hero; the masthead copy is hidden.
       await expect(
         page.getByRole('main').getByRole('button', { name: 'Show sources' }),
       ).toBeVisible();
       await expect(
-        page.getByRole('main').getByRole('link', { name: 'Open the sample file' }).last(),
+        page.getByRole('main').getByRole('link', { name: 'Open the sample file' }).first(),
       ).toBeInViewport();
 
       const small: string[] = [];
