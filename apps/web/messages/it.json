@@ -29,7 +29,8 @@
     "themeSystem": "Sistema",
     "themeLight": "Chiaro",
     "themeDark": "Scuro",
-    "language": "Lingua"
+    "language": "Lingua",
+    "method": "Metodo"
   },
   "auth": {
     "checkingSession": "Controllo della sessione…",
@@ -78,7 +79,9 @@
     "tagline": "La prova per ogni casa.",
     "ogImageAlt": "Evidomo: la prova per ogni casa.",
     "landingTitle": "Evidomo: pacchetti annuncio in cui ogni affermazione ha una fonte",
-    "landingDescription": "Foto e un tour vocale in ingresso, un pacchetto annuncio in uscita. Ogni frase rimanda al campo del modulo, al passaggio parlato o alla foto da cui deriva, e tu la verifichi prima dell’esportazione."
+    "landingDescription": "Foto e un tour vocale in ingresso, un pacchetto annuncio in uscita. Ogni frase rimanda al campo del modulo, al passaggio parlato o alla foto da cui deriva, e tu la verifichi prima dell’esportazione.",
+    "methodTitle": "Come Evidomo controlla un annuncio — Evidomo",
+    "methodDescription": "Come un’elaborazione controlla ogni affermazione, cosa mostra il fascicolo di esempio, i numeri della valutazione con i loro limiti e cosa Evidomo non fa."
   },
   "landing": {
     "actions": {
@@ -194,100 +197,8 @@
       },
       "evalRef": "README, Risultati della valutazione ({date}, modalità fixture)",
       "ruleRef": "docs/product.md, sezione {section}",
-      "number": "fonte {n}"
-    },
-    "specimen": {
-      "label": "Una frase dal fascicolo di esempio",
-      "sentenceNote": "Testo per portali approvato dell’elaborazione di esempio, come l’ha scritto il modello (inglese, non tradotto).",
-      "prompt": "Scegli un’affermazione evidenziata per vedere su cosa si basa.",
-      "claimsLabel": "Affermazioni in questa frase",
-      "claimNames": {
-        "year": "Anno di costruzione",
-        "label": "Classe energetica",
-        "issued": "Anno di rilascio della classe"
-      },
-      "evidenceTitle": "Su cosa si basa “{claim}”",
-      "fieldNames": {
-        "build_year": "Anno di costruzione",
-        "energy_label": "Classe energetica"
-      },
-      "formValue": "{field}: {value}",
-      "notUsed": "Non usato",
-      "conflict": "Il modulo diceva {form}. L’elaborazione si è fermata alla prima revisione ed è stato mantenuto {voice}, detto a voce.",
-      "openReview": "Vedi questa frase nel fascicolo di esempio",
-      "coverCaption": "La foto di copertina del pacchetto, messa dal modello al primo posto su {count}. Una foto di input generata da un modello di una stanza inventata, non un immobile reale.",
-      "replayNote": "Questo è un replay. Le risposte del modello sono state registrate una volta e vengono riprodotte, e il tour era voce sintetica: il fascicolo di esempio riproduce un sostituto silenzioso dell’audio."
-    },
-    "ledger": {
-      "title": "Cosa è successo a questo annuncio",
-      "intro": "Una elaborazione del fascicolo di esempio, passo per passo. Sei tu a decidere alle due soste.",
-      "decidedBy": "Deciso da",
-      "evidomo": "Evidomo",
-      "you": "Tu",
-      "stop": "L’elaborazione si ferma qui",
-      "scripted": "Nel fascicolo di esempio le decisioni sono state scritte in anticipo in uno script.",
-      "gateTitles": {
-        "gate1": "Revisione 1 di 2: conflitti tra i dati",
-        "gate2": "Revisione 2 di 2: il testo e l’immagine arredata"
-      },
-      "rows": {
-        "intake": "Un tour vocale in olandese viene trascritto in interventi con orario, ciascuno con un inizio e una fine.",
-        "fact_extraction": "I dati vengono letti dal modulo e dal tour. Ognuno conserva la sua fonte: un campo del modulo o una citazione da un intervento.",
-        "vision_inventory": "{photos} foto vengono lette per stanza e stato e controllate per volti e targhe. Nessuna ha richiesto sfocature.",
-        "reconciliation": "Emergono {conflicts} conflitti tra modulo, voce e foto. Una foto di camera da letto mostra la moquette dove la voce diceva laminato.",
-        "gate1": "Anno di costruzione: viene mantenuto {voice}, detto a voce, e non {form}, del modulo. Contributo del condominio: si mantiene il 175 € del modulo e non il 165 € detto a voce. Pavimento della camera: nessuno dei due valori è mantenuto.",
-        "creative": "Testo per portali di {portal} frasi e didascalia social di {social}. Ogni frase cita i fatti su cui si basa.",
-        "qa_cards": "{questions} domande degli acquirenti, con risposta in {answers} frasi a partire dagli stessi fatti.",
-        "staging": "Una stanza vuota viene arredata come camera da letto. Il risultato porta l’etichetta “Virtually staged” ed è mostrato accanto all’originale.",
-        "integrity": "Finestre, porte e altri elementi fissi vengono contati prima e dopo. Tutti invariati, quindi l’immagine arredata viene proposta.",
-        "verification": "{audited} frasi vengono verificate rispetto ai fatti che citano. {flagged} vengono segnalate.",
-        "gate2": "Nessuna segnalazione. L’immagine arredata è accettata con la sua etichetta e il testo è approvato.",
-        "export": "Vengono creati {files} file, tra cui il pacchetto HTML e i campi per i portali. Tutti i controlli di pubblicazione sono superati."
-      },
-      "bedroomCaption": "La voce diceva laminato. Questa foto della camera mostra la moquette. Una foto di input generata da un modello, non un immobile reale.",
-      "stagingBefore": "Prima",
-      "stagingAfter": "Dopo",
-      "stagingCaption": "A sinistra: una foto di input generata da un modello di una stanza vuota inventata. A destra: il risultato del passaggio di arredo, con l’etichetta “Virtually staged”."
-    },
-    "numbers": {
-      "title": "I numeri e i loro limiti",
-      "intro": "Una valutazione con difetti inseriti: problemi noti vengono piantati in input sintetici e contiamo quanti ne coglie la pipeline. Registrata il {date} in modalità fixture (risposte registrate, nessuna chiamata al modello) su {sets} set sintetici. Eseguila tu stesso con npm run eval.",
-      "measure": "Misura",
-      "result": "Risultato",
-      "rows": {
-        "planted": "Conflitti inseriti emersi alla prima revisione",
-        "falseConflicts": "Conflitti inattesi (falsi)",
-        "injectedFlagged": "Difetti inseriti segnalati nel primo controllo",
-        "injectedAtGate2": "Difetti inseriti ancora non segnalati alla seconda revisione",
-        "injectedExported": "Difetti inseriti in un pacchetto esportato",
-        "cleanFlags": "Segnalazioni del primo controllo su frasi non alterate"
-      },
-      "limitsTitle": "Limiti",
-      "limits": {
-        "blatant": "I difetti inseriti sono evidenti. I numeri mostrano che i controlli colgono un testo simile, non quanto spesso il modello di scrittura lo produce da solo.",
-        "oneApartment": "Tutti e sei i set sono variazioni di un solo appartamento sintetico. È la prova che il meccanismo funziona, non un tasso di rilevamento su annunci reali.",
-        "freeform": "I conflitti su dettagli liberi, come il materiale di un pavimento, vengono trovati dal modello al meglio delle sue possibilità. Solo i dati di mercato sono garantiti dal codice.",
-        "audio": "Il controllo verifica le frasi rispetto ai fatti e alle loro citazioni, non rispetto all’audio. Nel fascicolo di esempio lo script dice “L-vormige”, la trascrizione dice “ellipsvormige” e il testo dice “elliptical”. Alla seconda revisione te ne accorgeresti."
-      }
-    },
-    "boundaries": {
-      "title": "Cosa non farà",
-      "items": {
-        "valuation": "Stimare il valore di un immobile o dare consigli di investimento.",
-        "legal": "Interpretare la legge, redigere contratti o dare consulenza sul titolo. La checklist di pubblicazione ti aiuta a notare ciò che manca; non certifica la conformità legale.",
-        "buyers": "Selezionare, valutare o classificare acquirenti o inquilini.",
-        "publishing": "Pubblicare su un portale al posto tuo. Scarichi il pacchetto e decidi dove va.",
-        "edits": "Modificare una foto per nascondere un difetto o cambiare la struttura. L’arredo aggiunge mobili; se cambia una finestra, una porta o un termosifone, si usa l’originale.",
-        "metadata": "Conservare il GPS o altri metadati delle foto. Vengono rimossi da ogni foto al caricamento.",
-        "blur": "Esportare un volto o una targa. Entrambi vengono sfocati nelle foto esportate.",
-        "deletion": "Conservare un progetto che elimini. L’eliminazione cancella definitivamente foto, memo vocale, dati e pacchetto."
-      }
-    },
-    "photos": {
-      "cover": "Un soggiorno con pavimento in rovere chiaro, un divano grigio a tre posti, una finestra alta e una porta bianca. Foto sintetica.",
-      "bedroom": "Una camera da letto con moquette grigia, un letto matrimoniale con lenzuola bianche, una finestra e un armadio a muro. Foto sintetica.",
-      "stagingBefore": "Una stanza vuota con pavimento in rovere chiaro, una finestra con un termosifone sotto e una porta bianca. Foto sintetica.",
-      "stagingAfter": "La stessa stanza con un letto e un comodino aggiunti. Foto sintetica, arredata virtualmente."
+      "number": "fonte {n}",
+      "methodRef": "Metodo, § {n}"
     }
   },
   "notFound": {
@@ -1080,5 +991,110 @@
     "verified": "Verificato",
     "decision": "Attende la tua decisione",
     "sample": "Fascicolo di esempio"
+  },
+  "method": {
+    "title": "Come Evidomo controlla un annuncio",
+    "lede": "Cosa fa un’elaborazione, cosa ha trovato nel fascicolo di esempio e dove si ferma.",
+    "indexLabel": "In questa pagina",
+    "sections": {
+      "sources": "Ogni affermazione ha una fonte",
+      "sample-run": "Cosa è successo all’annuncio di esempio",
+      "numbers": "I numeri e i loro limiti",
+      "limits-and-data": "Cosa non farà e cosa rimuove"
+    },
+    "types": {
+      "form": "Un campo del modulo: un valore che hai inserito.",
+      "voice": "Un intervento vocale: parole del tuo tour, con l’orario.",
+      "photo": "Una regione di foto: la parte di un’immagine su cui si basa un dato."
+    },
+    "sourcesTitle": "Fonti",
+    "specimen": {
+      "label": "Una frase dal fascicolo di esempio",
+      "sentenceNote": "Output del modello, come scritto (inglese, non tradotto).",
+      "prompt": "Scegli un’affermazione evidenziata per vedere su cosa si basa.",
+      "claimsLabel": "Affermazioni in questa frase",
+      "claimNames": {
+        "year": "Anno di costruzione",
+        "label": "Classe energetica",
+        "issued": "Anno di rilascio della classe"
+      },
+      "evidenceTitle": "Su cosa si basa “{claim}”",
+      "fieldNames": {
+        "build_year": "Anno di costruzione",
+        "energy_label": "Classe energetica"
+      },
+      "formValue": "{field}: {value}",
+      "notUsed": "Non usato",
+      "conflict": "Il modulo diceva {form}. L’elaborazione si è fermata alla prima revisione ed è stato mantenuto {voice}, detto a voce.",
+      "replayNote": "Un replay: le risposte del modello sono state registrate una volta, il tour era voce sintetica e il fascicolo di esempio riproduce silenzio."
+    },
+    "ledger": {
+      "intro": "Evidomo esegue ogni passaggio. Alle due soste decidi tu.",
+      "stop": "L’elaborazione si ferma qui",
+      "scripted": "Nel fascicolo di esempio le decisioni sono state scritte in anticipo in uno script.",
+      "gateTitles": {
+        "gate1": "Revisione 1 di 2: conflitti tra i dati",
+        "gate2": "Revisione 2 di 2: il testo e l’immagine arredata"
+      },
+      "rows": {
+        "intake": "Un tour vocale in olandese diventa una serie di interventi con orario.",
+        "fact_extraction": "I dati vengono letti dal modulo e dalla voce, ciascuno con la sua fonte.",
+        "vision_inventory": "{photos} foto vengono lette e controllate per volti e targhe. Nessuna ha richiesto sfocature.",
+        "reconciliation": "Emergono {conflicts} conflitti. Una foto di camera mostra la moquette dove la voce diceva laminato.",
+        "gate1": "Il {voice} detto a voce prevale sul {form} del modulo. Restano 175 € e non 165 €. Il pavimento della camera cade.",
+        "creative": "{portal} frasi per i portali e {social} per i social, ciascuna con i fatti su cui si basa.",
+        "qa_cards": "{questions} domande degli acquirenti, con risposta in {answers} frasi dagli stessi fatti.",
+        "staging": "Il modello ha scambiato un soggiorno vuoto per una camera e l’ha arredato così. Etichetta: “Virtually staged”.",
+        "integrity": "Finestre, porte e altri elementi fissi vengono contati prima e dopo. Tutto invariato.",
+        "verification": "{audited} frasi vengono verificate rispetto ai loro fatti. {flagged} vengono segnalate.",
+        "gate2": "Nessuna segnalazione. L’immagine arredata e il testo sono approvati.",
+        "export": "Vengono creati {files} file. Tutti i controlli di pubblicazione sono superati."
+      },
+      "bedroomCaption": "La voce diceva laminato. Questa foto della camera mostra la moquette. Una foto di input generata da un modello, non un immobile reale.",
+      "stagingBefore": "Prima",
+      "stagingAfter": "Dopo",
+      "stagingCaption": "A sinistra: una foto di input generata da un modello di una stanza vuota inventata. A destra: il risultato del passaggio di arredo, con l’etichetta “Virtually staged”."
+    },
+    "numbers": {
+      "intro": "Problemi noti vengono piantati in input sintetici e contiamo quanti ne coglie la pipeline. Registrata il {date}, modalità fixture, {sets} set sintetici.",
+      "caption": "Risultati della valutazione",
+      "measure": "Misura",
+      "result": "Risultato",
+      "rows": {
+        "planted": "Conflitti inseriti emersi alla prima revisione",
+        "falseConflicts": "Conflitti inattesi (falsi)",
+        "injectedFlagged": "Difetti inseriti segnalati nel primo controllo",
+        "injectedAtGate2": "Difetti inseriti ancora non segnalati alla seconda revisione",
+        "injectedExported": "Difetti inseriti in un pacchetto esportato",
+        "cleanFlags": "Segnalazioni del primo controllo su frasi non alterate"
+      },
+      "limitsTitle": "Limiti",
+      "limits": {
+        "blatant": "I difetti inseriti sono evidenti. I numeri mostrano che i controlli colgono un testo simile, non quanto spesso il modello lo produce da solo.",
+        "oneApartment": "Tutti e sei i set sono variazioni di un solo appartamento sintetico: prova che il meccanismo funziona, non un tasso su annunci reali.",
+        "freeform": "I conflitti su dettagli liberi, come il materiale di un pavimento, vengono trovati dal modello al meglio delle sue possibilità.",
+        "audio": "Il controllo legge fatti e citazioni, non l’audio. Lo script dice “L-vormige”, la trascrizione “ellipsvormige”, il testo “elliptical”: lo coglieresti alla revisione 2."
+      }
+    },
+    "boundaries": {
+      "lead": "Non farà:",
+      "items": {
+        "valuation": "Stimare il valore di un immobile o dare consigli di investimento.",
+        "legal": "Interpretare la legge, redigere contratti o dare consulenza sul titolo. La checklist non certifica la conformità.",
+        "buyers": "Selezionare, valutare o classificare acquirenti o inquilini.",
+        "publishing": "Pubblicare su un portale al posto tuo.",
+        "edits": "Modificare una foto per nascondere un difetto o cambiare la struttura.",
+        "metadata": "Conservare il GPS o altri metadati: vengono rimossi al caricamento.",
+        "blur": "Esportare un volto o una targa: entrambi vengono sfocati.",
+        "deletion": "Conservare un progetto eliminato: foto, memo vocale, dati e pacchetto vengono cancellati.",
+        "training": "Lasciare che un modello si alleni sui tuoi contenuti: si usano solo modelli in modalità Standard."
+      }
+    },
+    "photos": {
+      "cover": "Un soggiorno con pavimento in rovere chiaro, un divano grigio a tre posti, una finestra alta e una porta bianca. Foto sintetica.",
+      "bedroom": "Una camera da letto con moquette grigia, un letto matrimoniale con lenzuola bianche, una finestra e un armadio a muro. Foto sintetica.",
+      "stagingBefore": "Una stanza vuota con pavimento in rovere chiaro, una finestra con un termosifone sotto e una porta bianca. Foto sintetica.",
+      "stagingAfter": "La stessa stanza con un letto e un comodino aggiunti. Foto sintetica, arredata virtualmente."
+    }
   }
 }

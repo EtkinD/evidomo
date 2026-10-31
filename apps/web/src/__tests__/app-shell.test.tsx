@@ -30,7 +30,8 @@ describe('header, signed out', () => {
       '/register',
     );
     expect(within(nav).getByRole('link', { name: 'Demo' }).getAttribute('href')).toBe('/demo');
-    expect(within(nav).getAllByRole('link')).toHaveLength(3);
+    expect(within(nav).getByRole('link', { name: 'Method' }).getAttribute('href')).toBe('/method');
+    expect(within(nav).getAllByRole('link')).toHaveLength(4);
     expect(screen.queryByRole('button', { name: /Account menu/ })).toBeNull();
     expect(screen.queryByRole('navigation', { name: 'Main' })).toBeNull();
   });
@@ -61,7 +62,7 @@ describe('header, signed in', () => {
     expect(link.getAttribute('href')).toBe('/projects');
     expect(link.getAttribute('aria-current')).toBe(expected);
     const main = within(screen.getByRole('navigation', { name: 'Main' }));
-    expect(main.getAllByRole('link')).toHaveLength(2);
+    expect(main.getAllByRole('link')).toHaveLength(3);
     expect(main.getByRole('link', { name: 'Demo' }).getAttribute('href')).toBe('/demo');
   });
 
@@ -191,13 +192,14 @@ describe('footer', () => {
     const links = within(footer).getAllByRole('link');
     expect(links.map((link) => link.getAttribute('href'))).toEqual([
       REPOSITORY_URL,
+      '/method',
       '/',
       '/tr',
       '/nl',
       '/it',
       '/es',
     ]);
-    expect(links.slice(1).map((link) => link.textContent)).toEqual([
+    expect(links.slice(2).map((link) => link.textContent)).toEqual([
       'English',
       'Türkçe',
       'Nederlands',

@@ -1,19 +1,15 @@
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, screen, within } from '@testing-library/react';
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import en from '../../messages/en.json';
-import { Boundaries } from '../components/landing/Boundaries';
 import { DEMO_HREF } from '../components/landing/LandingPage';
-import { Ledger } from '../components/landing/Ledger';
-import { Numbers } from '../components/landing/Numbers';
-import { Specimen } from '../components/landing/Specimen';
 import { LANDING_IMAGES, landingSrc } from '../lib/landing-images';
 import { SOURCE_NOTE_IDS } from '../lib/landing-sources';
-import { resetShowSources, setShowSources, SOURCES_STORAGE_KEY } from '../lib/sources';
+import { resetShowSources, SOURCES_STORAGE_KEY } from '../lib/sources';
 import Home from '../pages/index';
 import { setRoute } from './router-mock';
-import { IntlTest, meSignedIn, meSignedOut, mockFetch, renderPage } from './test-utils';
+import { meSignedIn, meSignedOut, mockFetch, renderPage } from './test-utils';
 
 vi.mock('next/router', () => import('./router-mock'));
 
@@ -281,10 +277,10 @@ describe('landing page: Show sources', () => {
     expect(hrefs).toContain(
       'https://github.com/EtkinD/evidomo/blob/main/apps/api/src/media/image.ts',
     );
-    expect(hrefs).toContain(
-      'https://github.com/EtkinD/evidomo/blob/main/docs/product.md#8-hard-boundaries',
-    );
-    expect(hrefs).toContain('/demo?tab=conflicts');
+    // Notes about the sample run and the rules lead to the matching section of /method.
+    expect(hrefs).toContain('/method#sample-run');
+    expect(hrefs).toContain('/method#sources');
+    expect(hrefs).toContain('/method#limits-and-data');
   });
 
   it('is remembered per viewer', async () => {
@@ -357,30 +353,5 @@ describe('the landing images', () => {
         );
       }
     }
-  });
-});
-
-// The round 5 detail components are not on the landing page (a detail page will show them), but
-// they stay in the code and must keep working: they mark the rest of the notes registry.
-describe('the sample-run detail components (not on the landing page)', () => {
-  it('render with their notes, and together with the landing mark every note of the registry', () => {
-    setShowSources(true);
-    const { container } = render(
-      <IntlTest>
-        <Specimen />
-        <Ledger />
-        <Numbers />
-        <Boundaries />
-      </IntlTest>,
-    );
-    const detail = [...container.querySelectorAll('[data-claim-source]')].map((m) =>
-      m.getAttribute('data-claim-source'),
-    );
-    expect(detail.sort()).toEqual(
-      SOURCE_NOTE_IDS.filter((id) => !LANDING_NOTES.includes(id)).sort(),
-    );
-    expect(container.textContent).toContain('What happened to this listing');
-    expect(container.textContent).toContain('This is a replay');
-    expect(container.querySelector('table')).not.toBeNull();
   });
 });

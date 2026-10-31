@@ -29,7 +29,8 @@
     "themeSystem": "Sistema",
     "themeLight": "Claro",
     "themeDark": "Oscuro",
-    "language": "Idioma"
+    "language": "Idioma",
+    "method": "Método"
   },
   "auth": {
     "checkingSession": "Comprobando tu sesión…",
@@ -78,7 +79,9 @@
     "tagline": "Evidencia para cada hogar.",
     "ogImageAlt": "Evidomo: evidencia para cada hogar.",
     "landingTitle": "Evidomo: paquetes de anuncio donde cada afirmación tiene una fuente",
-    "landingDescription": "Fotos y un recorrido por voz de entrada, un paquete de anuncio de salida. Cada frase enlaza con el campo del formulario, el fragmento hablado o la foto de donde procede, y tú la revisas antes de exportar."
+    "landingDescription": "Fotos y un recorrido por voz de entrada, un paquete de anuncio de salida. Cada frase enlaza con el campo del formulario, el fragmento hablado o la foto de donde procede, y tú la revisas antes de exportar.",
+    "methodTitle": "Cómo comprueba Evidomo un anuncio — Evidomo",
+    "methodDescription": "Cómo un proceso comprueba cada afirmación, qué muestra el expediente de ejemplo, los números de la evaluación con sus límites y lo que Evidomo no hace."
   },
   "landing": {
     "actions": {
@@ -194,100 +197,8 @@
       },
       "evalRef": "README, Resultados de la evaluación ({date}, modo fixture)",
       "ruleRef": "docs/product.md, sección {section}",
-      "number": "fuente {n}"
-    },
-    "specimen": {
-      "label": "Una frase del expediente de ejemplo",
-      "sentenceNote": "Texto de portal aprobado del proceso de ejemplo, tal como lo escribió el modelo (inglés, sin traducir).",
-      "prompt": "Elige una afirmación resaltada para ver en qué se apoya.",
-      "claimsLabel": "Afirmaciones de esta frase",
-      "claimNames": {
-        "year": "Año de construcción",
-        "label": "Etiqueta energética",
-        "issued": "Año de emisión de la etiqueta"
-      },
-      "evidenceTitle": "En qué se apoya “{claim}”",
-      "fieldNames": {
-        "build_year": "Año de construcción",
-        "energy_label": "Etiqueta energética"
-      },
-      "formValue": "{field}: {value}",
-      "notUsed": "No usado",
-      "conflict": "El formulario decía {form}. El proceso se detuvo en la primera revisión y se mantuvo {voice}, el dato hablado.",
-      "openReview": "Ver esta frase en el expediente de ejemplo",
-      "coverCaption": "La foto de portada del paquete, puesta por el modelo en primer lugar de {count}. Una foto de entrada generada por un modelo de una estancia inventada, no una propiedad real.",
-      "replayNote": "Esto es una reproducción. Las respuestas del modelo se grabaron una vez y se reproducen, y el recorrido fue voz sintética: el expediente de ejemplo reproduce un sustituto silencioso del audio."
-    },
-    "ledger": {
-      "title": "Qué pasó con este anuncio",
-      "intro": "Un proceso del expediente de ejemplo, paso a paso. Tú decides en las dos paradas.",
-      "decidedBy": "Decidido por",
-      "evidomo": "Evidomo",
-      "you": "Tú",
-      "stop": "El proceso se detiene aquí",
-      "scripted": "En el expediente de ejemplo, las decisiones se escribieron de antemano en un guion.",
-      "gateTitles": {
-        "gate1": "Revisión 1 de 2: conflictos de datos",
-        "gate2": "Revisión 2 de 2: el texto y la imagen amueblada"
-      },
-      "rows": {
-        "intake": "Un recorrido de voz en neerlandés se transcribe en intervenciones con tiempo, cada una con inicio y fin.",
-        "fact_extraction": "Los datos se leen del formulario y del recorrido. Cada uno conserva su fuente: un campo del formulario o una cita de una intervención.",
-        "vision_inventory": "Se leen {photos} fotos por estancia y estado y se revisan en busca de caras y matrículas. Ninguna necesitó difuminado.",
-        "reconciliation": "Surgen {conflicts} conflictos entre el formulario, la voz y las fotos. Una foto de dormitorio muestra moqueta donde la voz decía laminado.",
-        "gate1": "Año de construcción: se mantiene {voice}, el dato hablado, frente a {form}, el del formulario. Cuota de la comunidad: se mantienen los 175 € del formulario frente a los 165 € hablados. Suelo del dormitorio: no se mantiene ninguno de los dos valores.",
-        "creative": "Texto de portal de {portal} frases y pie de foto social de {social}. Cada frase cita los hechos en que se apoya.",
-        "qa_cards": "{questions} preguntas de compradores, respondidas en {answers} frases a partir de los mismos hechos.",
-        "staging": "Una estancia vacía se amuebla como dormitorio. El resultado lleva la etiqueta “Virtually staged” y se muestra junto al original.",
-        "integrity": "Ventanas, puertas y otros elementos fijos se cuentan antes y después. Todo sigue igual, así que se ofrece la imagen amueblada.",
-        "verification": "Se contrastan {audited} frases con los hechos que citan. Se marcan {flagged}.",
-        "gate2": "No se marca nada. La imagen amueblada se acepta con su etiqueta y el texto se aprueba.",
-        "export": "Se generan {files} archivos, entre ellos el paquete HTML y los campos de portal. Todas las comprobaciones de publicación se superan."
-      },
-      "bedroomCaption": "La voz decía laminado. Esta foto de dormitorio muestra moqueta. Una foto de entrada generada por un modelo, no una propiedad real.",
-      "stagingBefore": "Antes",
-      "stagingAfter": "Después",
-      "stagingCaption": "Izquierda: una foto de entrada generada por un modelo de una estancia vacía inventada. Derecha: el resultado del paso de amueblado, con la etiqueta “Virtually staged”."
-    },
-    "numbers": {
-      "title": "Los números y sus límites",
-      "intro": "Una evaluación con defectos sembrados: se plantan problemas conocidos en entradas sintéticas y se cuenta lo que detecta el pipeline. Registrada el {date} en modo fixture (respuestas grabadas, sin llamadas al modelo) sobre {sets} conjuntos sintéticos. Ejecútala tú con npm run eval.",
-      "measure": "Medida",
-      "result": "Resultado",
-      "rows": {
-        "planted": "Conflictos plantados detectados en la primera revisión",
-        "falseConflicts": "Conflictos inesperados (falsos)",
-        "injectedFlagged": "Defectos inyectados marcados en la primera auditoría",
-        "injectedAtGate2": "Defectos inyectados aún sin marcar en la segunda revisión",
-        "injectedExported": "Defectos inyectados en un paquete exportado",
-        "cleanFlags": "Marcas de la primera auditoría en frases no alteradas"
-      },
-      "limitsTitle": "Límites",
-      "limits": {
-        "blatant": "Los defectos plantados son evidentes. Los números muestran que las comprobaciones detectan ese texto, no con qué frecuencia lo produce por sí solo el modelo que escribe.",
-        "oneApartment": "Los seis conjuntos son variaciones de un único apartamento sintético. Es evidencia de que el mecanismo funciona, no una tasa de detección en anuncios reales.",
-        "freeform": "Los conflictos sobre detalles libres, como el material de un suelo, los encuentra el modelo en la medida de lo posible. Solo los datos de mercado los garantiza el código.",
-        "audio": "La auditoría contrasta las frases con los hechos y sus citas, no con el audio. En el expediente de ejemplo el guion dice “L-vormige”, la transcripción dice “ellipsvormige” y el texto dice “elliptical”. En la segunda revisión lo detectarías tú."
-      }
-    },
-    "boundaries": {
-      "title": "Lo que no hará",
-      "items": {
-        "valuation": "Tasar una propiedad ni dar consejos de inversión.",
-        "legal": "Interpretar la ley, redactar contratos ni asesorar sobre la titularidad. La lista de comprobación de publicación te ayuda a ver lo que falta; no certifica el cumplimiento legal.",
-        "buyers": "Filtrar, puntuar ni clasificar a compradores o inquilinos.",
-        "publishing": "Publicar en un portal por ti. Descargas el paquete y decides adónde va.",
-        "edits": "Editar una foto para ocultar un defecto o cambiar la estructura. El amueblado añade muebles; si cambia una ventana, una puerta o un radiador, se usa el original.",
-        "metadata": "Conservar el GPS u otros metadatos de las fotos. Se eliminan de cada foto al subirla.",
-        "blur": "Exportar una cara o una matrícula. Ambas se difuminan en las fotos exportadas.",
-        "deletion": "Conservar un proyecto que borres. Borrarlo elimina para siempre sus fotos, la nota de voz, los datos y el paquete."
-      }
-    },
-    "photos": {
-      "cover": "Un salón con suelo de roble claro, un sofá gris de tres plazas, una ventana alta y una puerta blanca. Foto sintética.",
-      "bedroom": "Un dormitorio con moqueta gris, una cama doble con ropa blanca, una ventana y un armario empotrado. Foto sintética.",
-      "stagingBefore": "Una estancia vacía con suelo de roble claro, una ventana con un radiador debajo y una puerta blanca. Foto sintética.",
-      "stagingAfter": "La misma estancia con una cama y una mesita de noche añadidas. Foto sintética, amueblada virtualmente."
+      "number": "fuente {n}",
+      "methodRef": "Método, § {n}"
     }
   },
   "notFound": {
@@ -1080,5 +991,110 @@
     "verified": "Verificado",
     "decision": "Espera tu decisión",
     "sample": "Expediente de ejemplo"
+  },
+  "method": {
+    "title": "Cómo comprueba Evidomo un anuncio",
+    "lede": "Qué hace un proceso, qué encontró en el expediente de ejemplo y dónde se detiene.",
+    "indexLabel": "En esta página",
+    "sections": {
+      "sources": "Cada afirmación tiene una fuente",
+      "sample-run": "Qué pasó con el anuncio de ejemplo",
+      "numbers": "Los números y sus límites",
+      "limits-and-data": "Lo que no hará y lo que elimina"
+    },
+    "types": {
+      "form": "Un campo del formulario: un valor que introdujiste.",
+      "voice": "Una intervención de voz: palabras de tu recorrido, con su momento.",
+      "photo": "Una región de foto: la parte de una imagen en que se apoya un dato."
+    },
+    "sourcesTitle": "Fuentes",
+    "specimen": {
+      "label": "Una frase del expediente de ejemplo",
+      "sentenceNote": "Salida del modelo, tal como se escribió (inglés, sin traducir).",
+      "prompt": "Elige una afirmación resaltada para ver en qué se apoya.",
+      "claimsLabel": "Afirmaciones de esta frase",
+      "claimNames": {
+        "year": "Año de construcción",
+        "label": "Etiqueta energética",
+        "issued": "Año de emisión de la etiqueta"
+      },
+      "evidenceTitle": "En qué se apoya “{claim}”",
+      "fieldNames": {
+        "build_year": "Año de construcción",
+        "energy_label": "Etiqueta energética"
+      },
+      "formValue": "{field}: {value}",
+      "notUsed": "No usado",
+      "conflict": "El formulario decía {form}. El proceso se detuvo en la primera revisión y se mantuvo {voice}, el dato hablado.",
+      "replayNote": "Una reproducción: las respuestas del modelo se grabaron una vez, el recorrido fue voz sintética y el expediente de ejemplo reproduce silencio."
+    },
+    "ledger": {
+      "intro": "Evidomo ejecuta cada paso. En las dos paradas decides tú.",
+      "stop": "El proceso se detiene aquí",
+      "scripted": "En el expediente de ejemplo, las decisiones se escribieron de antemano en un guion.",
+      "gateTitles": {
+        "gate1": "Revisión 1 de 2: conflictos de datos",
+        "gate2": "Revisión 2 de 2: el texto y la imagen amueblada"
+      },
+      "rows": {
+        "intake": "Un recorrido de voz en neerlandés se convierte en intervenciones con tiempo.",
+        "fact_extraction": "Los datos se leen del formulario y de la voz, cada uno con su fuente.",
+        "vision_inventory": "Se leen {photos} fotos y se revisan en busca de caras y matrículas. Ninguna necesitó difuminado.",
+        "reconciliation": "Surgen {conflicts} conflictos. Una foto de dormitorio muestra moqueta donde la voz decía laminado.",
+        "gate1": "Se mantiene {voice}, el dato hablado, frente a {form} del formulario. Quedan 175 € y no 165 €. El suelo del dormitorio se descarta.",
+        "creative": "{portal} frases de portal y {social} sociales, cada una con los hechos en que se apoya.",
+        "qa_cards": "{questions} preguntas de compradores, respondidas en {answers} frases con los mismos hechos.",
+        "staging": "El modelo tomó un salón vacío por un dormitorio y lo amuebló así. Etiqueta: “Virtually staged”.",
+        "integrity": "Ventanas, puertas y otros elementos fijos se cuentan antes y después. Todo igual.",
+        "verification": "Se contrastan {audited} frases con sus hechos. Se marcan {flagged}.",
+        "gate2": "No se marca nada. Se aprueban la imagen amueblada y el texto.",
+        "export": "Se generan {files} archivos. Todas las comprobaciones de publicación se superan."
+      },
+      "bedroomCaption": "La voz decía laminado. Esta foto de dormitorio muestra moqueta. Una foto de entrada generada por un modelo, no una propiedad real.",
+      "stagingBefore": "Antes",
+      "stagingAfter": "Después",
+      "stagingCaption": "Izquierda: una foto de entrada generada por un modelo de una estancia vacía inventada. Derecha: el resultado del paso de amueblado, con la etiqueta “Virtually staged”."
+    },
+    "numbers": {
+      "intro": "Se plantan problemas conocidos en entradas sintéticas y se cuenta lo que detecta el pipeline. Registrada el {date}, modo fixture, {sets} conjuntos sintéticos.",
+      "caption": "Resultados de la evaluación",
+      "measure": "Medida",
+      "result": "Resultado",
+      "rows": {
+        "planted": "Conflictos plantados detectados en la primera revisión",
+        "falseConflicts": "Conflictos inesperados (falsos)",
+        "injectedFlagged": "Defectos inyectados marcados en la primera auditoría",
+        "injectedAtGate2": "Defectos inyectados aún sin marcar en la segunda revisión",
+        "injectedExported": "Defectos inyectados en un paquete exportado",
+        "cleanFlags": "Marcas de la primera auditoría en frases no alteradas"
+      },
+      "limitsTitle": "Límites",
+      "limits": {
+        "blatant": "Los defectos plantados son evidentes. Los números muestran que las comprobaciones detectan ese texto, no con qué frecuencia lo escribe el modelo.",
+        "oneApartment": "Los seis conjuntos son variaciones de un único apartamento sintético: prueba de que el mecanismo funciona, no una tasa en anuncios reales.",
+        "freeform": "Los conflictos sobre detalles libres, como el material de un suelo, los encuentra el modelo en la medida de lo posible.",
+        "audio": "La auditoría lee hechos y citas, no el audio. El guion dice “L-vormige”, la transcripción “ellipsvormige”, el texto “elliptical”: lo detectarías en la revisión 2."
+      }
+    },
+    "boundaries": {
+      "lead": "No hará:",
+      "items": {
+        "valuation": "Tasar una propiedad ni dar consejos de inversión.",
+        "legal": "Interpretar la ley, redactar contratos ni asesorar sobre la titularidad. La lista no certifica el cumplimiento.",
+        "buyers": "Filtrar, puntuar ni clasificar a compradores o inquilinos.",
+        "publishing": "Publicar en un portal por ti.",
+        "edits": "Editar una foto para ocultar un defecto o cambiar la estructura.",
+        "metadata": "Conservar el GPS u otros metadatos: se eliminan al subir cada foto.",
+        "blur": "Exportar una cara o una matrícula: ambas se difuminan.",
+        "deletion": "Conservar un proyecto borrado: fotos, nota de voz, datos y paquete se eliminan.",
+        "training": "Dejar que un modelo entrene con tu contenido: solo se usan modelos en modo Standard."
+      }
+    },
+    "photos": {
+      "cover": "Un salón con suelo de roble claro, un sofá gris de tres plazas, una ventana alta y una puerta blanca. Foto sintética.",
+      "bedroom": "Un dormitorio con moqueta gris, una cama doble con ropa blanca, una ventana y un armario empotrado. Foto sintética.",
+      "stagingBefore": "Una estancia vacía con suelo de roble claro, una ventana con un radiador debajo y una puerta blanca. Foto sintética.",
+      "stagingAfter": "La misma estancia con una cama y una mesita de noche añadidas. Foto sintética, amueblada virtualmente."
+    }
   }
 }

@@ -18,7 +18,7 @@ export function SamplePhoto({
   sizes: string;
   className?: string;
 }) {
-  const t = useTranslations('landing.photos');
+  const t = useTranslations('method.photos');
   const photo = SAMPLE_PHOTOS[id];
   const largest = Math.max(...photo.widths);
   return (

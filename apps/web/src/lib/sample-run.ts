@@ -191,7 +191,11 @@ export const EVAL_ROWS = [
 
 export type EvalRowId = (typeof EVAL_ROWS)[number]['id'];
 
-/** The statements of "What it will not do", in order: five boundaries, then three removals. */
+/**
+ * The statements of "What it will not do, and what it removes" on `/method`: five boundaries, then
+ * what it strips, blurs, deletes, and never trains on. This list is also the site's short
+ * data-handling statement.
+ */
 export const BOUNDARY_IDS = [
   'valuation',
   'legal',
@@ -201,6 +205,7 @@ export const BOUNDARY_IDS = [
   'metadata',
   'blur',
   'deletion',
+  'training',
 ] as const;
 
 export type BoundaryId = (typeof BOUNDARY_IDS)[number];

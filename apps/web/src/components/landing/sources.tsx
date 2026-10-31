@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { CSSProperties, ReactNode } from 'react';
 import { useFormatter, useTranslations } from 'use-intl';
 import {
+  methodSectionNumber,
   noteNumber,
   SOURCE_NOTES,
   sourceHref,
@@ -43,41 +44,56 @@ export function SourcesSwitch({ className = '' }: { className?: string }) {
   );
 }
 
-function RefLine({ refItem }: { refItem: SourceRef }) {
+/** The kind, text, and target of a reference, in the reader's language. */
+export function useRefParts(): (refItem: SourceRef) => {
+  kind: string;
+  label: string;
+  href: string;
+} {
   const t = useTranslations('landing.sources');
   const format = useFormatter();
-  const href = sourceHref(refItem);
-  const external = href.startsWith('http');
-  let label: string;
-  switch (refItem.kind) {
-    case 'sample':
-      label = `${t(`screens.${refItem.screen}`)}${refItem.detail === undefined ? '' : `, ${refItem.detail}`}`;
-      break;
-    case 'sampleFile':
-    case 'code':
-      label = refItem.path;
-      break;
-    case 'eval':
-      label = t('evalRef', {
-        date: format.dateTime(new Date(EVAL_RUN.date), {
-          day: 'numeric',
-          month: 'short',
-          year: 'numeric',
-          timeZone: 'UTC',
-        }),
-      });
-      break;
-    case 'rule':
-      label = t('ruleRef', { section: refItem.section });
-      break;
-  }
-  const kind = refItem.kind === 'sampleFile' ? 'sample' : refItem.kind;
+  return (refItem) => {
+    let label: string;
+    if ('method' in refItem && refItem.method !== undefined) {
+      label = t('methodRef', { n: methodSectionNumber(refItem.method) });
+    } else {
+      switch (refItem.kind) {
+        case 'sample':
+          label = `${t(`screens.${refItem.screen}`)}${refItem.detail === undefined ? '' : `, ${refItem.detail}`}`;
+          break;
+        case 'sampleFile':
+        case 'code':
+          label = refItem.path;
+          break;
+        case 'eval':
+          label = t('evalRef', {
+            date: format.dateTime(new Date(EVAL_RUN.date), {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric',
+              timeZone: 'UTC',
+            }),
+          });
+          break;
+        case 'rule':
+          label = t('ruleRef', { section: refItem.section });
+          break;
+      }
+    }
+    const kind = refItem.kind === 'sampleFile' ? 'sample' : refItem.kind;
+    return { kind: t(`kinds.${kind}`), label, href: sourceHref(refItem) };
+  };
+}
+
+function RefLine({ refItem }: { refItem: SourceRef }) {
+  const parts = useRefParts();
+  const { kind, label, href } = parts(refItem);
   return (
     <li className="flex flex-col">
       <span className="text-xs font-semibold tracking-wider text-base-content/70 uppercase">
-        {t(`kinds.${kind}`)}
+        {kind}
       </span>
-      {external ? (
+      {href.startsWith('http') ? (
         <a href={href} rel="noreferrer" className={LINK}>
           {label}
         </a>

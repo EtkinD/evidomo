@@ -1,28 +1,10 @@
 import { useTranslations } from 'use-intl';
-import type { SourceNoteId } from '../../lib/landing-sources';
 import { LEDGER_PARAMS, LEDGER_ROWS, type LedgerRowId } from '../../lib/sample-run';
 import { Stamp } from '../Stamp';
 import { SamplePhoto } from './SamplePhoto';
-import { Section } from './Section';
-import { SourceNotes, Sourced } from './sources';
-
-const NOTE_OF: Record<LedgerRowId, SourceNoteId> = {
-  intake: 'intake',
-  fact_extraction: 'facts',
-  vision_inventory: 'photos',
-  reconciliation: 'conflicts',
-  gate1: 'gate1',
-  creative: 'creative',
-  qa_cards: 'qa',
-  staging: 'staging',
-  integrity: 'integrity',
-  verification: 'verification',
-  gate2: 'gate2',
-  export: 'export',
-};
 
 function RowPhotos({ kind }: { kind: 'bedroom' | 'staging' }) {
-  const t = useTranslations('landing.ledger');
+  const t = useTranslations('method.ledger');
   if (kind === 'bedroom') {
     return (
       <figure className="flex w-full max-w-xs -rotate-1 flex-col gap-2 bg-base-100 p-1.5 pb-3 shadow-sheet">
@@ -48,7 +30,8 @@ function RowPhotos({ kind }: { kind: 'bedroom' | 'staging' }) {
               ) : (
                 <>
                   {t('stagingAfter')}
-                  <StagedStamp />
+                  {/* The label the pack carries on every staged image (the model's own, in English). */}
+                  <Stamp tone="staged">Virtually staged</Stamp>
                 </>
               )}
             </p>
@@ -62,27 +45,21 @@ function RowPhotos({ kind }: { kind: 'bedroom' | 'staging' }) {
   );
 }
 
-function StagedStamp() {
-  // The label the pack carries on every staged image (the model's disclosure label, in English).
-  return <Stamp tone="staged">Virtually staged</Stamp>;
-}
-
 function RowText({ id }: { id: LedgerRowId }) {
-  const t = useTranslations('landing.ledger.rows');
+  const t = useTranslations('method.ledger.rows');
   return t(id, id in LEDGER_PARAMS ? LEDGER_PARAMS[id as keyof typeof LEDGER_PARAMS] : undefined);
 }
 
-/** Section 2: the sample run's steps as ruled ledger lines, the two stops set heavier. */
+/**
+ * The sample run's steps as ruled ledger lines, the two stops set heavier. Evidomo does every
+ * step; the stops are where the agent decides.
+ */
 export function Ledger() {
-  const t = useTranslations('landing.ledger');
+  const t = useTranslations('method.ledger');
   const tSteps = useTranslations('steps');
   return (
-    <Section
-      n={2}
-      id="landing-ledger"
-      title={t('title')}
-      intro={<p className="text-base-content/70">{t('intro')}</p>}
-    >
+    <div className="flex flex-col gap-4">
+      <p className="max-w-prose text-base-content/70">{t('intro')}</p>
       <ol className="flex flex-col">
         {LEDGER_ROWS.map((row, index) => {
           const gate = row.kind === 'gate';
@@ -91,51 +68,34 @@ export function Ledger() {
           return (
             <li
               key={row.id}
-              className="grid gap-x-8 gap-y-3 border-t border-base-content/25 py-5 first:border-t-0 lg:grid-cols-9"
+              className={`flex max-w-2xl flex-col gap-3 border-t border-base-content/25 py-5 first:border-t-0 ${
+                gate ? 'border-t-4 border-base-content bg-base-100 p-4 shadow-sheet' : ''
+              }`}
             >
-              <div
-                className={`flex flex-col gap-3 lg:col-span-6 ${gate ? 'border-t-4 border-base-content bg-base-100 p-4 shadow-sheet' : ''}`}
-              >
-                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                  {!gate && (
-                    <span aria-hidden className="font-mono text-sm text-primary">
-                      {String(step).padStart(2, '0')}
-                    </span>
-                  )}
-                  <h3 className="text-xl leading-tight font-medium">
-                    {row.id === 'gate1' || row.id === 'gate2'
-                      ? t(`gateTitles.${row.id}`)
-                      : tSteps(`${row.id}.label`)}
-                  </h3>
-                  <span
-                    aria-hidden
-                    className="hidden min-w-8 flex-1 self-end border-b border-dotted border-base-content/40 sm:block"
-                  />
-                  <span className="text-sm text-base-content/70">
-                    {t('decidedBy')}{' '}
-                    <span className="font-semibold text-base-content">
-                      {gate ? t('you') : t('evidomo')}
-                    </span>
+              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                {!gate && (
+                  <span aria-hidden className="font-mono text-sm text-primary">
+                    {String(step).padStart(2, '0')}
                   </span>
-                </div>
-                {gate && <Stamp tone="decision">{t('stop')}</Stamp>}
-                <p className="max-w-prose">
-                  <Sourced id={NOTE_OF[row.id]}>
-                    <RowText id={row.id} />
-                  </Sourced>
-                </p>
-                {row.id === 'gate1' && (
-                  <p className="text-sm text-base-content/70 italic">{t('scripted')}</p>
                 )}
-                {photo !== undefined && <RowPhotos kind={photo} />}
+                <h3 className="text-xl leading-tight font-medium">
+                  {row.id === 'gate1' || row.id === 'gate2'
+                    ? t(`gateTitles.${row.id}`)
+                    : tSteps(`${row.id}.label`)}
+                </h3>
               </div>
-              <div className="lg:col-span-3">
-                <SourceNotes ids={[NOTE_OF[row.id]]} />
-              </div>
+              {gate && <Stamp tone="decision">{t('stop')}</Stamp>}
+              <p className="max-w-prose">
+                <RowText id={row.id} />
+              </p>
+              {row.id === 'gate1' && (
+                <p className="text-sm text-base-content/70 italic">{t('scripted')}</p>
+              )}
+              {photo !== undefined && <RowPhotos kind={photo} />}
             </li>
           );
         })}
       </ol>
-    </Section>
+    </div>
   );
 }

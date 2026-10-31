@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { useTranslations } from 'use-intl';
 import { REPOSITORY_URL } from '../../lib/repository';
 import { Logo } from '../brand/Logo';
@@ -10,6 +11,7 @@ export { REPOSITORY_URL };
 // reader's settings.
 export function AppFooter() {
   const t = useTranslations('shell');
+  const tMethod = useTranslations('method');
   return (
     <footer className="grain border-t border-base-content/25 bg-base-200">
       <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 pt-10 pb-10 md:grid-cols-12 md:pt-14">
@@ -28,6 +30,12 @@ export function AppFooter() {
           >
             {t('github')}
           </a>
+          <Link
+            href="/method"
+            className="inline-flex min-h-11 w-fit items-center text-sm underline underline-offset-4"
+          >
+            {tMethod('title')}
+          </Link>
         </div>
         <div className="flex flex-col gap-4 md:col-span-4 md:items-end">
           <LanguageSwitch />

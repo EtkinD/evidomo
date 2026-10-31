@@ -29,7 +29,8 @@
     "themeSystem": "Sistem",
     "themeLight": "Açık",
     "themeDark": "Koyu",
-    "language": "Dil"
+    "language": "Dil",
+    "method": "Yöntem"
   },
   "auth": {
     "checkingSession": "Oturumun kontrol ediliyor…",
@@ -78,7 +79,9 @@
     "tagline": "Her ev için kanıt.",
     "ogImageAlt": "Evidomo: her ev için kanıt.",
     "landingTitle": "Evidomo: her iddianın bir kaynağı olduğu ilan paketleri",
-    "landingDescription": "Fotoğraflar ve sesli tur girer, ilan paketi çıkar. Her ifade, geldiği form alanına, konuşma bölümüne veya fotoğrafa bağlanır; dışa aktarmadan önce sen gözden geçirirsin."
+    "landingDescription": "Fotoğraflar ve sesli tur girer, ilan paketi çıkar. Her ifade, geldiği form alanına, konuşma bölümüne veya fotoğrafa bağlanır; dışa aktarmadan önce sen gözden geçirirsin.",
+    "methodTitle": "Evidomo bir ilanı nasıl denetler — Evidomo",
+    "methodDescription": "Bir işlemin her iddiayı nasıl denetlediği, örnek dosyanın gösterdikleri, değerlendirme sayıları ve sınırları, Evidomo’nun yapmadıkları."
   },
   "landing": {
     "actions": {
@@ -194,100 +197,8 @@
       },
       "evalRef": "README, Değerlendirme sonuçları ({date}, fixture modu)",
       "ruleRef": "docs/product.md, bölüm {section}",
-      "number": "kaynak {n}"
-    },
-    "specimen": {
-      "label": "Örnek dosyadan bir cümle",
-      "sentenceNote": "Örnek işlemin onaylanmış portal metni; modelin yazdığı haliyle (İngilizce, çevrilmedi).",
-      "prompt": "Neye dayandığını görmek için vurgulanan bir iddiayı seç.",
-      "claimsLabel": "Bu cümledeki iddialar",
-      "claimNames": {
-        "year": "Yapım yılı",
-        "label": "Enerji etiketi",
-        "issued": "Etiketin veriliş yılı"
-      },
-      "evidenceTitle": "“{claim}” neye dayanıyor",
-      "fieldNames": {
-        "build_year": "Yapım yılı",
-        "energy_label": "Enerji etiketi"
-      },
-      "formValue": "{field}: {value}",
-      "notUsed": "Kullanılmadı",
-      "conflict": "Form {form} diyordu. İşlem ilk gözden geçirmede durdu ve konuşulan {voice} korundu.",
-      "openReview": "Bu cümleyi örnek dosyada gör",
-      "coverCaption": "Paketin kapak fotoğrafı; model {count} fotoğraf arasında birinci sıraya koydu. Uydurma bir odanın model üretimi girdi fotoğrafı, gerçek bir mülk değil.",
-      "replayNote": "Bu bir tekrar oynatmadır. Model yanıtları bir kez kaydedildi ve yeniden oynatılıyor; sesli tur sentetik konuşmaydı ve örnek dosya ses yerine sessiz bir yedek oynatır."
-    },
-    "ledger": {
-      "title": "Bu ilana ne oldu",
-      "intro": "Örnek dosyanın tek bir işlemi, adım adım. Karar verdiğin yer iki duraktır.",
-      "decidedBy": "Karar veren",
-      "evidomo": "Evidomo",
-      "you": "Sen",
-      "stop": "İşlem burada durur",
-      "scripted": "Örnek dosyada kararlar önceden yazılmış bir betikle verildi.",
-      "gateTitles": {
-        "gate1": "1/2. gözden geçirme: bilgi çelişkileri",
-        "gate2": "2/2. gözden geçirme: metin ve döşenmiş görsel"
-      },
-      "rows": {
-        "intake": "Hollandaca sesli tur, başı ve sonu olan zamanlı konuşma bölümlerine dökülür.",
-        "fact_extraction": "Bilgiler formdan ve sesli turdan okunur. Her biri kaynağını korur: bir form alanı ya da bir konuşma bölümünden alıntı.",
-        "vision_inventory": "{photos} fotoğraf oda ve durum açısından okunur; yüzler ve plakalar için kontrol edilir. Hiçbirini bulanıklaştırmak gerekmedi.",
-        "reconciliation": "Form, ses ve fotoğraflar arasında {conflicts} çelişki ortaya çıkar. Ses laminat derken bir yatak odası fotoğrafı halı gösteriyor.",
-        "gate1": "Yapım yılı: formdaki {form} yerine konuşulan {voice} korunur. Site yönetimi aidatı: konuşulan 165 € yerine formdaki 175 € korunur. Yatak odası zemini: iki değer de korunmaz.",
-        "creative": "{portal} cümlelik portal metni ve {social} cümlelik sosyal medya yazısı. Her cümle dayandığı bilgilere atıf yapar.",
-        "qa_cards": "{questions} alıcı sorusu, aynı bilgilerden {answers} cümleyle yanıtlanır.",
-        "staging": "Boş bir oda yatak odası olarak döşenir. Sonuç “Virtually staged” etiketiyle ve orijinalinin yanında gösterilir.",
-        "integrity": "Pencereler, kapılar ve diğer sabit öğeler önce ve sonra sayılır. Hepsi aynı kalır, bu yüzden döşenmiş görsel sunulur.",
-        "verification": "{audited} cümle, dayandıkları bilgilere karşı sınanır. {flagged} tanesi işaretlenir.",
-        "gate2": "Hiçbir şey işaretlenmedi. Döşenmiş görsel etiketiyle kabul edilir ve metin onaylanır.",
-        "export": "{files} dosya oluşturulur; aralarında HTML paketi ve portal alanları var. Tüm yayın kontrolleri geçer."
-      },
-      "bedroomCaption": "Ses laminat dedi. Bu yatak odası fotoğrafı halı gösteriyor. Model üretimi bir girdi fotoğrafı, gerçek bir mülk değil.",
-      "stagingBefore": "Önce",
-      "stagingAfter": "Sonra",
-      "stagingCaption": "Solda: uydurma boş bir odanın model üretimi girdi fotoğrafı. Sağda: döşeme adımının sonucu, “Virtually staged” etiketli."
-    },
-    "numbers": {
-      "title": "Sayılar ve sınırları",
-      "intro": "Tohumlanmış kusur değerlendirmesi: sentetik girdilere bilinen sorunlar yerleştirilir ve hattın kaçını yakaladığı sayılır. {date} tarihinde, {sets} sentetik set üzerinde fixture modunda (kayıtlı yanıtlar, model çağrısı yok) kaydedildi. Kendin çalıştır: npm run eval.",
-      "measure": "Ölçüt",
-      "result": "Sonuç",
-      "rows": {
-        "planted": "İlk gözden geçirmede yakalanan yerleştirilmiş çelişkiler",
-        "falseConflicts": "Beklenmeyen (yanlış) çelişkiler",
-        "injectedFlagged": "İlk denetimde işaretlenen eklenmiş iddia kusurları",
-        "injectedAtGate2": "İkinci gözden geçirmede hâlâ işaretlenmemiş eklenmiş kusurlar",
-        "injectedExported": "Dışa aktarılan pakette eklenmiş kusurlar",
-        "cleanFlags": "Eklenmemiş cümlelerde ilk denetimin işaretleri"
-      },
-      "limitsTitle": "Sınırlar",
-      "limits": {
-        "blatant": "Yerleştirilen kusurlar bariz. Sayılar, kontrollerin böyle bir metni yakaladığını gösterir; yazan modelin bunu ne sıklıkla ürettiğini değil.",
-        "oneApartment": "Altı setin tamamı tek bir sentetik dairenin varyasyonları. Bu, mekanizmanın çalıştığının kanıtıdır; gerçek ilanlar için bir yakalama oranı değildir.",
-        "freeform": "Zemin malzemesi gibi serbest biçimli ayrıntılardaki çelişkileri model elinden geldiğince bulur. Yalnızca pazar bilgilerini kod garanti eder.",
-        "audio": "Denetim cümleleri bilgilere ve alıntılarına karşı kontrol eder; sese karşı değil. Örnek dosyada tur metni “L-vormige” (L biçimli) diyor, transkript “ellipsvormige” diyor, metin ise “elliptical” diyor. Bunu ikinci gözden geçirmede yakalarsın."
-      }
-    },
-    "boundaries": {
-      "title": "Neleri yapmaz",
-      "items": {
-        "valuation": "Bir mülke değer biçmek ya da yatırım tavsiyesi vermek.",
-        "legal": "Hukuku yorumlamak, sözleşme hazırlamak ya da tapu konusunda danışmanlık yapmak. Yayın kontrol listesi eksikleri fark etmene yardımcı olur; yasal uygunluğu onaylamaz.",
-        "buyers": "Alıcıları ya da kiracıları elemek, puanlamak veya sıralamak.",
-        "publishing": "Senin yerine bir portalda yayın yapmak. Paketi sen indirirsin, nereye gideceğine sen karar verirsin.",
-        "edits": "Bir kusuru gizlemek ya da yapıyı değiştirmek için fotoğrafı düzenlemek. Döşeme mobilya ekler; bir pencere, kapı ya da radyatör değişirse yerine orijinal kullanılır.",
-        "metadata": "GPS’i ya da diğer fotoğraf üst verilerini saklamak. Her fotoğraftan yükleme sırasında silinir.",
-        "blur": "Bir yüzü ya da plakayı dışa aktarmak. İkisi de dışa aktarılan fotoğraflarda bulanıklaştırılır.",
-        "deletion": "Sildiğin bir projeyi saklamak. Silmek, fotoğraflarını, sesli notunu, bilgilerini ve paketini kalıcı olarak kaldırır."
-      }
-    },
-    "photos": {
-      "cover": "Açık meşe parkeli, gri üç kişilik kanepeli, uzun pencereli ve beyaz kapılı bir oturma odası. Sentetik fotoğraf.",
-      "bedroom": "Gri halılı, beyaz çarşaflı çift kişilik yataklı, pencereli ve gömme dolaplı bir yatak odası. Sentetik fotoğraf.",
-      "stagingBefore": "Açık meşe parkeli, altında radyatör bulunan pencereli ve beyaz kapılı boş bir oda. Sentetik fotoğraf.",
-      "stagingAfter": "Aynı oda; bir yatak ve bir komodin eklendi. Sentetik fotoğraf, sanal olarak döşenmiş."
+      "number": "kaynak {n}",
+      "methodRef": "Yöntem, § {n}"
     }
   },
   "notFound": {
@@ -1080,5 +991,110 @@
     "verified": "Doğrulandı",
     "decision": "Kararını bekliyor",
     "sample": "Örnek dosya"
+  },
+  "method": {
+    "title": "Evidomo bir ilanı nasıl denetler",
+    "lede": "Bir işlemin ne yaptığı, örnek dosyada ne bulduğu ve nerede durduğu.",
+    "indexLabel": "Bu sayfada",
+    "sections": {
+      "sources": "Her iddianın bir kaynağı var",
+      "sample-run": "Örnek ilana ne oldu",
+      "numbers": "Sayılar ve sınırları",
+      "limits-and-data": "Neleri yapmaz, neleri siler"
+    },
+    "types": {
+      "form": "Form alanı: senin girdiğin bir değer.",
+      "voice": "Konuşma bölümü: sesli turdan sözler, zamanıyla.",
+      "photo": "Fotoğraf bölgesi: bir bilginin dayandığı görüntü parçası."
+    },
+    "sourcesTitle": "Kaynaklar",
+    "specimen": {
+      "label": "Örnek dosyadan bir cümle",
+      "sentenceNote": "Model çıktısı, yazıldığı gibi (İngilizce, çevrilmedi).",
+      "prompt": "Neye dayandığını görmek için vurgulanan bir iddiayı seç.",
+      "claimsLabel": "Bu cümledeki iddialar",
+      "claimNames": {
+        "year": "Yapım yılı",
+        "label": "Enerji etiketi",
+        "issued": "Etiketin veriliş yılı"
+      },
+      "evidenceTitle": "“{claim}” neye dayanıyor",
+      "fieldNames": {
+        "build_year": "Yapım yılı",
+        "energy_label": "Enerji etiketi"
+      },
+      "formValue": "{field}: {value}",
+      "notUsed": "Kullanılmadı",
+      "conflict": "Form {form} diyordu. İşlem ilk gözden geçirmede durdu ve konuşulan {voice} korundu.",
+      "replayNote": "Bir tekrar oynatma: model yanıtları bir kez kaydedildi, sesli tur sentetik konuşmaydı ve örnek dosya yerine sessizlik oynatır."
+    },
+    "ledger": {
+      "intro": "Her adımı Evidomo yürütür. İki durakta karar sende.",
+      "stop": "İşlem burada durur",
+      "scripted": "Örnek dosyada kararlar önceden yazılmış bir betikle verildi.",
+      "gateTitles": {
+        "gate1": "1/2. gözden geçirme: bilgi çelişkileri",
+        "gate2": "2/2. gözden geçirme: metin ve döşenmiş görsel"
+      },
+      "rows": {
+        "intake": "Hollandaca sesli tur, zamanlı konuşma bölümlerine dönüşür.",
+        "fact_extraction": "Bilgiler formdan ve sesli turdan okunur; her biri kaynağını korur.",
+        "vision_inventory": "{photos} fotoğraf okunur, yüz ve plaka için kontrol edilir. Hiçbiri bulanıklaştırılmadı.",
+        "reconciliation": "{conflicts} çelişki çıkar. Ses laminat derken bir yatak odası fotoğrafı halı gösteriyor.",
+        "gate1": "Formdaki {form} yerine konuşulan {voice} kalır. 165 € yerine 175 € kalır. Yatak odası zemini atılır.",
+        "creative": "{portal} portal ve {social} sosyal cümle, her biri dayandığı bilgileri atıflar.",
+        "qa_cards": "{questions} alıcı sorusu, aynı bilgilerden {answers} cümleyle yanıtlanır.",
+        "staging": "Model boş bir oturma odasını yatak odası sandı ve öyle döşedi. “Virtually staged” etiketi var.",
+        "integrity": "Pencere, kapı ve diğer sabit öğeler önce ve sonra sayılır. Hepsi aynı.",
+        "verification": "{audited} cümle bilgilerine karşı sınanır. {flagged} tanesi işaretlenir.",
+        "gate2": "Hiçbir şey işaretlenmedi. Döşenmiş görsel ve metin onaylanır.",
+        "export": "{files} dosya oluşturulur. Tüm yayın kontrolleri geçer."
+      },
+      "bedroomCaption": "Ses laminat dedi. Bu yatak odası fotoğrafı halı gösteriyor. Model üretimi bir girdi fotoğrafı, gerçek bir mülk değil.",
+      "stagingBefore": "Önce",
+      "stagingAfter": "Sonra",
+      "stagingCaption": "Solda: uydurma boş bir odanın model üretimi girdi fotoğrafı. Sağda: döşeme adımının sonucu, “Virtually staged” etiketli."
+    },
+    "numbers": {
+      "intro": "Sentetik girdilere bilinen sorunlar yerleştirilir ve hattın kaçını yakaladığı sayılır. {date} tarihinde, fixture modunda, {sets} sentetik sette kaydedildi.",
+      "caption": "Değerlendirme sonuçları",
+      "measure": "Ölçüt",
+      "result": "Sonuç",
+      "rows": {
+        "planted": "İlk gözden geçirmede yakalanan yerleştirilmiş çelişkiler",
+        "falseConflicts": "Beklenmeyen (yanlış) çelişkiler",
+        "injectedFlagged": "İlk denetimde işaretlenen eklenmiş iddia kusurları",
+        "injectedAtGate2": "İkinci gözden geçirmede hâlâ işaretlenmemiş eklenmiş kusurlar",
+        "injectedExported": "Dışa aktarılan pakette eklenmiş kusurlar",
+        "cleanFlags": "Eklenmemiş cümlelerde ilk denetimin işaretleri"
+      },
+      "limitsTitle": "Sınırlar",
+      "limits": {
+        "blatant": "Yerleştirilen kusurlar bariz. Sayılar, kontrollerin böyle metni yakaladığını gösterir; yazan modelin ne sıklıkla ürettiğini değil.",
+        "oneApartment": "Altı set de tek bir sentetik dairenin varyasyonu: mekanizmanın çalıştığının kanıtı, gerçek ilanlarda yakalama oranı değil.",
+        "freeform": "Zemin malzemesi gibi serbest ayrıntılardaki çelişkileri model elinden geldiğince bulur.",
+        "audio": "Denetim sesi değil, bilgileri ve alıntıları okur. Betik “L-vormige”, transkript “ellipsvormige”, metin “elliptical” diyor: bunu ikinci incelemede sen yakalarsın."
+      }
+    },
+    "boundaries": {
+      "lead": "Yapmaz:",
+      "items": {
+        "valuation": "Mülke değer biçmek ya da yatırım tavsiyesi vermek.",
+        "legal": "Hukuku yorumlamak, sözleşme hazırlamak, tapu danışmanlığı yapmak. Kontrol listesi yasal uygunluğu onaylamaz.",
+        "buyers": "Alıcı veya kiracıları elemek, puanlamak, sıralamak.",
+        "publishing": "Senin yerine bir portalda yayın yapmak.",
+        "edits": "Kusuru gizlemek ya da yapıyı değiştirmek için fotoğrafı düzenlemek.",
+        "metadata": "GPS veya diğer fotoğraf üst verilerini saklamak: yüklemede silinir.",
+        "blur": "Bir yüzü ya da plakayı dışa aktarmak: ikisi de bulanıklaştırılır.",
+        "deletion": "Sildiğin projeyi saklamak: fotoğrafları, sesli notu, bilgileri ve paketi silinir.",
+        "training": "İçeriğinle bir modeli eğitmek: yalnızca Standard modundaki modeller kullanılır."
+      }
+    },
+    "photos": {
+      "cover": "Açık meşe parkeli, gri üç kişilik kanepeli, uzun pencereli ve beyaz kapılı bir oturma odası. Sentetik fotoğraf.",
+      "bedroom": "Gri halılı, beyaz çarşaflı çift kişilik yataklı, pencereli ve gömme dolaplı bir yatak odası. Sentetik fotoğraf.",
+      "stagingBefore": "Açık meşe parkeli, altında radyatör bulunan pencereli ve beyaz kapılı boş bir oda. Sentetik fotoğraf.",
+      "stagingAfter": "Aynı oda; bir yatak ve bir komodin eklendi. Sentetik fotoğraf, sanal olarak döşenmiş."
+    }
   }
 }

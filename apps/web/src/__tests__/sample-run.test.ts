@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { compareMeasures } from '../../../api/src/pipeline/reconciliation/compare';
-import type en from '../../messages/en.json';
+import en from '../../messages/en.json';
 import {
   BOUNDARY_IDS,
   BUILD_YEAR,
@@ -18,7 +18,13 @@ import {
   SPECIMEN_PARTS,
   SPECIMEN_SENTENCE,
 } from '../lib/sample-run';
-import { referencedPaths, SOURCE_NOTES, sourceHref } from '../lib/landing-sources';
+import {
+  METHOD_ANCHORS,
+  METHOD_SOURCES,
+  referencedPaths,
+  SOURCE_NOTES,
+  sourceHref,
+} from '../lib/landing-sources';
 import { LANDING_IMAGES, landingSrc } from '../lib/landing-images';
 
 // The landing page states facts about the sample run. These tests tie every fact that a committed
@@ -251,7 +257,7 @@ describe('the ledger', () => {
     (locale) => {
       const messages = JSON.parse(read(`apps/web/messages/${locale}.json`)) as typeof en;
       for (const row of LEDGER_ROWS) {
-        const message: string = messages.landing.ledger.rows[row.id];
+        const message: string = messages.method.ledger.rows[row.id];
         const placeholders = [...message.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
         const passed = Object.keys(
           row.id in LEDGER_PARAMS ? LEDGER_PARAMS[row.id as keyof typeof LEDGER_PARAMS] : {},
@@ -300,17 +306,45 @@ describe('the eval numbers', () => {
   });
 });
 
-describe('source notes', () => {
-  it('has an entry for every boundary the page lists, each with at least one reference', () => {
-    for (const id of BOUNDARY_IDS) expect(SOURCE_NOTES[id].length).toBeGreaterThan(0);
-  });
-
-  it('gives every note at least one reference of a known kind', () => {
-    for (const refs of Object.values(SOURCE_NOTES)) {
+describe('source notes and the /method sources', () => {
+  it('gives every landing note and every /method source at least one reference of a known kind', () => {
+    for (const refs of [...Object.values(SOURCE_NOTES), ...Object.values(METHOD_SOURCES)]) {
       expect(refs.length).toBeGreaterThan(0);
       for (const ref of refs)
         expect(['sample', 'sampleFile', 'eval', 'code', 'rule']).toContain(ref.kind);
     }
+    // Every section of the page has its sources.
+    expect(Object.keys(METHOD_SOURCES)).toEqual([...METHOD_ANCHORS]);
+  });
+
+  it('backs each boundary and each data-handling statement with the code or rule it names', () => {
+    expect(BOUNDARY_IDS).toHaveLength(9);
+    const product = read('docs/product.md');
+    for (const phrase of [
+      'price valuations or investment advice',
+      'interprets law',
+      'screens, scores, or ranks buyers',
+      'publishes to listing portals automatically',
+      'hide defects or alter a property',
+      'Standard mode only',
+      'metadata/GPS stripped at upload',
+      'faces and plates blurred in exports',
+      'hard-deletes all materials and artifacts',
+    ]) {
+      expect(product, phrase).toContain(phrase);
+    }
+    expect(read('apps/api/src/media/image.ts')).toContain('no metadata');
+    expect(read('apps/api/src/export/blur.ts')).toMatch(/faces\/people, license plates/);
+    expect(read('apps/api/src/projects/projects.ts')).toContain('Hard-deletes the project');
+    expect(read('apps/api/src/meta/clients.ts')).toContain('only Standard-mode models are allowed');
+    expect(read('apps/api/src/pipeline/integrity/check.ts')).toContain('fallback_original');
+  });
+
+  it('does not claim EU hosting: the docs call it a target, not a fact', () => {
+    // docs/product.md §9 says "Hosting is in the EU", but the README calls it the production
+    // target and the architecture's own tests say nothing is deployed to check, so /method says
+    // nothing about where it runs.
+    expect(JSON.stringify(en.method)).not.toMatch(/\bEU\b|Europe|GDPR/);
   });
 
   it('points only at files that exist in the repository', () => {
@@ -324,7 +358,7 @@ describe('source notes', () => {
     const product = read('docs/product.md');
     expect(product).toMatch(/^## 8\. Hard boundaries$/m);
     expect(product).toMatch(/^## 9\. Data, privacy, and trust$/m);
-    const hrefs = Object.values(SOURCE_NOTES).flatMap((refs) => refs.map(sourceHref));
+    const hrefs = Object.values(METHOD_SOURCES).flatMap((refs) => refs.map(sourceHref));
     expect(hrefs).toContain('https://github.com/EtkinD/evidomo/blob/main/README.md#eval-results');
     expect(hrefs).toContain(
       'https://github.com/EtkinD/evidomo/blob/main/docs/product.md#8-hard-boundaries',
@@ -334,11 +368,15 @@ describe('source notes', () => {
     );
   });
 
-  it('sends sample notes to screens the demo entry understands', () => {
-    for (const href of Object.values(SOURCE_NOTES)
-      .flatMap((refs) => refs.map(sourceHref))
-      .filter((h) => h.startsWith('/demo'))) {
-      expect(href).toMatch(/^\/demo(\?tab=(conflicts|review|pack))?$/);
+  it('sends sample references to screens the demo entry understands, or to a section of /method', () => {
+    const hrefs = [...Object.values(SOURCE_NOTES), ...Object.values(METHOD_SOURCES)].flatMap(
+      (refs) => refs.map(sourceHref),
+    );
+    for (const href of hrefs.filter((h) => h.startsWith('/'))) {
+      expect(href).toMatch(/^\/(demo(\?tab=(conflicts|review|pack))?|method#[a-z-]+)$/);
+      if (href.startsWith('/method#')) {
+        expect(METHOD_ANCHORS as readonly string[]).toContain(href.slice('/method#'.length));
+      }
     }
   });
 });

@@ -29,7 +29,8 @@
     "themeSystem": "Systeem",
     "themeLight": "Licht",
     "themeDark": "Donker",
-    "language": "Taal"
+    "language": "Taal",
+    "method": "Methode"
   },
   "auth": {
     "checkingSession": "Je sessie wordt gecontroleerd…",
@@ -78,7 +79,9 @@
     "tagline": "Bewijs voor elk huis.",
     "ogImageAlt": "Evidomo: bewijs voor elk huis.",
     "landingTitle": "Evidomo: advertentiepakketten waarin elke bewering een bron heeft",
-    "landingDescription": "Foto’s en een gesproken rondleiding erin, een advertentiepakket eruit. Elke bewering is gekoppeld aan het formulierveld, het gesproken fragment of de foto waar ze vandaan komt, en jij controleert alles vóór de export."
+    "landingDescription": "Foto’s en een gesproken rondleiding erin, een advertentiepakket eruit. Elke bewering is gekoppeld aan het formulierveld, het gesproken fragment of de foto waar ze vandaan komt, en jij controleert alles vóór de export.",
+    "methodTitle": "Hoe Evidomo een advertentie controleert — Evidomo",
+    "methodDescription": "Hoe een verwerking elke bewering controleert, wat het voorbeelddossier toont, de evaluatiecijfers met hun grenzen en wat Evidomo niet doet."
   },
   "landing": {
     "actions": {
@@ -194,100 +197,8 @@
       },
       "evalRef": "README, Evaluatieresultaten ({date}, fixture-modus)",
       "ruleRef": "docs/product.md, sectie {section}",
-      "number": "bron {n}"
-    },
-    "specimen": {
-      "label": "Een zin uit het voorbeelddossier",
-      "sentenceNote": "Goedgekeurde portaaltekst van de voorbeeldverwerking, zoals het model hem schreef (Engels, niet vertaald).",
-      "prompt": "Kies een gemarkeerde bewering om te zien waarop ze rust.",
-      "claimsLabel": "Beweringen in deze zin",
-      "claimNames": {
-        "year": "Bouwjaar",
-        "label": "Energielabel",
-        "issued": "Jaar van afgifte van het label"
-      },
-      "evidenceTitle": "Waarop “{claim}” rust",
-      "fieldNames": {
-        "build_year": "Bouwjaar",
-        "energy_label": "Energielabel"
-      },
-      "formValue": "{field}: {value}",
-      "notUsed": "Niet gebruikt",
-      "conflict": "Het formulier zei {form}. De verwerking stopte bij de eerste controle en het gesproken {voice} werd behouden.",
-      "openReview": "Bekijk deze zin in het voorbeelddossier",
-      "coverCaption": "De omslagfoto van het pakket, door het model op de eerste plaats van {count} gezet. Een door een model gemaakte invoerfoto van een verzonnen kamer, geen echte woning.",
-      "replayNote": "Dit is een herhaling. De modelantwoorden zijn één keer opgenomen en worden afgespeeld, en de rondleiding was synthetische spraak: het voorbeelddossier speelt een stille vervanger van de audio af."
-    },
-    "ledger": {
-      "title": "Wat er met deze woning gebeurde",
-      "intro": "Eén verwerking van het voorbeelddossier, stap voor stap. Bij de twee stops beslis jij.",
-      "decidedBy": "Beslist door",
-      "evidomo": "Evidomo",
-      "you": "Jij",
-      "stop": "De verwerking stopt hier",
-      "scripted": "In het voorbeelddossier zijn de beslissingen van tevoren vastgelegd in een script.",
-      "gateTitles": {
-        "gate1": "Controle 1 van 2: feitenconflicten",
-        "gate2": "Controle 2 van 2: de tekst en de ingerichte foto"
-      },
-      "rows": {
-        "intake": "Een Nederlandse spraakrondleiding wordt omgezet in getimede fragmenten, elk met een begin en een einde.",
-        "fact_extraction": "Gegevens worden uit het formulier en de rondleiding gehaald. Elk behoudt zijn bron: een formulierveld of een citaat uit één fragment.",
-        "vision_inventory": "{photos} foto’s worden gelezen op ruimte en staat en gecontroleerd op gezichten en kentekens. Niets hoefde te worden vervaagd.",
-        "reconciliation": "{conflicts} conflicten komen boven tussen het formulier, de stem en de foto’s. Een slaapkamerfoto toont tapijt waar de stem laminaat zei.",
-        "gate1": "Bouwjaar: het gesproken {voice} blijft staan boven het {form} van het formulier. Bijdrage VvE: de € 175 van het formulier blijft staan boven de gesproken € 165. Slaapkamervloer: geen van beide waarden blijft staan.",
-        "creative": "Portaaltekst van {portal} zinnen en een socialmediatekst van {social}. Elke zin noemt de feiten waarop hij rust.",
-        "qa_cards": "{questions} vragen van kopers, beantwoord in {answers} zinnen uit dezelfde feiten.",
-        "staging": "Eén lege kamer wordt als slaapkamer ingericht. Het resultaat krijgt het label “Virtually staged” en staat naast het origineel.",
-        "integrity": "Ramen, deuren en andere vaste elementen worden vooraf en achteraf geteld. Alles is ongewijzigd, dus de ingerichte foto wordt aangeboden.",
-        "verification": "{audited} zinnen worden getoetst aan de feiten waarop ze rusten. {flagged} worden gemarkeerd.",
-        "gate2": "Niets is gemarkeerd. De ingerichte foto wordt met label geaccepteerd en de tekst wordt goedgekeurd.",
-        "export": "{files} bestanden worden gebouwd, onder meer het HTML-pakket en de portaalvelden. Alle publicatiecontroles slagen."
-      },
-      "bedroomCaption": "De stem zei laminaat. Deze slaapkamerfoto toont tapijt. Een door een model gemaakte invoerfoto, geen echte woning.",
-      "stagingBefore": "Voor",
-      "stagingAfter": "Na",
-      "stagingCaption": "Links: een door een model gemaakte invoerfoto van een verzonnen lege kamer. Rechts: het resultaat van de inrichtstap, met het label “Virtually staged”."
-    },
-    "numbers": {
-      "title": "De cijfers en hun grenzen",
-      "intro": "Een evaluatie met geplante fouten: bekende problemen worden in synthetische invoer gezet en we tellen wat de pijplijn vangt. Vastgelegd op {date} in fixture-modus (opgenomen antwoorden, geen modelaanroepen) op {sets} synthetische sets. Draai het zelf met npm run eval.",
-      "measure": "Maatstaf",
-      "result": "Resultaat",
-      "rows": {
-        "planted": "Geplante conflicten gevonden bij de eerste controle",
-        "falseConflicts": "Onverwachte (valse) conflicten",
-        "injectedFlagged": "Geplante beweringfouten gemarkeerd in de eerste audit",
-        "injectedAtGate2": "Geplante fouten nog niet gemarkeerd bij de tweede controle",
-        "injectedExported": "Geplante fouten in een geëxporteerd pakket",
-        "cleanFlags": "Markeringen van de eerste audit op niet-geplante zinnen"
-      },
-      "limitsTitle": "Grenzen",
-      "limits": {
-        "blatant": "De geplante fouten zijn overduidelijk. De cijfers tonen dat de controles zulke tekst vangen, niet hoe vaak het schrijvende model die zelf maakt.",
-        "oneApartment": "Alle zes sets zijn varianten van één synthetisch appartement. Dit bewijst dat het mechanisme werkt, geen vangstpercentage voor echte advertenties.",
-        "freeform": "Conflicten over vrije details, zoals een vloermateriaal, vindt het model naar beste vermogen. Alleen marktfeiten worden door code gegarandeerd.",
-        "audio": "De audit toetst zinnen aan de feiten en hun citaten, niet aan de audio. In het voorbeelddossier staat in het script “L-vormige”, in het transcript “ellipsvormige” en in de tekst “elliptical”. Bij de tweede controle zou jij dat opmerken."
-      }
-    },
-    "boundaries": {
-      "title": "Wat het niet doet",
-      "items": {
-        "valuation": "Een woning taxeren of beleggingsadvies geven.",
-        "legal": "Recht uitleggen, contracten opstellen of over eigendom adviseren. De publicatiechecklist helpt je ontbrekende punten te zien; ze certificeert geen naleving van wetgeving.",
-        "buyers": "Kopers of huurders screenen, scoren of rangschikken.",
-        "publishing": "Voor jou op een portaal publiceren. Jij downloadt het pakket en bepaalt waar het heen gaat.",
-        "edits": "Een foto bewerken om een gebrek te verbergen of de structuur te wijzigen. Inrichten voegt meubels toe; verandert een raam, deur of radiator, dan wordt het origineel gebruikt.",
-        "metadata": "GPS of andere fotometadata bewaren. Ze worden bij het uploaden van elke foto verwijderd.",
-        "blur": "Een gezicht of kenteken exporteren. Beide worden in geëxporteerde foto’s vervaagd.",
-        "deletion": "Een verwijderd project bewaren. Verwijderen wist de foto’s, spraakopname, gegevens en het pakket definitief."
-      }
-    },
-    "photos": {
-      "cover": "Een woonkamer met een lichte eikenhouten vloer, een grijze driezitsbank, een hoog raam en een witte deur. Synthetische foto.",
-      "bedroom": "Een slaapkamer met grijs tapijt, een tweepersoonsbed met wit beddengoed, een raam en een inbouwkast. Synthetische foto.",
-      "stagingBefore": "Een lege kamer met een lichte eikenhouten vloer, een raam met een radiator eronder en een witte deur. Synthetische foto.",
-      "stagingAfter": "Dezelfde kamer met een bed en een nachtkastje erbij. Synthetische foto, virtueel ingericht."
+      "number": "bron {n}",
+      "methodRef": "Methode, § {n}"
     }
   },
   "notFound": {
@@ -1080,5 +991,110 @@
     "verified": "Geverifieerd",
     "decision": "Wacht op jouw beslissing",
     "sample": "Voorbeelddossier"
+  },
+  "method": {
+    "title": "Hoe Evidomo een advertentie controleert",
+    "lede": "Wat een verwerking doet, wat ze in het voorbeelddossier vond en waar ze stopt.",
+    "indexLabel": "Op deze pagina",
+    "sections": {
+      "sources": "Elke bewering heeft een bron",
+      "sample-run": "Wat er met de voorbeeldwoning gebeurde",
+      "numbers": "De cijfers en hun grenzen",
+      "limits-and-data": "Wat het niet doet en wat het verwijdert"
+    },
+    "types": {
+      "form": "Een formulierveld: een waarde die je invulde.",
+      "voice": "Een spraakfragment: woorden uit je rondleiding, met hun tijdstip.",
+      "photo": "Een fotogebied: het deel van een foto waarop een gegeven rust."
+    },
+    "sourcesTitle": "Bronnen",
+    "specimen": {
+      "label": "Een zin uit het voorbeelddossier",
+      "sentenceNote": "Modeluitvoer, zoals geschreven (Engels, niet vertaald).",
+      "prompt": "Kies een gemarkeerde bewering om te zien waarop ze rust.",
+      "claimsLabel": "Beweringen in deze zin",
+      "claimNames": {
+        "year": "Bouwjaar",
+        "label": "Energielabel",
+        "issued": "Jaar van afgifte van het label"
+      },
+      "evidenceTitle": "Waarop “{claim}” rust",
+      "fieldNames": {
+        "build_year": "Bouwjaar",
+        "energy_label": "Energielabel"
+      },
+      "formValue": "{field}: {value}",
+      "notUsed": "Niet gebruikt",
+      "conflict": "Het formulier zei {form}. De verwerking stopte bij de eerste controle en het gesproken {voice} werd behouden.",
+      "replayNote": "Een herhaling: de modelantwoorden zijn één keer opgenomen, de rondleiding was synthetische spraak en het voorbeelddossier speelt stilte af."
+    },
+    "ledger": {
+      "intro": "Evidomo voert elke stap uit. Bij de twee stops beslis jij.",
+      "stop": "De verwerking stopt hier",
+      "scripted": "In het voorbeelddossier zijn de beslissingen van tevoren vastgelegd in een script.",
+      "gateTitles": {
+        "gate1": "Controle 1 van 2: feitenconflicten",
+        "gate2": "Controle 2 van 2: de tekst en de ingerichte foto"
+      },
+      "rows": {
+        "intake": "Een Nederlandse spraakrondleiding wordt omgezet in getimede fragmenten.",
+        "fact_extraction": "Gegevens worden uit het formulier en de stem gehaald, elk met zijn bron.",
+        "vision_inventory": "{photos} foto’s worden gelezen en gecontroleerd op gezichten en kentekens. Niets hoefde te worden vervaagd.",
+        "reconciliation": "{conflicts} conflicten komen boven. Een slaapkamerfoto toont tapijt waar de stem laminaat zei.",
+        "gate1": "Het gesproken {voice} wint van het {form} van het formulier. € 175 blijft staan boven € 165. De slaapkamervloer vervalt.",
+        "creative": "{portal} portaalzinnen en {social} sociale zinnen, elk met de feiten waarop het rust.",
+        "qa_cards": "{questions} kopersvragen, beantwoord in {answers} zinnen uit dezelfde feiten.",
+        "staging": "Het model nam een lege woonkamer voor een slaapkamer en richtte hem zo in. Label: “Virtually staged”.",
+        "integrity": "Ramen, deuren en andere vaste elementen worden vooraf en achteraf geteld. Alles is ongewijzigd.",
+        "verification": "{audited} zinnen worden getoetst aan hun feiten. {flagged} worden gemarkeerd.",
+        "gate2": "Niets is gemarkeerd. De ingerichte foto en de tekst worden goedgekeurd.",
+        "export": "{files} bestanden worden gebouwd. Alle publicatiecontroles slagen."
+      },
+      "bedroomCaption": "De stem zei laminaat. Deze slaapkamerfoto toont tapijt. Een door een model gemaakte invoerfoto, geen echte woning.",
+      "stagingBefore": "Voor",
+      "stagingAfter": "Na",
+      "stagingCaption": "Links: een door een model gemaakte invoerfoto van een verzonnen lege kamer. Rechts: het resultaat van de inrichtstap, met het label “Virtually staged”."
+    },
+    "numbers": {
+      "intro": "Bekende problemen worden in synthetische invoer geplant en we tellen wat de pijplijn vangt. Vastgelegd op {date}, fixture-modus, {sets} synthetische sets.",
+      "caption": "Evaluatieresultaten",
+      "measure": "Maatstaf",
+      "result": "Resultaat",
+      "rows": {
+        "planted": "Geplante conflicten gevonden bij de eerste controle",
+        "falseConflicts": "Onverwachte (valse) conflicten",
+        "injectedFlagged": "Geplante beweringfouten gemarkeerd in de eerste audit",
+        "injectedAtGate2": "Geplante fouten nog niet gemarkeerd bij de tweede controle",
+        "injectedExported": "Geplante fouten in een geëxporteerd pakket",
+        "cleanFlags": "Markeringen van de eerste audit op niet-geplante zinnen"
+      },
+      "limitsTitle": "Grenzen",
+      "limits": {
+        "blatant": "De geplante fouten zijn overduidelijk. De cijfers tonen dat de controles zulke tekst vangen, niet hoe vaak het schrijvende model die zelf maakt.",
+        "oneApartment": "Alle zes sets zijn varianten van één synthetisch appartement: bewijs dat het mechanisme werkt, geen vangstpercentage voor echte advertenties.",
+        "freeform": "Conflicten over vrije details, zoals een vloermateriaal, vindt het model naar beste vermogen.",
+        "audio": "De audit leest feiten en citaten, geen audio. Het script zegt “L-vormige”, het transcript “ellipsvormige”, de tekst “elliptical”: dat zie jij bij controle 2."
+      }
+    },
+    "boundaries": {
+      "lead": "Het doet niet:",
+      "items": {
+        "valuation": "Een woning taxeren of beleggingsadvies geven.",
+        "legal": "Recht uitleggen, contracten opstellen of over eigendom adviseren. De checklist certificeert geen naleving.",
+        "buyers": "Kopers of huurders screenen, scoren of rangschikken.",
+        "publishing": "Voor jou op een portaal publiceren.",
+        "edits": "Een foto bewerken om een gebrek te verbergen of de structuur te wijzigen.",
+        "metadata": "GPS of andere fotometadata bewaren: ze worden bij het uploaden verwijderd.",
+        "blur": "Een gezicht of kenteken exporteren: beide worden vervaagd.",
+        "deletion": "Een verwijderd project bewaren: foto’s, spraakopname, gegevens en pakket worden gewist.",
+        "training": "Een model op jouw inhoud laten trainen: alleen modellen in Standard-modus worden gebruikt."
+      }
+    },
+    "photos": {
+      "cover": "Een woonkamer met een lichte eikenhouten vloer, een grijze driezitsbank, een hoog raam en een witte deur. Synthetische foto.",
+      "bedroom": "Een slaapkamer met grijs tapijt, een tweepersoonsbed met wit beddengoed, een raam en een inbouwkast. Synthetische foto.",
+      "stagingBefore": "Een lege kamer met een lichte eikenhouten vloer, een raam met een radiator eronder en een witte deur. Synthetische foto.",
+      "stagingAfter": "Dezelfde kamer met een bed en een nachtkastje erbij. Synthetische foto, virtueel ingericht."
+    }
   }
 }

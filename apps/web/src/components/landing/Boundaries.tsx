@@ -1,37 +1,25 @@
 import { useTranslations } from 'use-intl';
-import type { SourceNoteId } from '../../lib/landing-sources';
 import { BOUNDARY_IDS } from '../../lib/sample-run';
-import { Section } from './Section';
-import { SourceNotes, Sourced } from './sources';
 
-/** Section 4: a plain numbered list in a narrow column, like the closing clauses of a file. */
+/**
+ * What Evidomo will not do and what it removes, as a plain numbered list in a narrow column, like
+ * the closing clauses of a file. It doubles as the site's short data-handling statement.
+ */
 export function Boundaries() {
-  const t = useTranslations('landing.boundaries');
+  const t = useTranslations('method.boundaries');
   return (
-    <Section n={4} id="landing-boundaries" title={t('title')}>
+    <div className="flex max-w-2xl flex-col gap-4">
+      <p className="text-base-content/70">{t('lead')}</p>
       <ol className="flex flex-col">
-        {BOUNDARY_IDS.map((id, index) => {
-          const note: SourceNoteId = id;
-          return (
-            <li
-              key={id}
-              className="grid gap-x-8 gap-y-2 border-t border-base-content/25 py-4 first:border-t-0 lg:grid-cols-9"
-            >
-              <p className="flex max-w-prose gap-3 lg:col-span-6">
-                <span aria-hidden className="font-mono text-sm text-primary">
-                  {index + 1}.
-                </span>
-                <span>
-                  <Sourced id={note}>{t(`items.${id}`)}</Sourced>
-                </span>
-              </p>
-              <div className="lg:col-span-3">
-                <SourceNotes ids={[note]} />
-              </div>
-            </li>
-          );
-        })}
+        {BOUNDARY_IDS.map((id, index) => (
+          <li key={id} className="flex gap-3 border-t border-base-content/25 py-3 first:border-t-0">
+            <span aria-hidden className="font-mono text-sm text-primary">
+              {index + 1}.
+            </span>
+            <span>{t(`items.${id}`)}</span>
+          </li>
+        ))}
       </ol>
-    </Section>
+    </div>
   );
 }

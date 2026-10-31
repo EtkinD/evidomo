@@ -4,26 +4,33 @@ export const CONTAINER = 'mx-auto w-full max-w-6xl px-4';
 
 /**
  * A numbered section of the file: the heading stands in the margin column with its section
- * number (§ 2), the content takes the rest. The notes of "Show sources" go in each row's own
- * margin, so a section only provides the grid.
+ * number (§ 2), the content takes the rest, and a footer closes it with its sources.
  */
 export function Section({
   n,
   id,
+  anchor,
   title,
   intro,
+  footer,
   children,
 }: {
   n: number;
+  /** The id of the heading. */
   id: string;
+  /** The id of the section itself: a stable anchor to link to. */
+  anchor?: string;
   title: string;
   intro?: ReactNode;
+  /** Closes the section (its numbered sources). */
+  footer?: ReactNode;
   children: ReactNode;
 }) {
   return (
     <section
+      id={anchor}
       aria-labelledby={id}
-      className={`${CONTAINER} grid gap-8 border-t border-base-content/25 py-12 md:py-20 lg:grid-cols-12 lg:gap-x-10`}
+      className={`${CONTAINER} grid gap-8 border-t border-base-content/25 scroll-mt-4 py-12 md:py-20 lg:grid-cols-12 lg:gap-x-10`}
     >
       <div className="flex flex-col gap-3 self-start lg:sticky lg:top-8 lg:col-span-3">
         <p aria-hidden className="font-display text-2xl text-primary">
@@ -34,7 +41,10 @@ export function Section({
         </h2>
         {intro}
       </div>
-      <div className="lg:col-span-9">{children}</div>
+      <div className="flex flex-col gap-8 lg:col-span-9">
+        {children}
+        {footer}
+      </div>
     </section>
   );
 }

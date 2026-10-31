@@ -314,16 +314,25 @@ const TRUST_NOTES = { staging: 'labelled', private: 'private', assists: 'limits'
 
 function Trust() {
   const t = useTranslations('landing.trust');
+  const tMethod = useTranslations('method');
   return (
     <section aria-labelledby="landing-trust" className="grain bg-neutral text-neutral-content">
       <div className={`${CONTAINER} ${SECTION_PAD} grid gap-10 lg:grid-cols-12`}>
         <div className="flex items-start justify-between gap-6 lg:col-span-4 lg:flex-col">
-          <h2
-            id="landing-trust"
-            className="text-4xl leading-[1.05] font-medium tracking-tight md:text-5xl"
-          >
-            {t('title')}
-          </h2>
+          <div className="flex flex-col items-start gap-5">
+            <h2
+              id="landing-trust"
+              className="text-4xl leading-[1.05] font-medium tracking-tight md:text-5xl"
+            >
+              {t('title')}
+            </h2>
+            <Link
+              href="/method"
+              className="btn min-h-11 border-neutral-content/60 bg-transparent text-neutral-content hover:bg-neutral-content hover:text-neutral"
+            >
+              {tMethod('title')}
+            </Link>
+          </div>
           <div className="w-28 shrink-0 -rotate-3 bg-base-100 p-1.5 shadow-lift lg:w-40">
             <LandingImage
               image={LANDING_IMAGES.illustration}

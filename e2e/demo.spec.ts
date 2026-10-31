@@ -57,20 +57,6 @@ test.describe('demo, signed out', () => {
     );
   });
 
-  test('a source note opens the screen it names when one run is published', async ({
-    page,
-    request,
-  }) => {
-    const ids = await publishedRunIds(request);
-    test.skip(ids.length !== 1, 'needs exactly one published demo run');
-    await page.goto('/?sources=on');
-    await page.getByRole('main').getByRole('link', { name: 'Fact conflicts' }).click();
-    // The dev server compiles the run screen on its first visit, which can take a while.
-    await expect(page).toHaveURL(new RegExp(`/demo/runs/${ids[0]}/conflicts$`), {
-      timeout: 30_000,
-    });
-  });
-
   test('a run that is not published answers with a not-found state', async ({ page }) => {
     await page.goto('/demo/runs/00000000-0000-4000-8000-000000000000');
     await expect(page.getByRole('region', { name: 'About this demo' })).toBeVisible();
