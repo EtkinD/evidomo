@@ -2,7 +2,7 @@ import { fireEvent, render, screen, within } from '@testing-library/react';
 import { IntlProvider } from 'use-intl';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import tr from '../../messages/tr.json';
-import { LanguageSwitch } from '../components/shell/LanguageSwitch';
+import { LanguageSwitch, localizedHref } from '../components/shell/LanguageSwitch';
 import { setRoute } from './router-mock';
 
 vi.mock('next/router', () => import('./router-mock'));
@@ -44,8 +44,31 @@ describe('language switcher', () => {
         <LanguageSwitch />
       </IntlProvider>,
     );
-    // The click navigates (Next's Link); only the cookie is under test, not the route change.
+    // The click is a full page load; only the cookie is under test, not the navigation.
     fireEvent.click(screen.getByRole('link', { name: 'Nederlands' }));
     expect(document.cookie).toContain('NEXT_LOCALE=nl');
+  });
+
+  it('links to the same page in each locale, English unprefixed', () => {
+    setRoute('/projects');
+    render(
+      <IntlProvider locale="tr" messages={tr}>
+        <LanguageSwitch />
+      </IntlProvider>,
+    );
+    const nav = screen.getByRole('navigation', { name: 'Dil' });
+    expect(within(nav).getByRole('link', { name: 'English' }).getAttribute('href')).toBe(
+      '/projects',
+    );
+    expect(within(nav).getByRole('link', { name: 'Nederlands' }).getAttribute('href')).toBe(
+      '/nl/projects',
+    );
+  });
+
+  it('builds locale hrefs for the root and for query strings', () => {
+    expect(localizedHref('en', '/')).toBe('/');
+    expect(localizedHref('tr', '/')).toBe('/tr');
+    expect(localizedHref('es', '/?x=1')).toBe('/es?x=1');
+    expect(localizedHref('it', '/runs/abc/review')).toBe('/it/runs/abc/review');
   });
 });

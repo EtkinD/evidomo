@@ -192,10 +192,10 @@ describe('footer', () => {
     expect(links.map((link) => link.getAttribute('href'))).toEqual([
       REPOSITORY_URL,
       '/',
-      '/',
-      '/',
-      '/',
-      '/',
+      '/tr',
+      '/nl',
+      '/it',
+      '/es',
     ]);
     expect(links.slice(1).map((link) => link.textContent)).toEqual([
       'English',
