@@ -4,6 +4,7 @@ import { useFormatter, useLocale, useTranslations } from 'use-intl';
 import { ApiRequestError } from '../../lib/api';
 import { formatDemoDate, languageLabel, marketLabel, useDemoRuns } from '../../lib/demo';
 import { LoadingBlock } from '../PageStates';
+import { Note } from '../Note';
 
 function DemoRunCard({ run }: { run: DemoRun }) {
   const t = useTranslations('demo');
@@ -50,23 +51,23 @@ export function DemoRunList() {
     if (!query.isError) return <LoadingBlock label={t('loadingRuns')} />;
     const limited = query.error instanceof ApiRequestError && query.error.status === 429;
     return (
-      <div role="alert" className="alert alert-error alert-vertical sm:alert-horizontal">
+      <Note tone="error" role="alert" split>
         <span>{limited ? t('tooManyRequests') : t('loadError')}</span>
         <button type="button" className="btn min-h-11" onClick={() => void query.refetch()}>
           {t('tryAgain')}
         </button>
-      </div>
+      </Note>
     );
   }
 
   if (query.data.runs.length === 0) {
     return (
-      <div role="status" className="alert alert-info alert-vertical sm:alert-horizontal">
+      <Note tone="info" role="status" split>
         <span>{t('noneYet')}</span>
         <Link href="/" className="btn min-h-11">
           {t('home')}
         </Link>
-      </div>
+      </Note>
     );
   }
 

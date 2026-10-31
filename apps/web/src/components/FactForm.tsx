@@ -16,6 +16,7 @@ import { projectKey, useSaveFactForm } from '../lib/projects';
 import { describeRequestFailure } from '../lib/request-failure';
 import { fieldHint, fieldLabel, optionLabel } from '../lib/project-view';
 import { Field } from './FormField';
+import { Note } from './Note';
 
 interface FactFormProps {
   projectId: string;
@@ -310,17 +311,17 @@ export function FactForm({ projectId, market, values, locked, onUnsavedChange }:
   return (
     <form noValidate onSubmit={onSubmit} className="flex flex-col gap-4">
       {formError !== null && (
-        <div role="alert" className="alert alert-error">
+        <Note tone="error" role="alert">
           <span>{formError}</span>
-        </div>
+        </Note>
       )}
       {conflict && (
-        <div role="alert" className="alert alert-warning">
+        <Note tone="warning" role="alert">
           <span>{t('changedElsewhere')}</span>
           <button type="button" className="btn min-h-11" onClick={discardEdits}>
             {t('loadSaved')}
           </button>
-        </div>
+        </Note>
       )}
       <p className="text-sm text-base-content/70">{t('intro')}</p>
       <div className="grid gap-4 sm:grid-cols-2">

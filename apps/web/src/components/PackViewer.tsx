@@ -8,6 +8,7 @@ import { formatBytes } from '../lib/pack';
 import { useRunSource } from '../lib/run-source';
 import { PAGE_TITLE_CLASS } from './DossierPage';
 import { LoadErrorState, LoadingState, RunNotFound, SessionExpiredState } from './RunMonitor';
+import { Note } from './Note';
 
 /**
  * `allow-same-origin` lets the page call `contentWindow.print()`; `allow-modals` lets the framed
@@ -71,22 +72,16 @@ function PackReady({ pack }: { pack: RunExportResponse }) {
   return (
     <>
       {pack.readyToPublish ? (
-        <div role="status" className="alert alert-success">
-          <span>
-            <span aria-hidden>✓ </span>
-            {t('ready')}
-          </span>
-        </div>
+        <Note tone="success" role="status">
+          <span>{t('ready')}</span>
+        </Note>
       ) : (
-        <div role="alert" className="alert alert-warning">
+        <Note tone="warning" role="alert">
           <div>
-            <h2 className="font-semibold">
-              <span aria-hidden>! </span>
-              {t('notReady')}
-            </h2>
+            <h2 className="font-semibold">{t('notReady')}</h2>
             <p className="text-sm">{t('notReadyText')}</p>
           </div>
-        </div>
+        </Note>
       )}
 
       <section aria-labelledby="pack-preview-heading" className="flex flex-col gap-3">
@@ -144,12 +139,12 @@ function NotReady({ runId }: { runId: string }) {
   const t = useTranslations('pack');
   const source = useRunSource();
   return (
-    <div role="status" className="alert alert-info alert-vertical sm:alert-horizontal">
+    <Note tone="info" role="status" split>
       <span>{t('notReadyYet')}</span>
       <Link href={source.hrefs.monitor(runId)} className="btn min-h-11">
         {t('backToRun')}
       </Link>
-    </div>
+    </Note>
   );
 }
 

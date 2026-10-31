@@ -16,6 +16,7 @@ import { useStartRun } from '../lib/projects';
 import { describeRequestFailure } from '../lib/request-failure';
 import { AccessCodeField, useAccessCode } from './AccessCodeField';
 import { RunStatusBadge } from './RunStatusBadge';
+import { Note } from './Note';
 
 type StartFailure =
   | AccessFailure
@@ -114,12 +115,12 @@ export function ReadinessPanel({ detail, market, hasUnsavedChanges }: ReadinessP
         {failure?.kind === 'not_ready' && !readiness.canStartRun && (
           // The failure is recorded after the readiness refetch landed (the mutation waits for
           // it), so the list above is current. It clears once the inputs are complete again.
-          <div role="alert" className="alert alert-warning">
+          <Note tone="warning" role="alert">
             <span>{t('inputsChanged')}</span>
-          </div>
+          </Note>
         )}
         {failure?.kind === 'run_active' && (
-          <div role="alert" className="alert alert-info">
+          <Note tone="info" role="alert">
             <span>
               {t('alreadyActive')}
               {readiness.activeRunId !== null && (
@@ -134,31 +135,31 @@ export function ReadinessPanel({ detail, market, hasUnsavedChanges }: ReadinessP
                 </>
               )}
             </span>
-          </div>
+          </Note>
         )}
         {failure?.kind === 'budget' && (
-          <div role="alert" className="alert alert-info">
+          <Note tone="info" role="alert">
             <span>{t('budgetUsed')}</span>
-          </div>
+          </Note>
         )}
         {failure?.kind === 'code_rate_limited' && (
-          <div role="alert" className="alert alert-warning">
+          <Note tone="warning" role="alert">
             <span>{t('codeRateLimited')}</span>
-          </div>
+          </Note>
         )}
         {failure?.kind === 'run_limit' && (
-          <div role="alert" className="alert alert-info">
+          <Note tone="info" role="alert">
             <span>
               {failure.retryAfterSeconds === null
                 ? t('runLimit')
                 : t('runLimitWait', { wait: humanizeWait(t, failure.retryAfterSeconds) })}
             </span>
-          </div>
+          </Note>
         )}
         {failure?.kind === 'message' && (
-          <div role="alert" className="alert alert-error">
+          <Note tone="error" role="alert">
             <span>{failure.message}</span>
-          </div>
+          </Note>
         )}
 
         <AccessCodeField

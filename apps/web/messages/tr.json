@@ -81,112 +81,126 @@
     "landingDescription": "Fotoğraflar ve sesli tur girer, ilan paketi çıkar. Her ifade, geldiği form alanına, konuşma bölümüne veya fotoğrafa bağlanır; dışa aktarmadan önce sen gözden geçirirsin."
   },
   "landing": {
+    "sources": {
+      "switch": "Kaynakları göster",
+      "on": "Açık",
+      "off": "Kapalı",
+      "notesLabel": "Bu iddianın kaynakları",
+      "kinds": {
+        "sample": "Örnek işlem",
+        "eval": "Değerlendirme raporu",
+        "code": "Kodla uygulanır",
+        "rule": "Ürün kuralı"
+      },
+      "screens": {
+        "monitor": "İşlem izleme",
+        "conflicts": "Bilgi çelişkileri",
+        "review": "Paket incelemesi",
+        "pack": "İlan paketi"
+      },
+      "evalRef": "README, Değerlendirme sonuçları ({date}, fixture modu)",
+      "ruleRef": "docs/product.md, bölüm {section}"
+    },
     "actions": {
-      "goToProjects": "Projelerine git",
-      "createAccount": "Hesap oluştur",
-      "logIn": "Giriş yap",
-      "seeDemo": "Tamamlanmış bir işlemi gör"
+      "openSample": "Örnek dosyayı aç"
     },
     "hero": {
       "line1": "İlanındaki",
       "line2": "her iddia,",
       "line3": "kanıtına bağlı.",
-      "lede": "Mülkü gez, konuş, fotoğraf çek. Evidomo ilan paketini hazırlar ve her ifadenin nereden geldiğini gösterir; böylece tahminleri değil, doğrulanmış bilgileri onaylarsın.",
-      "footnote": "Paketteki herhangi bir cümleyi aç; dayandığı form alanını, konuşma bölümünü veya fotoğraf bölgesini gör.",
-      "notesLabel": "Fotoğraf üzerindeki örnek notlar",
-      "claims": {
-        "windows": "İki uzun pencere",
-        "brick": "Tuğla duvar",
-        "area": "Yaşam alanı 38 m²"
-      },
-      "sources": {
-        "photo": "Fotoğraf",
-        "form": "Form alanı"
-      },
-      "caption": "Örnek bir gösterimdir, gerçek bir ilan değildir. Numaralı her not, bir iddianın kaynağını belirtir."
+      "lede": "Mülkü gez, konuş, fotoğraf çek. Evidomo ilan paketini hazırlar ve her ifadenin nereden geldiğini gösterir; böylece tahminleri değil, doğrulanmış bilgileri onaylarsın."
     },
-    "how": {
-      "title": "Bir gezintiden, savunabileceğin bir pakete",
-      "subtitle": "Üç adım; ikincisinde kontrol sende.",
-      "packPreviewLabel": "İlan paketi örneği: her biri kaynağıyla birlikte iki ifade",
-      "previewLiving": {
-        "text": "38 m² aydınlık oturma odası.",
-        "source": "Form"
+    "specimen": {
+      "label": "Örnek dosyadan bir cümle",
+      "sentenceNote": "Örnek işlemin onaylanmış portal metni; modelin yazdığı haliyle (İngilizce, çevrilmedi).",
+      "prompt": "Neye dayandığını görmek için vurgulanan bir iddiayı seç.",
+      "claimsLabel": "Bu cümledeki iddialar",
+      "claimNames": {
+        "year": "Yapım yılı",
+        "label": "Enerji etiketi",
+        "issued": "Etiketin veriliş yılı"
       },
-      "previewGarden": {
-        "text": "Güneye bakan bahçe.",
-        "source": "Ses, 0:42"
+      "evidenceTitle": "“{claim}” neye dayanıyor",
+      "fieldNames": {
+        "build_year": "Yapım yılı",
+        "energy_label": "Enerji etiketi"
       },
-      "steps": {
-        "capture": {
-          "title": "Topla",
-          "text": "Her odayı fotoğrafla, kendi dilinde sesli bir tur kaydet ve bildiğin bilgileri onayla. Telefonda, mülkün içinde çalışır."
-        },
-        "verify": {
-          "title": "Doğrula",
-          "text": "Form, ses ve fotoğraflar birbiriyle çeliştiğinde işlem durur ve karar sana kalır. Taslaktaki her cümle, arkasındaki kanıta bağlıdır."
-        },
-        "pack": {
-          "title": "Paket",
-          "text": "Baskıya hazır bir paket indir: portallar ve sosyal medya için ilan metni, alıcı soru-cevap kartları ve yapılandırılmış portal alanları. Her iddia izlenebilir kalır."
-        }
+      "formValue": "{field}: {value}",
+      "notUsed": "Kullanılmadı",
+      "conflict": "Form {form} diyordu. İşlem ilk gözden geçirmede durdu ve konuşulan {voice} korundu.",
+      "openReview": "Bu cümleyi örnek dosyada gör",
+      "coverCaption": "Paketin kapak fotoğrafı; model {count} fotoğraf arasında birinci sıraya koydu. Örnek işlemden sentetik fotoğraf."
+    },
+    "ledger": {
+      "title": "Bu ilana ne oldu",
+      "intro": "Örnek dosyanın tek bir işlemi, adım adım. Karar verdiğin yer iki duraktır.",
+      "decidedBy": "Karar veren",
+      "evidomo": "Evidomo",
+      "you": "Sen",
+      "stop": "İşlem burada durur",
+      "scripted": "Örnek dosyada kararlar önceden yazılmış bir betikle verildi.",
+      "gateTitles": {
+        "gate1": "1/2. gözden geçirme: bilgi çelişkileri",
+        "gate2": "2/2. gözden geçirme: metin ve döşenmiş görsel"
+      },
+      "rows": {
+        "intake": "Hollandaca sesli tur, başı ve sonu olan zamanlı konuşma bölümlerine dökülür.",
+        "fact_extraction": "Bilgiler formdan ve sesli turdan okunur. Her biri kaynağını korur: bir form alanı ya da bir konuşma bölümünden alıntı.",
+        "vision_inventory": "{photos} fotoğraf oda ve durum açısından okunur; yüzler ve plakalar için kontrol edilir. Hiçbirini bulanıklaştırmak gerekmedi.",
+        "reconciliation": "Form, ses ve fotoğraflar arasında {conflicts} çelişki ortaya çıkar. Ses laminat derken bir yatak odası fotoğrafı halı gösteriyor.",
+        "gate1": "Yapım yılı: formdaki {form} yerine konuşulan {voice} korunur. Site yönetimi aidatı: konuşulan 165 € yerine formdaki 175 € korunur. Yatak odası zemini: iki değer de korunmaz.",
+        "creative": "{portal} cümlelik portal metni ve {social} cümlelik sosyal medya yazısı. Her cümle dayandığı bilgilere atıf yapar.",
+        "qa_cards": "{questions} alıcı sorusu, aynı bilgilerden {answers} cümleyle yanıtlanır.",
+        "staging": "Boş bir oda yatak odası olarak döşenir. Sonuç “Virtually staged” etiketiyle ve orijinalinin yanında gösterilir.",
+        "integrity": "Pencereler, kapılar ve diğer sabit öğeler önce ve sonra sayılır. Hepsi aynı kalır, bu yüzden döşenmiş görsel sunulur.",
+        "verification": "{audited} cümle, dayandıkları bilgilere karşı sınanır. {flagged} tanesi işaretlenir.",
+        "gate2": "Hiçbir şey işaretlenmedi. Döşenmiş görsel etiketiyle kabul edilir ve metin onaylanır.",
+        "export": "{files} dosya oluşturulur; aralarında HTML paketi ve portal alanları var. Tüm yayın kontrolleri geçer."
+      },
+      "bedroomCaption": "Ses laminat dedi. Bu yatak odası fotoğrafı halı gösteriyor. Örnek işlemden sentetik fotoğraf.",
+      "stagingBefore": "Önce",
+      "stagingAfter": "Sonra",
+      "stagingCaption": "Boş bir oda, yatak odası olarak döşendi. Örnek işlemden sentetik fotoğraflar."
+    },
+    "numbers": {
+      "title": "Sayılar ve sınırları",
+      "intro": "Tohumlanmış kusur değerlendirmesi: sentetik girdilere bilinen sorunlar yerleştirilir ve hattın kaçını yakaladığı sayılır. {date} tarihinde, {sets} sentetik set üzerinde fixture modunda (kayıtlı yanıtlar, model çağrısı yok) kaydedildi. Kendin çalıştır: npm run eval.",
+      "measure": "Ölçüt",
+      "result": "Sonuç",
+      "rows": {
+        "planted": "İlk gözden geçirmede yakalanan yerleştirilmiş çelişkiler",
+        "falseConflicts": "Beklenmeyen (yanlış) çelişkiler",
+        "injectedFlagged": "İlk denetimde işaretlenen eklenmiş iddia kusurları",
+        "injectedAtGate2": "İkinci gözden geçirmede hâlâ işaretlenmemiş eklenmiş kusurlar",
+        "injectedExported": "Dışa aktarılan pakette eklenmiş kusurlar",
+        "cleanFlags": "Eklenmemiş cümlelerde ilk denetimin işaretleri"
+      },
+      "limitsTitle": "Sınırlar",
+      "limits": {
+        "blatant": "Yerleştirilen kusurlar bariz. Sayılar, kontrollerin böyle bir metni yakaladığını gösterir; yazan modelin bunu ne sıklıkla ürettiğini değil.",
+        "oneApartment": "Altı setin tamamı tek bir sentetik dairenin varyasyonları. Bu, mekanizmanın çalıştığının kanıtıdır; gerçek ilanlar için bir yakalama oranı değildir.",
+        "freeform": "Zemin malzemesi gibi serbest biçimli ayrıntılardaki çelişkileri model elinden geldiğince bulur. Yalnızca pazar bilgilerini kod garanti eder.",
+        "audio": "Denetim cümleleri bilgilere ve alıntılarına karşı kontrol eder; sese karşı değil. Örnek dosyada tur metni “L-vormige” (L biçimli) diyor, transkript “ellipsvormige” diyor, metin ise “elliptical” diyor. Bunu ikinci gözden geçirmede yakalarsın."
       }
     },
-    "evidence": {
-      "title": "Her iddianın bir kaynağı var",
-      "text": "İlan paketindeki herhangi bir cümleyi aç; dayandığı form alanını, konuşma bölümünü veya fotoğraf bölgesini gör. Kanıtı olmayan bir iddia, dışa aktarmadan önce kararın için işaretlenir.",
-      "caption": "Örnek bir gösterimdir, gerçek bir ilan değildir. Vurgulanan ifadeler, kanıtı olan iddialardır.",
-      "verified": "Doğrulandı",
-      "notesLabel": "Vurgulanan iddialar için örnek kanıtlar",
-      "sentence": "<c1>38 m² aydınlık bir oturma odası</c1>, <c2>meşe balık sırtı parke</c2> ve <c3>güneye bakan bir bahçe</c3>.",
-      "notes": {
-        "area": {
-          "claim": "Yaşam alanı 38 m²",
-          "source": "Form alanı",
-          "label": "Yaşam alanı:"
-        },
-        "floor": {
-          "claim": "Meşe balık sırtı parke",
-          "source": "Fotoğraf",
-          "region": "İlgili bölge fotoğraf üzerinde çerçevelenir."
-        },
-        "garden": {
-          "claim": "Bahçe güneye bakıyor",
-          "source": "Sesli tur, 0:42’deki konuşma",
-          "quote": "“Bahçe güneye bakıyor, akşama kadar güneş alıyor.”"
-        }
-      }
-    },
-    "trust": {
-      "title": "Kontrol edilmek için tasarlandı",
+    "boundaries": {
+      "title": "Neleri yapmaz",
       "items": {
-        "calls": {
-          "title": "Kararlar senin",
-          "text": "İki gözden geçirme kontrolü sana verir: önce çelişen bilgiler, sonra işaretlenen her cümle ve düzenlenmiş görsel. İşlem seni bekler."
-        },
-        "staging": {
-          "title": "Sanal döşeme etiketli",
-          "text": "Sanal olarak döşenmiş bir görsel bu şekilde etiketlenir ve her zaman orijinalinin yanında gösterilir."
-        },
-        "private": {
-          "title": "Özel bilgiler kaldırılır",
-          "text": "GPS dahil fotoğraf üst verileri yükleme sırasında silinir. Dışa aktarımlarda yüzler ve plakalar bulanıklaştırılır."
-        },
-        "assists": {
-          "title": "Yardımcı olur, onaylamaz",
-          "text": "Yayın kontrol listesi eksikleri fark etmene yardımcı olur. Evidomo yasal uygunluğu onaylamaz, mülke değer biçmez ve senin yerine portallarda yayın yapmaz."
-        }
+        "valuation": "Bir mülke değer biçmek ya da yatırım tavsiyesi vermek.",
+        "legal": "Hukuku yorumlamak, sözleşme hazırlamak ya da tapu konusunda danışmanlık yapmak. Yayın kontrol listesi eksikleri fark etmene yardımcı olur; yasal uygunluğu onaylamaz.",
+        "buyers": "Alıcıları ya da kiracıları elemek, puanlamak veya sıralamak.",
+        "publishing": "Senin yerine bir portalda yayın yapmak. Paketi sen indirirsin, nereye gideceğine sen karar verirsin.",
+        "edits": "Bir kusuru gizlemek ya da yapıyı değiştirmek için fotoğrafı düzenlemek. Döşeme mobilya ekler; bir pencere, kapı ya da radyatör değişirse yerine orijinal kullanılır.",
+        "metadata": "GPS’i ya da diğer fotoğraf üst verilerini saklamak. Her fotoğraftan yükleme sırasında silinir.",
+        "blur": "Bir yüzü ya da plakayı dışa aktarmak. İkisi de dışa aktarılan fotoğraflarda bulanıklaştırılır.",
+        "deletion": "Sildiğin bir projeyi saklamak. Silmek, fotoğraflarını, sesli notunu, bilgilerini ve paketini kalıcı olarak kaldırır."
       }
     },
-    "cta": {
-      "title": "Sıradaki ilanına hazır mısın?",
-      "text": "Fotoğrafları ve sesli turu ekle, ardından hiçbir şey dışarı çıkmadan önce taslağı gözden geçir."
-    },
-    "images": {
-      "hero": "Yeşil-krem tuğla duvarlı, bej kanepeli, yeşil koltuklu ve pencerenin yanında saksı bitkisi olan, kanal evi tarzı aydınlık bir oturma odası",
-      "interior1": "Teraskota karolarla buluşan meşe balık sırtı parke; yaprak gölgeleri ve zeytin dalı tutan sarı bir saksı",
-      "interior2": "Meşe şömine rafı olan, kireç badanalı tuğla bir şömine; teraskota saksıda okaliptüs ve huş odunları",
-      "illustration": "Yuvarlak krem çatılı, açık sarı kapılı beyaz bir ev ve yeşil bir bitki illüstrasyonu"
+    "photos": {
+      "cover": "Açık meşe parkeli, gri üç kişilik kanepeli, uzun pencereli ve beyaz kapılı bir oturma odası. Sentetik fotoğraf.",
+      "bedroom": "Gri halılı, beyaz çarşaflı çift kişilik yataklı, pencereli ve gömme dolaplı bir yatak odası. Sentetik fotoğraf.",
+      "stagingBefore": "Açık meşe parkeli, altında radyatör bulunan pencereli ve beyaz kapılı boş bir oda. Sentetik fotoğraf.",
+      "stagingAfter": "Aynı oda; bir yatak ve bir komodin eklendi. Sentetik fotoğraf, sanal olarak döşenmiş."
     }
   },
   "notFound": {
@@ -598,8 +612,6 @@
     "title": "Evidomo iş başında",
     "intro": "Tamamlanmış bir örnek işlemi tekrar oynat: adımları izle, ardından iki gözden geçirmeyi, her iddianın arkasındaki kanıtı ve ilan paketini aç. Hesap gerekmez.",
     "bannerLabel": "Bu demo hakkında",
-    "bannerTitle": "Demo: örnek bir işlemin tekrarı",
-    "bannerText": "Veriler uydurmadır. Burada hiçbir şey canlı değil, hiçbir şey bir modele gönderilmiyor ve yaptığın hiçbir şey kaydedilmiyor.",
     "controls": "Tekrar denetimleri",
     "speed": "Tekrar hızı",
     "restart": "Baştan oynat",
@@ -630,6 +642,22 @@
         "title": "İlan paketi — Evidomo demo",
         "loading": "Paket yükleniyor…"
       }
+    },
+    "runningHead": "Sentetik bir işlemin tekrarı. Burada yaptığın hiçbir şey kaydedilmez.",
+    "opening": "Örnek dosya açılıyor…",
+    "coverLabel": "Örnek dosya",
+    "tabsLabel": "Örnek dosyanın bölümleri",
+    "tabs": {
+      "monitor": "Tur",
+      "conflicts": "Çelişkiler",
+      "review": "İnceleme",
+      "pack": "Paket"
+    },
+    "tabLines": {
+      "monitor": "{total} adımın {done} tanesi tamamlandı.",
+      "conflicts": "{count, plural, one {# çelişki} other {# çelişki}} bulundu, {open} açık.",
+      "review": "{flagged, plural, one {# iddia} other {# iddia}} işaretlendi, {images, plural, one {# döşenmiş görsel} other {# döşenmiş görsel}} sunuldu.",
+      "pack": "{files, plural, one {# dosya} other {# dosya}} oluşturuldu. {ready, select, yes {Yayına hazır.} other {Yayına hazır değil.}}"
     }
   },
   "conflicts": {
@@ -962,5 +990,10 @@
     "title": "Bir şeyler ters gitti",
     "text": "Sunucu bu isteği işleyemedi. Birazdan tekrar dene; kaydedilmiş çalışmanı etkilemez.",
     "home": "Başa dön"
+  },
+  "stamps": {
+    "verified": "Doğrulandı",
+    "decision": "Kararını bekliyor",
+    "sample": "Örnek dosya"
   }
 }

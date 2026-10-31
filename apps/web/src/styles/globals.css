@@ -195,18 +195,23 @@
     pointer-events: none;
   }
 
-  /* A claim in running text: the honey highlight is a background, so it wraps across lines.
-     Hovering its note (see .dossier) fills it solid. */
-  .claim {
-    background: linear-gradient(var(--color-accent), var(--color-accent)) no-repeat 0 90% / 100%
-      0.5em;
+  /* A claim in running text: the honey highlight is a background, so it wraps across lines. It is
+     an underline-thin band, so light text on the dark theme is never set on honey. Only the
+     selected claim is filled solid (with the text colour of honey). */
+  .claim,
+  .claim-on {
+    background: linear-gradient(var(--color-accent), var(--color-accent)) no-repeat 0 100% / 100%
+      0.2em;
+    /* <mark> would otherwise draw in the browser's black. */
+    color: inherit;
     padding-inline: 0.1em;
+    padding-bottom: 0.14em;
     transition: background-size 200ms ease-out;
   }
-  .dossier:has([data-note='1']:hover) [data-claim='1'],
-  .dossier:has([data-note='2']:hover) [data-claim='2'],
-  .dossier:has([data-note='3']:hover) [data-claim='3'] {
+  /* The selected claim of the specimen (or a source-marked claim) is filled solid. */
+  .claim[data-active='true'] {
     background-size: 100% 100%;
+    color: var(--color-accent-content);
   }
 }
 
@@ -242,7 +247,7 @@
   }
   @keyframes sweep {
     from {
-      background-size: 0 0.5em;
+      background-size: 0 0.2em;
     }
   }
 
@@ -276,6 +281,22 @@
   }
   .fade-late {
     animation: fade-in 600ms ease-out 700ms backwards;
+  }
+
+  /* "Show sources": a claim's highlight is painted in, and its source note slides in from the
+     margin with a short stagger. */
+  @keyframes margin-in {
+    from {
+      opacity: 0;
+      transform: translateX(1.25rem);
+    }
+  }
+  .claim-on {
+    animation: sweep 600ms ease-out backwards;
+  }
+  .source-in {
+    animation: margin-in 350ms ease-out backwards;
+    animation-delay: calc(var(--i, 0) * 70ms);
   }
 
   /* Hover and focus depth: a sheet lifts toward the reader. */

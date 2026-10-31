@@ -81,112 +81,126 @@
     "landingDescription": "Foto e un tour vocale in ingresso, un pacchetto annuncio in uscita. Ogni frase rimanda al campo del modulo, al passaggio parlato o alla foto da cui deriva, e tu la verifichi prima dell’esportazione."
   },
   "landing": {
+    "sources": {
+      "switch": "Mostra le fonti",
+      "on": "Attivo",
+      "off": "Disattivo",
+      "notesLabel": "Fonti di questa affermazione",
+      "kinds": {
+        "sample": "Elaborazione di esempio",
+        "eval": "Rapporto di valutazione",
+        "code": "Imposto dal codice",
+        "rule": "Regola di prodotto"
+      },
+      "screens": {
+        "monitor": "Monitor dell’elaborazione",
+        "conflicts": "Conflitti tra i dati",
+        "review": "Revisione del pacchetto",
+        "pack": "Pacchetto annuncio"
+      },
+      "evalRef": "README, Risultati della valutazione ({date}, modalità fixture)",
+      "ruleRef": "docs/product.md, sezione {section}"
+    },
     "actions": {
-      "goToProjects": "Vai ai tuoi progetti",
-      "createAccount": "Crea account",
-      "logIn": "Accedi",
-      "seeDemo": "Guarda un’elaborazione completata"
+      "openSample": "Apri il fascicolo di esempio"
     },
     "hero": {
       "line1": "Ogni affermazione",
       "line2": "del tuo annuncio,",
       "line3": "collegata alla sua prova.",
-      "lede": "Gira per l’immobile, parla e scatta foto. Evidomo prepara il pacchetto annuncio e mostra da dove viene ogni frase, così approvi fatti, non supposizioni.",
-      "footnote": "Apri una qualsiasi frase del pacchetto per vedere il campo del modulo, il passaggio parlato o la parte di foto su cui si basa.",
-      "notesLabel": "Note di esempio sulla foto",
-      "claims": {
-        "windows": "Due finestre alte",
-        "brick": "Parete in mattoni",
-        "area": "Superficie abitabile 38 m²"
-      },
-      "sources": {
-        "photo": "Foto",
-        "form": "Campo del modulo"
-      },
-      "caption": "Un esempio illustrativo, non un annuncio reale. Ogni nota numerata indica la fonte di un’affermazione."
+      "lede": "Gira per l’immobile, parla e scatta foto. Evidomo prepara il pacchetto annuncio e mostra da dove viene ogni frase, così approvi fatti, non supposizioni."
     },
-    "how": {
-      "title": "Da un sopralluogo a un pacchetto che puoi difendere",
-      "subtitle": "Tre passaggi, e il secondo resta sotto il tuo controllo.",
-      "packPreviewLabel": "Esempio di pacchetto annuncio: due frasi, ciascuna con la sua fonte",
-      "previewLiving": {
-        "text": "Soggiorno luminoso di 38 m².",
-        "source": "Modulo"
+    "specimen": {
+      "label": "Una frase dal fascicolo di esempio",
+      "sentenceNote": "Testo per portali approvato dell’elaborazione di esempio, come l’ha scritto il modello (inglese, non tradotto).",
+      "prompt": "Scegli un’affermazione evidenziata per vedere su cosa si basa.",
+      "claimsLabel": "Affermazioni in questa frase",
+      "claimNames": {
+        "year": "Anno di costruzione",
+        "label": "Classe energetica",
+        "issued": "Anno di rilascio della classe"
       },
-      "previewGarden": {
-        "text": "Giardino esposto a sud.",
-        "source": "Voce, 0:42"
+      "evidenceTitle": "Su cosa si basa “{claim}”",
+      "fieldNames": {
+        "build_year": "Anno di costruzione",
+        "energy_label": "Classe energetica"
       },
-      "steps": {
-        "capture": {
-          "title": "Raccogli",
-          "text": "Fotografa ogni stanza, registra un tour vocale nella tua lingua e conferma i dati che conosci. Funziona dal telefono, direttamente in loco."
-        },
-        "verify": {
-          "title": "Verifica",
-          "text": "Quando modulo, voce e foto non concordano, l’elaborazione si ferma e decidi tu. Ogni frase della bozza rimanda alla prova che la sostiene."
-        },
-        "pack": {
-          "title": "Pacchetto",
-          "text": "Scarica un pacchetto pronto per la stampa: testi per portali e social, schede domande e risposte per gli acquirenti e campi strutturati per i portali. Ogni affermazione resta tracciabile."
-        }
+      "formValue": "{field}: {value}",
+      "notUsed": "Non usato",
+      "conflict": "Il modulo diceva {form}. L’elaborazione si è fermata alla prima revisione ed è stato mantenuto {voice}, detto a voce.",
+      "openReview": "Vedi questa frase nel fascicolo di esempio",
+      "coverCaption": "La foto di copertina del pacchetto, messa dal modello al primo posto su {count}. Foto sintetica dell’elaborazione di esempio."
+    },
+    "ledger": {
+      "title": "Cosa è successo a questo annuncio",
+      "intro": "Una elaborazione del fascicolo di esempio, passo per passo. Sei tu a decidere alle due soste.",
+      "decidedBy": "Deciso da",
+      "evidomo": "Evidomo",
+      "you": "Tu",
+      "stop": "L’elaborazione si ferma qui",
+      "scripted": "Nel fascicolo di esempio le decisioni sono state scritte in anticipo in uno script.",
+      "gateTitles": {
+        "gate1": "Revisione 1 di 2: conflitti tra i dati",
+        "gate2": "Revisione 2 di 2: il testo e l’immagine arredata"
+      },
+      "rows": {
+        "intake": "Un tour vocale in olandese viene trascritto in interventi con orario, ciascuno con un inizio e una fine.",
+        "fact_extraction": "I dati vengono letti dal modulo e dal tour. Ognuno conserva la sua fonte: un campo del modulo o una citazione da un intervento.",
+        "vision_inventory": "{photos} foto vengono lette per stanza e stato e controllate per volti e targhe. Nessuna ha richiesto sfocature.",
+        "reconciliation": "Emergono {conflicts} conflitti tra modulo, voce e foto. Una foto di camera da letto mostra la moquette dove la voce diceva laminato.",
+        "gate1": "Anno di costruzione: viene mantenuto {voice}, detto a voce, e non {form}, del modulo. Contributo del condominio: si mantiene il 175 € del modulo e non il 165 € detto a voce. Pavimento della camera: nessuno dei due valori è mantenuto.",
+        "creative": "Testo per portali di {portal} frasi e didascalia social di {social}. Ogni frase cita i fatti su cui si basa.",
+        "qa_cards": "{questions} domande degli acquirenti, con risposta in {answers} frasi a partire dagli stessi fatti.",
+        "staging": "Una stanza vuota viene arredata come camera da letto. Il risultato porta l’etichetta “Virtually staged” ed è mostrato accanto all’originale.",
+        "integrity": "Finestre, porte e altri elementi fissi vengono contati prima e dopo. Tutti invariati, quindi l’immagine arredata viene proposta.",
+        "verification": "{audited} frasi vengono verificate rispetto ai fatti che citano. {flagged} vengono segnalate.",
+        "gate2": "Nessuna segnalazione. L’immagine arredata è accettata con la sua etichetta e il testo è approvato.",
+        "export": "Vengono creati {files} file, tra cui il pacchetto HTML e i campi per i portali. Tutti i controlli di pubblicazione sono superati."
+      },
+      "bedroomCaption": "La voce diceva laminato. Questa foto della camera mostra la moquette. Foto sintetica dell’elaborazione di esempio.",
+      "stagingBefore": "Prima",
+      "stagingAfter": "Dopo",
+      "stagingCaption": "Una stanza vuota, arredata come camera da letto. Foto sintetiche dell’elaborazione di esempio."
+    },
+    "numbers": {
+      "title": "I numeri e i loro limiti",
+      "intro": "Una valutazione con difetti inseriti: problemi noti vengono piantati in input sintetici e contiamo quanti ne coglie la pipeline. Registrata il {date} in modalità fixture (risposte registrate, nessuna chiamata al modello) su {sets} set sintetici. Eseguila tu stesso con npm run eval.",
+      "measure": "Misura",
+      "result": "Risultato",
+      "rows": {
+        "planted": "Conflitti inseriti emersi alla prima revisione",
+        "falseConflicts": "Conflitti inattesi (falsi)",
+        "injectedFlagged": "Difetti inseriti segnalati nel primo controllo",
+        "injectedAtGate2": "Difetti inseriti ancora non segnalati alla seconda revisione",
+        "injectedExported": "Difetti inseriti in un pacchetto esportato",
+        "cleanFlags": "Segnalazioni del primo controllo su frasi non alterate"
+      },
+      "limitsTitle": "Limiti",
+      "limits": {
+        "blatant": "I difetti inseriti sono evidenti. I numeri mostrano che i controlli colgono un testo simile, non quanto spesso il modello di scrittura lo produce da solo.",
+        "oneApartment": "Tutti e sei i set sono variazioni di un solo appartamento sintetico. È la prova che il meccanismo funziona, non un tasso di rilevamento su annunci reali.",
+        "freeform": "I conflitti su dettagli liberi, come il materiale di un pavimento, vengono trovati dal modello al meglio delle sue possibilità. Solo i dati di mercato sono garantiti dal codice.",
+        "audio": "Il controllo verifica le frasi rispetto ai fatti e alle loro citazioni, non rispetto all’audio. Nel fascicolo di esempio lo script dice “L-vormige”, la trascrizione dice “ellipsvormige” e il testo dice “elliptical”. Alla seconda revisione te ne accorgeresti."
       }
     },
-    "evidence": {
-      "title": "Ogni affermazione ha una fonte",
-      "text": "Apri una qualsiasi frase di un pacchetto annuncio e vedi il campo del modulo, il passaggio parlato o la parte di foto su cui si basa. Un’affermazione senza prove viene segnalata alla tua decisione prima dell’esportazione.",
-      "caption": "Un esempio illustrativo, non un annuncio reale. Le espressioni evidenziate sono affermazioni con prove.",
-      "verified": "Verificato",
-      "notesLabel": "Prove di esempio per le affermazioni evidenziate",
-      "sentence": "Un <c1>soggiorno luminoso di 38 m²</c1> con un <c2>pavimento in rovere a spina di pesce</c2> e un <c3>giardino esposto a sud</c3>.",
-      "notes": {
-        "area": {
-          "claim": "La superficie abitabile è 38 m²",
-          "source": "Campo del modulo",
-          "label": "Superficie abitabile:"
-        },
-        "floor": {
-          "claim": "Pavimento in rovere a spina di pesce",
-          "source": "Foto",
-          "region": "L’area è evidenziata con un riquadro sulla foto."
-        },
-        "garden": {
-          "claim": "Il giardino è esposto a sud",
-          "source": "Tour vocale, passaggio a 0:42",
-          "quote": "“Il giardino è esposto a sud, prende il sole fino a tardi.”"
-        }
-      }
-    },
-    "trust": {
-      "title": "Pensato per essere verificato",
+    "boundaries": {
+      "title": "Cosa non farà",
       "items": {
-        "calls": {
-          "title": "Le decisioni sono tue",
-          "text": "Due revisioni ti mettono al comando: prima i dati in conflitto, poi ogni frase segnalata e ogni immagine staged. L’elaborazione ti aspetta."
-        },
-        "staging": {
-          "title": "Lo staging è dichiarato",
-          "text": "Un’immagine con virtual staging è indicata come tale e mostrata sempre accanto all’originale."
-        },
-        "private": {
-          "title": "I dati privati vengono rimossi",
-          "text": "I metadati delle foto, GPS compreso, vengono rimossi al caricamento. Volti e targhe sono sfocati nelle esportazioni."
-        },
-        "assists": {
-          "title": "Assiste, non certifica",
-          "text": "La checklist di pubblicazione ti aiuta a individuare ciò che manca. Evidomo non certifica la conformità legale, non valuta un immobile e non pubblica sui portali al posto tuo."
-        }
+        "valuation": "Stimare il valore di un immobile o dare consigli di investimento.",
+        "legal": "Interpretare la legge, redigere contratti o dare consulenza sul titolo. La checklist di pubblicazione ti aiuta a notare ciò che manca; non certifica la conformità legale.",
+        "buyers": "Selezionare, valutare o classificare acquirenti o inquilini.",
+        "publishing": "Pubblicare su un portale al posto tuo. Scarichi il pacchetto e decidi dove va.",
+        "edits": "Modificare una foto per nascondere un difetto o cambiare la struttura. L’arredo aggiunge mobili; se cambia una finestra, una porta o un termosifone, si usa l’originale.",
+        "metadata": "Conservare il GPS o altri metadati delle foto. Vengono rimossi da ogni foto al caricamento.",
+        "blur": "Esportare un volto o una targa. Entrambi vengono sfocati nelle foto esportate.",
+        "deletion": "Conservare un progetto che elimini. L’eliminazione cancella definitivamente foto, memo vocale, dati e pacchetto."
       }
     },
-    "cta": {
-      "title": "Pronto per il tuo prossimo annuncio?",
-      "text": "Aggiungi foto e un tour vocale, poi rivedi la bozza prima che qualcosa esca."
-    },
-    "images": {
-      "hero": "Un soggiorno luminoso in una casa sul canale, con una parete di mattoni verde crema, un divano beige, una poltrona verde e una pianta in vaso vicino alla finestra",
-      "interior1": "Un pavimento in rovere a spina di pesce che incontra piastrelle in terracotta, con ombre di foglie e un vaso giallo con un ramo d’ulivo",
-      "interior2": "Un camino in mattoni alla calce con mensola in rovere, eucalipto in un vaso di terracotta e ceppi di betulla",
-      "illustration": "Un’illustrazione di una casa bianca con tetto arrotondato color crema, una porta gialla aperta e una pianta verde"
+    "photos": {
+      "cover": "Un soggiorno con pavimento in rovere chiaro, un divano grigio a tre posti, una finestra alta e una porta bianca. Foto sintetica.",
+      "bedroom": "Una camera da letto con moquette grigia, un letto matrimoniale con lenzuola bianche, una finestra e un armadio a muro. Foto sintetica.",
+      "stagingBefore": "Una stanza vuota con pavimento in rovere chiaro, una finestra con un termosifone sotto e una porta bianca. Foto sintetica.",
+      "stagingAfter": "La stessa stanza con un letto e un comodino aggiunti. Foto sintetica, arredata virtualmente."
     }
   },
   "notFound": {
@@ -598,8 +612,6 @@
     "title": "Guarda Evidomo al lavoro",
     "intro": "Rivedi un’elaborazione di esempio già completata: guarda i passaggi, poi apri entrambe le revisioni, le prove dietro ogni affermazione e il pacchetto annuncio. Non serve un account.",
     "bannerLabel": "Informazioni su questa demo",
-    "bannerTitle": "Demo: il replay di un’elaborazione di esempio",
-    "bannerText": "I dati sono inventati. Niente qui è live, niente viene inviato a un modello e nulla di ciò che fai viene salvato.",
     "controls": "Controlli del replay",
     "speed": "Velocità del replay",
     "restart": "Riavvia dall’inizio",
@@ -630,6 +642,22 @@
         "title": "Pacchetto annuncio — demo di Evidomo",
         "loading": "Caricamento del pacchetto…"
       }
+    },
+    "runningHead": "Il replay di un’elaborazione sintetica. Nulla di ciò che fai qui viene salvato.",
+    "opening": "Apertura del fascicolo di esempio…",
+    "coverLabel": "Il fascicolo di esempio",
+    "tabsLabel": "Sezioni del fascicolo di esempio",
+    "tabs": {
+      "monitor": "Tour",
+      "conflicts": "Conflitti",
+      "review": "Revisione",
+      "pack": "Pacchetto"
+    },
+    "tabLines": {
+      "monitor": "{done} passaggi su {total} completati.",
+      "conflicts": "{count, plural, one {# conflitto trovato} other {# conflitti trovati}}, {open} aperti.",
+      "review": "{flagged, plural, one {# affermazione segnalata} other {# affermazioni segnalate}}, {images, plural, one {# immagine arredata proposta} other {# immagini arredate proposte}}.",
+      "pack": "{files, plural, one {# file creato} other {# file creati}}. {ready, select, yes {Pronto per la pubblicazione.} other {Non pronto per la pubblicazione.}}"
     }
   },
   "conflicts": {
@@ -962,5 +990,10 @@
     "title": "Qualcosa è andato storto",
     "text": "Il server non è riuscito a gestire questa richiesta. Riprova tra un momento; il lavoro salvato non è interessato.",
     "home": "Torna alla home"
+  },
+  "stamps": {
+    "verified": "Verificato",
+    "decision": "Attende la tua decisione",
+    "sample": "Fascicolo di esempio"
   }
 }

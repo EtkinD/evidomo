@@ -16,7 +16,7 @@ import DemoReviewPage from '../pages/demo/runs/[runId]/review';
 import { allDecided, auditGate, STAGED_ID, TEXT } from './claim-audit-fixtures';
 import { FakeEventSource } from './fake-event-source';
 import { gateWith, MATERIAL_ID, RUN_ID } from './gate-fixtures';
-import { setRoute } from './router-mock';
+import { mockRouter, setRoute } from './router-mock';
 import {
   jsonResponse,
   meSignedOut,
@@ -30,6 +30,7 @@ vi.mock('next/router', () => import('./router-mock'));
 
 const AT = '2026-10-29T10:00:00.000Z';
 const DEMO_RUN = `/api/demo/runs/${RUN_ID}`;
+const OTHER_RUN_ID = '8d2f6a10-1b3c-4d5e-8f70-a1b2c3d4e5f6';
 const EXPORT_PATH = `${DEMO_RUN}/export`;
 const HTML_ID = '11111111-1111-4111-8111-111111111111';
 const JSON_ID = '22222222-2222-4222-8222-222222222222';
@@ -188,12 +189,14 @@ describe('demo list', () => {
 
   beforeEach(() => {
     setRoute('/demo');
+    mockRouter.replace.mockClear();
   });
 
-  it('lists the published runs without a session, each linking to its replay', async () => {
+  it('lists several published runs without a session, each linking to its replay', async () => {
+    const other = { ...run, id: OTHER_RUN_ID, title: 'Second sample flat' };
     const fetchMock = mockFetch({
       'GET /api/auth/me': meSignedOut,
-      'GET /api/demo/runs': () => jsonResponse(200, { runs: [run] }),
+      'GET /api/demo/runs': () => jsonResponse(200, { runs: [run, other] }),
     });
     renderPage(DemoListPage);
 
@@ -204,7 +207,54 @@ describe('demo list', () => {
     expect(card?.textContent).toContain('English');
     expect(card?.textContent).toContain('Oct 29, 2026');
     expect(screen.queryByText(/redirect|log in to/i)).toBeNull();
+    expect((await screen.findByRole('link', { name: other.title })).getAttribute('href')).toBe(
+      `/demo/runs/${OTHER_RUN_ID}`,
+    );
+    expect(mockRouter.replace).not.toHaveBeenCalled();
     expectOnlyPublicReads(fetchMock);
+  });
+
+  it('opens the sample file directly when exactly one run is published', async () => {
+    mockFetch({
+      'GET /api/auth/me': meSignedOut,
+      'GET /api/demo/runs': () => jsonResponse(200, { runs: [run] }),
+    });
+    renderPage(DemoListPage);
+
+    await waitFor(() => {
+      expect(mockRouter.replace).toHaveBeenCalledWith(`/demo/runs/${RUN_ID}`);
+    });
+    // No list to pick from, and no page title for a list: the visitor is on the way in.
+    expect(screen.queryByRole('heading', { level: 1 })).toBeNull();
+    expect(screen.queryByRole('link', { name: run.title })).toBeNull();
+  });
+
+  it.each([
+    ['conflicts', `/demo/runs/${RUN_ID}/conflicts`],
+    ['review', `/demo/runs/${RUN_ID}/review`],
+    ['pack', `/demo/runs/${RUN_ID}/pack`],
+  ])('opens the %s screen when the entry names it (?tab=)', async (tab, target) => {
+    mockFetch({
+      'GET /api/auth/me': meSignedOut,
+      'GET /api/demo/runs': () => jsonResponse(200, { runs: [run] }),
+    });
+    setRoute(`/demo?tab=${tab}`);
+    renderPage(DemoListPage);
+    await waitFor(() => {
+      expect(mockRouter.replace).toHaveBeenCalledWith(target);
+    });
+  });
+
+  it('ignores an unknown ?tab= and opens the run itself', async () => {
+    mockFetch({
+      'GET /api/auth/me': meSignedOut,
+      'GET /api/demo/runs': () => jsonResponse(200, { runs: [run] }),
+    });
+    setRoute('/demo?tab=../../admin');
+    renderPage(DemoListPage);
+    await waitFor(() => {
+      expect(mockRouter.replace).toHaveBeenCalledWith(`/demo/runs/${RUN_ID}`);
+    });
   });
 
   it('explains that no demo is published yet, with no run link', async () => {
@@ -226,7 +276,7 @@ describe('demo list', () => {
         calls += 1;
         return calls === 1
           ? jsonResponse(429, { error: 'rate_limited' }, { 'Retry-After': '5' })
-          : jsonResponse(200, { runs: [run] });
+          : jsonResponse(200, { runs: [run, { ...run, id: OTHER_RUN_ID, title: 'Second' }] });
       },
     });
     renderPage(DemoListPage);
@@ -445,16 +495,18 @@ describe('demo replay monitor', () => {
     expect(source.readyState).toBe(FakeEventSource.CLOSED);
   });
 
-  it('has no write controls and shows the banner', async () => {
+  it('has no write controls and shows the running head', async () => {
     mockDemo();
     await renderMonitor();
 
     // Replay controls only change how stored events are played; nothing here writes.
     const buttons = screen.getAllByRole('button').map((b) => b.textContent);
     expect(buttons.filter((t) => t !== 'Replay from the start' && !/account/i.test(t))).toEqual([]);
-    expect(screen.getByRole('region', { name: 'About this demo' }).textContent).toMatch(
-      /replay of a sample run.*invented.*nothing is sent to a model/is,
+    const head = screen.getByRole('region', { name: 'About this demo' });
+    expect(head.textContent).toMatch(
+      /Sample file.*replay of a synthetic run.*Nothing you do here is saved/is,
     );
+    expect(within(head).getByText('Sample file')).toBeDefined();
   });
 
   it('answers a run that is not listed with a not-found state that leads back to the list', async () => {
@@ -676,5 +728,94 @@ describe('demo gates and pack', () => {
     const alert = await screen.findByRole('alert');
     expect(alert.textContent).toContain('Wait a few seconds');
     expect(within(alert).getByRole('button', { name: 'Try again' })).toBeDefined();
+  });
+});
+
+describe('demo folder: cover and tabs', () => {
+  const run = {
+    id: RUN_ID,
+    title: 'Sample flat on an invented street',
+    marketProfileId: 'nl',
+    outputLanguage: 'en',
+    createdAt: AT,
+    finishedAt: '2026-10-29T10:09:00.000Z',
+  };
+
+  function mockFolder() {
+    const decided = gateWith(
+      {
+        K01: { choice: 'accept', factIds: ['10000000-0000-4000-8000-000000000001'], decidedAt: AT },
+        K02: { choice: 'reject', decidedAt: AT },
+        K03: { choice: 'reject', decidedAt: AT },
+      },
+      'released',
+    );
+    return mockDemo({
+      'GET /api/demo/runs': () => jsonResponse(200, { runs: [run] }),
+      [`GET ${DEMO_RUN}/gates/fact-conflicts`]: () => jsonResponse(200, decided),
+      [`GET ${DEMO_RUN}/gates/claim-audit`]: () => jsonResponse(200, demoGate2()),
+      [`GET ${EXPORT_PATH}`]: () => jsonResponse(200, demoManifest()),
+    });
+  }
+
+  it('shows the cover of the property on every demo screen', async () => {
+    mockFolder();
+    openRoute(`/demo/runs/${RUN_ID}/pack`);
+    renderPage(DemoPackPage);
+
+    expect(await screen.findByText(run.title)).toBeDefined();
+    const cover = screen.getByText(run.title).closest('header');
+    expect(cover?.textContent).toContain('Netherlands');
+    expect(cover?.textContent).toContain('English');
+    expect(cover?.textContent).toContain('Oct 29, 2026');
+  });
+
+  it.each([
+    ['', DemoRunPage, 'Walkthrough'],
+    ['/conflicts', DemoConflictsPage, 'Conflicts'],
+    ['/review', DemoReviewPage, 'Review'],
+    ['/pack', DemoPackPage, 'Pack'],
+  ] as const)(
+    'keeps the four tabs on %s and marks the current one',
+    async (path, Page, current) => {
+      mockFolder();
+      openRoute(`/demo/runs/${RUN_ID}${path}`);
+      renderPage(Page);
+
+      const nav = await screen.findByRole('navigation', { name: 'Sections of the sample file' });
+      const tabs = within(nav).getAllByRole('link');
+      expect(tabs.map((tab) => tab.getAttribute('href'))).toEqual([
+        `/demo/runs/${RUN_ID}`,
+        `/demo/runs/${RUN_ID}/conflicts`,
+        `/demo/runs/${RUN_ID}/review`,
+        `/demo/runs/${RUN_ID}/pack`,
+      ]);
+      const marked = tabs.filter((tab) => tab.getAttribute('aria-current') === 'page');
+      expect(marked).toHaveLength(1);
+      expect(marked[0]?.textContent).toContain(current);
+      for (const tab of tabs) expect(tab.className).toContain('min-h-11');
+    },
+  );
+
+  it('says in one line what happened on each screen in this run', async () => {
+    mockFolder();
+    openRoute(`/demo/runs/${RUN_ID}/pack`);
+    renderPage(DemoPackPage);
+
+    const nav = await screen.findByRole('navigation', { name: 'Sections of the sample file' });
+    await waitFor(() => {
+      expect(nav.textContent).toContain('3 of 3 steps done.');
+      expect(nav.textContent).toContain('3 conflicts found, 0 open.');
+      expect(nav.textContent).toMatch(/claims? flagged, \d+ staged images? offered\./);
+      expect(nav.textContent).toMatch(/2 files built\. (Ready|Not ready) to publish\./);
+    });
+  });
+
+  it('adds no write control: tabs and links only', async () => {
+    mockFolder();
+    openRoute(`/demo/runs/${RUN_ID}/conflicts`);
+    renderPage(DemoConflictsPage);
+    const nav = await screen.findByRole('navigation', { name: 'Sections of the sample file' });
+    expect(within(nav).queryAllByRole('button')).toHaveLength(0);
   });
 });

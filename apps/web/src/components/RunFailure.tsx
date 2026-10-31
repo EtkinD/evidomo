@@ -13,6 +13,7 @@ import {
 } from '../lib/run-resume';
 import { stepLabel } from '../lib/step-labels';
 import { AccessCodeField, useAccessCode } from './AccessCodeField';
+import { Note } from './Note';
 
 /** Failures after which resuming is pointless: the button and the code field go away. */
 const isDeadEnd = (failure: ResumeFailure | null): boolean =>
@@ -40,12 +41,12 @@ function BlockedNotice({
   }[reason];
   const busy = reason === 'other_run_active';
   return (
-    <div role="status" className="alert alert-warning alert-vertical items-start">
+    <Note tone="warning" role="status">
       <span>{text}</span>
       <Link href={`/projects/${projectId}`} className={`btn min-h-11 ${busy ? '' : 'btn-primary'}`}>
         {busy ? t('openProject') : t('startNewRun')}
       </Link>
-    </div>
+    </Note>
   );
 }
 
@@ -64,60 +65,60 @@ function ResumeFailureNotice({
       return null; // Shown on the access-code field.
     case 'run_budget_exhausted':
       return (
-        <div role="alert" className="alert alert-warning alert-vertical items-start">
+        <Note tone="warning" role="alert">
           <span>{t('budgetExhausted')}</span>
           <Link href={`/projects/${projectId}`} className="btn btn-primary min-h-11">
             {t('startNewRun')}
           </Link>
-        </div>
+        </Note>
       );
     case 'not_found':
       return (
-        <div role="alert" className="alert alert-warning alert-vertical items-start">
+        <Note tone="warning" role="alert">
           <span>{t('gone')}</span>
           <Link href="/projects" className="btn min-h-11">
             {tRun('goToProjects')}
           </Link>
-        </div>
+        </Note>
       );
     case 'not_resumable':
       return (
-        <div role="alert" className="alert alert-info alert-vertical items-start">
+        <Note tone="info" role="alert">
           <span>{t('notResumable')}</span>
           <Link href={`/projects/${projectId}`} className="btn btn-primary min-h-11">
             {t('startNewRun')}
           </Link>
-        </div>
+        </Note>
       );
     case 'run_active':
       return <BlockedNotice reason="other_run_active" projectId={projectId} />;
     case 'daily_budget': {
       const wait = waitPhrase(tReadiness, failure.retryAfterSeconds);
       return (
-        <div role="alert" className="alert alert-info">
+        <Note tone="info" role="alert">
           <span>{wait === null ? t('dailyBudget') : t('dailyBudgetWait', { wait })}</span>
-        </div>
+        </Note>
       );
     }
     case 'run_limit': {
       const wait = waitPhrase(tReadiness, failure.retryAfterSeconds);
       return (
-        <div role="alert" className="alert alert-info">
+        <Note tone="info" role="alert">
           <span>{wait === null ? t('runLimit') : t('runLimitWait', { wait })}</span>
-        </div>
+        </Note>
       );
     }
     case 'code_rate_limited':
       return (
-        <div role="alert" className="alert alert-warning">
+        <Note tone="warning" role="alert">
           <span>{t('codeRateLimited')}</span>
-        </div>
+        </Note>
       );
     case 'message':
       return (
-        <div role="alert" className="alert alert-error">
+        <Note tone="error" role="alert">
           <span>{failure.message}</span>
-        </div>
+        </Note>
       );
   }
 }

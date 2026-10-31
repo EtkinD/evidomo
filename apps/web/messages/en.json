@@ -81,112 +81,126 @@
     "landingDescription": "Photos and a voice walkthrough in, a listing pack out. Every statement links to the form field, spoken turn, or photo it came from, and you review it before export."
   },
   "landing": {
+    "sources": {
+      "switch": "Show sources",
+      "on": "On",
+      "off": "Off",
+      "notesLabel": "Sources for this claim",
+      "kinds": {
+        "sample": "Sample run",
+        "eval": "Eval report",
+        "code": "Enforced in code",
+        "rule": "Product rule"
+      },
+      "screens": {
+        "monitor": "Run monitor",
+        "conflicts": "Fact conflicts",
+        "review": "Pack review",
+        "pack": "Listing pack"
+      },
+      "evalRef": "README, Eval results ({date}, fixture mode)",
+      "ruleRef": "docs/product.md, section {section}"
+    },
     "actions": {
-      "goToProjects": "Go to your projects",
-      "createAccount": "Create account",
-      "logIn": "Log in",
-      "seeDemo": "See a finished run"
+      "openSample": "Open the sample file"
     },
     "hero": {
       "line1": "Every claim",
       "line2": "in your listing,",
       "line3": "linked to its evidence.",
-      "lede": "Walk the property, talk, and take photos. Evidomo drafts the listing pack and shows where each statement came from, so you approve facts, not guesses.",
-      "footnote": "Open any sentence of a pack to see the form field, the spoken turn, or the part of the photo it rests on.",
-      "notesLabel": "Example notes on the photo",
-      "claims": {
-        "windows": "Two tall windows",
-        "brick": "Brick feature wall",
-        "area": "Living area 38 m²"
-      },
-      "sources": {
-        "photo": "Photo",
-        "form": "Form field"
-      },
-      "caption": "An illustrative example, not a real listing. Each numbered note names the source of a claim."
+      "lede": "Walk the property, talk, and take photos. Evidomo drafts the listing pack and shows where each statement came from, so you approve facts, not guesses."
     },
-    "how": {
-      "title": "From a walk-through to a pack you can defend",
-      "subtitle": "Three steps, and you stay in control of the second.",
-      "packPreviewLabel": "Example of a listing pack: two statements, each with its source",
-      "previewLiving": {
-        "text": "Bright living room of 38 m².",
-        "source": "Form"
+    "specimen": {
+      "label": "A sentence from the sample file",
+      "sentenceNote": "Approved portal text of the sample run, as the model wrote it (English, not translated).",
+      "prompt": "Select a highlighted claim to see what it rests on.",
+      "claimsLabel": "Claims in this sentence",
+      "claimNames": {
+        "year": "Build year",
+        "label": "Energy label",
+        "issued": "Label issue year"
       },
-      "previewGarden": {
-        "text": "South-facing garden.",
-        "source": "Voice, 0:42"
+      "evidenceTitle": "What “{claim}” rests on",
+      "fieldNames": {
+        "build_year": "Build year",
+        "energy_label": "Energy label"
       },
-      "steps": {
-        "capture": {
-          "title": "Capture",
-          "text": "Photograph each room, record a voice walkthrough in your own language, and confirm the facts you know. It works on a phone, at the property."
-        },
-        "verify": {
-          "title": "Verify",
-          "text": "Where the form, the voice, and the photos disagree, the run stops and you decide. Every sentence of the draft links to the evidence behind it."
-        },
-        "pack": {
-          "title": "Pack",
-          "text": "Download a print-ready pack: listing text for portals and social, buyer Q&A cards, and structured portal fields. Each claim stays traceable."
-        }
+      "formValue": "{field}: {value}",
+      "notUsed": "Not used",
+      "conflict": "The form said {form}. The run stopped at the first review, and the spoken {voice} was kept.",
+      "openReview": "See this sentence in the sample file",
+      "coverCaption": "The pack’s cover photo, ranked first of {count} by the model. Synthetic photo from the sample run."
+    },
+    "ledger": {
+      "title": "What happened to this listing",
+      "intro": "One run of the sample file, step by step. The two stops are where you decide.",
+      "decidedBy": "Decided by",
+      "evidomo": "Evidomo",
+      "you": "You",
+      "stop": "The run stops here",
+      "scripted": "In the sample file, the decisions were scripted ahead of time.",
+      "gateTitles": {
+        "gate1": "Review 1 of 2: fact conflicts",
+        "gate2": "Review 2 of 2: the copy and the staged image"
+      },
+      "rows": {
+        "intake": "A Dutch voice walkthrough is transcribed in timed turns, each with a start and an end.",
+        "fact_extraction": "Facts are read from the form and the walkthrough. Each keeps its source: a form field, or a quote from one turn.",
+        "vision_inventory": "{photos} photos are read for room and condition, and checked for faces and license plates. None needed blurring.",
+        "reconciliation": "{conflicts} conflicts surface between the form, the voice, and the photos. A bedroom photo shows carpet where the voice said laminate.",
+        "gate1": "Build year: the spoken {voice} is kept over the form’s {form}. Owners’ association contribution: the form’s €175 is kept over the spoken €165. Bedroom floor: neither value is kept.",
+        "creative": "Portal text of {portal} sentences and a social caption of {social}. Each sentence cites the facts it rests on.",
+        "qa_cards": "{questions} buyer questions, answered in {answers} sentences from the same facts.",
+        "staging": "One empty room is furnished as a bedroom. The result is labelled “Virtually staged” and shown next to the original.",
+        "integrity": "Windows, doors, and other fixed elements are counted before and after. All are unchanged, so the staged image is offered.",
+        "verification": "{audited} sentences are tested against the facts they cite. {flagged} are flagged.",
+        "gate2": "Nothing is flagged. The staged image is accepted, with its label, and the copy is approved.",
+        "export": "{files} files are built, among them the HTML pack and the portal fields. Every publication check passes."
+      },
+      "bedroomCaption": "The voice said laminate. This bedroom photo shows carpet. Synthetic photo from the sample run.",
+      "stagingBefore": "Before",
+      "stagingAfter": "After",
+      "stagingCaption": "An empty room, furnished as a bedroom. Synthetic photos from the sample run."
+    },
+    "numbers": {
+      "title": "The numbers, and their limits",
+      "intro": "A seeded-defect evaluation: known problems are planted in synthetic inputs, and we count what the pipeline catches. Recorded {date} in fixture mode (recorded responses, no model calls) on {sets} synthetic sets. Run it yourself with npm run eval.",
+      "measure": "Measure",
+      "result": "Result",
+      "rows": {
+        "planted": "Planted conflicts surfaced at the first review",
+        "falseConflicts": "Unexpected (false) conflicts",
+        "injectedFlagged": "Injected claim defects flagged in the first audit",
+        "injectedAtGate2": "Injected defects still unflagged at the second review",
+        "injectedExported": "Injected defects in an exported pack",
+        "cleanFlags": "First-audit flags on uninjected sentences"
+      },
+      "limitsTitle": "Limits",
+      "limits": {
+        "blatant": "The planted defects are blatant. The numbers show that the checks catch such text, not how often the writing model produces it.",
+        "oneApartment": "All six sets are variations of one synthetic apartment. This is evidence that the mechanism works, not a catch rate for real listings.",
+        "freeform": "Conflicts about free-form details, such as a floor material, are found by the model on a best-effort basis. Only market facts are guaranteed by code.",
+        "audio": "The audit checks sentences against the facts and their quotes, not against the audio. In the sample file the walkthrough script says “L-vormige” (L-shaped), the transcript says “ellipsvormige”, and the copy says “elliptical”. The second review is where you would catch it."
       }
     },
-    "evidence": {
-      "title": "Every claim has a source",
-      "text": "Open any sentence of a listing pack and see the form field, the spoken turn, or the part of the photo it rests on. A claim without evidence is flagged for your decision before export.",
-      "caption": "An illustrative example, not a real listing. Highlighted phrases are claims with evidence.",
-      "verified": "Verified",
-      "notesLabel": "Example evidence for the highlighted claims",
-      "sentence": "A bright <c1>living room of 38 m²</c1> with an <c2>oak herringbone floor</c2> and a <c3>garden facing south</c3>.",
-      "notes": {
-        "area": {
-          "claim": "Living area is 38 m²",
-          "source": "Form field",
-          "label": "Living area:"
-        },
-        "floor": {
-          "claim": "Herringbone oak floor",
-          "source": "Photo",
-          "region": "The region is outlined on the photo."
-        },
-        "garden": {
-          "claim": "Garden faces south",
-          "source": "Voice walkthrough, turn at 0:42",
-          "quote": "“The garden faces south, it gets sun until late.”"
-        }
-      }
-    },
-    "trust": {
-      "title": "Built to be checked",
+    "boundaries": {
+      "title": "What it will not do",
       "items": {
-        "calls": {
-          "title": "You make the calls",
-          "text": "Two reviews put you in charge: conflicting facts first, then every flagged sentence and staged image. The run waits for you."
-        },
-        "staging": {
-          "title": "Staging is labelled",
-          "text": "A virtually staged image is labelled as such and always shown next to the original."
-        },
-        "private": {
-          "title": "Private details are removed",
-          "text": "Photo metadata, including GPS, is stripped at upload. Faces and license plates are blurred in exports."
-        },
-        "assists": {
-          "title": "It assists, it does not certify",
-          "text": "The publication checklist helps you spot missing items. Evidomo does not certify legal compliance, value a property, or publish to portals for you."
-        }
+        "valuation": "Value a property or give investment advice.",
+        "legal": "Interpret law, draft contracts, or advise on title. The publication checklist helps you spot missing items; it does not certify legal compliance.",
+        "buyers": "Screen, score, or rank buyers or tenants.",
+        "publishing": "Publish to a portal for you. You download the pack and decide where it goes.",
+        "edits": "Edit a photo to hide a defect or change the structure. Staging adds furniture; if a window, door, or radiator changes, the original is used instead.",
+        "metadata": "Keep GPS or other photo metadata. It is stripped from every photo at upload.",
+        "blur": "Export a face or a license plate. Both are blurred in exported photos.",
+        "deletion": "Keep a project you delete. Deleting removes its photos, voice memo, facts, and pack for good."
       }
     },
-    "cta": {
-      "title": "Ready for your next listing?",
-      "text": "Add photos and a voice walkthrough, then review the draft before anything leaves."
-    },
-    "images": {
-      "hero": "A bright canal-house living room with a green-cream brick wall, a beige sofa, a green armchair, and a potted plant by the window",
-      "interior1": "An oak herringbone floor meeting terracotta tiles, with leaf shadows and a yellow pot holding an olive branch",
-      "interior2": "A limewashed brick fireplace with an oak mantel, eucalyptus in a terracotta pot, and birch logs",
-      "illustration": "An illustration of a white house with a rounded cream roof, an open yellow door, and a green plant"
+    "photos": {
+      "cover": "A living room with a light oak floor, a grey three-seat sofa, a tall window, and a white door. Synthetic photo.",
+      "bedroom": "A bedroom with grey carpet, a double bed with white linen, a window, and a built-in wardrobe. Synthetic photo.",
+      "stagingBefore": "An empty room with a light oak floor, a window with a radiator beneath it, and a white door. Synthetic photo.",
+      "stagingAfter": "The same room with a bed and a bedside table added. Synthetic photo, virtually staged."
     }
   },
   "notFound": {
@@ -598,8 +612,6 @@
     "title": "See Evidomo at work",
     "intro": "Replay a finished sample run: watch the steps, then open both review gates, the evidence behind every claim, and the listing pack. No account needed.",
     "bannerLabel": "About this demo",
-    "bannerTitle": "Demo: a replay of a sample run",
-    "bannerText": "The data is invented. Nothing here is live, nothing is sent to a model, and nothing you do is saved.",
     "controls": "Replay controls",
     "speed": "Replay speed",
     "restart": "Replay from the start",
@@ -630,6 +642,22 @@
         "title": "Listing pack — Evidomo demo",
         "loading": "Loading the pack…"
       }
+    },
+    "runningHead": "A replay of a synthetic run. Nothing you do here is saved.",
+    "opening": "Opening the sample file…",
+    "coverLabel": "The sample file",
+    "tabsLabel": "Sections of the sample file",
+    "tabs": {
+      "monitor": "Walkthrough",
+      "conflicts": "Conflicts",
+      "review": "Review",
+      "pack": "Pack"
+    },
+    "tabLines": {
+      "monitor": "{done} of {total} steps done.",
+      "conflicts": "{count, plural, one {# conflict} other {# conflicts}} found, {open} open.",
+      "review": "{flagged, plural, one {# claim} other {# claims}} flagged, {images, plural, one {# staged image} other {# staged images}} offered.",
+      "pack": "{files, plural, one {# file} other {# files}} built. {ready, select, yes {Ready to publish.} other {Not ready to publish.}}"
     }
   },
   "conflicts": {
@@ -962,5 +990,10 @@
     "title": "Something went wrong",
     "text": "The server could not handle this request. Try again in a moment; your saved work is not affected.",
     "home": "Back to the start"
+  },
+  "stamps": {
+    "verified": "Verified",
+    "decision": "Needs your decision",
+    "sample": "Sample file"
   }
 }

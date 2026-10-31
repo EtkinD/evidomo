@@ -17,6 +17,7 @@ import {
 import { projectKey, useUpdateProject } from '../lib/projects';
 import { Field } from './FormField';
 import { OfficeProfileFields } from './OfficeProfileFields';
+import { Note } from './Note';
 
 const ID = 'details';
 
@@ -172,22 +173,22 @@ export function ProjectDetailsForm({
   return (
     <form noValidate onSubmit={onSubmit} className="flex flex-col gap-4">
       {locked && (
-        <div role="note" className="alert alert-info">
+        <Note tone="info" role="note">
           <span>{t('officeLocked')}</span>
-        </div>
+        </Note>
       )}
       {formError !== null && (
-        <div role="alert" className="alert alert-error">
+        <Note tone="error" role="alert">
           <span>{formError}</span>
-        </div>
+        </Note>
       )}
       {conflict && (
-        <div role="alert" className="alert alert-warning">
+        <Note tone="warning" role="alert">
           <span>{t('changedElsewhere')}</span>
           <button type="button" className="btn min-h-11" onClick={discardEdits}>
             {t('loadSaved')}
           </button>
-        </div>
+        </Note>
       )}
       <Field id={`${ID}-title`} label={t('title')} required error={errors.title}>
         {(control) => (

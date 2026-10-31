@@ -7,6 +7,7 @@ import { ApiRequestError } from '../lib/api';
 import { setFlash } from '../lib/flash';
 import { useDeleteProject } from '../lib/projects';
 import { describeRequestFailure } from '../lib/request-failure';
+import { Note } from './Note';
 
 type Problem = { kind: 'run_in_progress' } | { kind: 'message'; message: string };
 
@@ -109,9 +110,9 @@ export function DeleteProject({ detail }: { detail: ProjectDetailResponse }) {
           </h2>
           {gone ? (
             <>
-              <div role="alert" className="alert alert-info">
+              <Note tone="info" role="alert">
                 <span>{t('gone')}</span>
-              </div>
+              </Note>
               <div className="modal-action">
                 <Link href="/projects" className="btn btn-primary min-h-11">
                   {t('goToProjects')}
@@ -130,19 +131,19 @@ export function DeleteProject({ detail }: { detail: ProjectDetailResponse }) {
                 <p className="text-sm text-base-content/70">{t('spend')}</p>
               </div>
               {problem?.kind === 'run_in_progress' && (
-                <div role="alert" className="alert alert-warning alert-vertical items-start">
+                <Note tone="warning" role="alert">
                   <span>{t('runInProgress')}</span>
                   {runId !== null && (
                     <Link href={`/runs/${runId}`} className="btn min-h-11">
                       {t('openMonitor')}
                     </Link>
                   )}
-                </div>
+                </Note>
               )}
               {problem?.kind === 'message' && (
-                <div role="alert" className="alert alert-error">
+                <Note tone="error" role="alert">
                   <span>{problem.message}</span>
-                </div>
+                </Note>
               )}
               {pending && (
                 <p role="status" className="text-sm text-base-content/70">

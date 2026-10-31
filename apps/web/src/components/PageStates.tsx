@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { useTranslations } from 'use-intl';
 import { ApiRequestError } from '../lib/api';
 import { withNext } from '../lib/next-path';
+import { Note } from './Note';
 
 /**
  * Loading placeholder: a status line with text plus quiet skeleton cards of about the final
@@ -42,22 +43,22 @@ export function LoadError({
   const router = useRouter();
   if (error instanceof ApiRequestError && error.status === 401) {
     return (
-      <div role="alert" className="alert alert-warning">
+      <Note tone="warning" role="alert">
         <span>{t('sessionEnded')}</span>
         <Link href={withNext('/login', router.asPath)} className="btn min-h-11">
           {t('logIn')}
         </Link>
-      </div>
+      </Note>
     );
   }
   return (
-    <div role="alert" className="alert alert-error">
+    <Note tone="error" role="alert">
       <span>{message}</span>
       {onRetry !== undefined && (
         <button type="button" className="btn min-h-11" onClick={onRetry}>
           {t('tryAgain')}
         </button>
       )}
-    </div>
+    </Note>
   );
 }

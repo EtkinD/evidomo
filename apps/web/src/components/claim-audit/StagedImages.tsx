@@ -9,6 +9,7 @@ import { describeAuditFailure, type ClaimAuditActions } from '../../lib/claim-au
 import type { Translator } from '../../lib/i18n';
 import { humanize } from '../../lib/project-view';
 import { useEvidenceUrls } from '../evidence/EvidenceProvider';
+import { Stamp } from '../Stamp';
 
 // The scaffolding is translated; reasons, targets, and class labels come from the pipeline.
 const attemptText = (t: Translator<'claimAudit'>, attempt: IntegrityAttemptSummary): string => {
@@ -67,9 +68,9 @@ function Photos({
             loading="lazy"
             className="w-full bg-base-200 object-contain"
           />
-          <figcaption className="badge badge-secondary h-auto w-fit whitespace-normal py-1 text-left">
+          <Stamp tone="staged" as="figcaption">
             {stagedLabel}
-          </figcaption>
+          </Stamp>
         </figure>
       )}
     </div>
@@ -88,6 +89,7 @@ function ImageCard({
   actions: ClaimAuditActions;
 }) {
   const t = useTranslations('claimAudit');
+  const tStamp = useTranslations('stamps');
   const tApi = useTranslations('apiErrors');
   const format = useFormatter();
   const urls = useEvidenceUrls();
@@ -117,10 +119,9 @@ function ImageCard({
       >
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="text-xl font-medium">{operation}</h3>
-          <span className={`badge gap-1 ${decision === null ? 'badge-warning' : 'badge-success'}`}>
-            <span aria-hidden>{decision === null ? '!' : '✓'}</span>
-            {decision === null ? t('open') : t('decided')}
-          </span>
+          <Stamp tone={decision === null ? 'decision' : 'kept'}>
+            {decision === null ? tStamp('decision') : t('decided')}
+          </Stamp>
         </div>
         <Photos
           original={urls.materialFile(image.materialId)}

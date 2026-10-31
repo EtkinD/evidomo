@@ -6,16 +6,19 @@ export const PAGE_TITLE_CLASS = 'text-4xl leading-tight font-medium tracking-tig
 /**
  * A page of the dossier: one paper sheet resting on the desk (the page background). `bare` drops
  * the sheet and puts the content straight on the desk, for screens that carry their own printed
- * page (the pack). `banner` sits above the sheet (the demo banner).
+ * page (the pack). `banner` sits above the sheet (the demo's cover and folder tabs); `head` is
+ * the running head at the top of the sheet (on the desk, above the page, when `bare`).
  */
 export function DossierPage({
   widthClass,
   banner,
+  head,
   bare = false,
   children,
 }: {
   widthClass: string;
   banner?: ReactNode;
+  head?: ReactNode;
   bare?: boolean;
   children: ReactNode;
 }) {
@@ -24,10 +27,16 @@ export function DossierPage({
       <div className={`mx-auto flex flex-col gap-5 ${widthClass}`}>
         {banner}
         {bare ? (
-          <div className="flex flex-col gap-6">{children}</div>
+          <div className="flex flex-col gap-6">
+            {head}
+            {children}
+          </div>
         ) : (
           <section className="grain bg-base-100 shadow-sheet">
-            <div className="flex flex-col gap-6 p-5 sm:p-8">{children}</div>
+            <div className="flex flex-col gap-6 p-5 sm:p-8">
+              {head}
+              {children}
+            </div>
           </section>
         )}
       </div>

@@ -24,21 +24,19 @@ import { PAGE_TITLE_CLASS } from './DossierPage';
 import { EvidenceProvider } from './evidence/EvidenceProvider';
 import { labelsFor } from './FactConflicts';
 import { LoadErrorState, LoadingState, RunNotFound, SessionExpiredState } from './RunMonitor';
+import { Note } from './Note';
 
 function Warnings({ lines }: { lines: string[] }) {
   const t = useTranslations('claimAudit');
   if (lines.length === 0) return null;
   return (
-    <div role="region" aria-label={t('warningsLabel')} className="alert alert-warning">
+    <Note tone="warning" role="region" label={t('warningsLabel')}>
       <ul className="flex flex-col gap-1">
         {lines.map((line) => (
-          <li key={line}>
-            <span aria-hidden>⚠ </span>
-            {line}
-          </li>
+          <li key={line}>{line}</li>
         ))}
       </ul>
-    </div>
+    </Note>
   );
 }
 
@@ -276,22 +274,22 @@ export function ClaimAuditView({
         </div>
 
         {data.state === 'not_reached' && (
-          <div role="status" className="alert alert-info">
+          <Note tone="info" role="status">
             <span>{t('notReached')}</span>
-          </div>
+          </Note>
         )}
         {data.state === 'suspended' && (
-          <div role="alert" className="alert alert-warning">
+          <Note tone="warning" role="alert">
             <span>{t('suspended')}</span>
-          </div>
+          </Note>
         )}
         {data.state === 'released' && (
-          <div role="status" className="alert alert-info alert-vertical sm:alert-horizontal">
+          <Note tone="info" role="status" split>
             <span>{demo ? t('releasedDemo') : t('released')}</span>
             <Link href={source.hrefs.pack(runId)} className="btn btn-primary min-h-11">
               {t('openPack')}
             </Link>
-          </div>
+          </Note>
         )}
 
         {data.state !== 'not_reached' && (

@@ -5,6 +5,7 @@ import { useTranslations } from 'use-intl';
 import { useDeleteMaterial, useRefreshProject } from '../lib/materials';
 import { usePhotoUploads, type PhotoItem } from '../lib/photo-upload-queue';
 import { describeRequestFailure } from '../lib/request-failure';
+import { Note } from './Note';
 
 function Thumbnail({ src, label }: { src: string; label: string }) {
   const t = useTranslations('capture');
@@ -276,9 +277,9 @@ export function PhotoCapture({
         </div>
 
         {locked ? (
-          <div role="note" className="alert alert-info">
+          <Note tone="info" role="note">
             <span>{t('photos.locked')}</span>
-          </div>
+          </Note>
         ) : (
           <div className="flex flex-col gap-2 sm:flex-row">
             <input
@@ -323,16 +324,16 @@ export function PhotoCapture({
           <p className="text-sm text-base-content/70">{t('photos.full', { max: photos.max })}</p>
         )}
         {state.notice !== null && (
-          <div role="alert" className="alert alert-warning">
+          <Note tone="warning" role="alert">
             <span>{state.notice}</span>
-          </div>
+          </Note>
         )}
         {remove.isError && (
-          <div role="alert" className="alert alert-error">
+          <Note tone="error" role="alert">
             <span>
               {t('photos.deleteFailed', { reason: describeRequestFailure(tApi, remove.error) })}
             </span>
-          </div>
+          </Note>
         )}
 
         {stored.length === 0 && state.items.length === 0 ? (

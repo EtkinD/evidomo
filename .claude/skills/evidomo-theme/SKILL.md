@@ -9,7 +9,7 @@ This skill is the living design system of the web app. The user's UI feedback is
 
 ## 1. Choice order: daisyUI → Tailwind → raw CSS
 
-1. **daisyUI component or modifier.** `btn btn-primary`, `card`, `fieldset`, `input input-error`, `alert alert-error`, `badge`, `navbar`, `loading loading-spinner`. Look for a modifier before composing utilities (`btn-sm`, `btn-ghost`, `card-border`).
+1. **daisyUI component or modifier.** `btn btn-primary`, `card`, `fieldset`, `input input-error`, `badge`, `navbar`, `loading loading-spinner`. Look for a modifier before composing utilities (`btn-sm`, `btn-ghost`, `card-border`).
 2. **Tailwind utilities** for layout and spacing that daisyUI does not cover: `flex`, `gap-4`, `px-4`, `max-w-sm`, `sm:items-center`, `truncate`.
 3. **Raw CSS** only when neither can express it. It goes in `apps/web/src/styles/globals.css` as an `@utility` or `@layer components` rule, with a comment saying why. Never in component files, `style` props, or CSS modules.
 
@@ -79,10 +79,10 @@ These match the code as it is. Prefer them over new markup.
   Log in
 </button>
 
-// Form-level error
-<div role="alert" className="alert alert-error">
+// Form-level error (a dossier note: left rule in the status colour, icon, text)
+<Note tone="error" role="alert">
   <span>Email or password is incorrect.</span>
-</div>
+</Note>
 
 // Field with title, helper text, and error (daisyUI fieldset)
 <fieldset className="fieldset">
@@ -97,8 +97,38 @@ Shared building blocks (P4B-06), use them instead of re-creating the pattern:
 
 - **Page states:** `components/PageStates.tsx` (`LoadingBlock`, `LoadError`; a 401 links to log in with `next`) for project and capture screens; the run, gate, and pack screens use `LoadingState`, `SessionExpiredState`, `LoadErrorState`, and `RunNotFound` from `components/RunMonitor.tsx`.
 - **Run status:** `components/RunStatusBadge.tsx` (text plus icon, never colour alone); step names from `lib/step-labels.ts`.
-- **Demo screens (P4-09):** `components/demo/` (`DemoBanner` on every demo page, `ReplayControls`, `DemoRunFrame`); the run screens read `useRunSource()` (`lib/run-source.tsx`) and a demo never renders a write control (absent, not disabled).
+- **Demo screens (P4-09, round 5):** `components/demo/` (`DemoRunningHead` at the top of every demo sheet, `DemoFolder` cover and folder tabs, `ReplayControls`, `DemoRunFrame`); the run screens read `useRunSource()` (`lib/run-source.tsx`) and a demo never renders a write control (absent, not disabled).
 - **Whole-card link:** the card title is the link (`min-h-11`) with `after:absolute after:inset-0` on a `relative` card; any other action in the card gets `relative z-10`.
+
+### Round 5 recipes: note, stamp, source note
+
+```tsx
+// Note (components/Note.tsx): replaces every daisyUI alert box. tone = info | success | warning |
+// error; role = alert | status | note | region (+ label). `split` puts a button beside the text
+// from sm up. The icon is generated content (not in the text), so tests read just the message.
+<Note tone="success" role="status" split>
+  <span>Saved.</span>
+  <Link className="btn min-h-11" href="/projects">Back</Link>
+</Note>
+
+// Stamp (components/Stamp.tsx): a state of the evidence as an ink stamp. tone = verified |
+// decision | kept | removed | staged | sample. Outlined, uppercase, letter-spaced, wraps; the mark
+// is generated content. Run status stays a badge (a stamp would crowd the step ledger).
+<Stamp tone="verified">Verified</Stamp>
+<Stamp tone="staged" as="figcaption">Virtually staged</Stamp>
+
+// Source note (components/landing/sources.tsx): <Sourced id> marks a claim in running text
+// (thin honey band + number) and <SourceNotes ids> shows its margin note, both only while
+// "Show sources" is on. The ids and their references live in lib/landing-sources.ts, one entry
+// per claim: sample run screen, eval report, enforced in code (file), product rule (section).
+<p><Sourced id="photos">11 photos are read…</Sourced></p>
+<SourceNotes ids={['photos']} />
+```
+
+Rules for them: status colours only through tokens (`warning` and `accent` never as text; the
+note's rule may be `border-warning`); a claim without an entry in `landing-sources.ts` does not
+go on the landing page; the facts in `lib/sample-run.ts` are tied to the fixtures by
+`sample-run.test.ts`.
 
 ## 5. Helpers
 
@@ -127,3 +157,4 @@ When the user comments on the look or feel:
 - **2026-10-30 — Redesign round 2: five languages.** The founder asked for Turkish, English, Dutch, Italian, and Spanish, following the browser language with English as the fallback. The language switcher sits in the footer colophon next to the theme switch: each language is written in itself, the current one carries the honey underline (as the active header link does), targets are 44 px. Text runs 20-40 percent longer in Dutch, Italian, and Spanish, so layouts must wrap, never truncate or set fixed widths on text; the landing headline is three independent line masks, and each locale supplies its own three lines. Newsreader now also loads `latin-ext` (Turkish ğ ş ı İ).
 - **2026-10-31 — Redesign rounds 1–2 approved and merged.** The founder approved the annotated-dossier direction and the five-language UI (English, Turkish, Dutch, Italian, Spanish) with per-locale Open Graph images, including the Turkish wording as delivered. Still in the earlier look: run monitor, Gate 1, Gate 2, auth, and pack screens (a later redesign round).
 - **2026-10-31 — Redesign round 3: the dossier reaches the work screens (approved by the founder on 2026-10-31, with round 4: translated profile labels).** Every run screen is a paper sheet on the desk (`components/DossierPage.tsx`, `PAGE_TITLE_CLASS`): the run monitor's steps are ledger lines (number, label, dotted leader, status badge, trace); Gate 1 shows each conflict on a desk (`bg-base-200`) with the competing values as two source sheets and the evidence as numbered annotations; Gate 2 sets the copy in serif, marks each claim with a footnote number, highlights the selected claim in honey, and draws a leader line across the gutter to the evidence panel; staged photos are two tilted prints; the pack is a printed page lying on the desk (no outer sheet); auth is a single grain sheet with a double-ruled heading. Failure UX (P5-03) and project deletion follow the same language: a failed run is a margin note with a red left rule (which step, the API's reason quoted, what is kept, one next action); destructive confirmation is a native `<dialog>` that opens on the safe button.
+- **2026-10-31 — Redesign round 5: "The audited page" (in review, not yet approved).** Concept in `docs/design/audited-page.md`. The landing page makes the product's promise about itself: a first screen with one real sentence of the sample run whose claims open their evidence (1987 with its voice turn and the form's 1986), a ledger "What happened to this listing" with the run's ten steps and two stops (real counts, `lib/sample-run.ts`), "The numbers, and their limits" (the README eval table, limits as margin notes, including a slip the audit would not catch), and "What it will not do". The bold move is the **Show sources** switch (masthead on desktop, sticky bottom bar on a phone, `aria-pressed`, remembered in localStorage, `?sources=on`): every factual claim gets a honey band, a number, and a margin note naming its source (Sample run, Eval report, Enforced in code, Product rule). Removed: the three step rows, the 2×2 trust cards, the CTA band, the separate claims section, account buttons in the page body. Claims are a thin honey band (0.3em), only the selected specimen claim is solid, so light text on the dark theme is never set on honey. Work screens: dossier **notes** replace all alert boxes (`components/Note.tsx`), **stamps** carry evidence states on the gates and staged images (`components/Stamp.tsx`; run status stays a badge). Demo: the blue banner is a running head with a "Sample file" stamp; `/demo` opens the sample file directly when one run is published (`?tab=conflicts|review|pack` picks the screen) and lists several; a cover (property, market, language, finished date) and four folder tabs with one line each on this run sit on every demo screen. Sample photos for the specimen and ledger are web copies of the synthetic fixtures (`public/images/sample-run/`). No token changed (contrast check unchanged). Open for the founder: B2-HERO-1 and the other approved brand images are no longer on the landing page (files and `lib/landing-images.ts` kept); `/method` and `/privacy` in round 6 will replace the GitHub targets.

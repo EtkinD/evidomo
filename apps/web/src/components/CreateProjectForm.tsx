@@ -17,6 +17,7 @@ import { useCreateProject } from '../lib/projects';
 import { languageName, marketName } from '../lib/project-view';
 import { Field } from './FormField';
 import { OfficeProfileFields } from './OfficeProfileFields';
+import { Note } from './Note';
 
 const ID = 'create-project';
 
@@ -109,9 +110,9 @@ export function CreateProjectForm({ markets }: { markets: readonly MarketSummary
   return (
     <form noValidate onSubmit={onSubmit} className="flex flex-col gap-4">
       {formError !== null && (
-        <div role="alert" className="alert alert-error">
+        <Note tone="error" role="alert">
           <span>{formError}</span>
-        </div>
+        </Note>
       )}
 
       <Field id={`${ID}-title`} label={t('title')} required error={errors.title}>

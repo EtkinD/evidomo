@@ -14,6 +14,7 @@ import { getServerSideProps } from '../../lib/i18n-server';
 import type { NextPageWithAuth } from '../../lib/page-auth';
 import { languageName, marketName } from '../../lib/project-view';
 import { useMarketForm, useProject } from '../../lib/projects';
+import { Note } from '../../components/Note';
 
 export { getServerSideProps };
 
@@ -35,9 +36,9 @@ const ProjectPage: NextPageWithAuth = () => {
   if (project.isError) {
     const missing = project.error instanceof ApiRequestError && project.error.status === 404;
     body = missing ? (
-      <div role="alert" className="alert alert-error">
+      <Note tone="error" role="alert">
         <span>{tCommon('projectMissing')}</span>
-      </div>
+      </Note>
     ) : (
       <LoadError
         error={project.error}
@@ -82,9 +83,9 @@ const ProjectPage: NextPageWithAuth = () => {
               {t('facts')}
             </h2>
             {locked && (
-              <div role="note" className="alert alert-info">
+              <Note tone="info" role="note">
                 <span>{t('factsLocked')}</span>
-              </div>
+              </Note>
             )}
             {market.isPending && <LoadingBlock label={t('loadingFacts')} cards={1} />}
             {market.isError && (

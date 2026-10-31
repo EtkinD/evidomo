@@ -13,7 +13,7 @@ test.describe('demo, signed out', () => {
       page.getByRole('heading', { level: 1, name: 'See Evidomo at work' }),
     ).toBeVisible();
     await expect(page.getByRole('region', { name: 'About this demo' })).toContainText(
-      'replay of a sample run',
+      'replay of a synthetic run',
     );
     // Either the explanation (nothing published) or the runs (a stack that has one); never a
     // login redirect or a dead end.
@@ -25,7 +25,11 @@ test.describe('demo, signed out', () => {
 
   test('the landing page links to the demo', async ({ page }) => {
     await page.goto('/');
-    await page.getByRole('main').getByRole('link', { name: 'See a finished run' }).first().click();
+    await page
+      .getByRole('main')
+      .getByRole('link', { name: 'Open the sample file' })
+      .first()
+      .click();
     await expect(page).toHaveURL(/\/demo$/);
   });
 

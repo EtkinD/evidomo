@@ -1,87 +1,80 @@
-import { screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, screen, within } from '@testing-library/react';
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DEMO_HREF } from '../components/landing/LandingPage';
-import { LANDING_IMAGES, landingSrc } from '../lib/landing-images';
+import { SAMPLE_PHOTOS, samplePhotoSrc } from '../lib/sample-run';
+import { resetShowSources, SOURCES_STORAGE_KEY } from '../lib/sources';
 import Home from '../pages/index';
 import { setRoute } from './router-mock';
 import { meSignedIn, meSignedOut, mockFetch, renderPage } from './test-utils';
 
 vi.mock('next/router', () => import('./router-mock'));
 
-async function renderSignedOut(): Promise<HTMLElement> {
-  setRoute('/');
+beforeEach(() => {
+  window.localStorage.clear();
+  resetShowSources();
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+  cleanup();
+});
+
+function renderLanding(route = '/'): HTMLElement {
+  setRoute(route);
   mockFetch({ 'GET /api/auth/me': meSignedOut });
   renderPage(Home);
-  const main = screen.getByRole('main');
-  // The calls to action appear once the session check settles.
-  await within(main).findAllByRole('link', { name: 'Create account' });
-  return main;
+  return screen.getByRole('main');
 }
 
-describe('landing page, signed out', () => {
-  it('leads with the product promise as the only h1', async () => {
-    await renderSignedOut();
+/** The switch exists twice in the DOM (masthead on desktop, sticky bar on a phone). */
+const switches = () => screen.getAllByRole('button', { name: 'Show sources' });
+
+describe('landing page: structure', () => {
+  it('leads with the product promise as the only h1', () => {
+    renderLanding();
     expect(
       screen.getByRole('heading', {
         level: 1,
         name: 'Every claim in your listing, linked to its evidence.',
       }),
     ).toBeDefined();
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
   });
 
-  it('offers Create account (primary) and Log in in the hero and the closing band', async () => {
-    const main = await renderSignedOut();
-
-    const create = within(main).getAllByRole('link', { name: 'Create account' });
-    const login = within(main).getAllByRole('link', { name: 'Log in' });
-    expect(create).toHaveLength(2);
-    expect(login).toHaveLength(2);
-    for (const link of create) expect(link.getAttribute('href')).toBe('/register');
-    for (const link of login) expect(link.getAttribute('href')).toBe('/login');
-    expect(create[0]?.className).toContain('btn-primary');
-    // One primary button in the page body; the closing band uses a light button on clay.
-    expect(main.querySelectorAll('.btn-primary')).toHaveLength(1);
-  });
-
-  it('links to the public demo from the hero and the closing band', async () => {
-    const main = await renderSignedOut();
-
+  it('has one action, Open the sample file, and no account buttons in the page body', async () => {
+    const main = renderLanding();
     expect(DEMO_HREF).toBe('/demo');
-    const demo = within(main).getAllByRole('link', { name: 'See a finished run' });
-    expect(demo).toHaveLength(2);
-    for (const link of demo) expect(link.getAttribute('href')).toBe('/demo');
-    for (const link of within(main).getAllByRole('link')) {
-      expect(['/register', '/login', '/demo']).toContain(link.getAttribute('href'));
-    }
+    // The action is in the first screen (desktop) and in the sticky bar (phone), one visible each.
+    const open = within(main).getAllByRole('link', { name: 'Open the sample file' });
+    expect(open.length).toBeGreaterThanOrEqual(2);
+    for (const link of open) expect(link.getAttribute('href')).toBe('/demo');
+    expect(within(main).queryByRole('link', { name: 'Create account' })).toBeNull();
+    expect(within(main).queryByRole('link', { name: 'Log in' })).toBeNull();
+    // Accounts live in the masthead.
+    expect(
+      await within(screen.getByRole('banner')).findByRole('link', { name: 'Create account' }),
+    ).toBeDefined();
   });
-});
 
-describe('landing page, signed in', () => {
-  it('sends the signed-in agent to the projects and hides sign-up', async () => {
+  it('shows Projects in the masthead for a signed-in agent, with the same page body', async () => {
     setRoute('/');
     mockFetch({ 'GET /api/auth/me': meSignedIn });
     renderPage(Home);
-    const main = screen.getByRole('main');
-
-    const links = await within(main).findAllByRole('link', { name: 'Go to your projects' });
-    expect(links).toHaveLength(2);
-    for (const link of links) expect(link.getAttribute('href')).toBe('/projects');
-    expect(within(main).queryByRole('link', { name: 'Create account' })).toBeNull();
-    expect(within(main).queryByRole('link', { name: 'Log in' })).toBeNull();
-    expect(main.querySelectorAll('.btn-primary')).toHaveLength(1);
+    expect(
+      await within(screen.getByRole('banner')).findByRole('link', { name: 'Projects' }),
+    ).toBeDefined();
+    expect(
+      within(screen.getByRole('main')).queryByRole('link', { name: 'Create account' }),
+    ).toBeNull();
   });
-});
 
-describe('landing page content', () => {
-  it('orders headings: one h1, then h2 sections with h3 items, no skipped level', async () => {
-    const main = await renderSignedOut();
-
-    const headings = within(main).getAllByRole('heading');
-    expect(headings.filter((h) => h.tagName === 'H1')).toHaveLength(1);
-    expect(headings[0]?.tagName).toBe('H1');
-    const levels = headings.map((h) => Number(h.tagName.slice(1)));
+  it('orders headings: one h1, h2 sections for the ledger, numbers, and boundaries', () => {
+    const main = renderLanding();
+    const levels = within(main)
+      .getAllByRole('heading')
+      .map((h) => Number(h.tagName.slice(1)));
     levels.forEach((level, i) => {
       if (i > 0) expect(level - (levels[i - 1] ?? 0)).toBeLessThanOrEqual(1);
     });
@@ -90,59 +83,198 @@ describe('landing page content', () => {
         .getAllByRole('heading', { level: 2 })
         .map((h) => h.textContent),
     ).toEqual([
-      'From a walk-through to a pack you can defend',
-      'Every claim has a source',
-      'Built to be checked',
-      'Ready for your next listing?',
+      'What happened to this listing',
+      'The numbers, and their limits',
+      'What it will not do',
     ]);
+    // The ledger lists the run's ten steps and its two stops.
     expect(
-      within(main)
-        .getAllByRole('heading', { level: 3 })
-        .slice(0, 3)
-        .map((h) => h.textContent),
-    ).toEqual(['Capture', 'Verify', 'Pack']);
+      within(main).getByRole('heading', { name: 'Review 1 of 2: fact conflicts' }),
+    ).toBeDefined();
+    expect(within(main).getByRole('heading', { name: 'Checking every claim' })).toBeDefined();
   });
 
-  it('gives every image alt text and intrinsic size, and loads only the hero eagerly', async () => {
-    const main = await renderSignedOut();
+  it('removed the template sections', () => {
+    const main = renderLanding();
+    const text = main.textContent ?? '';
+    expect(text).not.toMatch(
+      /Ready for your next listing|Built to be checked|Capture.*Verify.*Pack/,
+    );
+  });
 
-    const images = within(main).getAllByRole('img');
-    const photos = images.filter((img) => img.tagName === 'IMG');
-    expect(photos).toHaveLength(5);
+  it('lazy-loads every sample photo, with alt text, intrinsic size, and files that exist', () => {
+    const main = renderLanding();
+    const photos = within(main).getAllByRole('img');
+    expect(photos.length).toBeGreaterThanOrEqual(3);
     for (const img of photos) {
       expect(img.getAttribute('alt')?.length ?? 0).toBeGreaterThan(20);
       expect(Number(img.getAttribute('width'))).toBeGreaterThan(0);
       expect(Number(img.getAttribute('height'))).toBeGreaterThan(0);
-      expect(img.getAttribute('srcset')).toContain('640w');
-      expect(img.getAttribute('sizes')).toBeTruthy();
+      expect(img.getAttribute('srcset')).toContain('480w');
+      expect(img.getAttribute('loading')).toBe('lazy');
     }
-    const [hero, ...rest] = photos;
-    expect(hero?.getAttribute('loading')).toBe('eager');
-    expect(hero?.getAttribute('fetchpriority')).toBe('high');
-    for (const img of rest) expect(img.getAttribute('loading')).toBe('lazy');
-  });
-
-  it('references only files that exist in public/images/landing', () => {
-    for (const image of Object.values(LANDING_IMAGES)) {
-      for (const width of image.widths) {
-        expect(existsSync(resolve(__dirname, '../../public', `.${landingSrc(image, width)}`))).toBe(
-          true,
-        );
+    for (const photo of Object.values(SAMPLE_PHOTOS)) {
+      for (const width of photo.widths) {
+        expect(
+          existsSync(resolve(__dirname, '../../public', `.${samplePhotoSrc(photo, width)}`)),
+        ).toBe(true);
       }
     }
   });
 
-  it('makes no claim the product does not back', async () => {
-    const main = await renderSignedOut();
-    const text = main.textContent ?? '';
-
-    // Hosting is not deployed yet.
+  it('keeps clear of claims the product does not back', () => {
+    const text = renderLanding().textContent ?? '';
     expect(text).not.toMatch(/\bEU\b|\bGDPR\b|Europe/);
-    // No performance figures, prices, or percentages: none are published or sourced.
-    expect(text).not.toMatch(/\d+\s*%|\bminutes?\b|\bhours?\b|\$|€|£/i);
-    // No social proof or guarantees.
-    expect(text).not.toMatch(/testimonial|trusted by|customers|award|guarantee|100%|never wrong/i);
-    // The product never promises compliance, valuations, or portal publishing.
+    // (No "guarantee" here: the page says that only market facts are guaranteed by code, a limit.)
+    expect(text).not.toMatch(/testimonial|trusted by|customers|award|100%|never wrong/i);
     expect(text).toMatch(/does not certify legal compliance/);
+    // The limits are stated on the page, not only in the README.
+    expect(text).toMatch(/one synthetic apartment/);
+  });
+});
+
+describe('landing page: the specimen', () => {
+  it('opens the first claim on load, with its voice turn and the form value it replaced', () => {
+    renderLanding();
+    const year = screen.getByRole('button', { name: /Build year/ });
+    expect(year.getAttribute('aria-pressed')).toBe('true');
+    const evidence = screen.getByRole('region', { name: /What “1987” rests on/ });
+    expect(evidence.textContent).toContain('Voice walkthrough, turn at 00:11');
+    expect(evidence.textContent).toContain('“in 1987 gebouwd”');
+    expect(evidence.textContent).toContain('Build year: 1986');
+    expect(evidence.textContent).toContain('the spoken 1987 was kept');
+    expect(within(evidence).getByText('Verified')).toBeDefined();
+    expect(within(evidence).getByText('Not used')).toBeDefined();
+  });
+
+  it('moves the evidence with the selected claim', () => {
+    renderLanding();
+    fireEvent.click(screen.getByRole('button', { name: /Energy label/ }));
+    expect(screen.getByRole('button', { name: /Energy label/ }).getAttribute('aria-pressed')).toBe(
+      'true',
+    );
+    expect(screen.getByRole('button', { name: /Build year/ }).getAttribute('aria-pressed')).toBe(
+      'false',
+    );
+    const evidence = screen.getByRole('region', { name: /energy label B/ });
+    expect(evidence.textContent).toContain('Energy label: B');
+    expect(evidence.textContent).toContain('“Het energielabel is B”');
+    expect(evidence.textContent).toContain('turn at 02:37');
+    expect(evidence.textContent).not.toContain('1986');
+  });
+
+  it('keeps the model sentence in English and marks the Dutch quotes', () => {
+    const main = renderLanding();
+    const sentence = main.querySelector('blockquote[lang="en"]');
+    expect(sentence?.textContent).toContain('The building dates from 1987');
+    expect(screen.getByText('“in 1987 gebouwd”').getAttribute('lang')).toBe('nl');
+  });
+});
+
+describe('landing page: Show sources', () => {
+  it('is off by default: no notes, no highlights outside the specimen', () => {
+    const main = renderLanding();
+    for (const button of switches()) expect(button.getAttribute('aria-pressed')).toBe('false');
+    expect(main.querySelectorAll('[data-source-note]')).toHaveLength(0);
+    expect(main.querySelectorAll('[data-claim-source]')).toHaveLength(0);
+  });
+
+  it('turns every claim into a numbered, highlighted claim with a source note', () => {
+    const main = renderLanding();
+    fireEvent.click(switches()[0] as HTMLElement);
+    for (const button of switches()) expect(button.getAttribute('aria-pressed')).toBe('true');
+
+    const notes = main.querySelectorAll('[data-source-note]');
+    const marks = main.querySelectorAll('[data-claim-source]');
+    expect(marks.length).toBeGreaterThanOrEqual(20);
+    // Every highlighted claim has its note, and the other way round.
+    expect([...notes].map((n) => n.getAttribute('data-source-note')).sort()).toEqual(
+      [...marks].map((m) => m.getAttribute('data-claim-source')).sort(),
+    );
+    // Each note names a source type and links somewhere real.
+    for (const note of notes) {
+      expect(within(note as HTMLElement).getAllByRole('link').length).toBeGreaterThan(0);
+    }
+    const kinds = new Set(
+      [...main.querySelectorAll('[data-source-note] li > span')].map((s) => s.textContent),
+    );
+    expect(kinds).toEqual(
+      new Set(['Sample run', 'Eval report', 'Enforced in code', 'Product rule']),
+    );
+  });
+
+  it('points code notes at GitHub on main and sample notes at the sample file', () => {
+    const main = renderLanding();
+    fireEvent.click(switches()[0] as HTMLElement);
+    const hrefs = within(main)
+      .getAllByRole('link')
+      .map((link) => link.getAttribute('href') ?? '');
+    expect(hrefs).toContain(
+      'https://github.com/EtkinD/evidomo/blob/main/apps/api/src/media/image.ts',
+    );
+    expect(hrefs).toContain('https://github.com/EtkinD/evidomo/blob/main/README.md#eval-results');
+    expect(hrefs).toContain('/demo?tab=conflicts');
+  });
+
+  it('is remembered per viewer', () => {
+    renderLanding();
+    fireEvent.click(switches()[0] as HTMLElement);
+    expect(window.localStorage.getItem(SOURCES_STORAGE_KEY)).toBe('on');
+
+    cleanup();
+    resetShowSources();
+    renderLanding();
+    for (const button of switches()) expect(button.getAttribute('aria-pressed')).toBe('true');
+
+    fireEvent.click(switches()[0] as HTMLElement);
+    expect(window.localStorage.getItem(SOURCES_STORAGE_KEY)).toBeNull();
+  });
+
+  it('can be turned on from the address with ?sources=on, without storing it', () => {
+    renderLanding('/?sources=on');
+    for (const button of switches()) expect(button.getAttribute('aria-pressed')).toBe('true');
+    expect(window.localStorage.getItem(SOURCES_STORAGE_KEY)).toBeNull();
+  });
+
+  it('works when storage is blocked: reading and writing fail, the switch still switches', () => {
+    const blocked = {
+      getItem: () => {
+        throw new DOMException('blocked', 'SecurityError');
+      },
+      setItem: () => {
+        throw new DOMException('blocked', 'SecurityError');
+      },
+      removeItem: () => {
+        throw new DOMException('blocked', 'SecurityError');
+      },
+    };
+    vi.stubGlobal('localStorage', blocked);
+    resetShowSources();
+    const main = renderLanding();
+    expect(switches()[0]?.getAttribute('aria-pressed')).toBe('false');
+
+    fireEvent.click(switches()[0] as HTMLElement);
+    expect(switches()[0]?.getAttribute('aria-pressed')).toBe('true');
+    expect(main.querySelectorAll('[data-source-note]').length).toBeGreaterThan(0);
+  });
+
+  it('is a real button: keyboard focusable, with the state written next to the label', () => {
+    renderLanding();
+    const button = switches()[0] as HTMLButtonElement;
+    expect(button.tagName).toBe('BUTTON');
+    expect(button.type).toBe('button');
+    expect(button.className).toContain('min-h-11');
+    expect(button.textContent).toContain('Off');
+    fireEvent.click(button);
+    expect(button.textContent).toContain('On');
+  });
+});
+
+describe('landing page: only the landing page has the switch', () => {
+  it('is not in the masthead of other pages', () => {
+    setRoute('/login');
+    mockFetch({ 'GET /api/auth/me': meSignedOut });
+    renderPage(() => <main />);
+    expect(screen.queryByRole('button', { name: 'Show sources' })).toBeNull();
   });
 });

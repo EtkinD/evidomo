@@ -12,6 +12,7 @@ import type { NextPageWithAuth } from '../lib/page-auth';
 import { languageName, marketName } from '../lib/project-view';
 import { LANDING_IMAGES, landingSrc, landingSrcSet } from '../lib/landing-images';
 import { useMarkets, useProjects } from '../lib/projects';
+import { Note } from '../components/Note';
 
 export { getStaticProps };
 
@@ -146,7 +147,7 @@ const ProjectsPage: NextPageWithAuth = () => {
           </div>
 
           {flash !== null && (
-            <div role="status" className="alert alert-success alert-vertical sm:alert-horizontal">
+            <Note tone="success" role="status" split>
               <span>
                 {flash.kind === 'project_deleted'
                   ? tDelete('deletedNotice', { title: flash.title })
@@ -155,7 +156,7 @@ const ProjectsPage: NextPageWithAuth = () => {
               <button type="button" className="btn min-h-11" onClick={() => setFlash(null)}>
                 {tDelete('dismiss')}
               </button>
-            </div>
+            </Note>
           )}
 
           {projects.isPending && <LoadingBlock label={t('loading')} cards={3} />}

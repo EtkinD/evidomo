@@ -11,6 +11,7 @@ import { stepLabel } from '../lib/step-labels';
 import { PAGE_TITLE_CLASS } from './DossierPage';
 import { FailureNotice } from './RunFailure';
 import type { RunMonitor as RunMonitorState, StreamState } from '../lib/use-run-monitor';
+import { Note } from './Note';
 
 // Labels are keys of the `run` messages, translated where the badge renders.
 const STEP_BADGES = {
@@ -353,12 +354,12 @@ function StreamNotice({
   const t = useTranslations('run');
   if (state === 'unavailable' && demo) {
     return (
-      <div role="alert" className="alert alert-warning alert-vertical sm:alert-horizontal">
+      <Note tone="warning" role="alert" split>
         <span>{t('replayStopped')}</span>
         <button type="button" className="btn min-h-11" onClick={onRetry}>
           {t('tryAgain')}
         </button>
-      </div>
+      </Note>
     );
   }
   if (state === 'reconnecting') {
@@ -371,12 +372,12 @@ function StreamNotice({
   }
   if (state === 'unavailable') {
     return (
-      <div role="alert" className="alert alert-warning alert-vertical sm:alert-horizontal">
+      <Note tone="warning" role="alert" split>
         <span>{t('liveUnavailable')}</span>
         <button type="button" className="btn min-h-11" onClick={onRetry}>
           {t('resumeLive')}
         </button>
-      </div>
+      </Note>
     );
   }
   return null;
@@ -527,12 +528,12 @@ export function LoadingState({ label, rows = 3 }: { label: string; rows?: number
 export function SessionExpiredState({ next }: { next: string }) {
   const t = useTranslations('run');
   return (
-    <div role="alert" className="alert alert-warning alert-vertical sm:alert-horizontal">
+    <Note tone="warning" role="alert" split>
       <span>{t('sessionExpired')}</span>
       <Link href={withNext('/login', next)} className="btn min-h-11">
         {t('logInAgain')}
       </Link>
-    </div>
+    </Note>
   );
 }
 
@@ -554,7 +555,7 @@ export function LoadErrorState({
   const limited = demo && error instanceof ApiRequestError && error.status === 429;
   const wait = error instanceof ApiRequestError ? error.retryAfterSeconds : null;
   return (
-    <div role="alert" className="alert alert-error alert-vertical sm:alert-horizontal">
+    <Note tone="error" role="alert" split>
       <span>
         {limited
           ? wait !== null && wait > 0 && wait <= 120
@@ -565,7 +566,7 @@ export function LoadErrorState({
       <button type="button" className="btn min-h-11" onClick={onRetry}>
         {t('tryAgain')}
       </button>
-    </div>
+    </Note>
   );
 }
 
@@ -586,20 +587,20 @@ export function RunNotFound() {
   const t = useTranslations('run');
   if (useRunSource().kind === 'demo') {
     return (
-      <div role="alert" className="alert alert-warning alert-vertical sm:alert-horizontal">
+      <Note tone="warning" role="alert" split>
         <span>{t('demoNotFound')}</span>
         <Link href="/demo" className="btn min-h-11">
           {t('seeDemoRuns')}
         </Link>
-      </div>
+      </Note>
     );
   }
   return (
-    <div role="alert" className="alert alert-warning alert-vertical sm:alert-horizontal">
+    <Note tone="warning" role="alert" split>
       <span>{t('notFound')}</span>
       <Link href="/projects" className="btn min-h-11">
         {t('goToProjects')}
       </Link>
-    </div>
+    </Note>
   );
 }

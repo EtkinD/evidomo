@@ -12,6 +12,7 @@ import { useLeaveGuard } from '../../../lib/leave-guard';
 import type { NextPageWithAuth } from '../../../lib/page-auth';
 import { readinessMessage } from '../../../lib/project-view';
 import { useProject } from '../../../lib/projects';
+import { Note } from '../../../components/Note';
 
 export { getServerSideProps };
 
@@ -33,9 +34,9 @@ const CapturePage: NextPageWithAuth = () => {
   if (project.isError) {
     const missing = project.error instanceof ApiRequestError && project.error.status === 404;
     body = missing ? (
-      <div role="alert" className="alert alert-error">
+      <Note tone="error" role="alert">
         <span>{tCommon('projectMissing')}</span>
-      </div>
+      </Note>
     ) : (
       <LoadError
         error={project.error}

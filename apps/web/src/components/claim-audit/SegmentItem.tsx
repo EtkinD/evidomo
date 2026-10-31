@@ -17,6 +17,7 @@ import {
   warningsFor,
   type ClaimAuditActions,
 } from '../../lib/claim-audit';
+import { Stamp } from '../Stamp';
 
 export interface ReviewContext {
   readOnly: boolean;
@@ -246,10 +247,7 @@ export function SegmentItem({
         <ul aria-label={t('flagsLabel')} className="flex flex-col gap-2 px-2">
           {segment.flags.map((flag, index) => (
             <li key={`${flag.category}-${index}`} className="flex flex-col gap-1">
-              <span className="badge badge-warning w-fit">
-                <span aria-hidden>⚑ </span>
-                {flagCategoryLabel(t, flag.category)}
-              </span>
+              <Stamp tone="decision">{flagCategoryLabel(t, flag.category)}</Stamp>
               <p className="text-sm">{flag.problem}</p>
               {flag.suggestion !== null && (
                 <p className="text-sm text-base-content/70">

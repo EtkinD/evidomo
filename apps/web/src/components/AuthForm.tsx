@@ -12,6 +12,7 @@ import {
   type AuthFormValues,
   type FieldErrors,
 } from '../lib/auth-form';
+import { Note } from './Note';
 
 interface AuthFormProps {
   mode: AuthFormMode;
@@ -104,9 +105,9 @@ export function AuthForm({ mode, mutation, loginHref }: AuthFormProps) {
   return (
     <form noValidate onSubmit={onSubmit} className="flex flex-col gap-4">
       {formError !== null && (
-        <div role="alert" className="alert alert-error">
+        <Note tone="error" role="alert">
           <span>{formError}</span>
-        </div>
+        </Note>
       )}
 
       <div className="fieldset">

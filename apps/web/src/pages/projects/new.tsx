@@ -6,6 +6,7 @@ import { LoadError, LoadingBlock } from '../../components/PageStates';
 import { getStaticProps } from '../../lib/i18n-server';
 import type { NextPageWithAuth } from '../../lib/page-auth';
 import { useMarkets } from '../../lib/projects';
+import { Note } from '../../components/Note';
 
 export { getStaticProps };
 
@@ -35,9 +36,9 @@ const NewProjectPage: NextPageWithAuth = () => {
                 />
               )}
               {markets.isSuccess && markets.data.markets.length === 0 && (
-                <div role="alert" className="alert alert-warning">
+                <Note tone="warning" role="alert">
                   <span>{t('noMarkets')}</span>
-                </div>
+                </Note>
               )}
               {markets.isSuccess && markets.data.markets.length > 0 && (
                 <CreateProjectForm markets={markets.data.markets} />

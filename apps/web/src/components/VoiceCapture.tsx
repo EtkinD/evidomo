@@ -9,6 +9,7 @@ import {
 } from '../lib/capture';
 import { useUploadVoiceMemo } from '../lib/materials';
 import { useVoiceRecorder } from '../lib/voice-recorder';
+import { Note } from './Note';
 
 interface Candidate {
   blob: Blob;
@@ -19,9 +20,9 @@ interface Candidate {
 
 function Alert({ children }: { children: ReactNode }) {
   return (
-    <div role="alert" className="alert alert-error">
+    <Note tone="error" role="alert">
       <span>{children}</span>
-    </div>
+    </Note>
   );
 }
 
@@ -232,9 +233,9 @@ export function VoiceCapture({
         )}
 
         {locked ? (
-          <div role="note" className="alert alert-info">
+          <Note tone="info" role="note">
             <span>{t('voice.locked')}</span>
-          </div>
+          </Note>
         ) : (
           <>
             {stored !== undefined && candidate === null && !recording && (
@@ -242,14 +243,14 @@ export function VoiceCapture({
             )}
 
             {unsupported && (
-              <div role="note" className="alert alert-warning">
+              <Note tone="warning" role="note">
                 <span>
                   {recorder.support.status === 'unsupported' &&
                   recorder.support.reason === 'insecure_context'
                     ? t('voice.insecure')
                     : t('voice.unsupported')}
                 </span>
-              </div>
+              </Note>
             )}
 
             {recorder.state.phase === 'requesting' && (

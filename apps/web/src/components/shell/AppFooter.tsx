@@ -1,9 +1,10 @@
 import { useTranslations } from 'use-intl';
+import { REPOSITORY_URL } from '../../lib/repository';
 import { Logo } from '../brand/Logo';
 import { LanguageSwitch } from './LanguageSwitch';
 import { ThemeSwitch } from './ThemeSwitch';
 
-export const REPOSITORY_URL = 'https://github.com/EtkinD/evidomo';
+export { REPOSITORY_URL };
 
 // A colophon, as at the back of a printed book: who made it, where the source is, and the
 // reader's settings.

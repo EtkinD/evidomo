@@ -4,6 +4,7 @@ import { useTranslations } from 'use-intl';
 import { useMe } from '../lib/auth';
 import { safeNextPath, withNext } from '../lib/next-path';
 import type { PageAuth } from '../lib/page-auth';
+import { Note } from './Note';
 
 function SessionCheck() {
   const t = useTranslations('auth');
@@ -42,12 +43,12 @@ export function RequireAuth({ children }: { children: ReactNode }) {
   if (me.isError) {
     return (
       <main className="flex flex-1 items-center justify-center p-4">
-        <div role="alert" className="alert alert-error max-w-md">
+        <Note tone="error" role="alert" className="max-w-md">
           <span>{t('sessionCheckFailed')}</span>
           <button type="button" className="btn min-h-11" onClick={() => void me.refetch()}>
             {tc('tryAgain')}
           </button>
-        </div>
+        </Note>
       </main>
     );
   }

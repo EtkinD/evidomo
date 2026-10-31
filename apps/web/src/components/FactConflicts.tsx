@@ -38,6 +38,8 @@ import { EvidenceInspector } from './evidence/EvidenceInspector';
 import { EvidenceProvider } from './evidence/EvidenceProvider';
 import { Field } from './FormField';
 import { LoadErrorState, LoadingState, RunNotFound, SessionExpiredState } from './RunMonitor';
+import { Note } from './Note';
+import { Stamp } from './Stamp';
 
 type Decide = ReturnType<typeof useDecideConflict>;
 
@@ -278,12 +280,7 @@ function SideCard({
           {side.key !== conflict.key && (
             <p className="text-sm text-base-content/70">{labels.fact(side.key)}</p>
           )}
-          {kept && (
-            <span className="badge badge-success w-fit gap-1">
-              <span aria-hidden>✓</span>
-              {t('kept')}
-            </span>
-          )}
+          {kept && <Stamp tone="kept">{t('kept')}</Stamp>}
         </div>
         <ul className="flex flex-col gap-3">
           {side.facts.map((fact, index) => (
@@ -344,6 +341,7 @@ function ConflictCard({
   onEditingChange: (open: boolean) => void;
 }) {
   const t = useTranslations('conflicts');
+  const tStamp = useTranslations('stamps');
   const tApi = useTranslations('apiErrors');
   const headingId = `${conflict.id}-title`;
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -404,10 +402,9 @@ function ConflictCard({
           >
             {label}
           </h2>
-          <span className={`badge gap-1 ${decision === null ? 'badge-warning' : 'badge-success'}`}>
-            <span aria-hidden>{decision === null ? '!' : '✓'}</span>
-            {decision === null ? t('open') : t('decided')}
-          </span>
+          <Stamp tone={decision === null ? 'decision' : 'kept'}>
+            {decision === null ? tStamp('decision') : t('decided')}
+          </Stamp>
         </div>
         <p>{conflict.explanation}</p>
         <ul aria-label={t('valuesInConflict')} className="grid grid-cols-2 gap-2 md:hidden">
@@ -607,26 +604,26 @@ export function FactConflictsView({
         </div>
 
         {decide.data?.resumed === true && (
-          <div role="status" className="alert alert-success alert-vertical sm:alert-horizontal">
+          <Note tone="success" role="status" split>
             <span>{t('allDecided')}</span>
             <Link href={source.hrefs.monitor(runId)} className="btn min-h-11">
               {t('backToTheRun')}
             </Link>
-          </div>
+          </Note>
         )}
 
         {data.state === 'not_reached' && (
-          <div role="status" className="alert alert-info alert-vertical sm:alert-horizontal">
+          <Note tone="info" role="status" split>
             <span>{t('notReached')}</span>
-          </div>
+          </Note>
         )}
         {data.state === 'suspended' && (
-          <div role="alert" className="alert alert-warning">
+          <Note tone="warning" role="alert">
             <span>{t('suspended')}</span>
-          </div>
+          </Note>
         )}
         {data.state === 'released' && decide.data?.resumed !== true && (
-          <div role="status" className="alert alert-info">
+          <Note tone="info" role="status">
             <span>
               {data.conflictCount === 0
                 ? t('releasedNone')
@@ -634,7 +631,7 @@ export function FactConflictsView({
                   ? t('releasedDemo')
                   : t('released')}
             </span>
-          </div>
+          </Note>
         )}
 
         {data.state === 'open' && !demo && (
