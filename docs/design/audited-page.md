@@ -1,7 +1,13 @@
 # Concept: The audited page (redesign round 5)
 
-Status: approved direction (founder, 2026-10-31). Built on branch `wip/redesign`, reviewed in
-rounds before it merges. Brand, palette (Hearth Clay), type (Newsreader + Source Sans 3), logo
+Status: partly superseded. The founder approved this direction on 2026-10-31. After reviewing
+the build on 2026-11-01, they found the landing too crowded ("too much text, too many underlined
+phrases"). The landing went back to its earlier structure, shortened, with a light Show sources
+switch that marks six claims. The specimen, ledger, numbers, and boundaries moved to the
+`/method` detail page. The work-screen notes and stamps, and the demo entry, shipped as
+described. The `evidomo-theme` decision log records what is current.
+
+Built on branch `wip/redesign` and reviewed in rounds before merging. Brand, palette (Hearth Clay), type (Newsreader + Source Sans 3), logo
 H-LOGO-1, and the annotated-dossier language stay; see the `evidomo-theme` skill. This document
 decides what that language leaves open for the landing page, the demo entry, and status display.
 
