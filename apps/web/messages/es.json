@@ -612,6 +612,8 @@
     "bannerLabel": "Acerca de esta demo",
     "controls": "Controles de reproducción",
     "speed": "Velocidad de reproducción",
+    "start": "Iniciar la demo",
+    "startHint": "La reproducción espera a que la inicies. Pulsa el botón para ver cómo avanza la ejecución.",
     "restart": "Reproducir desde el principio",
     "finished": "La reproducción ha terminado.",
     "market": "Mercado",

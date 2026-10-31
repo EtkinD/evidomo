@@ -612,6 +612,8 @@
     "bannerLabel": "Over deze demo",
     "controls": "Bediening van de herhaling",
     "speed": "Afspeelsnelheid",
+    "start": "Demo starten",
+    "startHint": "De weergave wacht op jou. Druk op de knop om de run te zien verlopen.",
     "restart": "Opnieuw afspelen vanaf het begin",
     "finished": "De herhaling is afgelopen.",
     "market": "Markt",

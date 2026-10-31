@@ -612,6 +612,8 @@
     "bannerLabel": "About this demo",
     "controls": "Replay controls",
     "speed": "Replay speed",
+    "start": "Start the demo",
+    "startHint": "The replay waits for you. Press the button to watch the run unfold.",
     "restart": "Replay from the start",
     "finished": "The replay has finished.",
     "market": "Market",

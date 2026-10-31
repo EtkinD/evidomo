@@ -612,6 +612,8 @@
     "bannerLabel": "Bu demo hakkında",
     "controls": "Tekrar denetimleri",
     "speed": "Tekrar hızı",
+    "start": "Demoyu başlat",
+    "startHint": "Tekrar oynatma sizi bekliyor. Çalıştırmanın akışını izlemek için düğmeye basın.",
     "restart": "Baştan oynat",
     "finished": "Tekrar bitti.",
     "market": "Pazar",

@@ -31,6 +31,8 @@ test.describe('demo, signed out', () => {
         page.getByRole('navigation', { name: 'Sections of the sample file' }),
       ).toBeVisible(slow);
       await expect(page.getByRole('heading', { level: 1 })).toBeVisible(slow);
+      // No autoplay: the replay waits for the button (not pressed here, so this stays read-only).
+      await expect(page.getByRole('button', { name: 'Start the demo' })).toBeVisible(slow);
     } else {
       await expect(page).toHaveURL(/\/demo$/);
       await expect(

@@ -612,6 +612,8 @@
     "bannerLabel": "Informazioni su questa demo",
     "controls": "Controlli del replay",
     "speed": "Velocità del replay",
+    "start": "Avvia la demo",
+    "startHint": "La riproduzione attende il tuo comando. Premi il pulsante per vedere l’esecuzione.",
     "restart": "Riavvia dall’inizio",
     "finished": "Il replay è terminato.",
     "market": "Mercato",

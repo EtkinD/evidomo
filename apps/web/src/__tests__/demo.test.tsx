@@ -152,10 +152,17 @@ function openRoute(path: string): void {
   setRoute(`${path}?runId=${RUN_ID}`);
 }
 
-async function renderMonitor() {
+async function renderUnstartedMonitor() {
   openRoute(`/demo/runs/${RUN_ID}`);
   const view = renderPage(DemoRunPage);
   await screen.findByRole('heading', { level: 1, name: 'Sample run replay' });
+  return view;
+}
+
+/** Renders the monitor and presses "Start the demo". */
+async function renderMonitor() {
+  const view = await renderUnstartedMonitor();
+  fireEvent.click(await screen.findByRole('button', { name: 'Start the demo' }));
   await waitFor(() => {
     expect(FakeEventSource.instances).toHaveLength(1);
   });
@@ -345,7 +352,7 @@ describe('demo replay monitor', () => {
     const fetchMock = mockDemo();
     await renderMonitor();
 
-    expect(FakeEventSource.last.url).toBe(`${DEMO_RUN}/events?speed=1`);
+    expect(FakeEventSource.last.url).toBe(`${DEMO_RUN}/events?speed=0.5`);
     expect(within(stepItem('intake')).getByText('Waiting')).toBeDefined();
     expect(screen.getByText('0 of 3 steps done')).toBeDefined();
     expect(screen.queryByRole('link', { name: 'View pack' })).toBeNull();
@@ -370,6 +377,54 @@ describe('demo replay monitor', () => {
     // The snapshot is read once: events are never answered by a refetch that would show the end.
     expect(fetchMock.mock.calls.filter(([url]) => url === DEMO_RUN)).toHaveLength(1);
     expectOnlyPublicReads(fetchMock);
+  });
+
+  it('waits for the start button: nothing streams or progresses before it is pressed', async () => {
+    const fetchMock = mockDemo();
+    await renderUnstartedMonitor();
+
+    expect(screen.getByRole('button', { name: 'Start the demo' })).toBeDefined();
+    expect(screen.queryByRole('button', { name: 'Replay from the start' })).toBeNull();
+    expect(screen.queryByRole('radio', { name: '1×' })).toBeNull();
+    expect(within(stepItem('intake')).getByText('Waiting')).toBeDefined();
+    expect(screen.getByText('0 of 3 steps done')).toBeDefined();
+    // Give a stray effect the chance to open a stream.
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(FakeEventSource.instances).toHaveLength(0);
+    expect(fetchMock.mock.calls.filter(([url]) => url === DEMO_RUN)).toHaveLength(1);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Start the demo' }));
+    await waitFor(() => {
+      expect(FakeEventSource.instances).toHaveLength(1);
+    });
+    expect(screen.queryByRole('button', { name: 'Start the demo' })).toBeNull();
+    expect(screen.getByRole('radio', { name: '1×' })).toHaveProperty('checked', true);
+    // Focus stays inside the controls instead of falling to the page.
+    expect(document.activeElement).toBe(screen.getByRole('region', { name: 'Replay controls' }));
+  });
+
+  it('plays every offered speed at half its pace', async () => {
+    mockDemo();
+    await renderUnstartedMonitor();
+    fireEvent.click(screen.getByRole('button', { name: 'Start the demo' }));
+    await waitFor(() => {
+      expect(FakeEventSource.instances).toHaveLength(1);
+    });
+    expect(FakeEventSource.last.url).toBe(`${DEMO_RUN}/events?speed=0.5`);
+    for (const [label, sent] of [
+      ['2×', 1],
+      ['4×', 2],
+      ['1×', 0.5],
+    ] as const) {
+      const before = FakeEventSource.instances.length;
+      fireEvent.click(screen.getByRole('radio', { name: label }));
+      await waitFor(() => {
+        expect(FakeEventSource.instances).toHaveLength(before + 1);
+      });
+      expect(FakeEventSource.last.url).toBe(`${DEMO_RUN}/events?speed=${sent}`);
+    }
   });
 
   it('pauses at Gate 1 with a link to the read-only demo review, then finishes with the pack', async () => {
@@ -438,7 +493,7 @@ describe('demo replay monitor', () => {
     await waitFor(() => {
       expect(FakeEventSource.instances).toHaveLength(2);
     });
-    expect(FakeEventSource.last.url).toBe(`${DEMO_RUN}/events?after=2&speed=4`);
+    expect(FakeEventSource.last.url).toBe(`${DEMO_RUN}/events?after=2&speed=2`);
     expect(first.readyState).toBe(FakeEventSource.CLOSED);
     // Nothing was rewound by the speed change.
     expect(within(stepItem('intake')).getByText('Running')).toBeDefined();
@@ -447,7 +502,7 @@ describe('demo replay monitor', () => {
     await waitFor(() => {
       expect(FakeEventSource.instances).toHaveLength(3);
     });
-    expect(FakeEventSource.last.url).toBe(`${DEMO_RUN}/events?speed=4`);
+    expect(FakeEventSource.last.url).toBe(`${DEMO_RUN}/events?speed=2`);
     expect(within(stepItem('intake')).getByText('Waiting')).toBeDefined();
     expect(screen.getByText('0 of 3 steps done')).toBeDefined();
   });
@@ -470,7 +525,7 @@ describe('demo replay monitor', () => {
     await waitFor(() => {
       expect(FakeEventSource.instances).toHaveLength(2);
     });
-    expect(FakeEventSource.last.url).toBe(`${DEMO_RUN}/events?speed=2`);
+    expect(FakeEventSource.last.url).toBe(`${DEMO_RUN}/events?speed=1`);
   });
 
   it('says so when the stream is refused, and continues from the cursor on retry', async () => {
@@ -491,7 +546,7 @@ describe('demo replay monitor', () => {
     await waitFor(() => {
       expect(FakeEventSource.instances).toHaveLength(2);
     });
-    expect(FakeEventSource.last.url).toBe(`${DEMO_RUN}/events?after=1&speed=1`);
+    expect(FakeEventSource.last.url).toBe(`${DEMO_RUN}/events?after=1&speed=0.5`);
   });
 
   it('applies each event once across a speed change: no duplicate, no skipped step', async () => {

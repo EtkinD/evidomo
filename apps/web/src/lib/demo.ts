@@ -8,6 +8,16 @@ export const DEMO_PATH = '/demo';
 /** Replay speeds on offer; the API accepts 0.25 to 10. */
 export const REPLAY_SPEEDS = [1, 2, 4] as const;
 
+/**
+ * The stored pace felt too fast at the API's 1x, so every offered speed plays at half of it. The
+ * API contract is unchanged; only the value sent for a displayed speed is scaled.
+ */
+export const REPLAY_PACE = 0.5;
+
+export function apiReplaySpeed(displayed: number): number {
+  return displayed * REPLAY_PACE;
+}
+
 export const demoRunsKey = ['demo', 'runs'] as const;
 
 /** The published demo runs. The list is short and changes only with a deployment's settings. */

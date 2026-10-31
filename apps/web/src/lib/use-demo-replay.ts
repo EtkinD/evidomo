@@ -9,12 +9,16 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { apiJson, isClientError } from './api';
+import { apiReplaySpeed } from './demo';
 import { applyReplayEvent, replayStart } from './run-monitor';
 import { demoRunSource, runScopedKey } from './run-source';
 import { RECONNECT_NOTICE_DELAY_MS, type RunMonitor, type StreamState } from './use-run-monitor';
 
 export interface DemoReplay {
   monitor: RunMonitor;
+  /** The viewer pressed "start"; nothing streams before that. */
+  started: boolean;
+  start: () => void;
   /** Starts again from the first event, whatever state the replay is in. */
   restart: () => void;
   /** The replay reached its end (the stream said so). */
@@ -32,8 +36,9 @@ function rawSeq(data: unknown): number {
 /**
  * The run monitor's data for a demo: the finished run's snapshot is read once, taken back to
  * "nothing started", and the demo stream's stored events move it forward at their original pace
- * (`speed` multiplies it). Unlike the live monitor it never refetches the snapshot mid-replay,
- * which would show the end result at once. Changing `speed` reconnects from the last event seen;
+ * (`speed`, as displayed to the viewer, multiplies the halved base pace). Nothing streams until
+ * `start()` is called; a new page load waits again. Unlike the live monitor it never refetches the
+ * snapshot mid-replay, which would show the end result at once. Changing `speed` reconnects from the last event seen;
  * after the replay ended it only applies to the next replay. Mount it with `key={runId}`.
  */
 export function useDemoReplay(runId: string, speed: number): DemoReplay {
@@ -51,7 +56,8 @@ export function useDemoReplay(runId: string, speed: number): DemoReplay {
   }, [final]);
 
   const [replay, setReplay] = useState<RunSnapshot | null>(null);
-  const [streamState, setStreamState] = useState<StreamState>('connecting');
+  const [streamState, setStreamState] = useState<StreamState>('idle');
+  const [started, setStarted] = useState(false);
   const [finished, setFinished] = useState(false);
   const [connectNonce, setConnectNonce] = useState(0);
   const lastSeqRef = useRef(0);
@@ -66,9 +72,15 @@ export function useDemoReplay(runId: string, speed: number): DemoReplay {
     setReplay(replayStart(final));
   }, [final]);
 
+  const start = useCallback(() => {
+    setStreamState('connecting');
+    setStarted(true);
+  }, []);
+
   const restart = useCallback(() => {
     const current = finalRef.current;
     if (current === undefined) return;
+    setStarted(true);
     endedRef.current = false;
     lastSeqRef.current = 0;
     setFinished(false);
@@ -78,10 +90,10 @@ export function useDemoReplay(runId: string, speed: number): DemoReplay {
   }, []);
 
   useEffect(() => {
-    if (!ready || endedRef.current) return;
+    if (!ready || !started || endedRef.current) return;
     const after = lastSeqRef.current;
     const source = new EventSource(
-      demoRunEventsUrl(runId, { ...(after > 0 ? { after } : {}), speed }),
+      demoRunEventsUrl(runId, { ...(after > 0 ? { after } : {}), speed: apiReplaySpeed(speed) }),
     );
     let noticeTimer: ReturnType<typeof setTimeout> | null = null;
     const clearNotice = () => {
@@ -147,7 +159,7 @@ export function useDemoReplay(runId: string, speed: number): DemoReplay {
       clearNotice();
       source.close();
     };
-  }, [runId, ready, speed, connectNonce, restart]);
+  }, [runId, ready, started, speed, connectNonce, restart]);
 
   const retryStream = useCallback(() => {
     setStreamState('connecting');
@@ -167,6 +179,8 @@ export function useDemoReplay(runId: string, speed: number): DemoReplay {
       sessionExpired: false,
       retryStream,
     },
+    started,
+    start,
     restart,
     finished,
   };
