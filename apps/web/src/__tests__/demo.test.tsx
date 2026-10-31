@@ -225,8 +225,48 @@ describe('demo list', () => {
       expect(mockRouter.replace).toHaveBeenCalledWith(`/demo/runs/${RUN_ID}`);
     });
     // No list to pick from, and no page title for a list: the visitor is on the way in.
+    expect(screen.getByText('Opening the sample file…')).toBeDefined();
     expect(screen.queryByRole('heading', { level: 1 })).toBeNull();
     expect(screen.queryByRole('link', { name: run.title })).toBeNull();
+  });
+
+  it('shows the opening state while the runs load, never the list page', async () => {
+    let release: (response: Response) => void = () => undefined;
+    mockFetch({
+      'GET /api/auth/me': meSignedOut,
+      'GET /api/demo/runs': () => new Promise<Response>((resolve) => (release = resolve)),
+    });
+    renderPage(DemoListPage);
+    expect(screen.getByText('Opening the sample file…')).toBeDefined();
+    expect(screen.queryByRole('heading', { level: 1 })).toBeNull();
+    release(jsonResponse(200, { runs: [run, { ...run, id: OTHER_RUN_ID, title: 'Second' }] }));
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'See Evidomo at work' }),
+    ).toBeDefined();
+  });
+
+  it('redirects once per target, however often the page renders', async () => {
+    mockFetch({
+      'GET /api/auth/me': meSignedOut,
+      'GET /api/demo/runs': () => jsonResponse(200, { runs: [run] }),
+    });
+    const view = renderPage(DemoListPage);
+    await waitFor(() => {
+      expect(mockRouter.replace).toHaveBeenCalledTimes(1);
+    });
+    view.rerender(view.container.firstChild === null ? <></> : <></>);
+    expect(mockRouter.replace).toHaveBeenCalledTimes(1);
+  });
+
+  it('falls back to a link to the run when the redirect fails', async () => {
+    mockRouter.replace.mockRejectedValueOnce(new Error('navigation failed'));
+    mockFetch({
+      'GET /api/auth/me': meSignedOut,
+      'GET /api/demo/runs': () => jsonResponse(200, { runs: [run] }),
+    });
+    renderPage(DemoListPage);
+    const link = await screen.findByRole('link', { name: 'Open the sample file' });
+    expect(link.getAttribute('href')).toBe(`/demo/runs/${RUN_ID}`);
   });
 
   it.each([
@@ -804,7 +844,7 @@ describe('demo folder: cover and tabs', () => {
 
     const nav = await screen.findByRole('navigation', { name: 'Sections of the sample file' });
     await waitFor(() => {
-      expect(nav.textContent).toContain('3 of 3 steps done.');
+      expect(nav.textContent).toContain('3 steps, finished Oct 29, 2026.');
       expect(nav.textContent).toContain('3 conflicts found, 0 open.');
       expect(nav.textContent).toMatch(/claims? flagged, \d+ staged images? offered\./);
       expect(nav.textContent).toMatch(/2 files built\. (Ready|Not ready) to publish\./);

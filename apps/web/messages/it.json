@@ -85,7 +85,6 @@
       "switch": "Mostra le fonti",
       "on": "Attivo",
       "off": "Disattivo",
-      "notesLabel": "Fonti di questa affermazione",
       "kinds": {
         "sample": "Elaborazione di esempio",
         "eval": "Rapporto di valutazione",
@@ -99,7 +98,8 @@
         "pack": "Pacchetto annuncio"
       },
       "evalRef": "README, Risultati della valutazione ({date}, modalità fixture)",
-      "ruleRef": "docs/product.md, sezione {section}"
+      "ruleRef": "docs/product.md, sezione {section}",
+      "number": "fonte {n}"
     },
     "actions": {
       "openSample": "Apri il fascicolo di esempio"
@@ -129,7 +129,8 @@
       "notUsed": "Non usato",
       "conflict": "Il modulo diceva {form}. L’elaborazione si è fermata alla prima revisione ed è stato mantenuto {voice}, detto a voce.",
       "openReview": "Vedi questa frase nel fascicolo di esempio",
-      "coverCaption": "La foto di copertina del pacchetto, messa dal modello al primo posto su {count}. Foto sintetica dell’elaborazione di esempio."
+      "coverCaption": "La foto di copertina del pacchetto, messa dal modello al primo posto su {count}. Una foto di input generata da un modello di una stanza inventata, non un immobile reale.",
+      "replayNote": "Questo è un replay. Le risposte del modello sono state registrate una volta e vengono riprodotte, e il tour era voce sintetica: il fascicolo di esempio riproduce un sostituto silenzioso dell’audio."
     },
     "ledger": {
       "title": "Cosa è successo a questo annuncio",
@@ -157,10 +158,10 @@
         "gate2": "Nessuna segnalazione. L’immagine arredata è accettata con la sua etichetta e il testo è approvato.",
         "export": "Vengono creati {files} file, tra cui il pacchetto HTML e i campi per i portali. Tutti i controlli di pubblicazione sono superati."
       },
-      "bedroomCaption": "La voce diceva laminato. Questa foto della camera mostra la moquette. Foto sintetica dell’elaborazione di esempio.",
+      "bedroomCaption": "La voce diceva laminato. Questa foto della camera mostra la moquette. Una foto di input generata da un modello, non un immobile reale.",
       "stagingBefore": "Prima",
       "stagingAfter": "Dopo",
-      "stagingCaption": "Una stanza vuota, arredata come camera da letto. Foto sintetiche dell’elaborazione di esempio."
+      "stagingCaption": "A sinistra: una foto di input generata da un modello di una stanza vuota inventata. A destra: il risultato del passaggio di arredo, con l’etichetta “Virtually staged”."
     },
     "numbers": {
       "title": "I numeri e i loro limiti",
@@ -654,7 +655,7 @@
       "pack": "Pacchetto"
     },
     "tabLines": {
-      "monitor": "{done} passaggi su {total} completati.",
+      "monitor": "{total} passaggi, completata il {date}.",
       "conflicts": "{count, plural, one {# conflitto trovato} other {# conflitti trovati}}, {open} aperti.",
       "review": "{flagged, plural, one {# affermazione segnalata} other {# affermazioni segnalate}}, {images, plural, one {# immagine arredata proposta} other {# immagini arredate proposte}}.",
       "pack": "{files, plural, one {# file creato} other {# file creati}}. {ready, select, yes {Pronto per la pubblicazione.} other {Non pronto per la pubblicazione.}}"
@@ -686,7 +687,6 @@
     "kept": "Mantenuto",
     "useValueLabel": "Usa questo valore: {value}",
     "useValue": "Usa questo valore",
-    "open": "Aperto",
     "decided": "Deciso",
     "valuesInConflict": "Valori in conflitto",
     "saving": "Salvataggio della tua decisione…",
@@ -799,7 +799,6 @@
     "finishEditing": "Salva o annulla prima il testo che stai modificando.",
     "approve": "Approva il pacchetto",
     "noText": "Nessun testo.",
-    "open": "Aperto",
     "decided": "Deciso",
     "saving": "Salvataggio della tua decisione…",
     "evidenceFor": "Prove per “{text}”",

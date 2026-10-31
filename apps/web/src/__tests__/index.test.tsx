@@ -3,6 +3,7 @@ import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DEMO_HREF } from '../components/landing/LandingPage';
+import { SOURCE_NOTE_IDS } from '../lib/landing-sources';
 import { SAMPLE_PHOTOS, samplePhotoSrc } from '../lib/sample-run';
 import { resetShowSources, SOURCES_STORAGE_KEY } from '../lib/sources';
 import Home from '../pages/index';
@@ -191,6 +192,17 @@ describe('landing page: Show sources', () => {
     expect([...notes].map((n) => n.getAttribute('data-source-note')).sort()).toEqual(
       [...marks].map((m) => m.getAttribute('data-claim-source')).sort(),
     );
+    // The page marks exactly the claims the registry knows: no claim without an entry, and no
+    // entry nobody uses (an orphan note would be a source for nothing).
+    const marked = [...marks].map((m) => m.getAttribute('data-claim-source') ?? '').sort();
+    expect(marked).toEqual([...SOURCE_NOTE_IDS].sort());
+    // A screen-reader user hears which source a claim has, and the claim points at its note.
+    for (const mark of marks) {
+      const id = mark.getAttribute('data-claim-source') ?? '';
+      expect(mark.getAttribute('aria-describedby')).toBe(`source-note-${id}`);
+      expect(main.querySelector(`#source-note-${id}`)).not.toBeNull();
+      expect(mark.nextElementSibling?.textContent).toMatch(/^\d+source \d+$/);
+    }
     // Each note names a source type and links somewhere real.
     for (const note of notes) {
       expect(within(note as HTMLElement).getAllByRole('link').length).toBeGreaterThan(0);
@@ -256,6 +268,45 @@ describe('landing page: Show sources', () => {
     fireEvent.click(switches()[0] as HTMLElement);
     expect(switches()[0]?.getAttribute('aria-pressed')).toBe('true');
     expect(main.querySelectorAll('[data-source-note]').length).toBeGreaterThan(0);
+  });
+
+  it('adds no landmark per note: the landmark list stays usable', () => {
+    const main = renderLanding();
+    fireEvent.click(switches()[0] as HTMLElement);
+    expect(main.querySelectorAll('[data-source-note]').length).toBeGreaterThan(20);
+    expect(within(main).queryAllByRole('complementary')).toHaveLength(0);
+  });
+
+  it('says plainly that the sample file is a replay with a stand-in for the audio', () => {
+    const main = renderLanding();
+    expect(main.textContent).toMatch(/replay.*recorded once.*synthetic speech.*silent stand-in/s);
+    fireEvent.click(switches()[0] as HTMLElement);
+    const note = main.querySelector('[data-claim-source="replay"]');
+    expect(note).not.toBeNull();
+    const links = within(main.querySelector('#source-note-replay') as HTMLElement).getAllByRole(
+      'link',
+    );
+    expect(links.map((l) => l.textContent)).toContain(
+      'fixtures/projects/synthetic-walkthrough/README.md',
+    );
+  });
+
+  it('captions every sample photo as a model-generated input or the staging result', () => {
+    const main = renderLanding();
+    const captions = [...main.querySelectorAll('figcaption')].map((c) => c.textContent ?? '');
+    expect(captions.length).toBeGreaterThanOrEqual(3);
+    for (const caption of captions) expect(caption).toMatch(/model-generated/);
+    // "Virtually staged" is only ever said of the staging step's own result.
+    expect(captions.filter((c) => /Virtually staged/.test(c))).toHaveLength(1);
+  });
+
+  it('announces only the claim heading when the selection changes', () => {
+    renderLanding();
+    const region = screen.getByRole('region', { name: /rests on/ });
+    expect(region.getAttribute('aria-live')).toBeNull();
+    expect(document.getElementById('specimen-evidence-title')?.getAttribute('aria-live')).toBe(
+      'polite',
+    );
   });
 
   it('is a real button: keyboard focusable, with the state written next to the label', () => {

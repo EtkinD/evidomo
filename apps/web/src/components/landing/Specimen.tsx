@@ -13,6 +13,7 @@ import {
 } from '../../lib/sample-run';
 import { Stamp } from '../Stamp';
 import { SamplePhoto } from './SamplePhoto';
+import { SourceNotes, Sourced } from './sources';
 
 const CLAIM_IDS: readonly SpecimenClaimId[] = ['year', 'label', 'issued'];
 const EVIDENCE_ID = 'specimen-evidence';
@@ -102,6 +103,10 @@ export function Specimen() {
           </p>
         </blockquote>
         <p className="text-sm text-base-content/70">{t('sentenceNote')}</p>
+        <p className="max-w-prose text-sm">
+          <Sourced id="replay">{t('replayNote')}</Sourced>
+        </p>
+        <SourceNotes ids={['replay']} />
         <div className="flex flex-col gap-2">
           <p className="text-sm font-medium">{t('prompt')}</p>
           <div role="group" aria-label={t('claimsLabel')} className="flex flex-wrap gap-2">
@@ -128,12 +133,15 @@ export function Specimen() {
         <div
           id={EVIDENCE_ID}
           role="region"
-          aria-live="polite"
           aria-labelledby="specimen-evidence-title"
           className="grain flex flex-col gap-4 bg-base-100 p-4 shadow-lift"
         >
           <div className="flex flex-wrap items-start justify-between gap-2">
-            <p id="specimen-evidence-title" className="font-display text-xl leading-tight">
+            <p
+              id="specimen-evidence-title"
+              aria-live="polite"
+              className="font-display text-xl leading-tight"
+            >
               {t('evidenceTitle', { claim: claimText ?? claimName })}
             </p>
             <VerifiedStamp />

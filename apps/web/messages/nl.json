@@ -85,7 +85,6 @@
       "switch": "Toon bronnen",
       "on": "Aan",
       "off": "Uit",
-      "notesLabel": "Bronnen bij deze bewering",
       "kinds": {
         "sample": "Voorbeeldverwerking",
         "eval": "Evaluatierapport",
@@ -99,7 +98,8 @@
         "pack": "Advertentiepakket"
       },
       "evalRef": "README, Evaluatieresultaten ({date}, fixture-modus)",
-      "ruleRef": "docs/product.md, sectie {section}"
+      "ruleRef": "docs/product.md, sectie {section}",
+      "number": "bron {n}"
     },
     "actions": {
       "openSample": "Open het voorbeelddossier"
@@ -129,7 +129,8 @@
       "notUsed": "Niet gebruikt",
       "conflict": "Het formulier zei {form}. De verwerking stopte bij de eerste controle en het gesproken {voice} werd behouden.",
       "openReview": "Bekijk deze zin in het voorbeelddossier",
-      "coverCaption": "De omslagfoto van het pakket, door het model op de eerste plaats van {count} gezet. Synthetische foto uit de voorbeeldverwerking."
+      "coverCaption": "De omslagfoto van het pakket, door het model op de eerste plaats van {count} gezet. Een door een model gemaakte invoerfoto van een verzonnen kamer, geen echte woning.",
+      "replayNote": "Dit is een herhaling. De modelantwoorden zijn één keer opgenomen en worden afgespeeld, en de rondleiding was synthetische spraak: het voorbeelddossier speelt een stille vervanger van de audio af."
     },
     "ledger": {
       "title": "Wat er met deze woning gebeurde",
@@ -157,10 +158,10 @@
         "gate2": "Niets is gemarkeerd. De ingerichte foto wordt met label geaccepteerd en de tekst wordt goedgekeurd.",
         "export": "{files} bestanden worden gebouwd, onder meer het HTML-pakket en de portaalvelden. Alle publicatiecontroles slagen."
       },
-      "bedroomCaption": "De stem zei laminaat. Deze slaapkamerfoto toont tapijt. Synthetische foto uit de voorbeeldverwerking.",
+      "bedroomCaption": "De stem zei laminaat. Deze slaapkamerfoto toont tapijt. Een door een model gemaakte invoerfoto, geen echte woning.",
       "stagingBefore": "Voor",
       "stagingAfter": "Na",
-      "stagingCaption": "Een lege kamer, als slaapkamer ingericht. Synthetische foto’s uit de voorbeeldverwerking."
+      "stagingCaption": "Links: een door een model gemaakte invoerfoto van een verzonnen lege kamer. Rechts: het resultaat van de inrichtstap, met het label “Virtually staged”."
     },
     "numbers": {
       "title": "De cijfers en hun grenzen",
@@ -654,7 +655,7 @@
       "pack": "Pakket"
     },
     "tabLines": {
-      "monitor": "{done} van {total} stappen klaar.",
+      "monitor": "{total} stappen, afgerond op {date}.",
       "conflicts": "{count, plural, one {# conflict} other {# conflicten}} gevonden, {open} open.",
       "review": "{flagged, plural, one {# bewering} other {# beweringen}} gemarkeerd, {images, plural, one {# ingerichte foto} other {# ingerichte foto’s}} aangeboden.",
       "pack": "{files, plural, one {# bestand} other {# bestanden}} gebouwd. {ready, select, yes {Klaar om te publiceren.} other {Niet klaar om te publiceren.}}"
@@ -686,7 +687,6 @@
     "kept": "Behouden",
     "useValueLabel": "Gebruik deze waarde: {value}",
     "useValue": "Gebruik deze waarde",
-    "open": "Open",
     "decided": "Beslist",
     "valuesInConflict": "Waarden die elkaar tegenspreken",
     "saving": "Je beslissing wordt opgeslagen…",
@@ -799,7 +799,6 @@
     "finishEditing": "Sla de tekst die je bewerkt eerst op of annuleer.",
     "approve": "Pakket goedkeuren",
     "noText": "Geen tekst.",
-    "open": "Open",
     "decided": "Beslist",
     "saving": "Je beslissing wordt opgeslagen…",
     "evidenceFor": "Bewijs voor “{text}”",

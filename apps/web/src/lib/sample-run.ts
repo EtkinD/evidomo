@@ -96,6 +96,23 @@ export const LEDGER_ROWS = [
 
 export type LedgerRowId = (typeof LEDGER_ROWS)[number]['id'];
 
+/**
+ * What each ledger row's message interpolates. `sample-run.test.ts` checks that these are exactly
+ * the placeholders of the English (and every other) message.
+ */
+export const LEDGER_PARAMS = {
+  vision_inventory: { photos: SAMPLE_COUNTS.photos },
+  reconciliation: { conflicts: SAMPLE_COUNTS.conflicts },
+  gate1: { voice: BUILD_YEAR.voice, form: BUILD_YEAR.form },
+  creative: { portal: SAMPLE_COUNTS.portalSentences, social: SAMPLE_COUNTS.socialSentences },
+  qa_cards: { questions: SAMPLE_COUNTS.buyerQuestions, answers: SAMPLE_COUNTS.buyerAnswers },
+  verification: {
+    audited: SAMPLE_COUNTS.auditedSentences,
+    flagged: SAMPLE_COUNTS.flaggedClaims,
+  },
+  export: { files: SAMPLE_COUNTS.exportedFiles },
+} as const;
+
 export type SamplePhotoId = 'cover' | 'bedroom' | 'stagingBefore' | 'stagingAfter';
 
 export interface SamplePhoto {
@@ -124,7 +141,7 @@ export function samplePhotoSrcSet(photo: SamplePhoto): string {
 }
 
 /** The eval run behind the numbers table (README "Eval results"). */
-export const EVAL_RUN = { date: '2026-10-30', sets: 6, mode: 'fixtures' } as const;
+export const EVAL_RUN = { date: '2026-10-30', sets: 6 } as const;
 
 export const EVAL_ROWS = [
   { id: 'planted', result: '14 / 14' },

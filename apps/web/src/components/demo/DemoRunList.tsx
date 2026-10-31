@@ -1,8 +1,9 @@
-import type { DemoRun } from '@evidomo/shared';
+import type { DemoRun, DemoRunListResponse } from '@evidomo/shared';
+import type { UseQueryResult } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useFormatter, useLocale, useTranslations } from 'use-intl';
 import { ApiRequestError } from '../../lib/api';
-import { formatDemoDate, languageLabel, marketLabel, useDemoRuns } from '../../lib/demo';
+import { formatDemoDate, languageLabel, marketLabel } from '../../lib/demo';
 import { LoadingBlock } from '../PageStates';
 import { Note } from '../Note';
 
@@ -43,9 +44,9 @@ function DemoRunCard({ run }: { run: DemoRun }) {
   );
 }
 
-export function DemoRunList() {
+/** The list of demo runs. The query is the page's own, so that mounting the list never refetches. */
+export function DemoRunList({ query }: { query: UseQueryResult<DemoRunListResponse> }) {
   const t = useTranslations('demo');
-  const query = useDemoRuns();
 
   if (query.data === undefined) {
     if (!query.isError) return <LoadingBlock label={t('loadingRuns')} />;

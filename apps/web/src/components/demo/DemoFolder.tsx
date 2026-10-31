@@ -12,15 +12,17 @@ const TABS: readonly DemoTab[] = ['monitor', 'conflicts', 'review', 'pack'];
 /** One line per tab on what happened there in this run, once the screen's data has arrived. */
 function useTabLines(runId: string): Partial<Record<DemoTab, string>> {
   const t = useTranslations('demo.tabLines');
+  const format = useFormatter();
   const snapshot = useRunSnapshotRef(runId).data;
   const conflicts = useFactConflicts(runId).data;
   const review = useClaimAudit(runId).data;
   const pack = useExportManifest(runId).data;
   const lines: Partial<Record<DemoTab, string>> = {};
-  if (snapshot !== undefined) {
+  // The run's record, not progress: the replay itself starts from step 1.
+  if (snapshot?.finishedAt != null) {
     lines.monitor = t('monitor', {
-      done: snapshot.steps.filter((step) => step.status === 'completed').length,
       total: snapshot.steps.length,
+      date: formatDemoDate(format, snapshot.finishedAt),
     });
   }
   if (conflicts !== undefined) {

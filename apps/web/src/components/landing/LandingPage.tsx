@@ -36,8 +36,10 @@ export function LandingPage() {
     applySourcesFromUrl(new URL(asPath, 'http://localhost').search);
   }, [asPath]);
 
+  // `overflow-x-clip`, not `hidden`: the source notes slide in from the margin, and that must
+  // never widen the page (clip makes no scroll container, so the sticky bar still sticks).
   return (
-    <main className="flex-1">
+    <main className="flex-1 overflow-x-clip">
       <section aria-labelledby="landing-hero" className="grain bg-base-200">
         <div
           className={`${CONTAINER} grid gap-x-10 gap-y-8 pt-8 pb-12 md:pt-12 md:pb-16 lg:grid-cols-12`}

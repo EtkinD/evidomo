@@ -8,7 +8,7 @@ import type { SampleScreen } from './sample-run';
  * - `eval`: the README eval report;
  * - `code`: the file that enforces it;
  * - `rule`: a section of `docs/product.md`.
- * `__tests__/landing-sources.test.ts` checks that every path exists in the repository.
+ * `__tests__/sample-run.test.ts` checks that every path exists in the repository.
  */
 export type SourceRef =
   | { kind: 'sample'; screen: SampleScreen; detail?: string }
@@ -23,9 +23,17 @@ const sample = (screen: SampleScreen, detail?: string): SourceRef =>
 /** In document order: the footnote number of a note is its position here plus one. */
 export const SOURCE_NOTES = {
   lede: [{ kind: 'code', path: 'apps/api/src/pipeline/claims/validator.ts' }],
+  replay: [
+    { kind: 'sampleFile', path: 'fixtures/projects/synthetic-walkthrough/README.md' },
+    { kind: 'sampleFile', path: 'docs/architecture.md' },
+  ],
   intake: [sample('conflicts', '00:11')],
   facts: [sample('conflicts'), sample('review')],
-  photos: [sample('pack', 'portal-fields.json')],
+  photos: [
+    sample('pack', 'portal-fields.json'),
+    // The recorded vision responses: `privacySubjects` is empty for every photo.
+    { kind: 'sampleFile', path: 'fixtures/meta/p3-10/synthetic-walkthrough.json' },
+  ],
   conflicts: [sample('conflicts', 'K01, K02, K03')],
   gate1: [
     sample('conflicts'),

@@ -85,7 +85,6 @@
       "switch": "Show sources",
       "on": "On",
       "off": "Off",
-      "notesLabel": "Sources for this claim",
       "kinds": {
         "sample": "Sample run",
         "eval": "Eval report",
@@ -99,7 +98,8 @@
         "pack": "Listing pack"
       },
       "evalRef": "README, Eval results ({date}, fixture mode)",
-      "ruleRef": "docs/product.md, section {section}"
+      "ruleRef": "docs/product.md, section {section}",
+      "number": "source {n}"
     },
     "actions": {
       "openSample": "Open the sample file"
@@ -129,7 +129,8 @@
       "notUsed": "Not used",
       "conflict": "The form said {form}. The run stopped at the first review, and the spoken {voice} was kept.",
       "openReview": "See this sentence in the sample file",
-      "coverCaption": "The pack’s cover photo, ranked first of {count} by the model. Synthetic photo from the sample run."
+      "coverCaption": "The pack’s cover photo, ranked first of {count} by the model. A model-generated input photo of an invented room, not a real property.",
+      "replayNote": "This is a replay. The model responses were recorded once and are played back, and the walkthrough was synthetic speech: the sample file plays a silent stand-in for the audio."
     },
     "ledger": {
       "title": "What happened to this listing",
@@ -157,10 +158,10 @@
         "gate2": "Nothing is flagged. The staged image is accepted, with its label, and the copy is approved.",
         "export": "{files} files are built, among them the HTML pack and the portal fields. Every publication check passes."
       },
-      "bedroomCaption": "The voice said laminate. This bedroom photo shows carpet. Synthetic photo from the sample run.",
+      "bedroomCaption": "The voice said laminate. This bedroom photo shows carpet. A model-generated input photo, not a real property.",
       "stagingBefore": "Before",
       "stagingAfter": "After",
-      "stagingCaption": "An empty room, furnished as a bedroom. Synthetic photos from the sample run."
+      "stagingCaption": "Left: a model-generated input photo of an invented empty room. Right: the staging step’s result, labelled “Virtually staged”."
     },
     "numbers": {
       "title": "The numbers, and their limits",
@@ -654,7 +655,7 @@
       "pack": "Pack"
     },
     "tabLines": {
-      "monitor": "{done} of {total} steps done.",
+      "monitor": "{total} steps, finished {date}.",
       "conflicts": "{count, plural, one {# conflict} other {# conflicts}} found, {open} open.",
       "review": "{flagged, plural, one {# claim} other {# claims}} flagged, {images, plural, one {# staged image} other {# staged images}} offered.",
       "pack": "{files, plural, one {# file} other {# files}} built. {ready, select, yes {Ready to publish.} other {Not ready to publish.}}"
@@ -686,7 +687,6 @@
     "kept": "Kept",
     "useValueLabel": "Use this value: {value}",
     "useValue": "Use this value",
-    "open": "Open",
     "decided": "Decided",
     "valuesInConflict": "Values in conflict",
     "saving": "Saving your decision…",
@@ -799,7 +799,6 @@
     "finishEditing": "Save or cancel the text you are editing first.",
     "approve": "Approve pack",
     "noText": "No text.",
-    "open": "Open",
     "decided": "Decided",
     "saving": "Saving your decision…",
     "evidenceFor": "Evidence for “{text}”",

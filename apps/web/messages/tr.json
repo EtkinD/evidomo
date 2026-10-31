@@ -85,7 +85,6 @@
       "switch": "Kaynakları göster",
       "on": "Açık",
       "off": "Kapalı",
-      "notesLabel": "Bu iddianın kaynakları",
       "kinds": {
         "sample": "Örnek işlem",
         "eval": "Değerlendirme raporu",
@@ -99,7 +98,8 @@
         "pack": "İlan paketi"
       },
       "evalRef": "README, Değerlendirme sonuçları ({date}, fixture modu)",
-      "ruleRef": "docs/product.md, bölüm {section}"
+      "ruleRef": "docs/product.md, bölüm {section}",
+      "number": "kaynak {n}"
     },
     "actions": {
       "openSample": "Örnek dosyayı aç"
@@ -129,7 +129,8 @@
       "notUsed": "Kullanılmadı",
       "conflict": "Form {form} diyordu. İşlem ilk gözden geçirmede durdu ve konuşulan {voice} korundu.",
       "openReview": "Bu cümleyi örnek dosyada gör",
-      "coverCaption": "Paketin kapak fotoğrafı; model {count} fotoğraf arasında birinci sıraya koydu. Örnek işlemden sentetik fotoğraf."
+      "coverCaption": "Paketin kapak fotoğrafı; model {count} fotoğraf arasında birinci sıraya koydu. Uydurma bir odanın model üretimi girdi fotoğrafı, gerçek bir mülk değil.",
+      "replayNote": "Bu bir tekrar oynatmadır. Model yanıtları bir kez kaydedildi ve yeniden oynatılıyor; sesli tur sentetik konuşmaydı ve örnek dosya ses yerine sessiz bir yedek oynatır."
     },
     "ledger": {
       "title": "Bu ilana ne oldu",
@@ -157,10 +158,10 @@
         "gate2": "Hiçbir şey işaretlenmedi. Döşenmiş görsel etiketiyle kabul edilir ve metin onaylanır.",
         "export": "{files} dosya oluşturulur; aralarında HTML paketi ve portal alanları var. Tüm yayın kontrolleri geçer."
       },
-      "bedroomCaption": "Ses laminat dedi. Bu yatak odası fotoğrafı halı gösteriyor. Örnek işlemden sentetik fotoğraf.",
+      "bedroomCaption": "Ses laminat dedi. Bu yatak odası fotoğrafı halı gösteriyor. Model üretimi bir girdi fotoğrafı, gerçek bir mülk değil.",
       "stagingBefore": "Önce",
       "stagingAfter": "Sonra",
-      "stagingCaption": "Boş bir oda, yatak odası olarak döşendi. Örnek işlemden sentetik fotoğraflar."
+      "stagingCaption": "Solda: uydurma boş bir odanın model üretimi girdi fotoğrafı. Sağda: döşeme adımının sonucu, “Virtually staged” etiketli."
     },
     "numbers": {
       "title": "Sayılar ve sınırları",
@@ -654,7 +655,7 @@
       "pack": "Paket"
     },
     "tabLines": {
-      "monitor": "{total} adımın {done} tanesi tamamlandı.",
+      "monitor": "{total} adım, {date} tarihinde bitti.",
       "conflicts": "{count, plural, one {# çelişki} other {# çelişki}} bulundu, {open} açık.",
       "review": "{flagged, plural, one {# iddia} other {# iddia}} işaretlendi, {images, plural, one {# döşenmiş görsel} other {# döşenmiş görsel}} sunuldu.",
       "pack": "{files, plural, one {# dosya} other {# dosya}} oluşturuldu. {ready, select, yes {Yayına hazır.} other {Yayına hazır değil.}}"
@@ -686,7 +687,6 @@
     "kept": "Korundu",
     "useValueLabel": "Bu değeri kullan: {value}",
     "useValue": "Bu değeri kullan",
-    "open": "Açık",
     "decided": "Karara bağlandı",
     "valuesInConflict": "Çelişen değerler",
     "saving": "Kararın kaydediliyor…",
@@ -799,7 +799,6 @@
     "finishEditing": "Önce düzenlediğin metni kaydet veya vazgeç.",
     "approve": "Paketi onayla",
     "noText": "Metin yok.",
-    "open": "Açık",
     "decided": "Karara bağlandı",
     "saving": "Kararın kaydediliyor…",
     "evidenceFor": "“{text}” için kanıt",

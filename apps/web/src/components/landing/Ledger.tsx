@@ -1,6 +1,6 @@
 import { useTranslations } from 'use-intl';
 import type { SourceNoteId } from '../../lib/landing-sources';
-import { BUILD_YEAR, LEDGER_ROWS, SAMPLE_COUNTS, type LedgerRowId } from '../../lib/sample-run';
+import { LEDGER_PARAMS, LEDGER_ROWS, type LedgerRowId } from '../../lib/sample-run';
 import { Stamp } from '../Stamp';
 import { SamplePhoto } from './SamplePhoto';
 import { Section } from './Section';
@@ -69,37 +69,7 @@ function StagedStamp() {
 
 function RowText({ id }: { id: LedgerRowId }) {
   const t = useTranslations('landing.ledger.rows');
-  switch (id) {
-    case 'vision_inventory':
-      return t('vision_inventory', { photos: SAMPLE_COUNTS.photos });
-    case 'reconciliation':
-      return t('reconciliation', { conflicts: SAMPLE_COUNTS.conflicts });
-    case 'gate1':
-      return t('gate1', { voice: BUILD_YEAR.voice, form: BUILD_YEAR.form });
-    case 'creative':
-      return t('creative', {
-        portal: SAMPLE_COUNTS.portalSentences,
-        social: SAMPLE_COUNTS.socialSentences,
-      });
-    case 'qa_cards':
-      return t('qa_cards', {
-        questions: SAMPLE_COUNTS.buyerQuestions,
-        answers: SAMPLE_COUNTS.buyerAnswers,
-      });
-    case 'verification':
-      return t('verification', {
-        audited: SAMPLE_COUNTS.auditedSentences,
-        flagged: SAMPLE_COUNTS.flaggedClaims,
-      });
-    case 'export':
-      return t('export', { files: SAMPLE_COUNTS.exportedFiles });
-    case 'intake':
-    case 'fact_extraction':
-    case 'staging':
-    case 'integrity':
-    case 'gate2':
-      return t(id);
-  }
+  return t(id, id in LEDGER_PARAMS ? LEDGER_PARAMS[id as keyof typeof LEDGER_PARAMS] : undefined);
 }
 
 /** Section 2: the sample run's steps as ruled ledger lines, the two stops set heavier. */

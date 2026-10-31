@@ -96,19 +96,18 @@ export function SourceNotes({ ids }: { ids: readonly SourceNoteId[] }) {
   const on = useShowSources();
   if (!on) return null;
   return (
-    <aside aria-label={t('notesLabel')} className="flex flex-col gap-2 text-sm">
+    <div className="flex flex-col gap-2 text-sm">
       {ids.map((id, index) => (
         <div
           key={id}
           data-source-note={id}
+          id={`source-note-${id}`}
           className="source-in flex gap-2 bg-base-100 p-2 shadow-sheet"
           style={{ '--i': index } as CSSProperties}
         >
-          <span
-            aria-hidden
-            className="flex size-6 shrink-0 items-center justify-center rounded-full bg-accent text-sm font-semibold text-accent-content"
-          >
-            {noteNumber(id)}
+          <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-accent text-sm font-semibold text-accent-content">
+            <span aria-hidden>{noteNumber(id)}</span>
+            <span className="sr-only">{t('number', { n: noteNumber(id) })}</span>
           </span>
           <ul className="flex min-w-0 flex-col gap-1">
             {SOURCE_NOTES[id].map((refItem, i) => (
@@ -117,21 +116,28 @@ export function SourceNotes({ ids }: { ids: readonly SourceNoteId[] }) {
           </ul>
         </div>
       ))}
-    </aside>
+    </div>
   );
 }
 
 /** A claim in running text: highlighted and numbered while "Show sources" is on. */
 export function Sourced({ id, children }: { id: SourceNoteId; children: ReactNode }) {
+  const t = useTranslations('landing.sources');
   const on = useShowSources();
   if (!on) return <>{children}</>;
   return (
     <>
-      <mark data-claim-source={id} className="claim-on bg-transparent text-base-content">
+      <mark
+        data-claim-source={id}
+        aria-describedby={`source-note-${id}`}
+        className="claim-on bg-transparent text-base-content"
+      >
         {children}
       </mark>
-      <sup aria-hidden className="ml-0.5 text-[0.7em] font-semibold text-primary">
-        {noteNumber(id)}
+      {/* The number is read as "source 3", and the claim points at its note. */}
+      <sup className="ml-0.5 text-[0.7em] font-semibold text-primary">
+        <span aria-hidden>{noteNumber(id)}</span>
+        <span className="sr-only">{t('number', { n: noteNumber(id) })}</span>
       </sup>
     </>
   );
