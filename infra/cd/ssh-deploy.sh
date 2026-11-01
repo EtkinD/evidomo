@@ -5,8 +5,8 @@
 #   restrict,command="<repo>/infra/cd/ssh-deploy.sh" ssh-ed25519 AAAA... evidomo-cd
 #
 # The client asks for `deploy <ref>` (SSH_ORIGINAL_COMMAND), where <ref> is a full commit hash
-# on origin/main or a release tag (vX.Y.Z). Anything else is refused, so a leaked key can only
-# redeploy code that is already on main or tagged.
+# or a release tag (vX.Y.Z), either of them on origin/main (CI sends the tag). Anything else is
+# refused, so a leaked key can only redeploy code that is already on main.
 #
 # The deploy runs detached from the SSH session (setsid), so a dropped connection or a cancelled
 # workflow does not kill it halfway; deploy.sh's own lock keeps deploys from overlapping. The
@@ -35,13 +35,11 @@ target="$(git rev-parse --verify --quiet "$ref^{commit}")" || refuse "unknown re
 current="$(git rev-parse HEAD)"
 short="${target:0:12}"
 
-if [[ "$ref" != v* ]]; then
-  # A commit must be on main, and an older main commit never replaces a newer one (a re-run of
-  # an old workflow). Rolling back is a deliberate manual step: infra/deploy.sh <ref>.
-  git merge-base --is-ancestor "$target" origin/main || refuse "$short is not on origin/main"
-  if [[ "$target" != "$current" ]] && git merge-base --is-ancestor "$target" "$current"; then
-    refuse "$short is older than the deployed commit"
-  fi
+# A commit or a tag must be on main, and an older main commit never replaces a newer one (a
+# re-run of an old workflow). Rolling back is a deliberate manual step: infra/deploy.sh <ref>.
+git merge-base --is-ancestor "$target" origin/main || refuse "$short is not on origin/main"
+if [[ "$target" != "$current" ]] && git merge-base --is-ancestor "$target" "$current"; then
+  refuse "$short is older than the deployed commit"
 fi
 
 # deploy.sh restores HEAD when it fails or rolls back, so HEAD is the deployed commit. A release

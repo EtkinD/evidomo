@@ -1,10 +1,10 @@
 name: CI
 
 on:
+  # Tags start no run of their own: a release is a main commit that carries a vX.Y.Z tag, and the
+  # run of that main push deploys it (the release and deploy jobs below).
   push:
     branches: [main]
-    # Release tags run the full pipeline and deploy (the deploy job below).
-    tags: ['v*']
   pull_request:
   schedule:
     # Daily dependency audit, so new advisories surface even without code changes.
@@ -13,8 +13,8 @@ on:
 
 concurrency:
   group: ci-${{ github.ref }}-${{ github.event_name }}
-  # Only pull requests cancel their older runs: a push to main or a tag may carry a deploy, and a
-  # cancelled run would skip it (the deploy job has its own queue below).
+  # Only pull requests cancel their older runs: a push to main may carry a release, and a
+  # cancelled run would skip its deploy (the deploy job has its own queue below).
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
@@ -178,21 +178,46 @@ jobs:
             test-results/
           retention-days: 7
 
-  # Continuous deployment (infra/README.md, "Continuous deployment"). A push to main deploys that
-  # exact commit, a vX.Y.Z tag deploys the tag, once lint, tests, the image builds, and e2e pass.
-  # The server's key only runs infra/cd/ssh-deploy.sh, which validates the ref again and prints
-  # stage lines and the result only (this log is public). The SSH secrets belong to the
-  # `production` environment, whose deployment rules admit main and v* tags only. The audit job
-  # is not a gate (it covers dev tooling); the production dependency tree is audited here.
-  deploy:
-    name: Deploy to production
+  # Continuous deployment (infra/README.md, "Continuous deployment"). Only a release deploys: a
+  # main commit that carries a vX.Y.Z tag, once lint, tests, the image builds, and e2e pass. The
+  # release job looks the tag up after those checks, so `git push origin main` followed by
+  # `git push origin vX.Y.Z` (what `npm version` leaves to do) is one run and one deploy; an
+  # untagged push skips the deploy job without asking for approval. The server's key only runs
+  # infra/cd/ssh-deploy.sh, which validates the tag again and prints stage lines and the result
+  # only (this log is public). The SSH secrets belong to the `production` environment, whose
+  # deployment rules admit main only. The audit job is not a gate (it covers dev tooling); the
+  # production dependency tree is audited before the deploy.
+  release:
+    name: Release tag
     needs: [checks, images, e2e]
-    # DEPLOY_ENABLED (a repository variable) is the switch: unset, the job is skipped, not red.
-    # A manual run of this workflow on main deploys main's head (or says it is already deployed).
+    # DEPLOY_ENABLED (a repository variable) is the switch: unset, both jobs are skipped, not red.
+    # A manual run of this workflow on main deploys main's head if it carries a release tag.
     if: >-
       vars.DEPLOY_ENABLED == 'true' &&
       (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
-      (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+      github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Find the release tag of this commit
+        id: tag
+        run: |
+          tag="$(.github/scripts/release-tag.sh "$GITHUB_SHA")"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          if [ -n "$tag" ]; then echo "Release $tag: deploying."; else echo "No release tag on this commit: nothing to deploy."; fi
+
+  deploy:
+    name: Deploy to production
+    needs: [release]
+    if: needs.release.outputs.tag != ''
     runs-on: ubuntu-latest
     timeout-minutes: 45
     environment: production
@@ -216,7 +241,7 @@ jobs:
 
       - name: Deploy over SSH
         env:
-          REF: ${{ github.ref_type == 'tag' && github.ref_name || github.sha }}
+          REF: ${{ needs.release.outputs.tag }}
           DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
           DEPLOY_SSH_HOST_KEY: ${{ secrets.DEPLOY_SSH_HOST_KEY }}
           DEPLOY_SSH_HOST: ${{ secrets.DEPLOY_SSH_HOST }}

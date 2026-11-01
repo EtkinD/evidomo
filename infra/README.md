@@ -275,7 +275,7 @@ It asks you to type the database name, takes a safety backup of the current stat
 
 ## Continuous deployment (D-09)
 
-A push to `main` deploys that commit, and a `vX.Y.Z` tag deploys the tag, once lint, tests, the image builds, and e2e pass (`deploy` job in `.github/workflows/ci.yml`). The job connects with its own SSH key, which can run only `infra/cd/ssh-deploy.sh` on the server. Design and threat model: `docs/architecture.md` section 13.
+Only a release deploys: a commit on `main` that carries a `vX.Y.Z` tag, once lint, tests, the image builds, and e2e pass (`release` and `deploy` jobs in `.github/workflows/ci.yml`). Release with `npm version <minor|patch>`, then `git push origin main` and `git push origin vX.Y.Z`: that is one CI run, and its deploy waits for your approval. A push without a tag runs the checks and deploys nothing. The job connects with its own SSH key, which can run only `infra/cd/ssh-deploy.sh` on the server. Design and threat model: `docs/architecture.md` section 13.
 
 Set it up once. Nothing below goes into the repository; keep every value out of issues, commits, and chat.
 
@@ -296,7 +296,7 @@ Set it up once. Nothing below goes into the repository; keep every value out of 
 3. **The server's host key**, so the job refuses any other machine: on the server, `cat /etc/ssh/ssh_host_ed25519_key.pub` and copy the first two fields (`ssh-ed25519 AAAA...`).
 
 4. **GitHub environment.** Repository Settings → Environments → New environment `production`:
-   - Deployment branches and tags: **Selected branches and tags**, add the branch `main` and the tag pattern `v*`.
+   - Deployment branches and tags: **Selected branches and tags**, add the branch `main` (the deploy job runs in the main push's run; no tag rule is needed).
    - Optional: Required reviewers, if every deploy should wait for your click.
    - Environment secrets: `DEPLOY_SSH_KEY` (the whole private key file `evidomo-cd`), `DEPLOY_SSH_HOST_KEY` (step 3), `DEPLOY_SSH_HOST` (address or domain), `DEPLOY_SSH_USER`, and `DEPLOY_SSH_PORT` only if SSH does not listen on 22.
 
@@ -311,7 +311,7 @@ Set it up once. Nothing below goes into the repository; keep every value out of 
 
    Then delete `evidomo-cd` and `evidomo-cd.pub` from the laptop. To revoke the key, remove its line from `authorized_keys`.
 
-**Day to day:** the job's log shows the deploy stages and the result only (Actions logs of a public repository are public). The full output of each deploy is on the server in `~/evidomo-deploy-logs/`. A commit older than the deployed one is refused; roll back by hand with `infra/deploy.sh <tag or commit>`. After a CD deploy the checkout is a detached HEAD, so deploy the latest `main` by hand with `infra/deploy.sh main` instead of `git pull`.
+**Day to day:** the job's log shows the deploy stages and the result only (Actions logs of a public repository are public). The full output of each deploy is on the server in `~/evidomo-deploy-logs/`. A release older than the deployed one is refused; roll back by hand with `infra/deploy.sh <tag or commit>`. After a CD deploy the checkout is a detached HEAD, so deploy the latest `main` by hand with `infra/deploy.sh main` instead of `git pull`.
 
 ## Day to day
 
