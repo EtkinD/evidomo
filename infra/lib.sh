@@ -124,3 +124,14 @@ else:
     print("ok: " + line)
 ' "$host_cpus" "$host_mem"
 }
+
+# Git writes checked-out files with the caller's umask; the images copy them as they are and run as
+# a non-root user, so a restrictive umask (077) makes changed sources unreadable in the container.
+# Every tracked file becomes world-readable and every tracked directory searchable; untracked files
+# such as the env file keep their mode.
+normalize_tracked_modes() {
+  git -C "$REPO_ROOT" ls-files -z | (cd "$REPO_ROOT" && xargs -0 chmod a+r)
+  git -C "$REPO_ROOT" ls-files |
+    awk -F/ 'NF > 1 { p = ""; for (i = 1; i < NF; i++) { p = (i == 1 ? $1 : p "/" $i); print p } }' |
+    sort -u | (cd "$REPO_ROOT" && tr '\n' '\0' | xargs -0 chmod a+rx)
+}

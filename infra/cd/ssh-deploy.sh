@@ -16,7 +16,6 @@
 #
 # GNU/Linux only (setsid, GNU find).
 set -euo pipefail
-umask 077
 
 repo_root="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/../.." && pwd)"
 log_dir="${EVIDOMO_DEPLOY_LOG_DIR:-$HOME/evidomo-deploy-logs}"
@@ -49,11 +48,14 @@ if [[ "$target" == "$current" ]]; then
   exit 0
 fi
 
-mkdir -p "$log_dir"
 log="$log_dir/deploy-$(date -u +%Y%m%dT%H%M%SZ)-$short.log"
 status="$log.status"
+# Only the logs are private. The deploy itself runs with umask 022: git writes the checked-out
+# sources with it, the images copy them as they are and run as a non-root user, and a 077 umask
+# here once made changed sources unreadable inside the api container (v0.6.2).
+(umask 077 && mkdir -p "$log_dir" && : > "$log" && : > "$status")
 # shellcheck disable=SC2016 # expanded by the inner shell
-setsid bash -c '"$1/infra/deploy.sh" "$2" > "$3" 2>&1 < /dev/null; echo $? > "$4"' \
+setsid bash -c 'umask 022; "$1/infra/deploy.sh" "$2" >> "$3" 2>&1 < /dev/null; echo $? > "$4"' \
   _ "$repo_root" "$ref" "$log" "$status" &
 printf 'deploying %s (%s)\n' "$ref" "$short"
 

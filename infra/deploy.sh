@@ -121,6 +121,7 @@ fi
 new_commit="$(git rev-parse HEAD)"
 new_name="$(git describe --tags --always)"
 log "Checked out $new_name ($new_commit)"
+normalize_tracked_modes
 
 # --- build (running containers untouched) -------------------------------------------------
 # Keep the images that are running as :previous, so a failed switch can go back without a rebuild.
@@ -149,6 +150,9 @@ compose --profile tools run --rm migrate || fail_before_switch
 # --- switch -------------------------------------------------------------------------------
 rollback() {
   warn "Switch or smoke check failed."
+  # The failing containers are recreated below and their output would be lost with them.
+  warn "Last output of the app services before the rollback:"
+  compose logs --no-color --tail 80 api worker web >&2 || true
   if [ "$have_previous" = 1 ]; then
     log "Restoring the previous images and code ($prev_name)"
     for name in caddy web api backup; do
