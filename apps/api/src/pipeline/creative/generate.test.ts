@@ -190,6 +190,7 @@ const clients = createMetaClients({
 });
 const passThrough = async <T>(_modelId: string, call: () => Promise<T>): Promise<T> => call();
 let market: MarketProfile;
+let marketV2: MarketProfile;
 let step: StepConfig<'creative'>;
 
 function sources(overrides: Partial<CopySources> = {}): CopySources {
@@ -213,6 +214,7 @@ const withFallback = (): StepConfig<'creative'> => ({
 beforeAll(async () => {
   const registry = await loadDefinitions();
   market = registry.getMarket('nl', 1);
+  marketV2 = registry.getMarket('nl', 2);
   step = recordedCopyStep(registry);
 });
 
@@ -232,6 +234,22 @@ describe('copy input', () => {
 
   it('refuses an output language the market does not offer', () => {
     expect(() => buildCopyInput(sources({ outputLanguage: 'de' }))).toThrow(NonRetryableStepError);
+  });
+
+  it('accepts Turkish, Italian, and Spanish where the market offers them (nl v2)', () => {
+    for (const [code, name] of [
+      ['tr', 'Turkish'],
+      ['it', 'Italian'],
+      ['es', 'Spanish'],
+    ] as const) {
+      expect(buildCopyInput(sources({ market: marketV2, outputLanguage: code })).language).toEqual({
+        code,
+        name,
+      });
+      expect(() => buildCopyInput(sources({ outputLanguage: code }))).toThrow(
+        'is not offered by market nl v1',
+      );
+    }
   });
 });
 

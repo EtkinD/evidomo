@@ -5,6 +5,11 @@ import type { CopyLanguageCheck } from '@evidomo/shared';
 // "is this text in the output language or clearly in another known one?", and stays
 // inconclusive rather than guessing on short or mixed text, so it never fails good copy for
 // lack of evidence. Words both languages share ("in", "is", "over", "door", "op") are left out.
+//
+// Turkish, Italian, and Spanish words were chosen so no list shares a word with another, and so
+// that none is likely in English or Dutch copy: "de", "en", "met", "per", "her", "non", "con",
+// "la", "un", "una", "su", "del", "al", "lo", "si" are left out. An English or Dutch text that
+// matched before still matches unless it holds more of these words than of the runner-up list.
 
 const FUNCTION_WORDS: Readonly<Record<string, ReadonlySet<string>>> = {
   en: new Set([
@@ -78,6 +83,104 @@ const FUNCTION_WORDS: Readonly<Record<string, ReadonlySet<string>>> = {
     'uw',
     'ligt',
   ]),
+  tr: new Set([
+    've',
+    'bu',
+    'bir',
+    'ile',
+    'için',
+    'olan',
+    'olarak',
+    'çok',
+    'daha',
+    'ayrıca',
+    'sahip',
+    'gibi',
+    'veya',
+    'ama',
+    'ise',
+    'sunar',
+    'sunuyor',
+    'bulunan',
+    'bulunuyor',
+    'yer',
+    'alır',
+    'var',
+    'olup',
+    'şekilde',
+    'oldukça',
+  ]),
+  it: new Set([
+    'il',
+    'di',
+    'che',
+    'è',
+    'sono',
+    'della',
+    'delle',
+    'degli',
+    'dei',
+    'nella',
+    'nel',
+    'nelle',
+    'alla',
+    'alle',
+    'gli',
+    'questo',
+    'questa',
+    'anche',
+    'molto',
+    'più',
+    'ogni',
+    'dove',
+    'dal',
+    'dalla',
+    'sul',
+    'sulla',
+    'cui',
+    'ed',
+    'offre',
+    'tutti',
+    'tutto',
+    'vostra',
+    'vostro',
+    'sua',
+    'suo',
+    'ma',
+  ]),
+  es: new Set([
+    'el',
+    'los',
+    'las',
+    'que',
+    'y',
+    'es',
+    'para',
+    'por',
+    'más',
+    'muy',
+    'está',
+    'están',
+    'son',
+    'este',
+    'esta',
+    'estos',
+    'estas',
+    'también',
+    'pero',
+    'cada',
+    'donde',
+    'sus',
+    'cuenta',
+    'ofrece',
+    'desde',
+    'como',
+    'hay',
+    'todo',
+    'toda',
+    'todos',
+    'todas',
+  ]),
 };
 
 /** Function-word hits a language needs before the check decides anything. */
@@ -92,7 +195,12 @@ export type LanguageCheckResult = CopyLanguageCheck | 'mismatch';
 
 export function checkLanguage(text: string, language: string): LanguageCheckResult {
   if (FUNCTION_WORDS[language] === undefined) return 'unchecked';
-  const words = text.toLowerCase().match(/\p{L}+/gu) ?? [];
+  // "İ" lowercases to "i" plus a combining dot, which would split Turkish words ("İçin").
+  const words =
+    text
+      .replace(/İ/g, 'i')
+      .toLowerCase()
+      .match(/\p{L}+/gu) ?? [];
   const hits = Object.entries(FUNCTION_WORDS).map(
     ([code, list]) => [code, words.filter((word) => list.has(word)).length] as const,
   );

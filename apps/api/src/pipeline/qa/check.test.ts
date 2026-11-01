@@ -204,3 +204,61 @@ describe('questionProblem', () => {
     expect(questionProblem('Hoe groot is het woonoppervlak?', 'nl')).toBeNull();
   });
 });
+
+describe('questionProblem in Turkish, Italian, and Spanish', () => {
+  it.each<[string, string]>([
+    // Plain questions, including the articles "bir" and "un/una", which are not numbers here.
+    ['Evde bir bahçe var mı?', 'tr'],
+    ['Daire kaçıncı katta?', 'tr'],
+    ['Yaşam alanı ne kadar büyük?', 'tr'],
+    ["C'è un balcone?", 'it'],
+    ['Quante camere ha la casa?', 'it'],
+    ['Se sei interessato, quando si può visitare?', 'it'],
+    ['Secondo il catasto, qual è la superficie?', 'it'],
+    ['¿Tiene la vivienda una terraza?', 'es'],
+    ['¿Cuántos dormitorios tiene?', 'es'],
+    ['¿Está el cuarto de baño reformado?', 'es'],
+  ])('accepts "%s" (%s)', (question, language) => {
+    expect(questionProblem(question, language)).toBeNull();
+  });
+
+  it.each<[string, string]>([
+    ['Daire 92 m² mi?', 'tr'],
+    ['İki banyo var mı?', 'tr'],
+    ['Daire ikinci katta mı?', 'tr'],
+    ['Tek banyo mu var?', 'tr'],
+    ['Çift cam var mı?', 'tr'],
+    ['Her iki banyo da yeni mi?', 'tr'],
+    ['Ev doksanlı yıllardan mı?', 'tr'],
+    ['İKİZ yatak var mı?', 'tr'],
+    ['IKIZ yatak var mı?', 'tr'],
+    ['DOKSANLI yıllardan mı?', 'tr'],
+    ['YEDI oda var mı?', 'tr'],
+    ["Ev 1990'lı yıllardan mı?", 'tr'],
+    ['La casa ha tre camere?', 'it'],
+    ["È stata costruita negli anni '90?", 'it'],
+    ['È un trilocale?', 'it'],
+    ['Ci sono doppi vetri?', 'it'],
+    ['Entrambi i bagni sono nuovi?', 'it'],
+    ['¿Tiene tres dormitorios?', 'es'],
+    ['¿Está en la segunda planta?', 'es'],
+    ['¿Tiene doble acristalamiento?', 'es'],
+    ['¿Ambos baños son nuevos?', 'es'],
+    ['¿Hay un par de plazas de garaje?', 'es'],
+  ])('refuses the number in "%s" (%s)', (question, language) => {
+    expect(questionProblem(question, language)).toBe('numberInQuestion');
+  });
+
+  it.each<[string, string]>([
+    ['Bahçesi var, değil mi?', 'tr'],
+    ['Çatı yeni, öyle değil mi?', 'tr'],
+    ['Bahçesi var, DEĞİL Mİ?', 'tr'],
+    ['Bahçesi var, DEĞIL MI?', 'tr'],
+    ['Ha un giardino, vero?', 'it'],
+    ['Il tetto è nuovo, non è vero?', 'it'],
+    ['Tiene jardín, ¿verdad?', 'es'],
+    ['El tejado es nuevo, ¿no?', 'es'],
+  ])('refuses the tag question "%s" (%s)', (question, language) => {
+    expect(questionProblem(question, language)).toBe('invalidQuestion');
+  });
+});

@@ -3,10 +3,11 @@ import { claimValidationReportSchema, type ClaimFindingCode } from '@evidomo/sha
 import { describe, expect, it } from 'vitest';
 import type { Fact, NewFact } from '../../db/repositories/facts.ts';
 import { storedFact } from '../reconciliation/testing.ts';
-import type { ClaimLanguage } from './numbers.ts';
+import { canonicalUnit, type ClaimLanguage } from './numbers.ts';
 import { validateClaims, findingsForSegment, type ClaimFact } from './validator.ts';
 
-// The claim validator's pass and fail cases in English and Dutch over a fictional run's facts.
+// The claim validator's pass and fail cases in English, Dutch, Turkish, Italian, and Spanish over
+// a fictional run's facts.
 // The facts are stored-fact rows (what the creative step passes), keyed by a short name here.
 
 const MATERIAL = randomUUID();
@@ -404,6 +405,150 @@ describe('approximations and ranges', () => {
   });
 });
 
+describe('Turkish, Italian, and Spanish', () => {
+  it.each<[ClaimLanguage, string, FactName[]]>([
+    ['tr', 'Daire 92 m² kullanım alanı sunuyor.', ['area']],
+    ['tr', 'Yaşam alanı 92 metrekare.', ['area']],
+    ['tr', '92 metrekarelik bir daire.', ['area']],
+    ['tr', "92 m²'lik yaşam alanı.", ['area']],
+    ['tr', 'Arsa 94,6 m².', ['plot']],
+    ['tr', 'Satış fiyatı € 1.250.000.', ['price']],
+    ['tr', 'Satış fiyatı 1 250 000 €.', ['price']],
+    ['tr', 'Tavan yüksekliği 2,6 metre.', ['ceiling']],
+    ['tr', "1987'de inşa edildi.", ['year']],
+    ['tr', 'Üç oda bulunuyor.', ['rooms']],
+    ['tr', 'Daire ikinci katta.', ['floor']],
+    ['tr', "Daire 2'nci katta.", ['floor']],
+    ['tr', 'Daire 2. katta.', ['floor']],
+    ['tr', 'İstasyona bisikletle 10 dakika.', ['cycling']],
+    ['tr', 'İstasyona bisikletle 10 dakikalık mesafede.', ['cycling']],
+    ['tr', 'Güneş panelleri ihtiyacın %40’ını karşılıyor.', ['solar']],
+    ['tr', 'Güneş panelleri ihtiyacın yüzde 40’ını karşılıyor.', ['solar']],
+    ['tr', 'Aidat aylık 165 €.', ['vve']],
+    ['tr', 'İki otopark yeri var.', ['parking']],
+    ['tr', 'Teslim 12-03-2027 tarihinde.', ['handover']],
+    ['it', "L'appartamento offre 92 mq di superficie.", ['area']],
+    ['it', 'Superficie di 92 metri quadrati.', ['area']],
+    ['it', 'Lotto di 94,6 mq.', ['plot']],
+    ['it', 'Prezzo € 1.250.000.', ['price']],
+    ['it', 'Prezzo 1 250 000 euro.', ['price']],
+    ['it', 'Soffitti alti 2,6 metri.', ['ceiling']],
+    ['it', 'Costruito nel 1987.', ['year']],
+    ['it', 'Tre camere.', ['rooms']],
+    ['it', 'Un trilocale luminoso.', ['rooms']],
+    ['it', 'Al secondo piano.', ['floor']],
+    ['it', 'Al 2º piano.', ['floor']],
+    ['it', 'La stazione è a 10 minuti in bici.', ['cycling']],
+    ['it', 'I pannelli coprono il 40% del fabbisogno.', ['solar']],
+    ['it', 'I pannelli coprono il 40 per cento del fabbisogno.', ['solar']],
+    ['it', 'Se sei alla ricerca di luce, 92 mq ti aspettano.', ['area']],
+    ['it', 'Secondo il catasto, 92 mq.', ['area']],
+    ['es', 'El piso ofrece 92 m² de superficie.', ['area']],
+    ['es', 'Superficie de 92 metros cuadrados.', ['area']],
+    ['es', 'Parcela de 94,6 m².', ['plot']],
+    ['es', 'Precio 1.250.000 €.', ['price']],
+    ['es', 'Precio 1 250 000 €.', ['price']],
+    ['es', 'Techos de 2,6 metros.', ['ceiling']],
+    ['es', 'Construido en 1987.', ['year']],
+    ['es', 'Tres habitaciones.', ['rooms']],
+    ['es', 'En la segunda planta.', ['floor']],
+    ['es', 'En la 2ª planta.', ['floor']],
+    ['es', 'En el 2.º piso.', ['floor']],
+    ['es', 'La estación está a 10 minutos en bici.', ['cycling']],
+    ['es', 'Los paneles cubren el 40 % de la demanda.', ['solar']],
+    ['es', 'Los paneles cubren el 40 por ciento de la demanda.', ['solar']],
+    ['es', 'El cuarto de baño y 92 m² de superficie.', ['area']],
+  ])('%s: %s', (language, text, cited) => {
+    expect(check(language, text, cited)).toEqual([]);
+  });
+
+  it.each<[ClaimLanguage, string, FactName[], [ClaimFindingCode, string | null][]]>([
+    ['tr', 'Daire 95 m².', ['area'], [['number_not_in_facts', '95 m²']]],
+    ['tr', 'Arsa 94.6 m².', ['plot'], [['unreadable_number', '94.6 m²']]],
+    ['tr', 'Fiyat 1,25 milyon €.', ['price'], [['unreadable_number', '1,25 milyon']]],
+    ['tr', 'Fiyat 1.250 bin €.', ['price'], [['unreadable_number', '1.250 bin']]],
+    ['tr', 'Fiyat 1.250.000 TL.', ['price'], [['unit_mismatch', '1.250.000 TL']]],
+    ['tr', "1990'lı yıllarda yapıldı.", ['year'], [['unreadable_number', "1990'lı"]]],
+    ['tr', 'İki oda.', ['rooms'], [['number_not_in_facts', 'İki']]],
+    ['tr', 'Daire üçüncü katta.', ['floor'], [['number_not_in_facts', 'üçüncü']]],
+    ['tr', "Daire 3'üncü katta.", ['floor'], [['number_not_in_facts', "3'üncü"]]],
+    ['tr', 'Onlarca ağaç ve 92 m².', ['area'], [['unreadable_number', 'Onlarca']]],
+    ['tr', 'Yaklaşık 92 m².', ['area'], [['approximate_number', 'Yaklaşık 92 m²']]],
+    ['tr', '92 m² civarında.', ['area'], [['approximate_number', '92 m² civarında']]],
+    ['tr', "92 m²'den fazla.", ['area'], [['approximate_number', "92 m²'den fazla"]]],
+    [
+      'tr',
+      'İki üç oda.',
+      ['rooms'],
+      [
+        ['number_not_in_facts', 'İki'],
+        ['number_range', 'İki üç'],
+      ],
+    ],
+    ['tr', 'Yüzde 40 metrekare.', ['solar'], [['unreadable_number', 'Yüzde 40 metrekare']]],
+    ['it', 'Superficie di 95 mq.', ['area'], [['number_not_in_facts', '95 mq']]],
+    ['it', 'Lotto di 94.6 mq.', ['plot'], [['unreadable_number', '94.6 mq']]],
+    ['it', 'Prezzo 1,25 milioni.', ['price'], [['unreadable_number', '1,25 milioni']]],
+    ['it', 'Prezzo 1250 mila euro.', ['price'], [['unreadable_number', '1250 mila']]],
+    ['it', 'Sei camere da letto.', ['rooms'], [['number_not_in_facts', 'Sei']]],
+    ['it', 'Al terzo piano.', ['floor'], [['number_not_in_facts', 'terzo']]],
+    ['it', 'Un bilocale.', ['rooms'], [['number_not_in_facts', 'bilocale']]],
+    ['it', "Costruito negli anni '80.", ['year'], [['unreadable_number', '80']]],
+    ['it', 'Una ventina di minuti.', ['cycling'], [['unreadable_number', 'ventina']]],
+    ['it', 'Circa 92 mq.', ['area'], [['approximate_number', 'Circa 92 mq']]],
+    ['it', '92 mq circa.', ['area'], [['approximate_number', '92 mq circa']]],
+    ['it', 'A 92 minuti dal centro.', ['area'], [['unit_mismatch', '92 minuti']]],
+    ['es', 'A 92 minutos del centro.', ['area'], [['unit_mismatch', '92 minutos']]],
+    ['tr', 'Merkeze 92 dakika.', ['area'], [['unit_mismatch', '92 dakika']]],
+    [
+      'it',
+      'Tra 92 e 95 mq.',
+      ['area'],
+      [
+        ['number_range', '92 e 95 mq'],
+        ['number_not_in_facts', '95 mq'],
+      ],
+    ],
+    ['es', 'Superficie de 95 m².', ['area'], [['number_not_in_facts', '95 m²']]],
+    ['es', 'Parcela de 94.6 m².', ['plot'], [['unreadable_number', '94.6 m²']]],
+    ['es', 'Precio 1,25 millones.', ['price'], [['unreadable_number', '1,25 millones']]],
+    ['es', 'Precio dos mil euros.', ['price'], [['unreadable_number', 'dos mil']]],
+    ['es', 'Cuatro habitaciones.', ['rooms'], [['number_not_in_facts', 'Cuatro']]],
+    ['es', 'En el cuarto piso.', ['floor'], [['number_not_in_facts', 'cuarto']]],
+    ['es', 'En el 3er piso.', ['floor'], [['number_not_in_facts', '3er']]],
+    ['es', 'Construido en los años 80.', ['year'], [['unreadable_number', '80']]],
+    ['es', 'Una docena de árboles.', ['area'], [['unreadable_number', 'docena']]],
+    ['es', 'Unos 92 m².', ['area'], [['approximate_number', 'Unos 92 m²']]],
+    ['es', 'Más de 92 m².', ['area'], [['approximate_number', 'Más de 92 m²']]],
+    [
+      'es',
+      'Entre 92 y 95 m².',
+      ['area'],
+      [
+        ['number_range', '92 y 95 m²'],
+        ['number_not_in_facts', '95 m²'],
+      ],
+    ],
+  ])('%s: %s', (language, text, cited, expected) => {
+    expect(check(language, text, cited)).toEqual(expected);
+  });
+
+  it('reads a Turkish fact text with Turkish rules', () => {
+    const report = validateClaims({
+      language: 'tr',
+      segments: [
+        { variant: 'portal', segmentIndex: 0, text: 'İki otopark yeri.', factIds: [id('parking')] },
+        { variant: 'portal', segmentIndex: 1, text: 'Üç otopark yeri.', factIds: [id('parking')] },
+      ],
+      facts: ALL,
+    });
+    expect(report.findings.map((f) => [f.segmentIndex, f.code, f.token])).toEqual([
+      [1, 'number_not_in_facts', 'Üç'],
+    ]);
+    expect(report.language).toBe('tr');
+  });
+});
+
 describe('report', () => {
   it('reports per segment, in order, with counts and a pass/fail summary', () => {
     const report = validateClaims({
@@ -462,4 +607,33 @@ describe('report', () => {
       ['number_not_in_facts', 60, null],
     ]);
   });
+});
+
+describe('the Turkish lira', () => {
+  it('canonicalizes TL, ₺, and TRY to one unit, keeping the en and nl units as they were', () => {
+    expect(canonicalUnit('TL')).toBe('TRY');
+    expect(canonicalUnit('₺')).toBe('TRY');
+    expect(canonicalUnit('TRY')).toBe('TRY');
+    expect(canonicalUnit('EUR')).toBe('EUR');
+    expect(canonicalUnit('kW')).toBe('other:kw');
+  });
+
+  it.each(['TL', 'TRY', '₺'])(
+    'matches a fact in %s against "TL" and "₺" in Turkish copy',
+    (unit) => {
+      const fact = storedFact(
+        'run',
+        verified({ key: 'other:asking_price', value: 250_000, unit, source: transcript }),
+      );
+      const result = (text: string) =>
+        validateClaims({
+          language: 'tr',
+          segments: [{ variant: 'portal', segmentIndex: 0, text, factIds: [fact.id] }],
+          facts: [fact],
+        }).findings.map((f) => [f.code, f.token]);
+      expect(result('Fiyat 250.000 TL.')).toEqual([]);
+      expect(result('Fiyat ₺250.000.')).toEqual([]);
+      expect(result('Fiyat 250.000 €.')).toEqual([['unit_mismatch', '250.000 €']]);
+    },
+  );
 });

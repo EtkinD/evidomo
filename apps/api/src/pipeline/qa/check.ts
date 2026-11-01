@@ -7,7 +7,12 @@ import {
 import type { CopyFactCatalog } from '../creative/catalog.ts';
 import { mergeUncited, type Piece } from '../creative/check.ts';
 import { checkLanguage } from '../creative/language.ts';
-import { isClaimLanguage, readNumbers, type ClaimLanguage } from '../claims/numbers.ts';
+import {
+  foldTurkish,
+  isClaimLanguage,
+  readNumbers,
+  type ClaimLanguage,
+} from '../claims/numbers.ts';
 import type { QaDraft } from './schema.ts';
 
 // The structural check of a Q&A answer, before anything is stored (docs/architecture.md §5,
@@ -61,11 +66,23 @@ function normalize(text: string): string {
  * "one-bedroom", "both bedrooms", "a double garage", "triple glazing", "built in the sixties".
  * An explicit list, not a parser: anything else (an energy class such as "A+++", "a few",
  * "several") is left to the verifier. Matched as whole words; Dutch compounds by their start
- * ("dubbelglas", "driedubbele").
+ * ("dubbelglas", "driedubbele"). The indefinite articles that double as "one" ("bir", "un/una")
+ * are left out: almost every question uses them as articles ("Evde bir bahçe var mı?").
  */
+/** A Turkish pattern folded like the question it reads (see `foldTurkish`). */
+function turkish(pattern: RegExp): RegExp {
+  return new RegExp(foldTurkish(pattern.source), pattern.flags);
+}
+
 const QUANTITY_WORDS: Readonly<Record<ClaimLanguage, RegExp>> = {
   en: /(?<![\p{L}\p{N}])(?:one|single|both|double|twin|triple|quadruple|once|twice|thrice|(?:twent|thirt|fort|fift|sixt|sevent|eight|ninet)ies)(?![\p{L}\p{N}])/iu,
   nl: /(?<![\p{L}\p{N}])(?:(?:één|eén|enkel|enkele|beide|beiden|eenmaal|tweemaal|driemaal)(?![\p{L}\p{N}])|(?:dubbel|driedubbel|tweeling|enkelvoudig)|jaren\s+(?:twintig|dertig|veertig|vijftig|zestig|zeventig|tachtig|negentig)(?![\p{L}\p{N}]))/iu,
+  // "tek" (single), "çift" (double), "her iki" (both), "doksanlı yıllar"/"seksenler" (decades).
+  tr: turkish(
+    /(?<![\p{L}\p{N}])(?:tek|çift|her\s+iki|ikiz|ikili|üçlü|dörtlü|ikişer|üçer|(?:yirmi|otuz|kırk|elli|altmış|yetmiş|seksen|doksan)(?:l[ıiuü]|l[ae]r)\p{L}*)(?![\p{L}\p{N}])/iu,
+  ),
+  it: /(?<![\p{L}\p{N}])(?:singol[oaie]|entramb[ie]|ambedue|doppi[oae]?|tripl[oaie]|quadrupl[oaie]|gemell[oaie])(?![\p{L}\p{N}])/iu,
+  es: /(?<![\p{L}\p{N}])(?:individual(?:es)?|ambos|ambas|dobles?|triples?|gemel[oa]s?|par|pareja)(?![\p{L}\p{N}])/iu,
 };
 
 /**
@@ -76,6 +93,9 @@ const QUANTITY_WORDS: Readonly<Record<ClaimLanguage, RegExp>> = {
 const TAG_QUESTION: Readonly<Record<ClaimLanguage, RegExp>> = {
   en: /,\s*(?:(?:is|isn['’]?t|does|doesn['’]?t|do|don['’]?t|has|hasn['’]?t|have|haven['’]?t|was|wasn['’]?t|are|aren['’]?t|can|can['’]?t|will|won['’]?t)(?:\s+(?:it|there|they|we|you))?|right|correct|true)\s*\?$/iu,
   nl: /,\s*(?:toch|niet|nietwaar|hè|he|of niet|klopt dat|juist)\s*\?$/iu,
+  tr: turkish(/,\s*(?:(?:öyle\s+)?değil\s+mi|di\s+mi|doğru\s+mu|öyle\s+mi)\s*\?$/iu),
+  it: /,\s*(?:vero|giusto|no|non\s+è\s+vero|corretto|esatto|eh|o\s+no|non\s+è\s+così)\s*\?$/iu,
+  es: /,\s*¿?\s*(?:verdad|no|cierto|correcto|eh|vale|sí\s+o\s+no|no\s+es\s+así|no\s+es\s+cierto)\s*\?$/iu,
 };
 
 /** Why a question cannot be published, or null. */
@@ -88,8 +108,10 @@ export function questionProblem(
   }
   // buildQaInput refuses languages without number rules before any call.
   if (!isClaimLanguage(language)) throw new Error(`No number rules for language ${language}`);
-  if (TAG_QUESTION[language].test(question)) return 'invalidQuestion';
-  if (readNumbers(question, language).length > 0 || QUANTITY_WORDS[language].test(question)) {
+  // Turkish capitals mix dotted and dotless i ("İKİZ", "DEĞİL MI"); the patterns are folded too.
+  const words = language === 'tr' ? foldTurkish(question) : question;
+  if (TAG_QUESTION[language].test(words)) return 'invalidQuestion';
+  if (readNumbers(question, language).length > 0 || QUANTITY_WORDS[language].test(words)) {
     return 'numberInQuestion';
   }
   return null;

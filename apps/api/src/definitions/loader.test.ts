@@ -26,15 +26,40 @@ function issuesOf(result: { ok: true } | { ok: false; issues: readonly Definitio
 }
 
 describe('the repository definitions', () => {
-  it('load and validate: listing-launch v1, international v1, nl v1', async () => {
+  it('load and validate: listing-launch v1, international v1 and v2, nl v1 and v2', async () => {
     const registry = await loadDefinitions();
 
     expect(registry.dir).toBe(path.resolve(DEFAULT_DEFINITIONS_DIR));
     expect(registry.services.map((s) => `${s.id}@${s.version}`)).toEqual(['listing-launch@1']);
     expect(registry.markets.map((m) => `${m.id}@${m.version}`)).toEqual([
       'international@1',
+      'international@2',
       'nl@1',
+      'nl@2',
     ]);
+  });
+
+  it('make the v2 profiles v1 with Turkish, Italian, and Spanish output added', async () => {
+    const registry = await loadDefinitions();
+    for (const [id, languages] of [
+      ['nl', ['en', 'nl', 'tr', 'it', 'es']],
+      ['international', ['en', 'tr', 'it', 'es']],
+    ] as const) {
+      const {
+        version: v1Version,
+        output_languages: v1Languages,
+        ...v1
+      } = registry.getMarket(id, 1);
+      const {
+        version: v2Version,
+        output_languages: v2Languages,
+        ...v2
+      } = registry.getMarket(id, 2);
+      expect([v1Version, v2Version]).toEqual([1, 2]);
+      expect(v2Languages).toEqual(languages);
+      expect(v2Languages.slice(0, v1Languages.length)).toEqual(v1Languages);
+      expect(v2).toEqual(v1);
+    }
   });
 
   it('give the service an exact-decimal budget, efforts on every language-model step, and priced models', async () => {

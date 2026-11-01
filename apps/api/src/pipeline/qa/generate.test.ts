@@ -175,6 +175,7 @@ const clients = createMetaClients({
 });
 const passThrough = async <T>(_modelId: string, call: () => Promise<T>): Promise<T> => call();
 let market: MarketProfile;
+let marketV2: MarketProfile;
 let step: StepConfig<'qa_writer'>;
 
 function sources(overrides: Partial<QaSources> = {}): QaSources {
@@ -197,6 +198,7 @@ const withFallback = (): StepConfig<'qa_writer'> => ({
 beforeAll(async () => {
   const registry = await loadDefinitions();
   market = registry.getMarket('nl', 1);
+  marketV2 = registry.getMarket('nl', 2);
   step = recordedQaStep(registry);
 });
 
@@ -216,6 +218,22 @@ describe('Q&A input and requests', () => {
 
   it('refuses an output language the market does not offer, before any call', () => {
     expect(() => buildQaInput(sources({ outputLanguage: 'de' }))).toThrow(NonRetryableStepError);
+  });
+
+  it('accepts Turkish, Italian, and Spanish where the market offers them (nl v2)', () => {
+    for (const [code, name] of [
+      ['tr', 'Turkish'],
+      ['it', 'Italian'],
+      ['es', 'Spanish'],
+    ] as const) {
+      expect(buildQaInput(sources({ market: marketV2, outputLanguage: code })).language).toEqual({
+        code,
+        name,
+      });
+      expect(() => buildQaInput(sources({ outputLanguage: code }))).toThrow(
+        'is not offered by market nl v1',
+      );
+    }
   });
 
   it('takes model, effort, cap, and fallback from the step and constrains cited IDs', async () => {

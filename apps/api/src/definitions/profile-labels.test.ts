@@ -49,13 +49,18 @@ beforeAll(async () => {
 
 describe('the shipped market profiles', () => {
   it('translate every label into tr, nl, it, and es', () => {
-    expect(markets.map((market) => market.id)).toEqual(['international', 'nl']);
+    expect(markets.map((market) => `${market.id}@${market.version}`)).toEqual([
+      'international@1',
+      'international@2',
+      'nl@1',
+      'nl@2',
+    ]);
     const missing: string[] = [];
     for (const market of markets) {
       for (const item of translatable(market)) {
         for (const locale of LABEL_LOCALES) {
           if (item.labels?.[locale] === undefined)
-            missing.push(`${market.id}: ${item.where}.${locale}`);
+            missing.push(`${market.id}@${market.version}: ${item.where}.${locale}`);
         }
       }
     }
@@ -69,7 +74,7 @@ describe('the shipped market profiles', () => {
         if (fact.type !== 'enum') continue;
         for (const value of fact.values) {
           if (/^[a-z][a-z_]*$/.test(value) && fact.option_labels?.[value] === undefined) {
-            unlabeled.push(`${market.id}: ${fact.key}.${value}`);
+            unlabeled.push(`${market.id}@${market.version}: ${fact.key}.${value}`);
           }
         }
       }
@@ -78,12 +83,15 @@ describe('the shipped market profiles', () => {
   });
 
   it('keep the official names recognisable in every language', () => {
-    const nl = markets.find((market) => market.id === 'nl');
-    const nen = nl?.area_bases.find((basis) => basis.id === 'NEN2580');
-    const cadastral = nl?.area_bases.find((basis) => basis.id === 'cadastral');
-    for (const locale of LABEL_LOCALES) {
-      expect(localizedLabel(nen ?? { label: '' }, locale)).toContain('NEN 2580');
-      expect(localizedLabel(cadastral ?? { label: '' }, locale)).toContain('Kadaster');
+    const nls = markets.filter((market) => market.id === 'nl');
+    expect(nls).toHaveLength(2);
+    for (const nl of nls) {
+      const nen = nl.area_bases.find((basis) => basis.id === 'NEN2580');
+      const cadastral = nl.area_bases.find((basis) => basis.id === 'cadastral');
+      for (const locale of LABEL_LOCALES) {
+        expect(localizedLabel(nen ?? { label: '' }, locale)).toContain('NEN 2580');
+        expect(localizedLabel(cadastral ?? { label: '' }, locale)).toContain('Kadaster');
+      }
     }
   });
 

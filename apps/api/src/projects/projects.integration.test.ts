@@ -310,7 +310,15 @@ describe('GET /api/markets and /api/services', () => {
     const list = await owner.agent.get('/api/markets');
     expect(list.status).toBe(200);
     expect(list.headers['cache-control']).toBe('no-store');
-    expect(marketListResponseSchema.parse(list.body).markets).toEqual(
+    const markets = marketListResponseSchema.parse(list.body).markets;
+    // v1 stays listed next to v2: existing projects and runs pin it.
+    expect(markets.map((m) => `${m.id}@${m.version}`)).toEqual([
+      'international@1',
+      'international@2',
+      'nl@1',
+      'nl@2',
+    ]);
+    expect(markets).toEqual(
       expect.arrayContaining([
         {
           id: 'nl',
@@ -320,6 +328,19 @@ describe('GET /api/markets and /api/services', () => {
           outputLanguages: ['en', 'nl'],
           defaultOutputLanguage: 'en',
         },
+        {
+          id: 'nl',
+          version: 2,
+          name: 'Netherlands',
+          names: { tr: 'Hollanda', nl: 'Nederland', it: 'Paesi Bassi', es: 'Países Bajos' },
+          outputLanguages: ['en', 'nl', 'tr', 'it', 'es'],
+          defaultOutputLanguage: 'en',
+        },
+        expect.objectContaining({
+          id: 'international',
+          version: 2,
+          outputLanguages: ['en', 'tr', 'it', 'es'],
+        }),
       ]),
     );
 
@@ -388,6 +409,18 @@ describe('projects', () => {
     expect(detail.readiness.missing).toContainEqual({ kind: 'voice_memo' });
   });
 
+  it('creates a project on the nl v2 profile with Turkish output', async () => {
+    const created = await owner.agent
+      .post('/api/projects')
+      .send({ ...NEW_PROJECT, market: { id: 'nl', version: 2 }, outputLanguage: 'tr' });
+    expect(created.status).toBe(201);
+    expect(projectDetailResponseSchema.parse(created.body).project).toMatchObject({
+      market: { id: 'nl', version: 2, name: 'Netherlands' },
+      outputLanguage: 'tr',
+      service: { id: 'listing-launch', version: 1 },
+    });
+  });
+
   it('validates the market, language, and body', async () => {
     const unknownMarket = await owner.agent
       .post('/api/projects')
@@ -402,6 +435,13 @@ describe('projects', () => {
       .send({ ...NEW_PROJECT, outputLanguage: 'de' });
     expect(language.status).toBe(400);
     expect(errorOf(language).issues?.[0]?.path).toEqual(['outputLanguage']);
+
+    // Turkish is offered by nl v2 only.
+    const turkishOnV1 = await owner.agent
+      .post('/api/projects')
+      .send({ ...NEW_PROJECT, outputLanguage: 'tr' });
+    expect(turkishOnV1.status).toBe(400);
+    expect(errorOf(turkishOnV1).issues?.[0]?.path).toEqual(['outputLanguage']);
 
     const extra = await owner.agent
       .post('/api/projects')

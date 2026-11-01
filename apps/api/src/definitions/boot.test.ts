@@ -1,12 +1,14 @@
 import { spawnSync } from 'node:child_process';
-import { cp, mkdtemp, rm } from 'node:fs/promises';
+import { cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { Writable } from 'node:stream';
 import { fileURLToPath } from 'node:url';
 import { pino } from 'pino';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { bootDefinitions } from './boot.ts';
+import { CLAIM_LANGUAGES } from '../pipeline/claims/numbers.ts';
+import { hasPackStrings } from '../export/strings.ts';
+import { bootDefinitions, SUPPORTED_OUTPUT_LANGUAGES } from './boot.ts';
 import { DEFAULT_DEFINITIONS_DIR } from './loader.ts';
 
 const INVALID_DIR = fileURLToPath(new URL('./__tests__/invalid/', import.meta.url));
@@ -44,6 +46,7 @@ function fakeExit(code: number): never {
 
 let invalidDir: string;
 let incompleteDir: string;
+let unsupportedDir: string;
 
 beforeAll(async () => {
   // A copy of the real definitions plus one broken service file.
@@ -57,11 +60,22 @@ beforeAll(async () => {
   incompleteDir = await mkdtemp(path.join(tmpdir(), 'evidomo-boot-incomplete-'));
   await cp(DEFAULT_DEFINITIONS_DIR, incompleteDir, { recursive: true });
   await rm(path.join(incompleteDir, 'markets/nl.v1.yaml'));
+  // Valid files, but a profile offers German, which has no claim rules.
+  unsupportedDir = await mkdtemp(path.join(tmpdir(), 'evidomo-boot-unsupported-'));
+  await cp(DEFAULT_DEFINITIONS_DIR, unsupportedDir, { recursive: true });
+  const nl = await readFile(path.join(unsupportedDir, 'markets/nl.v1.yaml'), 'utf8');
+  await writeFile(
+    path.join(unsupportedDir, 'markets/nl.v9.yaml'),
+    nl
+      .replace('  version: 1\n', '  version: 9\n')
+      .replace('  output_languages: [en, nl]\n', '  output_languages: [en, nl, de]\n'),
+  );
 });
 
 afterAll(async () => {
   await rm(invalidDir, { recursive: true, force: true });
   await rm(incompleteDir, { recursive: true, force: true });
+  await rm(unsupportedDir, { recursive: true, force: true });
 });
 
 describe('bootDefinitions', () => {
@@ -97,6 +111,55 @@ describe('bootDefinitions', () => {
     );
     expect(exitCodes).toEqual([1]);
     expect(lines[0]?.msg).toContain('markets/nl.v1.yaml: Required market definition is missing');
+  });
+
+  it('requires the published v1 and v2 market profiles', async () => {
+    const registry = await bootDefinitions({ logger: capturingLogger().logger, exit: fakeExit });
+    for (const [id, version] of [
+      ['international', 1],
+      ['international', 2],
+      ['nl', 1],
+      ['nl', 2],
+    ] as const) {
+      expect(registry.getMarket(id, version).id).toBe(id);
+    }
+  });
+
+  it('accepts only output languages with claim validator rules and pack wording', () => {
+    // Today every claim language also has pack strings, so nothing is dropped.
+    expect(SUPPORTED_OUTPUT_LANGUAGES).toEqual(CLAIM_LANGUAGES);
+    expect(SUPPORTED_OUTPUT_LANGUAGES.every((language) => hasPackStrings(language))).toBe(true);
+    expect(SUPPORTED_OUTPUT_LANGUAGES).not.toContain('de');
+  });
+
+  it('exits 1 when a market profile offers an unsupported output language', async () => {
+    const { logger, lines } = capturingLogger();
+    exitCodes.length = 0;
+
+    await expect(bootDefinitions({ dir: unsupportedDir, logger, exit: fakeExit })).rejects.toThrow(
+      ExitCalled,
+    );
+    expect(exitCodes).toEqual([1]);
+    expect(lines[0]?.msg).toContain(
+      'markets/nl.v9.yaml: market.output_languages: Output language "de" is not supported by the pipeline',
+    );
+  });
+
+  it('checks every profile against the supported list it is given', async () => {
+    const { logger, lines } = capturingLogger();
+    exitCodes.length = 0;
+
+    // A narrower list (as when another layer lacks a language) rejects the v2 profiles.
+    await expect(
+      bootDefinitions({ logger, exit: fakeExit, outputLanguages: ['en', 'nl'] }),
+    ).rejects.toThrow(ExitCalled);
+    expect(exitCodes).toEqual([1]);
+    for (const expected of [
+      'markets/international.v2.yaml: market.output_languages: Output language "tr"',
+      'markets/nl.v2.yaml: market.output_languages: Output language "es"',
+    ]) {
+      expect(lines[0]?.msg).toContain(expected);
+    }
   });
 });
 

@@ -14,3 +14,6 @@ fixtures/meta/
 
 # Deliberately invalid definition fixtures (malformed YAML; tests assert exact line/column)
 apps/api/src/definitions/__tests__/invalid/
+
+# Golden readings written by a one-off generator (claim validator en/nl regression test)
+apps/api/src/pipeline/claims/__tests__/en-nl-readings.golden.json

@@ -1,0 +1,244 @@
+# Netherlands market profile, version 2.
+#
+# Version 2 is version 1 with three more output languages: Turkish, Italian, and Spanish copy and
+# Q&A (the claim validator has number rules for them). Everything else is an exact copy of v1, so
+# a project moved from v1 to v2 extracts and checks the same facts. v1 stays published: existing
+# projects and runs pin it.
+#
+# From v1:
+#
+# Core (survives roadmap cut level 1): energy_label and living_area, both required. The other
+# facts are optional and still to be confirmed with a practicing Dutch agent (docs/product.md
+# §7). Published versions are immutable: a change goes into nl.v3.yaml.
+#
+# Translated labels: `labels` (and `names`, `option_labels`) carry tr, nl, it, and es text for the
+# web UI and the pack. The English `label` stays the source the pipeline reads; a missing
+# translation falls back to English. They are display-only, so adding one changes no run.
+market:
+  id: nl
+  version: 2
+  name: Netherlands
+  names:
+    tr: Hollanda
+    nl: Nederland
+    it: Paesi Bassi
+    es: Países Bajos
+
+  source_languages: [nl, en]
+  output_languages: [en, nl, tr, it, es]
+  default_output_language: en
+
+  units:
+    area: m2
+    volume: m3
+
+  currency: EUR
+
+  area_bases:
+    - id: NEN2580
+      label: NEN 2580 usable area (gebruiksoppervlakte wonen), per the BBMI measurement instruction
+      labels:
+        tr: NEN 2580 kullanım alanı (gebruiksoppervlakte wonen), BBMI ölçüm talimatına göre
+        nl: NEN 2580-gebruiksoppervlakte (gebruiksoppervlakte wonen), volgens de BBMI-meetinstructie
+        it: Superficie utile NEN 2580 (gebruiksoppervlakte wonen), secondo l'istruzione di misurazione BBMI
+        es: Superficie útil NEN 2580 (gebruiksoppervlakte wonen), según la instrucción de medición BBMI
+    - id: cadastral
+      label: Plot size as registered by the Kadaster
+      labels:
+        tr: Kadaster tarafından kaydedilen parsel büyüklüğü
+        nl: Perceelgrootte zoals geregistreerd door het Kadaster
+        it: Superficie del lotto come registrata dal Kadaster
+        es: Superficie de la parcela según el registro del Kadaster
+
+  facts:
+    # Label classes for homes, best to worst. RVO names the ends of the scale ("A++++ het beste
+    # en G het slechtste energielabel") and requires the label class in sale and rental
+    # advertisements:
+    #   https://www.rvo.nl/onderwerpen/wetten-en-regels-gebouwen/energielabel-woningen
+    # The full class list is the conversion table for homes (Regeling energieprestatie gebouwen,
+    # Bijlage I, Tabel 1; since 2024 Omgevingsregeling Bijlage IX, per IPLO):
+    #   https://wetten.overheid.nl/BWBR0020921
+    #   https://iplo.nl/regelgeving/regels-voor-activiteiten/gebruiken-bouwwerk/rijksregels/energielabel-gebouwen/
+    # A0 (zero-emission homes built from 2026) is an indicator shown on the label, not a class:
+    #   https://www.rvo.nl/onderwerpen/wetten-en-regels-gebouwen/energielabel-woningen/energielabel-woningbouw-uitgelegd
+    - key: energy_label
+      label: Energy label (energielabel)
+      labels:
+        tr: Enerji sınıfı (energielabel)
+        nl: Energielabel
+        it: Classe energetica (energielabel)
+        es: Etiqueta energética (energielabel)
+      type: enum
+      values: [A++++, A+++, A++, A+, A, B, C, D, E, F, G]
+      required: true
+    - key: living_area
+      label: Living area (woonoppervlakte)
+      labels:
+        tr: Yaşam alanı (woonoppervlakte)
+        nl: Woonoppervlakte
+        it: Superficie abitabile (woonoppervlakte)
+        es: Superficie habitable (woonoppervlakte)
+      type: area
+      basis: NEN2580
+      required: true
+    - key: volume
+      label: Volume (inhoud)
+      labels:
+        tr: Hacim (inhoud)
+        nl: Inhoud
+        it: Volume (inhoud)
+        es: Volumen (inhoud)
+      type: volume
+    - key: plot_area
+      label: Plot area (perceeloppervlakte)
+      labels:
+        tr: Parsel alanı (perceeloppervlakte)
+        nl: Perceeloppervlakte
+        it: Superficie del lotto (perceeloppervlakte)
+        es: Superficie de la parcela (perceeloppervlakte)
+      type: area
+      basis: cadastral
+    - key: build_year
+      label: Build year (bouwjaar)
+      labels:
+        tr: Yapım yılı (bouwjaar)
+        nl: Bouwjaar
+        it: Anno di costruzione (bouwjaar)
+        es: Año de construcción (bouwjaar)
+      type: integer
+      min: 1000
+      max: 2100
+    - key: vve_monthly_contribution
+      label: Owners' association (VvE) monthly contribution
+      labels:
+        tr: Mülk sahipleri birliği (VvE) aylık aidatı
+        nl: Maandelijkse VvE-bijdrage
+        it: Contributo mensile all'associazione dei proprietari (VvE)
+        es: Cuota mensual de la comunidad de propietarios (VvE)
+      type: money
+    - key: ground_lease
+      label: Land under ground lease (erfpacht)
+      labels:
+        tr: Erfpacht (uzun süreli arsa kirası) kapsamındaki arazi
+        nl: Grond in erfpacht
+        it: Terreno in locazione di lungo periodo (erfpacht)
+        es: Terreno en arrendamiento a largo plazo (erfpacht)
+      type: boolean
+    - key: ground_lease_annual_fee
+      label: Ground lease annual fee (canon)
+      labels:
+        tr: Yıllık erfpacht bedeli (canon)
+        nl: Jaarlijkse erfpachtcanon
+        it: Canone annuo di erfpacht
+        es: Canon anual de erfpacht
+      type: money
+
+  publication_checklist:
+    - id: energy_label_shown
+      label: The energy label class is shown in the listing
+      labels:
+        tr: Enerji sınıfı ilanda gösterilmektedir
+        nl: De energielabelklasse staat in de advertentie
+        it: La classe energetica è indicata nell'annuncio
+        es: La clase energética figura en el anuncio
+      rule: fact_present
+      fact: energy_label
+    - id: staging_disclosed
+      label: Every virtually staged image is labeled as such
+      labels:
+        tr: Sanal olarak döşenen her görsel bu şekilde etiketlenmiştir
+        nl: Elke virtueel gestylede afbeelding is als zodanig gemarkeerd
+        it: Ogni immagine con home staging virtuale è etichettata come tale
+        es: Cada imagen con home staging virtual está etiquetada como tal
+      rule: staged_images_labeled
+
+  flagged_phrasing: [exclusionary, investment_promise, unverifiable_superlative]
+
+  # Keyword biasing for Voice Transcribe (intake): room and building terms an agent says during
+  # a walkthrough that a general model may split or misspell. The parenthesised local terms of
+  # the fact labels above (woonoppervlakte, energielabel, VvE, erfpacht, ...) are added in code,
+  # so they are not repeated here. Total keywords per request are capped (docs/model-notes.md,
+  # P2-06); form values come first, then label terms, then this list.
+  transcription_keywords:
+    - NEN 2580
+    - gebruiksoppervlakte
+    - woonkamer
+    - slaapkamer
+    - badkamer
+    - keuken
+    - berging
+    - zolder
+    - vlizotrap
+    - meterkast
+    - HR-ketel
+    - servicekosten
+    - meerjarenonderhoudsplan
+    - opstalverzekering
+    - reservefonds
+
+  # Objects the vision inventory looks for in each photo (P2-08), in priority order: when the
+  # run's evidence cap (max_evidence_masks) is reached, earlier objects are segmented first.
+  # Chosen because a walkthrough or form statement can be supported or contradicted by seeing
+  # them: the energy label (a required fact), outdoor space, heating and energy installations,
+  # sanitary fittings, appliances, and fixed elements. "door" is deliberately absent: SAM also
+  # matches cupboard and wardrobe doors (docs/model-notes.md, P1-05). label is what Spark looks
+  # for; phrase is the SAM prompt (one English noun phrase).
+  evidence_objects:
+    - id: energy_label
+      label: Energy label sticker or certificate (energielabel)
+      phrase: energy label
+      supports: [energy_label]
+    - id: balcony
+      label: Balcony (balkon)
+      phrase: balcony
+    - id: solar_panel
+      label: Solar panels (zonnepanelen)
+      phrase: solar panel
+    - id: heating_boiler
+      label: Central heating boiler (cv-ketel, HR-ketel)
+      phrase: boiler
+    - id: heat_pump
+      label: Heat pump (warmtepomp)
+      phrase: heat pump
+    - id: meter_cupboard
+      label: Meter cupboard or fuse box (meterkast)
+      phrase: fuse box
+    - id: attic_ladder
+      label: Folding attic ladder (vlizotrap)
+      phrase: attic ladder
+    - id: fireplace
+      label: Fireplace or wood stove (open haard, kachel)
+      phrase: fireplace
+    - id: bathtub
+      label: Bathtub (ligbad)
+      phrase: bathtub
+    - id: shower
+      label: Shower (douche)
+      phrase: shower
+    - id: toilet
+      label: Toilet bowl
+      phrase: toilet
+    - id: dishwasher
+      label: Dishwasher (vaatwasser)
+      phrase: dishwasher
+    - id: oven
+      label: Oven
+      phrase: oven
+    - id: cooktop
+      label: Cooktop or hob (kookplaat)
+      phrase: cooktop
+    - id: washing_machine
+      label: Washing machine (wasmachine)
+      phrase: washing machine
+    - id: staircase
+      label: Staircase (trap)
+      phrase: staircase
+    - id: elevator
+      label: Elevator (lift)
+      phrase: elevator
+    - id: radiator
+      label: Radiator
+      phrase: radiator
+    - id: window
+      label: Window (raam)
+      phrase: window
