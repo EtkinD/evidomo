@@ -156,7 +156,7 @@ function openRoute(path: string): void {
 async function renderUnstartedMonitor() {
   openRoute(`/demo/runs/${RUN_ID}`);
   const view = renderPage(DemoRunPage);
-  await screen.findByRole('heading', { level: 1, name: 'Sample run replay' });
+  await screen.findByRole('heading', { level: 1, name: 'Example run replay' });
   return view;
 }
 
@@ -233,7 +233,7 @@ describe('demo list', () => {
       expect(mockRouter.replace).toHaveBeenCalledWith(`/demo/runs/${RUN_ID}`);
     });
     // No list to pick from, and no page title for a list: the visitor is on the way in.
-    expect(screen.getByText('Opening the sample file…')).toBeDefined();
+    expect(screen.getByText('Opening the example…')).toBeDefined();
     expect(screen.queryByRole('heading', { level: 1 })).toBeNull();
     expect(screen.queryByRole('link', { name: run.title })).toBeNull();
   });
@@ -245,7 +245,7 @@ describe('demo list', () => {
       'GET /api/demo/runs': () => new Promise<Response>((resolve) => (release = resolve)),
     });
     renderPage(DemoListPage);
-    expect(screen.getByText('Opening the sample file…')).toBeDefined();
+    expect(screen.getByText('Opening the example…')).toBeDefined();
     expect(screen.queryByRole('heading', { level: 1 })).toBeNull();
     release(jsonResponse(200, { runs: [run, { ...run, id: OTHER_RUN_ID, title: 'Second' }] }));
     expect(
@@ -273,7 +273,7 @@ describe('demo list', () => {
       'GET /api/demo/runs': () => jsonResponse(200, { runs: [run] }),
     });
     renderPage(DemoListPage);
-    const link = await screen.findByRole('link', { name: 'Open the sample file' });
+    const link = await screen.findByRole('link', { name: 'See a finished example' });
     expect(link.getAttribute('href')).toBe(`/demo/runs/${RUN_ID}`);
   });
 
@@ -312,7 +312,7 @@ describe('demo list', () => {
     });
     renderPage(DemoListPage);
 
-    expect(await screen.findByText(/No demo is published yet/)).toBeDefined();
+    expect(await screen.findByText(/No example is ready yet/)).toBeDefined();
     expect(screen.queryByRole('link', { name: /sample/i })).toBeNull();
   });
 
@@ -343,7 +343,7 @@ describe('demo list', () => {
     renderPage(DemoListPage);
 
     const alert = await screen.findByRole('alert');
-    expect(alert.textContent).toContain('could not load the demo runs');
+    expect(alert.textContent).toContain('could not load the examples');
     expect(within(alert).getByRole('button', { name: 'Try again' })).toBeDefined();
   });
 });
@@ -440,11 +440,11 @@ describe('demo replay monitor', () => {
       source.emit(status('running', 'awaiting_gate', 'fact_conflicts'));
     });
 
-    const link = await screen.findByRole('link', { name: 'See the conflicts' });
+    const link = await screen.findByRole('link', { name: 'See the facts that disagree' });
     expect(link.getAttribute('href')).toBe(`/demo/runs/${RUN_ID}/conflicts`);
     expect(link.className).toContain('btn-primary');
-    expect(screen.getByText(/In this replay the decisions were made already/)).toBeDefined();
-    expect(screen.queryByRole('link', { name: 'Review conflicts' })).toBeNull();
+    expect(screen.getByText(/In this replay the choices were already made/)).toBeDefined();
+    expect(screen.queryByRole('link', { name: 'Settle the facts' })).toBeNull();
 
     act(() => {
       source.emit(status('awaiting_gate', 'running'));
@@ -598,11 +598,11 @@ describe('demo replay monitor', () => {
     // Replay controls only change how stored events are played; nothing here writes.
     const buttons = screen.getAllByRole('button').map((b) => b.textContent);
     expect(buttons.filter((t) => t !== 'Replay from the start' && !/account/i.test(t))).toEqual([]);
-    const head = screen.getByRole('region', { name: 'About this demo' });
+    const head = screen.getByRole('region', { name: 'About this example' });
     expect(head.textContent).toMatch(
-      /Sample file.*replay of a synthetic run.*Nothing you do here is saved/is,
+      /Example.*replay of a made-up example.*Nothing you do here is saved/is,
     );
-    expect(within(head).getByText('Sample file')).toBeDefined();
+    expect(within(head).getByText('Example')).toBeDefined();
   });
 
   it('answers a run that is not listed with a not-found state that leads back to the list', async () => {
@@ -614,12 +614,12 @@ describe('demo replay monitor', () => {
     renderPage(DemoRunPage);
 
     const alert = await screen.findByRole('alert');
-    expect(alert.textContent).toContain('This demo run was not found');
-    expect(
-      within(alert).getByRole('link', { name: 'See the demo runs' }).getAttribute('href'),
-    ).toBe('/demo');
+    expect(alert.textContent).toContain('This example was not found');
+    expect(within(alert).getByRole('link', { name: 'See the examples' }).getAttribute('href')).toBe(
+      '/demo',
+    );
     expect(FakeEventSource.instances).toHaveLength(0);
-    expect(screen.getByRole('region', { name: 'About this demo' })).toBeDefined();
+    expect(screen.getByRole('region', { name: 'About this example' })).toBeDefined();
   });
 
   it('asks to wait on a 429 and retries', async () => {
@@ -639,7 +639,7 @@ describe('demo replay monitor', () => {
     const alert = await screen.findByRole('alert');
     expect(alert.textContent).toContain('Wait about 7 seconds');
     fireEvent.click(within(alert).getByRole('button', { name: 'Try again' }));
-    await screen.findByRole('heading', { level: 1, name: 'Sample run replay' });
+    await screen.findByRole('heading', { level: 1, name: 'Example run replay' });
   });
 });
 
@@ -705,17 +705,19 @@ describe('demo gates and pack', () => {
     openRoute(`/demo/runs/${RUN_ID}/conflicts`);
     renderPage(DemoConflictsPage);
 
-    await screen.findByRole('heading', { level: 1, name: 'Fact conflicts' });
+    await screen.findByRole('heading', { level: 1, name: 'Facts that disagree' });
     expect(screen.getByText(/finished in the original run/)).toBeDefined();
     for (const name of [/Use this value/, /Reject all/, /Enter a value/]) {
       expect(screen.queryByRole('button', { name })).toBeNull();
     }
     // Evidence is one tap away and points at the demo files.
-    expect(screen.getAllByRole('button', { name: /^Play the turn at/ }).length).toBeGreaterThan(0);
+    expect(
+      screen.getAllByRole('button', { name: /^Play the recording at/ }).length,
+    ).toBeGreaterThan(0);
     expect(screen.getByRole('link', { name: 'Back to run' }).getAttribute('href')).toBe(
       `/demo/runs/${RUN_ID}`,
     );
-    expect(screen.getByRole('region', { name: 'About this demo' })).toBeDefined();
+    expect(screen.getByRole('region', { name: 'About this example' })).toBeDefined();
 
     // Public reads only: no market form (a signed-in route), no owner route.
     expectOnlyPublicReads(fetchMock);
@@ -728,7 +730,7 @@ describe('demo gates and pack', () => {
     openRoute(`/demo/runs/${RUN_ID}/review`);
     renderPage(DemoReviewPage);
 
-    await screen.findByRole('heading', { level: 1, name: 'Pack review' });
+    await screen.findByRole('heading', { level: 1, name: 'Listing check' });
     for (const name of [
       /^Approve as written/,
       /^Edit:/,
@@ -763,8 +765,8 @@ describe('demo gates and pack', () => {
     openRoute(`/demo/runs/${RUN_ID}/review`);
     renderPage(DemoReviewPage);
 
-    await screen.findByRole('heading', { level: 1, name: 'Pack review' });
-    expect(screen.queryByRole('heading', { name: 'Approve the pack' })).toBeNull();
+    await screen.findByRole('heading', { level: 1, name: 'Listing check' });
+    expect(screen.queryByRole('heading', { name: 'Approve the listing' })).toBeNull();
     expect(screen.queryByRole('button', { name: /approve|edit|remove|accept|reject/i })).toBeNull();
     expect(screen.queryByText(/Flagged sentences need a decision/)).toBeNull();
     expectOnlyPublicReads(fetchMock);
@@ -783,7 +785,7 @@ describe('demo gates and pack', () => {
     expect(screen.getByRole('link', { name: 'Back to the run' }).getAttribute('href')).toBe(
       `/demo/runs/${RUN_ID}`,
     );
-    expect(screen.getByRole('region', { name: 'About this demo' })).toBeDefined();
+    expect(screen.getByRole('region', { name: 'About this example' })).toBeDefined();
     expectOnlyPublicReads(fetchMock);
   });
 
@@ -803,8 +805,8 @@ describe('demo gates and pack', () => {
       renderPage(Page);
 
       const alert = await screen.findByRole('alert');
-      expect(alert.textContent).toContain('This demo run was not found');
-      expect(within(alert).getByRole('link', { name: 'See the demo runs' })).toBeDefined();
+      expect(alert.textContent).toContain('This example was not found');
+      expect(within(alert).getByRole('link', { name: 'See the examples' })).toBeDefined();
     },
   );
 
@@ -867,10 +869,10 @@ describe('demo folder: cover and tabs', () => {
   });
 
   it.each([
-    ['', DemoRunPage, 'Walkthrough'],
-    ['/conflicts', DemoConflictsPage, 'Conflicts'],
-    ['/review', DemoReviewPage, 'Review'],
-    ['/pack', DemoPackPage, 'Pack'],
+    ['', DemoRunPage, 'Steps'],
+    ['/conflicts', DemoConflictsPage, 'Disagreements'],
+    ['/review', DemoReviewPage, 'Check'],
+    ['/pack', DemoPackPage, 'Listing'],
   ] as const)(
     'keeps the four tabs on %s and marks the current one',
     async (path, Page, current) => {
@@ -878,7 +880,7 @@ describe('demo folder: cover and tabs', () => {
       openRoute(`/demo/runs/${RUN_ID}${path}`);
       renderPage(Page);
 
-      const nav = await screen.findByRole('navigation', { name: 'Sections of the sample file' });
+      const nav = await screen.findByRole('navigation', { name: 'Parts of the example' });
       const tabs = within(nav).getAllByRole('link');
       expect(tabs.map((tab) => tab.getAttribute('href'))).toEqual([
         `/demo/runs/${RUN_ID}`,
@@ -898,11 +900,11 @@ describe('demo folder: cover and tabs', () => {
     openRoute(`/demo/runs/${RUN_ID}/pack`);
     renderPage(DemoPackPage);
 
-    const nav = await screen.findByRole('navigation', { name: 'Sections of the sample file' });
+    const nav = await screen.findByRole('navigation', { name: 'Parts of the example' });
     await waitFor(() => {
       expect(nav.textContent).toContain('3 steps, finished Oct 29, 2026.');
-      expect(nav.textContent).toContain('3 conflicts found, 0 open.');
-      expect(nav.textContent).toMatch(/claims? flagged, \d+ staged images? offered\./);
+      expect(nav.textContent).toContain('3 facts disagreed, 0 still open.');
+      expect(nav.textContent).toMatch(/sentences? with a problem, \d+ staged photos? to approve\./);
       expect(nav.textContent).toMatch(/2 files built\. (Ready|Not ready) to publish\./);
     });
   });
@@ -911,7 +913,7 @@ describe('demo folder: cover and tabs', () => {
     mockFolder();
     openRoute(`/demo/runs/${RUN_ID}/conflicts`);
     renderPage(DemoConflictsPage);
-    const nav = await screen.findByRole('navigation', { name: 'Sections of the sample file' });
+    const nav = await screen.findByRole('navigation', { name: 'Parts of the example' });
     expect(within(nav).queryAllByRole('button')).toHaveLength(0);
   });
 });

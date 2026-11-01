@@ -237,9 +237,9 @@ describe('run monitor', () => {
       );
     });
     const region = await screen.findByRole('region', { name: 'Review needed' });
-    expect(within(region).getByText('Gate 1: resolve fact conflicts')).toBeDefined();
+    expect(within(region).getByText('Stop 1: facts that disagree')).toBeDefined();
     expect(
-      within(region).getByRole('link', { name: 'Review conflicts' }).getAttribute('href'),
+      within(region).getByRole('link', { name: 'Settle the facts' }).getAttribute('href'),
     ).toBe(`/runs/${RUN_ID}/conflicts`);
     expect(within(region).queryByRole('button')).toBeNull();
 
@@ -261,10 +261,10 @@ describe('run monitor', () => {
     await renderMonitor();
 
     const region = await screen.findByRole('region', { name: 'Review needed' });
-    expect(within(region).getByText('Gate 2: review the pack')).toBeDefined();
-    expect(within(region).getByRole('link', { name: 'Review the pack' }).getAttribute('href')).toBe(
-      `/runs/${RUN_ID}/review`,
-    );
+    expect(within(region).getByText('Stop 2: check the listing')).toBeDefined();
+    expect(
+      within(region).getByRole('link', { name: 'Check the listing' }).getAttribute('href'),
+    ).toBe(`/runs/${RUN_ID}/review`);
     expect(screen.queryByText('Review screen coming soon')).toBeNull();
   });
 
@@ -445,7 +445,7 @@ describe('run monitor', () => {
     await waitFor(() => {
       expect(calls()).toBe(2);
     });
-    expect(await screen.findByText('Gate 2: review the pack')).toBeDefined();
+    expect(await screen.findByText('Stop 2: check the listing')).toBeDefined();
   });
 
   it('never lets an older snapshot overwrite newer events, and refetches once more', async () => {
@@ -641,7 +641,7 @@ describe('run monitor screen states and wording', () => {
     mockRun(snapshot());
     await renderMonitor();
     const item = stepItem('intake');
-    expect(within(item).getByText('Reading the walkthrough')).toBeDefined();
+    expect(within(item).getByText('Listening to the walkthrough')).toBeDefined();
     expect(
       within(item).getByText(stepLabel(testTranslator('steps'), 'intake').description),
     ).toBeDefined();
@@ -672,7 +672,7 @@ describe('run monitor screen states and wording', () => {
     const item = stepItem('intake');
     expect(within(item).getByText('Needs your review')).toBeDefined();
     expect(item.getAttribute('aria-current')).toBe('step');
-    expect(screen.getAllByRole('link', { name: /^Review conflicts$/ })).toHaveLength(1);
+    expect(screen.getAllByRole('link', { name: /^Settle the facts$/ })).toHaveLength(1);
   });
 
   it('points a completed run at its pack', async () => {

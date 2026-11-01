@@ -18,11 +18,11 @@
     "navMain": "Main",
     "navAccount": "Account",
     "projects": "Projects",
-    "demo": "Demo",
+    "demo": "Example",
     "logIn": "Log in",
     "createAccount": "Create account",
     "mastheadLine": "Evidence for every home.",
-    "footerTagline": "Evidence-linked listing packs for estate agents.",
+    "footerTagline": "Listings that show where every sentence came from.",
     "hackathon": "Built during the Meta hackathon, Oct 26 – Nov 4, 2026.",
     "github": "Evidomo on GitHub",
     "theme": "Theme",
@@ -30,7 +30,7 @@
     "themeLight": "Light",
     "themeDark": "Dark",
     "language": "Language",
-    "method": "Method"
+    "method": "How it works"
   },
   "auth": {
     "checkingSession": "Checking your session…",
@@ -78,22 +78,22 @@
   "meta": {
     "tagline": "Evidence for every home.",
     "ogImageAlt": "Evidomo: evidence for every home.",
-    "landingTitle": "Evidomo: listing packs where every claim has a source",
-    "landingDescription": "Photos and a voice walkthrough in, a listing pack out. Every statement links to the form field, spoken turn, or photo it came from, and you review it before export.",
-    "methodTitle": "How Evidomo checks a listing — Evidomo",
-    "methodDescription": "How a run checks every claim, what the sample file shows, the eval numbers with their limits, and what Evidomo will not do."
+    "landingTitle": "Evidomo: listings where every sentence shows its source",
+    "landingDescription": "Take photos and talk through the home. Evidomo writes the listing and shows where every sentence came from. You check it before anything is shared.",
+    "methodTitle": "How Evidomo works — Evidomo",
+    "methodDescription": "What you give Evidomo, what you get back, how every sentence is checked, and what Evidomo will not do."
   },
   "landing": {
     "actions": {
       "goToProjects": "Go to your projects",
       "createAccount": "Create account",
-      "openSample": "Open the sample file"
+      "openSample": "See a finished example"
     },
     "hero": {
-      "line1": "Every claim",
-      "line2": "in your listing,",
-      "line3": "linked to its evidence.",
-      "lede": "Walk the property, talk, and take photos. Evidomo drafts the listing pack and shows where each statement came from.",
+      "line1": "A listing where",
+      "line2": "every sentence shows",
+      "line3": "where it came from.",
+      "lede": "Take 10 to 30 photos of the home and talk through it for a few minutes. Evidomo writes the listing and shows where every sentence came from.",
       "notesLabel": "Example notes on the photo",
       "claims": {
         "windows": "Two tall windows",
@@ -102,42 +102,42 @@
       },
       "sources": {
         "photo": "Photo",
-        "form": "Form field"
+        "form": "Your form"
       },
-      "caption": "An illustrative example, not a real listing."
+      "caption": "An example to show the idea, not a real listing."
     },
     "how": {
-      "title": "From a walk-through to a pack you can defend",
-      "packPreviewLabel": "Example of a listing pack: two statements, each with its source",
+      "title": "How it works",
+      "packPreviewLabel": "Example of a finished listing: two sentences, each with where it came from",
       "previewLiving": {
         "text": "Bright living room of 38 m².",
-        "source": "Form"
+        "source": "Your form"
       },
       "previewGarden": {
         "text": "South-facing garden.",
-        "source": "Voice, 0:42"
+        "source": "Your voice, 0:42"
       },
       "steps": {
         "capture": {
-          "title": "Capture",
-          "text": "Photograph each room, record a voice walkthrough, and enter the facts you know."
+          "title": "Take photos and talk",
+          "text": "Take 10 to 30 photos. Then talk through the home for 2 to 10 minutes: record in your browser or upload audio. No video."
         },
         "verify": {
-          "title": "Verify",
-          "text": "When form, voice, and photos disagree, the run stops and you decide."
+          "title": "Check",
+          "text": "If photos, voice, and form disagree, Evidomo stops and asks you."
         },
         "pack": {
-          "title": "Pack",
-          "text": "Download a print-ready pack. Every claim stays traceable."
+          "title": "Get the listing",
+          "text": "Approve the text and download the pack. Every sentence shows its source."
         }
       }
     },
     "evidence": {
-      "title": "Every claim has a source",
-      "text": "Select a claim to see what it rests on.",
-      "caption": "From the sample file, a replay of recorded model responses for a synthetic apartment.",
-      "claimsLabel": "Claims in this sentence",
-      "rests": "What “{claim}” rests on",
+      "title": "See where a sentence comes from",
+      "text": "Tap a highlighted part to see what it is based on.",
+      "caption": "From the example: a made-up apartment, replayed from saved results.",
+      "claimsLabel": "Highlighted parts of this sentence",
+      "rests": "What “{claim}” is based on",
       "claims": {
         "place": "Place",
         "area": "Living area",
@@ -149,56 +149,35 @@
       }
     },
     "trust": {
-      "title": "Built to be checked",
+      "title": "You stay in charge",
       "items": {
         "calls": {
-          "title": "You make the calls",
-          "text": "The run stops for conflicts, and nothing ships until you approve."
+          "title": "You decide",
+          "text": "Evidomo stops when facts disagree. Nothing is final until you approve."
         },
         "staging": {
-          "title": "Staging is labelled",
-          "text": "Staged images are marked and shown next to the original."
+          "title": "Staged photos are labelled",
+          "text": "Added furniture is always marked and shown next to the original."
         },
         "private": {
           "title": "Private details are removed",
-          "text": "GPS is stripped at upload; faces and plates are blurred in exports."
+          "text": "Location data is removed. Faces and number plates are blurred."
         },
         "assists": {
-          "title": "It assists, it does not certify",
-          "text": "No valuations, no legal advice, no publishing for you."
+          "title": "A helper, not an expert",
+          "text": "It does not value homes, give legal advice, or publish for you."
         }
       }
     },
     "cta": {
-      "title": "Ready for your next listing?",
-      "text": "Review the draft before anything leaves."
+      "title": "Ready to try it?",
+      "text": "Look at a finished example first. No account needed."
     },
     "images": {
       "hero": "A bright canal-house living room with a green-cream brick wall, a beige sofa, a green armchair, and a potted plant by the window",
       "interior1": "An oak herringbone floor meeting terracotta tiles, with leaf shadows and a yellow pot holding an olive branch",
       "interior2": "A limewashed brick fireplace with an oak mantel, eucalyptus in a terracotta pot, and birch logs",
       "illustration": "An illustration of a white house with a rounded cream roof, an open yellow door, and a green plant"
-    },
-    "sources": {
-      "switch": "Show sources",
-      "on": "On",
-      "off": "Off",
-      "kinds": {
-        "sample": "Sample run",
-        "eval": "Eval report",
-        "code": "Enforced in code",
-        "rule": "Product rule"
-      },
-      "screens": {
-        "monitor": "Run monitor",
-        "conflicts": "Fact conflicts",
-        "review": "Pack review",
-        "pack": "Listing pack"
-      },
-      "evalRef": "README, Eval results ({date}, fixture mode)",
-      "ruleRef": "docs/product.md, section {section}",
-      "number": "source {n}",
-      "methodRef": "Method, § {n}"
     }
   },
   "notFound": {
@@ -216,12 +195,12 @@
   },
   "steps": {
     "intake": {
-      "label": "Reading the walkthrough",
-      "description": "Turning your voice memo into a transcript, one speaker turn at a time."
+      "label": "Listening to the walkthrough",
+      "description": "Turning what you said into written text, with the time of each part."
     },
     "fact_extraction": {
       "label": "Picking out the facts",
-      "description": "Pulling facts from the transcript and your form, each tied to where it came from."
+      "description": "Pulling facts out of what you said and the form, and noting where each one came from."
     },
     "vision_inventory": {
       "label": "Looking at the photos",
@@ -233,27 +212,27 @@
     },
     "creative": {
       "label": "Writing the listing",
-      "description": "Drafting the portal text and the social caption from the confirmed facts."
+      "description": "Writing the listing text and a short social media post from the confirmed facts."
     },
     "qa_cards": {
       "label": "Preparing buyer questions",
-      "description": "Answering the questions buyers usually ask, from the same facts."
+      "description": "Answering the questions buyers usually ask, using the same facts."
     },
     "staging": {
       "label": "Staging the photos",
-      "description": "Producing furnished versions of empty rooms, always labelled as staged."
+      "description": "Adding furniture to empty rooms in a copy of the photo, always labelled as staged."
     },
     "integrity": {
       "label": "Checking the staged photos",
-      "description": "Making sure staging changed no windows, doors, or other fixed elements."
+      "description": "Making sure the staging did not change windows, doors, or anything fixed."
     },
     "verification": {
-      "label": "Checking every claim",
-      "description": "Testing each sentence against the facts it cites."
+      "label": "Checking every sentence",
+      "description": "Testing each sentence against the facts it is based on."
     },
     "export": {
       "label": "Building the pack",
-      "description": "Assembling the HTML pack, the portal fields, and the images."
+      "description": "Putting together the listing pack, the fields for listing sites, and the photos."
     }
   },
   "apiErrors": {
@@ -382,6 +361,7 @@
     },
     "photos": {
       "title": "Photos",
+      "intro": "Add {min} to {max} photos of the home, one room at a time. Photos only: video is not used.",
       "previewUnavailable": "Preview unavailable",
       "photoN": "Photo {position}",
       "deleteLabel": "Delete photo {position}",
@@ -413,7 +393,7 @@
     },
     "voice": {
       "title": "Voice walkthrough",
-      "intro": "Walk through the property and say what you see: rooms, condition, anything the photos cannot show. Up to {limit}.",
+      "intro": "Walk through the property and say what you see: the rooms, their condition, anything the photos cannot show. Talk for about 2 minutes or more, up to {limit}. Record here in your browser, or upload an audio file. Audio only: video is not used.",
       "current": "Current walkthrough",
       "previous": "Previous walkthrough (replaced when you upload)",
       "playbackFailed": "Playback is not available right now.",
@@ -504,12 +484,12 @@
   "run": {
     "pageTitle": "Run — Evidomo",
     "title": "Run",
-    "titleDemo": "Sample run replay",
+    "titleDemo": "Example run replay",
     "loading": "Loading the run…",
     "loadError": "We could not load this run. Check your connection and try again.",
     "notFound": "This run was not found. It may belong to another account or no longer exist.",
-    "demoNotFound": "This demo run was not found. It may no longer be published.",
-    "seeDemoRuns": "See the demo runs",
+    "demoNotFound": "This example was not found. It may no longer be published.",
+    "seeDemoRuns": "See the examples",
     "goToProjects": "Go to your projects",
     "tryAgain": "Try again",
     "sessionExpired": "Your session has expired.",
@@ -547,15 +527,15 @@
     "reviewNeeded": "Review needed",
     "paused": "Paused",
     "gate": {
-      "factConflicts": "Gate 1: resolve fact conflicts",
-      "claimAudit": "Gate 2: review the pack"
+      "factConflicts": "Stop 1: facts that disagree",
+      "claimAudit": "Stop 2: check the listing"
     },
-    "gateText": "The run is paused until you finish this review. It stays here for as long as you need; you can leave this page, and the run continues after your last decision.",
-    "gateTextDemo": "A live run pauses here until the agent finishes this review. In this replay the decisions were made already; open the review to see them, with the evidence behind each value.",
-    "seeConflicts": "See the conflicts",
-    "seeReview": "See the review",
-    "reviewConflicts": "Review conflicts",
-    "reviewPack": "Review the pack",
+    "gateText": "The run is paused until you finish this check. It waits as long as you need; you can leave this page, and the run continues after your last decision.",
+    "gateTextDemo": "A real run pauses here until the agent finishes this check. In this replay the choices were already made; open it to see them and what each one is based on.",
+    "seeConflicts": "See the facts that disagree",
+    "seeReview": "See the check",
+    "reviewConflicts": "Settle the facts",
+    "reviewPack": "Check the listing",
     "failed": "The run failed",
     "noReason": "No reason was recorded.",
     "untouched": "Your photos, voice memo, and form are untouched; nothing was published.",
@@ -586,10 +566,10 @@
     "tooManyRequestsWait": "Too many requests right now. Wait about {seconds, plural, one {# second} other {# seconds}} and try again."
   },
   "evidence": {
-    "formField": "Form field",
-    "voiceTurn": "Voice walkthrough, turn at {time}",
-    "playTurn": "Play the turn at {time}",
-    "stopTurn": "Stop the turn at {time}",
+    "formField": "Your form",
+    "voiceTurn": "Voice walkthrough, at {time}",
+    "playTurn": "Play the recording at {time}",
+    "stopTurn": "Stop the recording at {time}",
     "play": "Play",
     "stop": "Stop",
     "timeRange": "{start} to {end}",
@@ -608,8 +588,8 @@
   "demo": {
     "pageTitle": "Demo — Evidomo",
     "title": "See Evidomo at work",
-    "intro": "Replay a finished sample run: watch the steps, then open both review gates, the evidence behind every claim, and the listing pack. No account needed.",
-    "bannerLabel": "About this demo",
+    "intro": "Watch a finished example: how the steps run, the two stops where the agent decides, where each sentence comes from, and the finished listing. No account needed.",
+    "bannerLabel": "About this example",
     "controls": "Replay controls",
     "speed": "Replay speed",
     "start": "Start the demo",
@@ -619,62 +599,62 @@
     "market": "Market",
     "language": "Language",
     "finishedOn": "Finished",
-    "loadingRuns": "Loading the demo runs…",
+    "loadingRuns": "Loading the examples…",
     "tooManyRequests": "Too many requests right now. Wait a few seconds and try again.",
-    "loadError": "We could not load the demo runs. Check your connection and try again.",
+    "loadError": "We could not load the examples. Check your connection and try again.",
     "tryAgain": "Try again",
-    "noneYet": "No demo is published yet. A demo run appears here once the operator has published a sample run; until then, there is nothing to replay.",
+    "noneYet": "No example is ready yet. Please check back soon.",
     "home": "Back to the home page",
     "pages": {
       "monitor": {
-        "title": "Sample run — Evidomo demo",
+        "title": "Example steps — Evidomo",
         "loading": "Loading the run…"
       },
       "conflicts": {
-        "title": "Fact conflicts — Evidomo demo",
-        "loading": "Loading the fact conflicts…"
+        "title": "Facts that disagree — Evidomo",
+        "loading": "Loading the facts that disagree…"
       },
       "review": {
-        "title": "Pack review — Evidomo demo",
-        "loading": "Loading the review…"
+        "title": "Check the listing — Evidomo",
+        "loading": "Loading the check…"
       },
       "pack": {
-        "title": "Listing pack — Evidomo demo",
+        "title": "The listing pack — Evidomo",
         "loading": "Loading the pack…"
       }
     },
-    "runningHead": "A replay of a synthetic run. Nothing you do here is saved.",
-    "opening": "Opening the sample file…",
-    "coverLabel": "The sample file",
-    "tabsLabel": "Sections of the sample file",
+    "runningHead": "A replay of a made-up example. Nothing you do here is saved.",
+    "opening": "Opening the example…",
+    "coverLabel": "The example",
+    "tabsLabel": "Parts of the example",
     "tabs": {
-      "monitor": "Walkthrough",
-      "conflicts": "Conflicts",
-      "review": "Review",
-      "pack": "Pack"
+      "monitor": "Steps",
+      "conflicts": "Disagreements",
+      "review": "Check",
+      "pack": "Listing"
     },
     "tabLines": {
       "monitor": "{total} steps, finished {date}.",
-      "conflicts": "{count, plural, one {# conflict} other {# conflicts}} found, {open} open.",
-      "review": "{flagged, plural, one {# claim} other {# claims}} flagged, {images, plural, one {# staged image} other {# staged images}} offered.",
+      "conflicts": "{count, plural, one {# fact} other {# facts}} disagreed, {open} still open.",
+      "review": "{flagged, plural, one {# sentence} other {# sentences}} with a problem, {images, plural, one {# staged photo} other {# staged photos}} to approve.",
       "pack": "{files, plural, one {# file} other {# files}} built. {ready, select, yes {Ready to publish.} other {Not ready to publish.}}"
     }
   },
   "conflicts": {
-    "pageTitle": "Fact conflicts — Evidomo",
-    "loading": "Loading the fact conflicts…",
-    "loadError": "We could not load the fact conflicts. Check your connection and try again.",
+    "pageTitle": "Facts that disagree — Evidomo",
+    "loading": "Loading the facts that disagree…",
+    "loadError": "We could not load the facts that disagree. Check your connection and try again.",
     "backToRun": "Back to run",
     "backToTheRun": "Back to the run",
-    "title": "Fact conflicts",
-    "titleResolve": "Resolve fact conflicts",
-    "allDecided": "All conflicts are decided. The run is continuing.",
-    "notReached": "The run has not reached this review yet. The conflicts appear here once the facts have been compared.",
+    "title": "Facts that disagree",
+    "titleResolve": "Settle the facts that disagree",
+    "allDecided": "All settled. The run is continuing.",
+    "notReached": "The run has not reached this check yet. The facts that disagree appear here once the facts have been compared.",
     "suspended": "The run stopped while waiting for this review, so decisions are paused. Resume the run from its page to reopen the review; the decisions you made are kept.",
-    "releasedNone": "No conflicts needed a decision.",
-    "releasedDemo": "This review was finished in the original run. The decisions made are shown below.",
-    "released": "This review is finished. Your decisions are shown below.",
-    "intro": "These facts disagree. Compare the evidence for each value, then keep one, reject them all, or enter the right value. The run continues after the last decision.",
+    "releasedNone": "No facts disagreed.",
+    "releasedDemo": "This check was finished in the original run. The choices made are shown below.",
+    "released": "This check is finished. Your choices are shown below.",
+    "intro": "These facts disagree. Compare what each value is based on, then keep one, reject them all, or type the right value. The run continues after the last decision.",
     "sourceKinds": {
       "form": "form field",
       "voice": "voice walkthrough",
@@ -770,31 +750,31 @@
     }
   },
   "claimAudit": {
-    "pageTitle": "Review the pack — Evidomo",
-    "loading": "Loading the review…",
-    "loadError": "We could not load the review. Check your connection and try again.",
+    "pageTitle": "Check the listing — Evidomo",
+    "loading": "Loading the check…",
+    "loadError": "We could not load the check. Check your connection and try again.",
     "backToRun": "Back to run",
-    "title": "Pack review",
-    "titleOpen": "Review the pack",
-    "notReached": "The run has not reached this review yet. The copy and staged images appear here once the audit is done.",
+    "title": "Listing check",
+    "titleOpen": "Check the listing",
+    "notReached": "The run has not reached this check yet. The text and staged photos appear here once every sentence has been checked.",
     "suspended": "The run stopped while waiting for this review, so decisions are paused. Resume the run from its page to reopen the review; the decisions you made are kept.",
-    "released": "This review is finished. Your decisions are shown below.",
-    "releasedDemo": "This review was finished in the original run. The decisions made are shown below.",
+    "released": "This check is finished. Your decisions are shown below.",
+    "releasedDemo": "This check was finished in the original run. The decisions made are shown below.",
     "openPack": "Open the pack",
-    "select": "Select any sentence to see the facts and sources behind it. Flagged sentences need a decision.",
-    "copy": "Copy",
+    "select": "Select any sentence to see the facts behind it. A sentence with a problem needs your decision.",
+    "copy": "Text",
     "buyerQuestions": "Buyer questions",
     "questionLabel": "Question {number}: {question}",
     "dropped": "Dropped: this card is not published.",
     "summary": "Summary",
-    "flaggedClaims": "Flagged claims: {total} ({open} open)",
-    "stagedOffered": "Staged images offered: {total} ({open} open)",
+    "flaggedClaims": "Sentences with a problem: {total} ({open} open)",
+    "stagedOffered": "Staged photos offered: {total} ({open} open)",
     "warningsLabel": "Warnings",
-    "approveTitle": "Approve the pack",
+    "approveTitle": "Approve the listing",
     "stillOpen": "Still open before you can approve:",
-    "openClaims": "{count, plural, one {# flagged claim} other {# flagged claims}}",
-    "openImages": "{count, plural, one {# staged image} other {# staged images}}",
-    "allDecided": "Everything is decided. Approving starts the export of the pack.",
+    "openClaims": "{count, plural, one {# sentence with a problem} other {# sentences with a problem}}",
+    "openImages": "{count, plural, one {# staged photo} other {# staged photos}}",
+    "allDecided": "Everything is decided. Approving builds the final pack.",
     "finishEditing": "Save or cancel the text you are editing first.",
     "approve": "Approve pack",
     "noText": "No text.",
@@ -802,8 +782,8 @@
     "saving": "Saving your decision…",
     "evidenceFor": "Evidence for “{text}”",
     "closeEvidence": "Close evidence",
-    "cites": "{count, plural, =0 {This segment cites no facts.} one {This segment cites 1 fact.} other {This segment cites # facts.}}",
-    "missingEvidence": "Missing evidence: a fact this segment cites ({id}) is not part of this review.",
+    "cites": "{count, plural, =0 {This part is based on no facts.} one {This part is based on 1 fact.} other {This part is based on # facts.}}",
+    "missingEvidence": "Missing evidence: a fact this part is based on ({id}) is not part of this check.",
     "showEvidenceFor": "Show evidence for:",
     "flaggedLabel": "Flagged: {name}",
     "original": "Original: “{text}”",
@@ -826,15 +806,15 @@
       "notAccepted": "That decision was not accepted. Check it and try again."
     },
     "categories": {
-      "claim_support": "Claim not supported",
-      "unverifiable_superlative": "Unverifiable superlative",
-      "investment_promise": "Investment promise",
-      "exclusionary": "Exclusionary wording",
-      "area_basis": "Area basis"
+      "claim_support": "Not backed by the facts",
+      "unverifiable_superlative": "Boasting that cannot be checked",
+      "investment_promise": "Promise about returns",
+      "exclusionary": "Wording that excludes people",
+      "area_basis": "Unclear how the area was measured"
     },
     "stopReasons": {
-      "clean": "The check found no remaining problems in the copy.",
-      "loop_limit": "The check reached its limit for rewrites, and some sentences are still flagged. Decide each flagged sentence below.",
+      "clean": "The check found no remaining problems in the text.",
+      "loop_limit": "The check reached its limit for rewrites, and some sentences still have a problem. Decide each one below.",
       "budget": "The check stopped early to stay within the run’s cost cap, so some sentences may still have problems.",
       "revision_failed": "A rewrite did not work, so the last checked draft is shown with its flags."
     },
@@ -848,18 +828,18 @@
       "moot": "Not needed: this card is dropped."
     },
     "variants": {
-      "portal": "Portal text",
-      "social": "Social caption"
+      "portal": "Listing text",
+      "social": "Social media post"
     },
     "warnings": {
-      "variantEmpty": "{where}: every segment is removed, so the pack publishes no text for it.",
+      "variantEmpty": "{where}: every sentence is removed, so the pack publishes no text for it.",
       "requiredUnmentioned": "{where}: the required fact “{label}” is no longer mentioned.",
       "unmentioned": "{where}: the fact “{label}” is no longer mentioned."
     },
     "edit": {
       "empty": "Enter the new text, or cancel.",
       "newTextFor": "New text for “{text}”",
-      "hint": "The citations stay the same. Numbers and units must match the facts this text cites.",
+      "hint": "It keeps the same sources. Numbers and units must match the facts it is based on.",
       "rejected": "This text did not pass the check against its facts:",
       "save": "Save text",
       "cancel": "Cancel",
@@ -869,7 +849,7 @@
       "attemptEditFailed": "Attempt {n}: the edit failed.",
       "attemptEditFailedWhy": "Attempt {n}: the edit failed ({reason}).",
       "attemptUnchecked": "Attempt {n}: could not be checked.",
-      "attemptUncheckedTarget": "Attempt {n}: could not be checked ({target} image not segmented).",
+      "attemptUncheckedTarget": "Attempt {n}: could not be checked ({target} image could not be analysed).",
       "passed": "passed",
       "failed": "failed",
       "changedClasses": ", changed: {classes}",
@@ -880,13 +860,13 @@
       "stagedAlt": "Staged version for {operation}",
       "operation": "{name} (photo {n})",
       "imageLabel": "Staged image: {operation}",
-      "integrityPassed": "Integrity check passed: windows, doors and other fixed elements are unchanged.",
-      "integritySecond": "Integrity check passed on the second attempt: windows, doors and other fixed elements are unchanged.",
-      "integrityFor": "Integrity check for {operation}",
+      "integrityPassed": "Check passed: windows, doors and other fixed parts are unchanged.",
+      "integritySecond": "Check passed on the second attempt: windows, doors and other fixed parts are unchanged.",
+      "integrityFor": "Check for {operation}",
       "outcomePassed": "Outcome: passed.",
       "outcomeSecond": "Outcome: passed on the second attempt.",
       "aspectChange": "Largest aspect change: {change}.",
-      "fixedElements": "Fixed elements",
+      "fixedElements": "Fixed parts",
       "classCount": "{label}: {original} in the original, {edit} in the staged image",
       "attempts": "Attempts",
       "accepted": "Accepted: the staged image is published next to the original.",
@@ -897,7 +877,7 @@
       "rejectLabel": "Reject staged image: {operation}",
       "reject": "Reject, keep the original",
       "title": "Staged images",
-      "fallbackTitle": "Staging rejected by the integrity check",
+      "fallbackTitle": "Staging rejected by the check",
       "fallbackText": "Only the original photo is published for these.",
       "rejectedName": "{name} (rejected)"
     }
@@ -907,9 +887,9 @@
     "loading": "Loading the pack…",
     "title": "Listing pack",
     "backToRun": "Back to the run",
-    "ready": "Ready to publish: every publication check passed.",
+    "ready": "Ready to publish: every final check passed.",
     "notReady": "Not ready to publish",
-    "notReadyText": "At least one publication check failed. The checklist inside the pack shows which; fix them before this listing goes out.",
+    "notReadyText": "At least one final check failed. The checklist inside the pack shows which; fix it before this listing goes out.",
     "preview": "Preview",
     "previewTitle": "Listing pack preview",
     "print": "Print / Save as PDF",
@@ -921,7 +901,7 @@
     "images": "Images ({count})",
     "files": {
       "html": "Listing pack (HTML)",
-      "portalFields": "Portal fields (JSON)",
+      "portalFields": "Fields for listing sites (JSON)",
       "image": "Image"
     },
     "downloadLabel": "Download {name}",
@@ -995,111 +975,129 @@
   "stamps": {
     "verified": "Verified",
     "decision": "Needs your decision",
-    "sample": "Sample file"
+    "sample": "Example"
   },
   "method": {
-    "title": "How Evidomo checks a listing",
-    "lede": "What a run does, what it found in the sample file, and where it stops.",
+    "title": "How Evidomo works",
+    "lede": "You give Evidomo photos and a voice walkthrough of a home. It writes the listing. Every sentence shows where it came from, and you check it before anything is shared.",
     "indexLabel": "On this page",
     "sections": {
-      "sources": "Every claim has a source",
-      "sample-run": "What happened to the sample listing",
-      "numbers": "The numbers, and their limits",
-      "limits-and-data": "What it will not do, and what it removes"
+      "inputs": "What you give it",
+      "sources": "Where every sentence comes from",
+      "example": "What happened to the example listing",
+      "tests": "How well does it work?",
+      "limits": "What it will not do"
     },
     "types": {
-      "form": "A form field: a value you entered.",
-      "voice": "A voice turn: words from your walkthrough, with their time.",
-      "photo": "A photo region: the part of a picture a fact rests on."
+      "form": "Your form: a fact you typed in.",
+      "voice": "Your voice: words from your walkthrough, with the time you said them.",
+      "photo": "A photo: the part of the picture that shows it."
     },
-    "sourcesTitle": "Sources",
-    "specimen": {
-      "label": "A sentence from the sample file",
-      "sentenceNote": "Model output, shown as written (English, not translated).",
-      "prompt": "Select a highlighted claim to see what it rests on.",
-      "claimsLabel": "Claims in this sentence",
-      "claimNames": {
-        "year": "Build year",
-        "label": "Energy label",
-        "issued": "Label issue year"
+    "inputs": {
+      "items": {
+        "photos": {
+          "title": "10 to 30 photos",
+          "text": "Take them with your phone, one room at a time. Photos only."
+        },
+        "voice": {
+          "title": "A voice walkthrough",
+          "text": "Walk through the home and say what you see. Aim for 2 to 10 minutes. Record it in your browser, or upload an audio file."
+        },
+        "form": {
+          "title": "A short form",
+          "text": "Facts you know, such as the size of the home and the year it was built."
+        }
       },
-      "evidenceTitle": "What “{claim}” rests on",
+      "noVideo": "Evidomo does not use video. Use photos and a voice recording only.",
+      "outputTitle": "What you get back",
+      "outputText": "The listing text, answers to questions buyers often ask, a short post for social media, and your photos. Download it all as one pack."
+    },
+    "specimen": {
+      "label": "A sentence from the example listing",
+      "sentenceNote": "Written by the AI and shown exactly as written (in English).",
+      "prompt": "Tap a highlighted part to see what it is based on.",
+      "claimsLabel": "Highlighted parts of this sentence",
+      "claimNames": {
+        "year": "Year built",
+        "label": "Energy label",
+        "issued": "Year of the label"
+      },
+      "evidenceTitle": "What “{claim}” is based on",
       "fieldNames": {
-        "build_year": "Build year",
+        "build_year": "Year built",
         "energy_label": "Energy label"
       },
       "formValue": "{field}: {value}",
       "notUsed": "Not used",
-      "conflict": "The form said {form}. The run stopped at the first review, and the spoken {voice} was kept.",
-      "replayNote": "A replay: the model responses were recorded once, the walkthrough was synthetic speech, and the sample file plays silence in its place."
+      "conflict": "The form said {form}, but the voice said {voice}. Evidomo stopped and asked the agent, who kept {voice}.",
+      "replayNote": "This is a replay of a saved example. The home is made up, and the voice is computer-made. The replay plays silence instead of it."
     },
     "ledger": {
-      "intro": "Evidomo runs every step. At the two stops, you decide.",
-      "stop": "The run stops here",
-      "scripted": "In the sample file, the decisions were scripted ahead of time.",
+      "intro": "Evidomo does every step by itself. At two points it stops and waits for you to decide.",
+      "stop": "Evidomo stops here",
+      "scripted": "In the example, these choices were made ahead of time.",
       "gateTitles": {
-        "gate1": "Review 1 of 2: fact conflicts",
-        "gate2": "Review 2 of 2: the copy and the staged image"
+        "gate1": "Stop 1 of 2: facts that disagree",
+        "gate2": "Stop 2 of 2: check the text and the staged photo"
       },
       "rows": {
-        "intake": "A Dutch voice walkthrough becomes timed turns.",
-        "fact_extraction": "Facts are read from the form and the voice, each with its source.",
-        "vision_inventory": "{photos} photos are read and checked for faces and plates. None needed blurring.",
-        "reconciliation": "{conflicts} conflicts surface. A bedroom photo shows carpet where the voice said laminate.",
-        "gate1": "The spoken {voice} wins over the form’s {form}. €175 stays over €165. The bedroom floor is dropped.",
-        "creative": "{portal} portal sentences and {social} social ones, each citing its facts.",
-        "qa_cards": "{questions} buyer questions, answered in {answers} sentences from the same facts.",
-        "staging": "The model took an empty living room for a bedroom and furnished it as one. It is labelled “Virtually staged”.",
-        "integrity": "Windows, doors, and other fixed elements are counted before and after. All are unchanged.",
-        "verification": "{audited} sentences are tested against their facts. {flagged} are flagged.",
-        "gate2": "Nothing is flagged. The staged image and the copy are approved.",
-        "export": "{files} files are built. Every publication check passes."
+        "intake": "The voice walkthrough, in Dutch, is turned into text with times.",
+        "fact_extraction": "Facts are picked from the form and the voice. Each keeps its source.",
+        "vision_inventory": "{photos} photos are checked for faces and number plates. None needed blurring.",
+        "reconciliation": "{conflicts} facts disagree. One example: the voice said laminate, but the bedroom photo shows carpet.",
+        "gate1": "The agent picks {voice} over the form’s {form}, and €175 over €165. The bedroom floor is left out.",
+        "creative": "{portal} sentences for the listing text and {social} for social media. Each names its facts.",
+        "qa_cards": "{questions} questions buyers often ask, answered in {answers} sentences from the same facts.",
+        "staging": "The AI mistook an empty room for a bedroom and added a bed. The photo says “Virtually staged”.",
+        "integrity": "Windows, doors, and other fixed parts are counted before and after. Nothing changed.",
+        "verification": "{audited} sentences are checked against their facts. {flagged} had a problem.",
+        "gate2": "Nothing was flagged. The agent approves the staged photo and the text.",
+        "export": "{files} files are built, and every final check passes."
       },
-      "bedroomCaption": "The voice said laminate. This bedroom photo shows carpet. A model-generated input photo, not a real property.",
+      "bedroomCaption": "The voice said laminate. This bedroom photo shows carpet. An AI-made photo, not a real home.",
       "stagingBefore": "Before",
       "stagingAfter": "After",
-      "stagingCaption": "Left: a model-generated input photo of an invented empty room. Right: the staging step’s result, labelled “Virtually staged”."
+      "stagingCaption": "Left: an AI-made photo of an invented empty room. Right: the staged result, labelled “Virtually staged”."
     },
     "numbers": {
-      "intro": "Known problems are planted in synthetic inputs, and we count what the pipeline catches. Recorded {date}, fixture mode, {sets} synthetic sets.",
-      "caption": "Eval results",
-      "measure": "Measure",
+      "intro": "We hid known mistakes in made-up test homes and counted how many Evidomo caught. Tested on {date}, with {sets} made-up sets.",
+      "caption": "Test results",
+      "measure": "What we tested",
       "result": "Result",
       "rows": {
-        "planted": "Planted conflicts surfaced at the first review",
-        "falseConflicts": "Unexpected (false) conflicts",
-        "injectedFlagged": "Injected claim defects flagged in the first audit",
-        "injectedAtGate2": "Injected defects still unflagged at the second review",
-        "injectedExported": "Injected defects in an exported pack",
-        "cleanFlags": "First-audit flags on uninjected sentences"
+        "planted": "Facts that disagree, found",
+        "falseConflicts": "Disagreements it invented",
+        "injectedFlagged": "Bad sentences we slipped in, flagged",
+        "injectedExported": "Bad sentences that reached a final pack",
+        "cleanFlags": "Good sentences flagged by mistake"
       },
-      "limitsTitle": "Limits",
+      "limitsTitle": "What this does not show",
       "limits": {
-        "blatant": "The planted defects are blatant. The numbers show the checks catch such text, not how often the writer produces it.",
-        "oneApartment": "All six sets are variations of one synthetic apartment: evidence that the mechanism works, not a catch rate for real listings.",
-        "freeform": "Conflicts about free-form details, such as a floor material, are found by the model on a best-effort basis.",
-        "audio": "The audit reads facts and quotes, not audio. The script says “L-vormige”, the transcript “ellipsvormige”, the copy “elliptical”: you catch that at review 2."
+        "blatant": "The mistakes we hid were easy to spot. This shows the checks work, not how often real listings contain mistakes.",
+        "oneApartment": "All six sets are versions of one made-up apartment. It shows the idea works, not how it does on real homes.",
+        "freeform": "Small details, like a floor material, are found on a best-effort basis.",
+        "audio": "Evidomo checks the written text, not the sound. If a word was misheard, it can slip through; you catch it at the final check."
       }
     },
     "boundaries": {
-      "lead": "It will not:",
+      "lead": "Evidomo will not:",
       "items": {
-        "valuation": "Value a property or give investment advice.",
-        "legal": "Interpret law, draft contracts, or advise on title. The checklist does not certify compliance.",
+        "valuation": "Value a home or give investment advice.",
+        "legal": "Give legal advice. Its checklist is not a legal check.",
         "buyers": "Screen, score, or rank buyers or tenants.",
-        "publishing": "Publish to a portal for you.",
-        "edits": "Edit a photo to hide a defect or change the structure.",
-        "metadata": "Keep GPS or other photo metadata: it is stripped at upload.",
-        "blur": "Export a face or a license plate: both are blurred.",
-        "deletion": "Keep a deleted project: its photos, voice memo, facts, and pack are removed.",
-        "training": "Let a model train on your content: only Standard-mode models are used."
+        "publishing": "Publish to a listing site for you.",
+        "edits": "Change a photo to hide a flaw or alter the building.",
+        "metadata": "Keep the location data in your photos. It is removed when you upload.",
+        "blur": "Share a face or a number plate. Both are blurred.",
+        "deletion": "Keep a deleted project. Photos, voice, facts, and the listing are removed.",
+        "training": "Let AI models train on your content."
       }
     },
     "photos": {
-      "cover": "A living room with a light oak floor, a grey three-seat sofa, a tall window, and a white door. Synthetic photo.",
-      "bedroom": "A bedroom with grey carpet, a double bed with white linen, a window, and a built-in wardrobe. Synthetic photo.",
-      "stagingBefore": "An empty room with a light oak floor, a window with a radiator beneath it, and a white door. Synthetic photo.",
-      "stagingAfter": "The same room with a bed and a bedside table added. Synthetic photo, virtually staged."
+      "cover": "A living room with a light oak floor, a grey three-seat sofa, a tall window, and a white door. AI-made photo.",
+      "bedroom": "A bedroom with grey carpet, a double bed with white linen, a window, and a built-in wardrobe. AI-made photo.",
+      "stagingBefore": "An empty room with a light oak floor, a window with a radiator beneath it, and a white door. AI-made photo.",
+      "stagingAfter": "The same room with a bed and a bedside table added. AI-made photo, virtually staged."
     }
   }
 }

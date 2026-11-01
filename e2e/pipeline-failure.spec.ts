@@ -18,7 +18,7 @@ test('a step the recording cannot replay fails the run, and the failure can be r
     await page.getByRole('button', { name: 'Use this value: 1986' }).click();
     await page.getByRole('button', { name: 'Reject all values for Bedroom floor' }).click();
     await page.getByRole('button', { name: 'Use this value: € 175' }).click();
-    await expect(page.getByText('All conflicts are decided. The run is continuing.')).toBeVisible();
+    await expect(page.getByText('All settled. The run is continuing.')).toBeVisible();
     await page.getByRole('link', { name: 'Back to run' }).click();
   });
 

@@ -4,7 +4,7 @@ export const CONTAINER = 'mx-auto w-full max-w-6xl px-4';
 
 /**
  * A numbered section of the file: the heading stands in the margin column with its section
- * number (§ 2), the content takes the rest, and a footer closes it with its sources.
+ * number (§ 2), the content takes the rest.
  */
 export function Section({
   n,
@@ -12,7 +12,6 @@ export function Section({
   anchor,
   title,
   intro,
-  footer,
   children,
 }: {
   n: number;
@@ -22,8 +21,6 @@ export function Section({
   anchor?: string;
   title: string;
   intro?: ReactNode;
-  /** Closes the section (its numbered sources). */
-  footer?: ReactNode;
   children: ReactNode;
 }) {
   return (
@@ -41,10 +38,7 @@ export function Section({
         </h2>
         {intro}
       </div>
-      <div className="flex flex-col gap-8 lg:col-span-9">
-        {children}
-        {footer}
-      </div>
+      <div className="flex flex-col gap-8 lg:col-span-9">{children}</div>
     </section>
   );
 }

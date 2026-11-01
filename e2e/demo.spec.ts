@@ -16,10 +16,10 @@ test.describe('demo, signed out', () => {
   test('the header leads to the public demo, which needs no login', async ({ page, request }) => {
     const ids = await publishedRunIds(request);
     await page.goto('/');
-    await page.getByRole('banner').getByRole('link', { name: 'Demo' }).click();
+    await page.getByRole('banner').getByRole('link', { name: 'Example' }).click();
 
-    const head = page.getByRole('region', { name: 'About this demo' });
-    await expect(head).toContainText('replay of a synthetic run');
+    const head = page.getByRole('region', { name: 'About this example' });
+    await expect(head).toContainText('replay of a made-up example');
     const main = page.getByRole('main');
 
     if (ids.length === 1) {
@@ -27,9 +27,9 @@ test.describe('demo, signed out', () => {
       // (The dev server compiles the run screen on its first visit, which can take a while.)
       const slow = { timeout: 30_000 };
       await expect(page).toHaveURL(new RegExp(`/demo/runs/${ids[0]}$`), slow);
-      await expect(
-        page.getByRole('navigation', { name: 'Sections of the sample file' }),
-      ).toBeVisible(slow);
+      await expect(page.getByRole('navigation', { name: 'Parts of the example' })).toBeVisible(
+        slow,
+      );
       await expect(page.getByRole('heading', { level: 1 })).toBeVisible(slow);
       // No autoplay: the replay waits for the button (not pressed here, so this stays read-only).
       await expect(page.getByRole('button', { name: 'Start the demo' })).toBeVisible(slow);
@@ -40,7 +40,7 @@ test.describe('demo, signed out', () => {
       ).toBeVisible();
       // Either the explanation (nothing published) or the runs; never a login redirect.
       await expect(
-        main.getByText('No demo is published yet').or(main.getByRole('listitem').first()),
+        main.getByText('No example is ready yet').or(main.getByRole('listitem').first()),
       ).toBeVisible();
     }
   });
@@ -50,7 +50,7 @@ test.describe('demo, signed out', () => {
     await page.goto('/');
     await page
       .getByRole('main')
-      .getByRole('link', { name: 'Open the sample file' })
+      .getByRole('link', { name: 'See a finished example' })
       .first()
       .click();
     await expect(page).toHaveURL(
@@ -61,10 +61,10 @@ test.describe('demo, signed out', () => {
 
   test('a run that is not published answers with a not-found state', async ({ page }) => {
     await page.goto('/demo/runs/00000000-0000-4000-8000-000000000000');
-    await expect(page.getByRole('region', { name: 'About this demo' })).toBeVisible();
+    await expect(page.getByRole('region', { name: 'About this example' })).toBeVisible();
     await expect(page.getByRole('main').getByRole('alert')).toContainText(
-      'This demo run was not found',
+      'This example was not found',
     );
-    await expect(page.getByRole('link', { name: 'See the demo runs' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'See the examples' })).toBeVisible();
   });
 });

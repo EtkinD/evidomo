@@ -1,14 +1,10 @@
 import Link from 'next/link';
 import type { CSSProperties } from 'react';
-import { useRouter } from 'next/router';
-import { useEffect } from 'react';
 import { useTranslations } from 'use-intl';
 import { useMe } from '../../lib/auth';
 import { LANDING_IMAGES } from '../../lib/landing-images';
-import { applySourcesFromUrl } from '../../lib/sources';
 import { ClaimExample } from './ClaimExample';
 import { LandingImage } from './LandingImage';
-import { SourceNotes, Sourced, SourcesSwitch } from './sources';
 
 /** The public demo replay (P4-09): with one published run it opens the sample file itself. */
 export const DEMO_HREF = '/demo';
@@ -113,14 +109,9 @@ function Hero() {
 
         <div className="fade-late flex flex-col gap-6 lg:col-span-4 lg:pt-6">
           <p className="max-w-prose font-display text-xl leading-relaxed md:text-2xl">
-            <Sourced id="lede">{t('lede')}</Sourced>
+            {t('lede')}
           </p>
-          <SourceNotes ids={['lede']} />
           <Actions surface="light" />
-          {/* On a phone the switch has no masthead to sit in. */}
-          <div className="md:hidden">
-            <SourcesSwitch />
-          </div>
         </div>
 
         <figure className="relative lg:col-span-8 lg:-mt-4">
@@ -282,14 +273,7 @@ function HowItWorks() {
             </span>
             <div className="flex flex-col gap-2">
               <h3 className="text-3xl font-medium">{t(`steps.${step.key}.title`)}</h3>
-              <p className="max-w-prose text-base-content/70">
-                {step.key === 'verify' ? (
-                  <Sourced id="stops">{t('steps.verify.text')}</Sourced>
-                ) : (
-                  t(`steps.${step.key}.text`)
-                )}
-              </p>
-              {step.key === 'verify' && <SourceNotes ids={['stops']} />}
+              <p className="max-w-prose text-base-content/70">{t(`steps.${step.key}.text`)}</p>
             </div>
             <div className="md:pt-1">
               {step.image === null ? (
@@ -308,9 +292,6 @@ function HowItWorks() {
 }
 
 const TRUST_KEYS = ['calls', 'staging', 'private', 'assists'] as const;
-
-// The trust points a visitor would doubt carry a source behind "Show sources".
-const TRUST_NOTES = { staging: 'labelled', private: 'private', assists: 'limits' } as const;
 
 function Trust() {
   const t = useTranslations('landing.trust');
@@ -344,14 +325,7 @@ function Trust() {
           {TRUST_KEYS.map((key) => (
             <li key={key} className="flex flex-col gap-2 border-t border-neutral-content/40 pt-4">
               <h3 className="text-2xl font-medium">{t(`items.${key}.title`)}</h3>
-              <p className="text-neutral-content/80">
-                {key === 'calls' ? (
-                  t('items.calls.text')
-                ) : (
-                  <Sourced id={TRUST_NOTES[key]}>{t(`items.${key}.text`)}</Sourced>
-                )}
-              </p>
-              {key !== 'calls' && <SourceNotes ids={[TRUST_NOTES[key]]} />}
+              <p className="text-neutral-content/80">{t(`items.${key}.text`)}</p>
             </li>
           ))}
         </ul>
@@ -388,16 +362,8 @@ function FinalCta() {
 }
 
 export function LandingPage() {
-  const { asPath } = useRouter();
-
-  // `?sources=on` is read after hydration (a static page has no query on the server).
-  useEffect(() => {
-    applySourcesFromUrl(new URL(asPath, 'http://localhost').search);
-  }, [asPath]);
-
   return (
-    // `overflow-x-clip`, not `hidden`: the source notes slide in from the margin, and that must
-    // never widen the page.
+    // `overflow-x-clip`, not `hidden`: the tilted prints must never widen the page.
     <main className="flex-1 overflow-x-clip">
       <Hero />
       <HowItWorks />

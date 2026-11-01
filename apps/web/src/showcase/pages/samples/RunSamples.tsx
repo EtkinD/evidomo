@@ -18,7 +18,7 @@ const STEPS: readonly {
     time: '1 s',
   },
   {
-    name: 'Reading the walkthrough',
+    name: 'Listening to the walkthrough',
     detail: 'Transcribing 4:12 of speech into turns',
     status: 'done',
     cost: '$0.18',

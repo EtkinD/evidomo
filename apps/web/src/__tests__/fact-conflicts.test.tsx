@@ -61,7 +61,7 @@ describe('Gate 1 page', () => {
     renderPage(ConflictsPage);
 
     expect(
-      await screen.findByRole('heading', { level: 1, name: 'Resolve fact conflicts' }),
+      await screen.findByRole('heading', { level: 1, name: 'Settle the facts that disagree' }),
     ).toBeDefined();
     expect(screen.getByText('3 of 3 conflicts still open')).toBeDefined();
     expect(
@@ -76,12 +76,16 @@ describe('Gate 1 page', () => {
       name: /^92 m² \(Living area \(Wohnfläche\)\)$/,
     });
     const sideB = within(area).getByRole('group', { name: /^98 m²/ });
-    expect(within(sideA).getByText('Form field')).toBeDefined();
+    expect(within(sideA).getByText('Your form')).toBeDefined();
     expect(within(sideA).getByText('Living area:', { exact: false })).toBeDefined();
     expect(within(sideA).getByText(/about ninety-two square metres/)).toBeDefined();
-    expect(within(sideA).getByRole('button', { name: 'Play the turn at 01:23' })).toBeDefined();
+    expect(
+      within(sideA).getByRole('button', { name: 'Play the recording at 01:23' }),
+    ).toBeDefined();
     expect(within(sideB).getByText(/ninety-eight with the extension/)).toBeDefined();
-    expect(within(sideB).getByRole('button', { name: 'Play the turn at 02:22' })).toBeDefined();
+    expect(
+      within(sideB).getByRole('button', { name: 'Play the recording at 02:22' }),
+    ).toBeDefined();
 
     const rooms = screen.getByRole('group', { name: 'Rooms' });
     const photo = within(rooms).getByRole('img', { name: 'Photo evidence for Rooms' });
@@ -234,9 +238,7 @@ describe('Gate 1 page', () => {
       await screen.findByRole('button', { name: 'Reject all values for Station minutes' }),
     );
 
-    expect(
-      await screen.findByText('All conflicts are decided. The run is continuing.'),
-    ).toBeDefined();
+    expect(await screen.findByText('All settled. The run is continuing.')).toBeDefined();
     expect(screen.getByRole('link', { name: 'Back to run' }).getAttribute('href')).toBe(
       `/runs/${RUN_ID}`,
     );
@@ -292,7 +294,7 @@ describe('Gate 1 page', () => {
 
       await waitFor(() => {
         expect(
-          screen.getByText('This review is finished. Your decisions are shown below.'),
+          screen.getByText('This check is finished. Your choices are shown below.'),
         ).toBeDefined();
       });
       expect(gets).toBe(2);
@@ -361,7 +363,7 @@ describe('Gate 1 page', () => {
       );
       renderPage(ConflictsPage);
 
-      expect(await screen.findByText(/has not reached this review yet/)).toBeDefined();
+      expect(await screen.findByText(/has not reached this check yet/)).toBeDefined();
       expect(screen.getByRole('link', { name: 'Back to run' }).getAttribute('href')).toBe(
         `/runs/${RUN_ID}`,
       );
@@ -396,7 +398,7 @@ describe('Gate 1 page', () => {
       renderPage(ConflictsPage);
 
       expect(
-        await screen.findByRole('heading', { level: 1, name: 'Fact conflicts' }),
+        await screen.findByRole('heading', { level: 1, name: 'Facts that disagree' }),
       ).toBeDefined();
       expect(await screen.findByText('You kept 92 m² (Living area (Wohnfläche)).')).toBeDefined();
       expect(screen.getByText('You entered 15 minute.')).toBeDefined();
@@ -406,7 +408,9 @@ describe('Gate 1 page', () => {
       expect(screen.queryByRole('progressbar')).toBeNull();
       expect(screen.getByRole('link', { name: 'Back to run' })).toBeDefined();
       // The evidence stays available for the audit.
-      expect(screen.getAllByRole('button', { name: /^Play the turn/ }).length).toBeGreaterThan(0);
+      expect(screen.getAllByRole('button', { name: /^Play the recording/ }).length).toBeGreaterThan(
+        0,
+      );
     });
 
     it('explains a suspended review', async () => {
@@ -429,7 +433,7 @@ describe('Gate 1 page', () => {
       mockGate(() => jsonResponse(200, openGate()));
       renderPage(ConflictsPage);
 
-      expect(await screen.findByText('Loading the fact conflicts…')).toBeDefined();
+      expect(await screen.findByText('Loading the facts that disagree…')).toBeDefined();
       expect(await screen.findByText('3 of 3 conflicts still open')).toBeDefined();
     });
 

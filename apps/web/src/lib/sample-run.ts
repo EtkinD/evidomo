@@ -17,7 +17,7 @@ export type SampleScreen = 'monitor' | 'conflicts' | 'review' | 'pack';
 /** The one conflict the specimen tells, and the form and voice values on its two sides. */
 export const BUILD_YEAR = { form: 1986, voice: 1987 } as const;
 
-/** Counts the ledger states. Each is visible on the screen named in `landing-sources.ts`. */
+/** Counts the ledger states. Each is visible on a screen of the sample run (`/demo`). */
 export const SAMPLE_COUNTS = {
   /** Photos in `project.json`; the pack lists these plus the one staged image. */
   photos: 11,
@@ -184,7 +184,6 @@ export const EVAL_ROWS = [
   { id: 'planted', result: '14 / 14' },
   { id: 'falseConflicts', result: '0' },
   { id: 'injectedFlagged', result: '15 / 15' },
-  { id: 'injectedAtGate2', result: '0' },
   { id: 'injectedExported', result: '0' },
   { id: 'cleanFlags', result: '6' },
 ] as const;

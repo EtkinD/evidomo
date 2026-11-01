@@ -130,7 +130,7 @@ describe('transcript turn evidence', () => {
   const OTHER_TRANSCRIPT = '9c9c9c9c-9c9c-4c9c-8c9c-9c9c9c9c9c9c';
   const elsewhere = turn(1, 5_000, 9_000, 'a different recording', OTHER_TRANSCRIPT);
   const play = (time: string) =>
-    fireEvent.click(screen.getByRole('button', { name: `Play the turn at ${time}` }));
+    fireEvent.click(screen.getByRole('button', { name: `Play the recording at ${time}` }));
   const audio = (): FakeAudio => {
     const instance = FakeAudio.instances[0];
     if (instance === undefined) throw new Error('No audio element');
@@ -141,7 +141,7 @@ describe('transcript turn evidence', () => {
     renderEvidence([first]);
 
     expect(screen.getByText('“about ninety-two square metres”')).toBeDefined();
-    expect(screen.getByText('Voice walkthrough, turn at 01:23')).toBeDefined();
+    expect(screen.getByText('Voice walkthrough, at 01:23')).toBeDefined();
     expect(screen.getByText('01:23 to 01:31')).toBeDefined();
   });
 
@@ -158,7 +158,7 @@ describe('transcript turn evidence', () => {
       audio().loadMetadata();
     });
     expect(audio().currentTime).toBe(83.4);
-    expect(screen.getByRole('button', { name: 'Stop the turn at 01:23' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Stop the recording at 01:23' })).toBeDefined();
   });
 
   it('seeks at once when the recording is already loaded', () => {
@@ -192,7 +192,7 @@ describe('transcript turn evidence', () => {
       vi.advanceTimersByTime(100);
     });
     expect(audio().pause).toHaveBeenCalledTimes(1);
-    expect(screen.getByRole('button', { name: 'Play the turn at 01:23' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Play the recording at 01:23' })).toBeDefined();
 
     // A throttled interval must not let it run on: the media clock's own event ends it too.
     play('01:23');
@@ -200,7 +200,7 @@ describe('transcript turn evidence', () => {
       audio().currentTime = 91.7;
       audio().dispatchEvent(new Event('timeupdate'));
     });
-    expect(screen.getByRole('button', { name: 'Play the turn at 01:23' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Play the recording at 01:23' })).toBeDefined();
   });
 
   it('does not end a turn before the seek to its start happened', () => {
@@ -213,7 +213,7 @@ describe('transcript turn evidence', () => {
       audio().dispatchEvent(new Event('timeupdate'));
       vi.advanceTimersByTime(500);
     });
-    expect(screen.getByRole('button', { name: 'Stop the turn at 02:22' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Stop the recording at 02:22' })).toBeDefined();
   });
 
   it('stops when the same button is pressed again', () => {
@@ -223,10 +223,10 @@ describe('transcript turn evidence', () => {
       audio().loadMetadata();
     });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Stop the turn at 01:23' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Stop the recording at 01:23' }));
 
     expect(audio().pause).toHaveBeenCalled();
-    expect(screen.getByRole('button', { name: 'Play the turn at 01:23' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Play the recording at 01:23' })).toBeDefined();
   });
 
   it('uses one audio element, so starting a turn stops the one that was playing', () => {
@@ -241,20 +241,20 @@ describe('transcript turn evidence', () => {
     expect(FakeAudio.instances).toHaveLength(1);
     expect(audio().pause).toHaveBeenCalled();
     expect(audio().play).toHaveBeenCalledTimes(2);
-    expect(screen.getByRole('button', { name: 'Play the turn at 01:23' })).toBeDefined();
-    expect(screen.getByRole('button', { name: 'Stop the turn at 02:22' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Play the recording at 01:23' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Stop the recording at 02:22' })).toBeDefined();
 
     // The first turn's end no longer matters; only the second turn's end stops the audio.
     act(() => {
       audio().currentTime = 100;
       vi.advanceTimersByTime(200);
     });
-    expect(screen.getByRole('button', { name: 'Stop the turn at 02:22' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Stop the recording at 02:22' })).toBeDefined();
     act(() => {
       audio().currentTime = 150.3;
       vi.advanceTimersByTime(100);
     });
-    expect(screen.getByRole('button', { name: 'Play the turn at 02:22' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Play the recording at 02:22' })).toBeDefined();
   });
 
   it('lets only the latest of two clips on different recordings seek when the metadata arrives', () => {
@@ -271,8 +271,8 @@ describe('transcript turn evidence', () => {
     });
 
     expect(audio().currentTime).toBe(5);
-    expect(screen.getByRole('button', { name: 'Stop the turn at 00:05' })).toBeDefined();
-    expect(screen.getByRole('button', { name: 'Play the turn at 01:23' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Stop the recording at 00:05' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Play the recording at 01:23' })).toBeDefined();
   });
 
   it('cleans up when the page goes away', () => {
@@ -307,7 +307,7 @@ describe('transcript turn evidence', () => {
     const alert = screen.getByRole('alert');
     expect(alert.textContent).toContain('The audio for this part is not available');
     expect(audio().currentTime).toBe(0);
-    expect(screen.getByRole('button', { name: 'Play the turn at 01:23' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Play the recording at 01:23' })).toBeDefined();
     expect(vi.getTimerCount()).toBe(0);
     // The message belongs to one turn at a time: starting another clip clears the first's.
     play('02:22');
@@ -334,7 +334,7 @@ describe('transcript turn evidence', () => {
     expect(audio().play).toHaveBeenCalledTimes(1);
     expect(audio().paused).toBe(true);
     expect(screen.getByRole('alert').textContent).toContain('not available');
-    expect(screen.getByRole('button', { name: 'Play the turn at 02:22' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Play the recording at 02:22' })).toBeDefined();
   });
 
   it('treats a start exactly at the end as unavailable, and an unknown duration as playable', () => {
@@ -364,7 +364,7 @@ describe('transcript turn evidence', () => {
 
     expect(screen.queryByRole('alert')).toBeNull();
     expect(audio().currentTime).toBe(83.4);
-    expect(screen.getByRole('button', { name: 'Stop the turn at 01:23' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Stop the recording at 01:23' })).toBeDefined();
   });
 
   it('returns to Play when the recording ends', () => {
@@ -378,7 +378,7 @@ describe('transcript turn evidence', () => {
       audio().dispatchEvent(new Event('ended'));
     });
 
-    expect(screen.getByRole('button', { name: 'Play the turn at 01:23' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Play the recording at 01:23' })).toBeDefined();
     expect(vi.getTimerCount()).toBe(0);
   });
 
@@ -394,7 +394,7 @@ describe('transcript turn evidence', () => {
       audio().dispatchEvent(new Event('pause'));
     });
 
-    expect(screen.getByRole('button', { name: 'Play the turn at 01:23' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Play the recording at 01:23' })).toBeDefined();
   });
 
   it('reports a play() the browser refuses', async () => {
@@ -406,7 +406,7 @@ describe('transcript turn evidence', () => {
     });
 
     expect(screen.getByRole('alert').textContent).toContain('could not be played');
-    expect(screen.getByRole('button', { name: 'Play the turn at 01:23' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Play the recording at 01:23' })).toBeDefined();
   });
 
   it('ignores the rejection of a play() that a newer clip interrupted', async () => {
@@ -418,7 +418,7 @@ describe('transcript turn evidence', () => {
     });
 
     expect(screen.queryByRole('alert')).toBeNull();
-    expect(screen.getByRole('button', { name: 'Stop the turn at 01:23' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Stop the recording at 01:23' })).toBeDefined();
   });
 
   it('says so when the recording cannot be loaded, and loads it again on the next try', () => {
@@ -431,7 +431,7 @@ describe('transcript turn evidence', () => {
     });
 
     expect(screen.getByRole('alert').textContent).toContain('could not be played');
-    expect(screen.getByRole('button', { name: 'Play the turn at 01:23' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Play the recording at 01:23' })).toBeDefined();
 
     play('01:23');
     expect(audio().srcAssignments).toHaveLength(2);
@@ -441,7 +441,7 @@ describe('transcript turn evidence', () => {
   it('reloads a recording whose metadata never arrived', () => {
     renderEvidence([first]);
     play('01:23');
-    fireEvent.click(screen.getByRole('button', { name: 'Stop the turn at 01:23' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Stop the recording at 01:23' }));
 
     play('01:23');
 
@@ -459,7 +459,7 @@ describe('form field and decision evidence', () => {
   it('shows the field label and the value as entered', () => {
     renderEvidence([{ kind: 'form', field: 'living_area' }]);
 
-    expect(screen.getByText('Form field')).toBeDefined();
+    expect(screen.getByText('Your form')).toBeDefined();
     expect(screen.getByText('Living area:').parentElement?.textContent).toBe('Living area: 92 m2');
   });
 

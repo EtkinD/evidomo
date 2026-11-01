@@ -1,18 +1,19 @@
 import { useTranslations } from 'use-intl';
-import { METHOD_ANCHORS, METHOD_SOURCES, type MethodAnchor } from '../../lib/landing-sources';
+import { METHOD_ANCHORS, type MethodAnchor } from '../../lib/method';
 import { Boundaries } from '../landing/Boundaries';
 import { Ledger } from '../landing/Ledger';
 import { Numbers } from '../landing/Numbers';
 import { CONTAINER, Section } from '../landing/Section';
 import { Specimen } from '../landing/Specimen';
-import { SourceList } from './SourceList';
+import { Inputs } from './Inputs';
 
 const EVIDENCE_TYPES = ['form', 'voice', 'photo'] as const;
 
 /**
- * "How Evidomo checks a listing": the detail the landing page leaves out, set as a short spec
- * sheet. Four numbered sections, each ending with its sources. The "Show sources" switch is the
- * landing page's; here the sources are listed, not marked.
+ * "How Evidomo works": the detail the landing page leaves out, in plain words and set as a short
+ * spec sheet. Five numbered sections: what goes in, where a sentence comes from, what happened to
+ * the example listing, how well it works, and what it will not do. No source links: the example
+ * itself (`/demo`) is the proof.
  */
 export function MethodPage() {
   const t = useTranslations('method');
@@ -22,7 +23,6 @@ export function MethodPage() {
     anchor,
     id: `method-${anchor}`,
     title: t(`sections.${anchor}`),
-    footer: <SourceList refs={METHOD_SOURCES[anchor]} />,
   });
 
   return (
@@ -55,6 +55,10 @@ export function MethodPage() {
         </div>
       </header>
 
+      <Section {...section('inputs')}>
+        <Inputs />
+      </Section>
+
       <Section {...section('sources')}>
         <ul className="flex max-w-2xl flex-col">
           {EVIDENCE_TYPES.map((type) => (
@@ -66,15 +70,15 @@ export function MethodPage() {
         <Specimen />
       </Section>
 
-      <Section {...section('sample-run')}>
+      <Section {...section('example')}>
         <Ledger />
       </Section>
 
-      <Section {...section('numbers')}>
+      <Section {...section('tests')}>
         <Numbers />
       </Section>
 
-      <Section {...section('limits-and-data')}>
+      <Section {...section('limits')}>
         <Boundaries />
       </Section>
     </main>

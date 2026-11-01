@@ -178,27 +178,6 @@
       "interior1": "Teraskota karolarla buluşan meşe balık sırtı parke; yaprak gölgeleri ve zeytin dalı tutan sarı bir saksı",
       "interior2": "Meşe şömine rafı olan, kireç badanalı tuğla bir şömine; teraskota saksıda okaliptüs ve huş odunları",
       "illustration": "Yuvarlak krem çatılı, açık sarı kapılı beyaz bir ev ve yeşil bir bitki illüstrasyonu"
-    },
-    "sources": {
-      "switch": "Kaynakları göster",
-      "on": "Açık",
-      "off": "Kapalı",
-      "kinds": {
-        "sample": "Örnek işlem",
-        "eval": "Değerlendirme raporu",
-        "code": "Kodla uygulanır",
-        "rule": "Ürün kuralı"
-      },
-      "screens": {
-        "monitor": "İşlem izleme",
-        "conflicts": "Bilgi çelişkileri",
-        "review": "Paket incelemesi",
-        "pack": "İlan paketi"
-      },
-      "evalRef": "README, Değerlendirme sonuçları ({date}, fixture modu)",
-      "ruleRef": "docs/product.md, bölüm {section}",
-      "number": "kaynak {n}",
-      "methodRef": "Yöntem, § {n}"
     }
   },
   "notFound": {
@@ -382,6 +361,7 @@
     },
     "photos": {
       "title": "Fotoğraflar",
+      "intro": "Evin {min} ila {max} fotoğrafını ekleyin, oda oda. Yalnızca fotoğraf: video kullanılmaz.",
       "previewUnavailable": "Önizleme yok",
       "photoN": "Fotoğraf {position}",
       "deleteLabel": "{position}. fotoğrafı sil",
@@ -1002,17 +982,36 @@
     "lede": "Bir işlemin ne yaptığı, örnek dosyada ne bulduğu ve nerede durduğu.",
     "indexLabel": "Bu sayfada",
     "sections": {
+      "inputs": "Ne vereceksiniz",
       "sources": "Her iddianın bir kaynağı var",
-      "sample-run": "Örnek ilana ne oldu",
-      "numbers": "Sayılar ve sınırları",
-      "limits-and-data": "Neleri yapmaz, neleri siler"
+      "example": "Örnek ilana ne oldu",
+      "tests": "Sayılar ve sınırları",
+      "limits": "Neleri yapmaz, neleri siler"
     },
     "types": {
       "form": "Form alanı: senin girdiğin bir değer.",
       "voice": "Konuşma bölümü: sesli turdan sözler, zamanıyla.",
       "photo": "Fotoğraf bölgesi: bir bilginin dayandığı görüntü parçası."
     },
-    "sourcesTitle": "Kaynaklar",
+    "inputs": {
+      "items": {
+        "photos": {
+          "title": "10 ila 30 fotoğraf",
+          "text": "Telefonunuzla, oda oda çekin. Yalnızca fotoğraf."
+        },
+        "voice": {
+          "title": "Sesli gezinti",
+          "text": "Evi gezerken gördüklerinizi anlatın. 2 ila 10 dakika yeterli. Tarayıcıda kaydedin ya da bir ses dosyası yükleyin."
+        },
+        "form": {
+          "title": "Kısa bir form",
+          "text": "Bildiğiniz bilgiler: evin büyüklüğü, yapım yılı gibi."
+        }
+      },
+      "noVideo": "Evidomo video kullanmaz. Yalnızca fotoğraf ve ses kaydı kullanın.",
+      "outputTitle": "Ne alırsınız",
+      "outputText": "İlan metni, alıcıların sık sorduğu soruların yanıtları, kısa bir sosyal medya paylaşımı ve fotoğraflarınız. Hepsini tek paket olarak indirin."
+    },
     "specimen": {
       "label": "Örnek dosyadan bir cümle",
       "sentenceNote": "Model çıktısı, yazıldığı gibi (İngilizce, çevrilmedi).",
@@ -1069,7 +1068,6 @@
         "planted": "İlk gözden geçirmede yakalanan yerleştirilmiş çelişkiler",
         "falseConflicts": "Beklenmeyen (yanlış) çelişkiler",
         "injectedFlagged": "İlk denetimde işaretlenen eklenmiş iddia kusurları",
-        "injectedAtGate2": "İkinci gözden geçirmede hâlâ işaretlenmemiş eklenmiş kusurlar",
         "injectedExported": "Dışa aktarılan pakette eklenmiş kusurlar",
         "cleanFlags": "Eklenmemiş cümlelerde ilk denetimin işaretleri"
       },

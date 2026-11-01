@@ -3,7 +3,6 @@ import { useRouter } from 'next/router';
 import { useTranslations } from 'use-intl';
 import { useMe } from '../../lib/auth';
 import { Logo } from '../brand/Logo';
-import { SourcesSwitch } from '../landing/sources';
 import { AccountMenu } from './AccountMenu';
 
 interface NavItem {
@@ -83,7 +82,6 @@ function HeaderActions() {
 
 export function AppHeader() {
   const t = useTranslations('shell');
-  const { pathname } = useRouter();
   return (
     // A masthead: a double rule under the running head (.rule-double), on the paper-grain page
     // colour. z-20 keeps the account menu above page content.
@@ -98,8 +96,6 @@ export function AppHeader() {
           {t('mastheadLine')}
         </p>
         <div className="flex flex-wrap items-center justify-end gap-1">
-          {/* "Show sources" belongs to the landing page; on a phone it sits in that page's bar. */}
-          {pathname === '/' && <SourcesSwitch className="max-md:hidden" />}
           <HeaderActions />
         </div>
       </div>

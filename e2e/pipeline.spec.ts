@@ -23,7 +23,7 @@ test('capture, run, Gate 1, Gate 2, and export', async ({ page }) => {
     await page.getByRole('button', { name: 'Reject all values for Bedroom floor' }).click();
     await expect(page.getByText('1 of 3 conflicts still open')).toBeVisible();
     await page.getByRole('button', { name: 'Use this value: € 175' }).click();
-    await expect(page.getByText('All conflicts are decided. The run is continuing.')).toBeVisible();
+    await expect(page.getByText('All settled. The run is continuing.')).toBeVisible();
   });
 
   await test.step('the run continues to Gate 2', async () => {
@@ -31,9 +31,9 @@ test('capture, run, Gate 1, Gate 2, and export', async ({ page }) => {
     await expect(page.getByRole('region', { name: 'Review needed' })).toBeVisible({
       timeout: 120_000,
     });
-    await page.getByRole('link', { name: 'Review the pack' }).click();
+    await page.getByRole('link', { name: 'Check the listing' }).click();
     await expect(page).toHaveURL(/\/review$/);
-    await expect(page.getByRole('heading', { level: 1, name: 'Review the pack' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Check the listing' })).toBeVisible();
   });
 
   await test.step('every sentence opens its evidence', async () => {
@@ -49,12 +49,12 @@ test('capture, run, Gate 1, Gate 2, and export', async ({ page }) => {
   await test.step('decide Gate 2 and approve the pack', async () => {
     // The recording has no flagged claim (decisions.json would remove any); the one open item
     // is the staged image, which the scripted decisions accept.
-    await expect(page.getByText('Flagged claims: 0 (0 open)')).toBeVisible();
+    await expect(page.getByText('Sentences with a problem: 0 (0 open)')).toBeVisible();
     await page
       .getByRole('button', { name: 'Accept staged image: Furnish bedroom (photo 1)' })
       .click();
     await expect(
-      page.getByText('Everything is decided. Approving starts the export of the pack.'),
+      page.getByText('Everything is decided. Approving builds the final pack.'),
     ).toBeVisible();
     await page.getByRole('button', { name: 'Approve pack' }).click();
   });
@@ -70,7 +70,7 @@ test('capture, run, Gate 1, Gate 2, and export', async ({ page }) => {
   });
 
   await test.step('the pack renders and its portal fields download', async () => {
-    await expect(page.getByText('Ready to publish: every publication check passed.')).toBeVisible();
+    await expect(page.getByText('Ready to publish: every final check passed.')).toBeVisible();
     const preview = page.frameLocator('iframe[title="Listing pack preview"]');
     await expect(preview.locator('body')).toContainText('Zandmeer');
 

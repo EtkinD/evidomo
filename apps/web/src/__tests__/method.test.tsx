@@ -1,19 +1,14 @@
 import { cleanup, fireEvent, screen, within } from '@testing-library/react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import en from '../../messages/en.json';
-import { METHOD_ANCHORS, METHOD_SOURCES } from '../lib/landing-sources';
+import { METHOD_ANCHORS } from '../lib/method';
 import { LEDGER_ROWS } from '../lib/sample-run';
-import { resetShowSources, setShowSources } from '../lib/sources';
+import { REPOSITORY_URL } from '../lib/repository';
 import Method from '../pages/method';
 import { setRoute } from './router-mock';
 import { meSignedOut, mockFetch, renderPage } from './test-utils';
 
 vi.mock('next/router', () => import('./router-mock'));
-
-beforeEach(() => {
-  window.localStorage.clear();
-  resetShowSources();
-});
 
 afterEach(() => {
   cleanup();
@@ -29,22 +24,20 @@ function renderMethod(): HTMLElement {
 const words = (text: string): number =>
   text.split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length;
 
-/** The body text of the page: tables, figure captions, sources, and decoration are not counted. */
+/** The body text of the page: tables, figure captions, and decoration are not counted. */
 function bodyWords(main: HTMLElement): number {
   const copy = main.cloneNode(true) as HTMLElement;
-  for (const el of copy.querySelectorAll(
-    'table, figcaption, [data-method-sources], [aria-hidden], .sr-only',
-  )) {
+  for (const el of copy.querySelectorAll('table, figcaption, [aria-hidden], .sr-only')) {
     el.remove();
   }
   return words(copy.textContent ?? '');
 }
 
 describe('/method: structure', () => {
-  it('has one h1, ordered headings, and the four sections in order', () => {
+  it('has one h1, ordered headings, and the five sections in order', () => {
     const main = renderMethod();
     expect(
-      within(main).getByRole('heading', { level: 1, name: 'How Evidomo checks a listing' }),
+      within(main).getByRole('heading', { level: 1, name: 'How Evidomo works' }),
     ).toBeDefined();
     expect(within(main).getAllByRole('heading', { level: 1 })).toHaveLength(1);
     expect(
@@ -52,10 +45,11 @@ describe('/method: structure', () => {
         .getAllByRole('heading', { level: 2 })
         .map((h) => h.textContent),
     ).toEqual([
-      'Every claim has a source',
-      'What happened to the sample listing',
-      'The numbers, and their limits',
-      'What it will not do, and what it removes',
+      'What you give it',
+      'Where every sentence comes from',
+      'What happened to the example listing',
+      'How well does it work?',
+      'What it will not do',
     ]);
     const levels = within(main)
       .getAllByRole('heading')
@@ -70,12 +64,13 @@ describe('/method: structure', () => {
     const nav = within(main).getByRole('navigation', { name: 'On this page' });
     const links = within(nav).getAllByRole('link');
     expect(links.map((l) => l.getAttribute('href'))).toEqual([
+      '#inputs',
       '#sources',
-      '#sample-run',
-      '#numbers',
-      '#limits-and-data',
+      '#example',
+      '#tests',
+      '#limits',
     ]);
-    expect(METHOD_ANCHORS).toEqual(['sources', 'sample-run', 'numbers', 'limits-and-data']);
+    expect(METHOD_ANCHORS).toEqual(['inputs', 'sources', 'example', 'tests', 'limits']);
     for (const link of links) {
       const target = main.querySelector(link.getAttribute('href') as string);
       expect(target?.tagName).toBe('SECTION');
@@ -85,10 +80,17 @@ describe('/method: structure', () => {
     }
   });
 
-  it('keeps to about 600 words of body text', () => {
+  it('keeps to about 650 words of body text', () => {
     const count = bodyWords(renderMethod());
     expect(count).toBeGreaterThan(450);
-    expect(count).toBeLessThanOrEqual(650);
+    expect(count).toBeLessThanOrEqual(700);
+  });
+
+  it('uses no internal jargon or technical names anywhere on the page', () => {
+    const text = renderMethod().textContent ?? '';
+    expect(text).not.toMatch(
+      /NEN ?2580|BBMI|provenance|\bgate\b|pipeline|validator|\bSAM\b|Spark|Muse|fact id|audited page|segment|cassette|synthetic/i,
+    );
   });
 
   it('keeps each ledger line to 20 words and each limit to 25', () => {
@@ -100,19 +102,36 @@ describe('/method: structure', () => {
     }
   });
 
-  it('shows no honey except the open claim of the specimen, and no Show sources', () => {
-    setShowSources(true); // a visitor who turned sources on at the landing page
+  it('shows no honey except the open claim of the example, no source switch, and no source links', () => {
     const main = renderMethod();
     expect(main.querySelectorAll('.claim')).toHaveLength(1);
     expect(main.querySelector('.claim')?.closest('blockquote')).not.toBeNull();
-    expect(
-      main.querySelectorAll('.claim-on, [data-source-note], [data-claim-source]'),
-    ).toHaveLength(0);
-    expect(screen.queryByRole('button', { name: 'Show sources' })).toBeNull();
+    expect(screen.queryByRole('button', { name: /sources/i })).toBeNull();
+    expect(within(main).queryByRole('heading', { name: 'Sources' })).toBeNull();
+    // Only the footer links to GitHub.
+    const github = [...document.querySelectorAll('a[href]')].filter((a) =>
+      (a.getAttribute('href') ?? '').includes('github.com'),
+    );
+    expect(github.map((a) => a.getAttribute('href'))).toEqual([REPOSITORY_URL]);
+    expect(github[0]?.closest('footer')).not.toBeNull();
   });
 });
 
-describe('/method: §1 every claim has a source', () => {
+describe('/method: §1 what you give it', () => {
+  it('names the photos, the voice walkthrough, and the form, says video is not used, and says what comes back', () => {
+    const main = renderMethod();
+    const section = main.querySelector('#inputs') as HTMLElement;
+    expect(within(section).getByRole('heading', { name: '10 to 30 photos' })).toBeDefined();
+    expect(within(section).getByRole('heading', { name: 'A voice walkthrough' })).toBeDefined();
+    expect(within(section).getByRole('heading', { name: 'A short form' })).toBeDefined();
+    expect(section.textContent).toMatch(/2 to 10 minutes/);
+    expect(section.textContent).toMatch(/Record it in your browser, or upload an audio file/);
+    expect(section.textContent).toContain('Evidomo does not use video');
+    expect(within(section).getByRole('heading', { name: 'What you get back' })).toBeDefined();
+  });
+});
+
+describe('/method: §2 where every sentence comes from', () => {
   it('names the three evidence types in three short lines', () => {
     const main = renderMethod();
     const section = main.querySelector('#sources') as HTMLElement;
@@ -126,16 +145,16 @@ describe('/method: §1 every claim has a source', () => {
     const main = renderMethod();
     expect(
       within(main)
-        .getByRole('button', { name: /Build year/ })
+        .getByRole('button', { name: /Year built/ })
         .getAttribute('aria-pressed'),
     ).toBe('true');
-    const evidence = within(main).getByRole('region', { name: /What “1987” rests on/ });
-    expect(evidence.textContent).toContain('turn at 00:11');
+    const evidence = within(main).getByRole('region', { name: /What “1987” is based on/ });
+    expect(evidence.textContent).toContain('at 00:11');
     expect(evidence.textContent).toContain('“in 1987 gebouwd”');
-    expect(evidence.textContent).toContain('Build year: 1986');
-    expect(evidence.textContent).toContain('the spoken 1987 was kept');
+    expect(evidence.textContent).toContain('Year built: 1986');
+    expect(evidence.textContent).toContain('who kept 1987');
     expect(main.textContent).toMatch(
-      /replay.*recorded once.*synthetic speech.*sample file plays silence/s,
+      /replay of a saved example.*made up.*computer-made.*plays silence/s,
     );
     fireEvent.click(within(main).getByRole('button', { name: /Energy label/ }));
     expect(within(main).getByRole('region', { name: /energy label B/ }).textContent).toContain(
@@ -144,94 +163,55 @@ describe('/method: §1 every claim has a source', () => {
   });
 });
 
-describe('/method: §2 the sample listing', () => {
+describe('/method: §3 the example listing', () => {
   it('lists the ten steps and the two stops, the stops set heavier, with the slips said plainly', () => {
     const main = renderMethod();
-    const section = main.querySelector('#sample-run') as HTMLElement;
-    const rows = section.querySelectorAll('ol > li');
-    // 12 ledger rows (the source list is an ol too, inside its own wrapper).
-    const ledger = [...rows].filter((li) => !li.closest('[data-method-sources]'));
-    expect(ledger).toHaveLength(LEDGER_ROWS.length);
-    const stops = within(section).getAllByText('The run stops here');
+    const section = main.querySelector('#example') as HTMLElement;
+    expect(section.querySelectorAll('ol > li')).toHaveLength(LEDGER_ROWS.length);
+    const stops = within(section).getAllByText('Evidomo stops here');
     expect(stops).toHaveLength(2);
     for (const stop of stops) expect(stop.closest('li')?.className).toContain('border-t-4');
-    expect(within(section).getByText(/3 conflicts surface/)).toBeDefined();
+    expect(within(section).getByText(/3 facts disagree/)).toBeDefined();
     // The bedroom slip: an empty living room was taken for a bedroom.
-    expect(section.textContent).toMatch(/took an empty living room for a bedroom/);
+    expect(section.textContent).toMatch(/mistook an empty room for a bedroom/);
     // Evidomo runs every step; only the stops are decided by the agent.
-    expect(section.textContent).toContain('Evidomo runs every step. At the two stops, you decide.');
+    expect(section.textContent).toContain(
+      'Evidomo does every step by itself. At two points it stops and waits for you to decide.',
+    );
   });
 });
 
-describe('/method: §3 the numbers and §4 what it will not do', () => {
-  it('shows the eval table with its date and mode, at most four limits, and the audio slip', () => {
+describe('/method: §4 how well it works and §5 what it will not do', () => {
+  it('shows the test table with its date, at most four limits, and the misheard-word slip', () => {
     const main = renderMethod();
-    const section = main.querySelector('#numbers') as HTMLElement;
-    expect(section.querySelectorAll('tbody tr')).toHaveLength(6);
+    const section = main.querySelector('#tests') as HTMLElement;
+    expect(section.querySelectorAll('tbody tr')).toHaveLength(5);
     expect(section.textContent).toContain('October 30, 2026');
-    expect(section.textContent).toMatch(/fixture mode, 6 synthetic sets/);
+    expect(section.textContent).toMatch(/with 6 made-up sets/);
     expect(section.textContent).toContain('14 / 14');
     const limits = section.querySelectorAll('ul > li');
     expect(limits.length).toBeLessThanOrEqual(4);
-    expect(section.textContent).toContain('“L-vormige”');
-    expect(section.textContent).toContain('“ellipsvormige”');
+    expect(section.textContent).toContain('If a word was misheard, it can slip through');
   });
 
   it('lists the boundaries and the data handling in one numbered list, without hosting claims', () => {
     const main = renderMethod();
-    const section = main.querySelector('#limits-and-data') as HTMLElement;
-    const items = [...section.querySelectorAll('ol > li')].filter(
-      (li) => !li.closest('[data-method-sources]'),
-    );
-    expect(items).toHaveLength(9);
+    const section = main.querySelector('#limits') as HTMLElement;
+    expect(section.querySelectorAll('ol > li')).toHaveLength(9);
     const text = section.textContent ?? '';
     for (const phrase of [
-      'Value a property',
-      'Interpret law',
+      'Value a home',
+      'Give legal advice',
       'Screen, score, or rank buyers',
-      'Publish to a portal',
-      'hide a defect or change the structure',
-      'GPS',
-      'license plate',
-      'photos, voice memo, facts, and pack are removed',
-      'Standard-mode models',
+      'Publish to a listing site',
+      'hide a flaw or alter the building',
+      'location data',
+      'number plate',
+      'Photos, voice, facts, and the listing are removed',
+      'AI models train on your content',
     ]) {
       expect(text, phrase).toContain(phrase);
     }
     expect(main.textContent).not.toMatch(/\bEU\b|Europe|GDPR/);
-  });
-});
-
-describe('/method: sources', () => {
-  it('ends every section with its numbered sources, one link each', () => {
-    const main = renderMethod();
-    for (const anchor of METHOD_ANCHORS) {
-      const section = main.querySelector(`#${anchor}`) as HTMLElement;
-      const list = section.querySelector('[data-method-sources]') as HTMLElement;
-      expect(list, anchor).not.toBeNull();
-      // It closes the section.
-      expect(section.lastElementChild?.lastElementChild).toBe(list);
-      expect(within(list).getByRole('heading', { name: 'Sources' }).tagName).toBe('H3');
-      const links = within(list).getAllByRole('link');
-      expect(links).toHaveLength(METHOD_SOURCES[anchor].length);
-      for (const link of links) {
-        expect(link.getAttribute('href')).toMatch(
-          /^(https:\/\/github\.com\/EtkinD\/evidomo\/blob\/main\/|\/demo)/,
-        );
-        expect(link.className).toContain('min-h-11');
-      }
-    }
-  });
-
-  it('names each source by type, in words', () => {
-    const main = renderMethod();
-    const kinds = new Set(
-      [...main.querySelectorAll('[data-method-sources] li > span:nth-child(2)')].map(
-        (s) => s.textContent,
-      ),
-    );
-    expect(kinds).toEqual(
-      new Set(['Sample run', 'Eval report', 'Enforced in code', 'Product rule']),
-    );
   });
 });

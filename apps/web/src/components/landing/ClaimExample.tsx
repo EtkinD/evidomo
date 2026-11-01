@@ -10,7 +10,6 @@ import {
 } from '../../lib/sample-run';
 import { Stamp } from '../Stamp';
 import { CONTAINER } from './Section';
-import { SourceNotes, Sourced } from './sources';
 
 const CLAIMS: readonly ExampleClaimId[] = ['place', 'area', 'floor'];
 const EVIDENCE_ID = 'claim-evidence';
@@ -66,10 +65,7 @@ export function ClaimExample() {
             {t('title')}
           </h2>
           <p className="text-lg text-base-content/70">{t('text')}</p>
-          <p className="font-display text-base text-base-content/70 italic">
-            <Sourced id="example">{t('caption')}</Sourced>
-          </p>
-          <SourceNotes ids={['example']} />
+          <p className="font-display text-base text-base-content/70 italic">{t('caption')}</p>
         </div>
 
         <div className="flex flex-col gap-6 lg:col-span-8">

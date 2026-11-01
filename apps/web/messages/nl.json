@@ -178,27 +178,6 @@
       "interior1": "Een eikenhouten visgraatvloer die overgaat in terracotta tegels, met bladschaduwen en een gele pot met een olijftak",
       "interior2": "Een met kalk gewitte bakstenen open haard met een eikenhouten schouw, eucalyptus in een terracotta pot en berkenhout",
       "illustration": "Een illustratie van een wit huis met een afgerond crèmekleurig dak, een open gele deur en een groene plant"
-    },
-    "sources": {
-      "switch": "Toon bronnen",
-      "on": "Aan",
-      "off": "Uit",
-      "kinds": {
-        "sample": "Voorbeeldverwerking",
-        "eval": "Evaluatierapport",
-        "code": "In code afgedwongen",
-        "rule": "Productregel"
-      },
-      "screens": {
-        "monitor": "Verwerkingsoverzicht",
-        "conflicts": "Feitenconflicten",
-        "review": "Pakketcontrole",
-        "pack": "Advertentiepakket"
-      },
-      "evalRef": "README, Evaluatieresultaten ({date}, fixture-modus)",
-      "ruleRef": "docs/product.md, sectie {section}",
-      "number": "bron {n}",
-      "methodRef": "Methode, § {n}"
     }
   },
   "notFound": {
@@ -382,6 +361,7 @@
     },
     "photos": {
       "title": "Foto’s",
+      "intro": "Voeg {min} tot {max} foto’s van de woning toe, kamer voor kamer. Alleen foto’s: video wordt niet gebruikt.",
       "previewUnavailable": "Voorbeeld niet beschikbaar",
       "photoN": "Foto {position}",
       "deleteLabel": "Foto {position} verwijderen",
@@ -1002,17 +982,36 @@
     "lede": "Wat een verwerking doet, wat ze in het voorbeelddossier vond en waar ze stopt.",
     "indexLabel": "Op deze pagina",
     "sections": {
+      "inputs": "Wat u aanlevert",
       "sources": "Elke bewering heeft een bron",
-      "sample-run": "Wat er met de voorbeeldwoning gebeurde",
-      "numbers": "De cijfers en hun grenzen",
-      "limits-and-data": "Wat het niet doet en wat het verwijdert"
+      "example": "Wat er met de voorbeeldwoning gebeurde",
+      "tests": "De cijfers en hun grenzen",
+      "limits": "Wat het niet doet en wat het verwijdert"
     },
     "types": {
       "form": "Een formulierveld: een waarde die je invulde.",
       "voice": "Een spraakfragment: woorden uit je rondleiding, met hun tijdstip.",
       "photo": "Een fotogebied: het deel van een foto waarop een gegeven rust."
     },
-    "sourcesTitle": "Bronnen",
+    "inputs": {
+      "items": {
+        "photos": {
+          "title": "10 tot 30 foto’s",
+          "text": "Maak ze met uw telefoon, kamer voor kamer. Alleen foto’s."
+        },
+        "voice": {
+          "title": "Een gesproken rondleiding",
+          "text": "Loop door de woning en zeg wat u ziet. Richt op 2 tot 10 minuten. Neem op in uw browser of upload een audiobestand."
+        },
+        "form": {
+          "title": "Een kort formulier",
+          "text": "Feiten die u kent, zoals de grootte van de woning en het bouwjaar."
+        }
+      },
+      "noVideo": "Evidomo gebruikt geen video. Gebruik alleen foto’s en een geluidsopname.",
+      "outputTitle": "Wat u terugkrijgt",
+      "outputText": "De advertentietekst, antwoorden op vragen die kopers vaak stellen, een kort bericht voor sociale media en uw foto’s. Download alles als één pakket."
+    },
     "specimen": {
       "label": "Een zin uit het voorbeelddossier",
       "sentenceNote": "Modeluitvoer, zoals geschreven (Engels, niet vertaald).",
@@ -1069,7 +1068,6 @@
         "planted": "Geplante conflicten gevonden bij de eerste controle",
         "falseConflicts": "Onverwachte (valse) conflicten",
         "injectedFlagged": "Geplante beweringfouten gemarkeerd in de eerste audit",
-        "injectedAtGate2": "Geplante fouten nog niet gemarkeerd bij de tweede controle",
         "injectedExported": "Geplante fouten in een geëxporteerd pakket",
         "cleanFlags": "Markeringen van de eerste audit op niet-geplante zinnen"
       },

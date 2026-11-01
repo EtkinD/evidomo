@@ -1,30 +1,20 @@
 import { cleanup, fireEvent, screen, within } from '@testing-library/react';
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import en from '../../messages/en.json';
 import { DEMO_HREF } from '../components/landing/LandingPage';
 import { LANDING_IMAGES, landingSrc } from '../lib/landing-images';
-import { SOURCE_NOTE_IDS } from '../lib/landing-sources';
-import { resetShowSources, SOURCES_STORAGE_KEY } from '../lib/sources';
+import { REPOSITORY_URL } from '../lib/repository';
 import Home from '../pages/index';
 import { setRoute } from './router-mock';
 import { meSignedIn, meSignedOut, mockFetch, renderPage } from './test-utils';
 
 vi.mock('next/router', () => import('./router-mock'));
 
-beforeEach(() => {
-  window.localStorage.clear();
-  resetShowSources();
-});
-
 afterEach(() => {
-  vi.unstubAllGlobals();
   cleanup();
 });
-
-/** The notes the landing page marks: the claims a visitor would doubt, and no more. */
-const LANDING_NOTES = ['lede', 'stops', 'example', 'labelled', 'private', 'limits'];
 
 async function renderLanding(route = '/'): Promise<HTMLElement> {
   setRoute(route);
@@ -36,21 +26,10 @@ async function renderLanding(route = '/'): Promise<HTMLElement> {
   return main;
 }
 
-/** The switch exists twice in the DOM (masthead on desktop, hero on a phone). */
-const switches = () => screen.getAllByRole('button', { name: 'Show sources' });
-
 /** Every string the landing page shows, from the messages (what a visitor has to read). */
 function bodyWords(): number {
   const landing: Record<string, unknown> = { ...en.landing };
-  for (const key of [
-    'images',
-    'sources',
-    'specimen',
-    'ledger',
-    'numbers',
-    'boundaries',
-    'photos',
-  ]) {
+  for (const key of ['images', 'specimen', 'ledger', 'numbers', 'boundaries', 'photos']) {
     delete landing[key];
   }
   const text = JSON.stringify(landing).replace(/"[A-Za-z_]+":/g, ' ');
@@ -63,16 +42,16 @@ describe('landing page: structure', () => {
     expect(
       screen.getByRole('heading', {
         level: 1,
-        name: 'Every claim in your listing, linked to its evidence.',
+        name: 'A listing where every sentence shows where it came from.',
       }),
     ).toBeDefined();
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
   });
 
-  it('has Open the sample file as the one primary action and Create account as the one secondary', async () => {
+  it('has See a finished example as the one primary action and Create account as the one secondary', async () => {
     const main = await renderLanding();
     expect(DEMO_HREF).toBe('/demo');
-    const open = within(main).getAllByRole('link', { name: 'Open the sample file' });
+    const open = within(main).getAllByRole('link', { name: 'See a finished example' });
     expect(open).toHaveLength(2); // the hero and the closing band
     for (const link of open) expect(link.getAttribute('href')).toBe('/demo');
     const create = within(main).getAllByRole('link', { name: 'Create account' });
@@ -92,7 +71,7 @@ describe('landing page: structure', () => {
     const link = await within(main).findByRole('link', { name: 'Go to your projects' });
     expect(link.getAttribute('href')).toBe('/projects');
     expect(within(main).queryByRole('link', { name: 'Create account' })).toBeNull();
-    expect(within(main).getAllByRole('link', { name: 'Open the sample file' })).toHaveLength(2);
+    expect(within(main).getAllByRole('link', { name: 'See a finished example' })).toHaveLength(2);
   });
 
   it('orders headings: one h1, then h2 sections with h3 items, no skipped level', async () => {
@@ -107,26 +86,25 @@ describe('landing page: structure', () => {
         .getAllByRole('heading', { level: 2 })
         .map((h) => h.textContent),
     ).toEqual([
-      'From a walk-through to a pack you can defend',
-      'Every claim has a source',
-      'Built to be checked',
-      'Ready for your next listing?',
+      'How it works',
+      'See where a sentence comes from',
+      'You stay in charge',
+      'Ready to try it?',
     ]);
     expect(
       within(main)
         .getAllByRole('heading', { level: 3 })
         .slice(0, 3)
         .map((h) => h.textContent),
-    ).toEqual(['Capture', 'Verify', 'Pack']);
+    ).toEqual(['Take photos and talk', 'Check', 'Get the listing']);
   });
 
-  it('keeps the page short: well under main’s text, within the per-block budgets', () => {
-    // Main's landing had 447 words of messages; the budgets of the round 5b brief follow.
-    expect(bodyWords()).toBeLessThanOrEqual(260);
+  it('keeps the page short: within the per-block budgets', () => {
+    expect(bodyWords()).toBeLessThanOrEqual(280);
     const words = (text: string): number => text.split(/\s+/).length;
-    expect(words(en.landing.hero.lede)).toBeLessThanOrEqual(25);
+    expect(words(en.landing.hero.lede)).toBeLessThanOrEqual(30);
     for (const step of Object.values(en.landing.how.steps)) {
-      expect(words(step.text)).toBeLessThanOrEqual(15);
+      expect(words(step.text)).toBeLessThanOrEqual(25);
     }
     expect(
       words(en.landing.evidence.text) + words(en.landing.evidence.caption),
@@ -134,7 +112,18 @@ describe('landing page: structure', () => {
     for (const item of Object.values(en.landing.trust.items)) {
       expect(words(item.text)).toBeLessThanOrEqual(12);
     }
-    expect(words(en.landing.cta.title) + words(en.landing.cta.text)).toBeLessThanOrEqual(12);
+    expect(words(en.landing.cta.title) + words(en.landing.cta.text)).toBeLessThanOrEqual(14);
+  });
+
+  it('says what goes in: 10 to 30 photos and a voice walkthrough, and that video is not used', async () => {
+    const main = await renderLanding();
+    const how = main.querySelector('#how-it-works') as HTMLElement;
+    expect(how.textContent).toContain('10 to 30 photos');
+    expect(how.textContent).toMatch(/2 to 10 minutes/);
+    expect(how.textContent).toMatch(/record in your browser or upload audio/);
+    expect(how.textContent).toMatch(/No video/);
+    expect(within(main).getByRole('heading', { level: 1 }).textContent).toBeTruthy();
+    expect(main.textContent).toContain('Take 10 to 30 photos of the home and talk through it');
   });
 
   it('shows no round 5 detail section: no ledger, eval table, or boundaries list', async () => {
@@ -167,9 +156,9 @@ describe('landing page: structure', () => {
     expect(text).not.toMatch(/\bEU\b|\bGDPR\b|Europe/);
     expect(text).not.toMatch(/testimonial|trusted by|customers|award|guarantee|100%|never wrong/i);
     // It says what it does not do, in a few words.
-    expect(text).toMatch(/No valuations, no legal advice, no publishing for you/);
+    expect(text).toMatch(/does not value homes, give legal advice, or publish for you/);
     // The hero's own example says it is one.
-    expect(text).toMatch(/An illustrative example, not a real listing/);
+    expect(text).toMatch(/An example to show the idea, not a real listing/);
   });
 });
 
@@ -181,15 +170,13 @@ describe('landing page: the claim example', () => {
     expect(sentence?.textContent).toMatch(
       /^This apartment in Zandmeer\d offers 92 m²\d of living space on floor 2\d\.$/,
     );
-    expect(main.textContent).toMatch(
-      /replay of recorded model responses for a synthetic apartment/,
-    );
+    expect(main.textContent).toMatch(/made-up apartment, replayed from saved results/);
     const area = within(main).getByRole('button', { name: /Living area/ });
     expect(area.getAttribute('aria-pressed')).toBe('true');
-    const evidence = within(main).getByRole('region', { name: /What “92 m²” rests on/ });
-    expect(evidence.textContent).toContain('Form field');
+    const evidence = within(main).getByRole('region', { name: /What “92 m²” is based on/ });
+    expect(evidence.textContent).toContain('Your form');
     expect(evidence.textContent).toContain('“92 vierkante meter”');
-    expect(evidence.textContent).toContain('turn at 00:19');
+    expect(evidence.textContent).toContain('at 00:19');
     expect(within(evidence).getByText('Verified')).toBeDefined();
   });
 
@@ -207,10 +194,10 @@ describe('landing page: the claim example', () => {
         .getByRole('button', { name: /Living area/ })
         .getAttribute('aria-pressed'),
     ).toBe('false');
-    const evidence = within(main).getByRole('region', { name: /What “floor 2” rests on/ });
+    const evidence = within(main).getByRole('region', { name: /What “floor 2” is based on/ });
     expect(evidence.textContent).toContain('“op de tweede verdieping”');
-    expect(evidence.textContent).toContain('turn at 00:00');
-    expect(evidence.textContent).not.toContain('Form field');
+    expect(evidence.textContent).toContain('at 00:00');
+    expect(evidence.textContent).not.toContain('Your form');
   });
 
   it('marks the Dutch quote as Dutch and announces only the heading', async () => {
@@ -218,7 +205,7 @@ describe('landing page: the claim example', () => {
     expect(screen.getByText('“92 vierkante meter”').getAttribute('lang')).toBe('nl');
     expect(
       within(main)
-        .getByRole('region', { name: /rests on/ })
+        .getByRole('region', { name: /is based on/ })
         .getAttribute('aria-live'),
     ).toBeNull();
     expect(document.getElementById('claim-evidence-title')?.getAttribute('aria-live')).toBe(
@@ -226,121 +213,30 @@ describe('landing page: the claim example', () => {
     );
   });
 
-  it('has no underlined or highlighted text outside the open claim while sources are off', async () => {
+  it('has no underlined or highlighted text outside the open claim', async () => {
     const main = await renderLanding();
-    expect(main.querySelectorAll('.claim, .claim-on, mark[data-claim-source]')).toHaveLength(1);
+    expect(main.querySelectorAll('.claim')).toHaveLength(1);
     expect(main.querySelectorAll('[class*="underline"]')).toHaveLength(0);
-    expect(main.querySelectorAll('[data-source-note]')).toHaveLength(0);
   });
 });
 
-describe('landing page: Show sources', () => {
-  it('is off by default', async () => {
+describe('landing page: no source switch and no GitHub links', () => {
+  it('has no Show sources switch, and ?sources=on changes nothing', async () => {
+    const main = await renderLanding('/?sources=on');
+    expect(screen.queryByRole('button', { name: /sources/i })).toBeNull();
+    expect(main.querySelectorAll('mark.claim')).toHaveLength(1);
+    expect(main.querySelectorAll('[data-source-note], [data-claim-source]')).toHaveLength(0);
+    expect(window.localStorage.getItem('evidomo-sources')).toBeNull();
+  });
+
+  it('links to GitHub only from the footer', async () => {
     await renderLanding();
-    for (const button of switches()) expect(button.getAttribute('aria-pressed')).toBe('false');
-  });
-
-  it('marks only the few claims a visitor would doubt, each with one compact note', async () => {
-    const main = await renderLanding();
-    fireEvent.click(switches()[0] as HTMLElement);
-    for (const button of switches()) expect(button.getAttribute('aria-pressed')).toBe('true');
-
-    const marks = [...main.querySelectorAll('[data-claim-source]')];
-    const notes = [...main.querySelectorAll('[data-source-note]')];
-    expect(marks.map((m) => m.getAttribute('data-claim-source'))).toEqual(LANDING_NOTES);
-    expect(notes.map((n) => n.getAttribute('data-source-note'))).toEqual(LANDING_NOTES);
-    expect(marks.length).toBeLessThanOrEqual(6);
-    // The registry lists the landing's notes first, so its footnotes read 1 to 6.
-    expect(SOURCE_NOTE_IDS.slice(0, LANDING_NOTES.length)).toEqual(LANDING_NOTES);
-    for (const mark of marks) {
-      const id = mark.getAttribute('data-claim-source') ?? '';
-      expect(mark.getAttribute('aria-describedby')).toBe(`source-note-${id}`);
-      expect(main.querySelector(`#source-note-${id}`)).not.toBeNull();
-      expect(mark.nextElementSibling?.textContent).toMatch(/^\d+source \d+$/);
-    }
-    for (const note of notes) {
-      expect(within(note as HTMLElement).getAllByRole('link').length).toBeGreaterThan(0);
-    }
-    expect(within(main).queryAllByRole('complementary')).toHaveLength(0);
-  });
-
-  it('names the source type and points code notes at GitHub on main', async () => {
-    const main = await renderLanding();
-    fireEvent.click(switches()[0] as HTMLElement);
-    const kinds = new Set(
-      [...main.querySelectorAll('[data-source-note] li > span')].map((s) => s.textContent),
+    const github = [...document.querySelectorAll('a[href]')].filter((a) =>
+      (a.getAttribute('href') ?? '').includes('github.com'),
     );
-    expect(kinds).toEqual(new Set(['Sample run', 'Enforced in code', 'Product rule']));
-    const hrefs = within(main)
-      .getAllByRole('link')
-      .map((link) => link.getAttribute('href') ?? '');
-    expect(hrefs).toContain(
-      'https://github.com/EtkinD/evidomo/blob/main/apps/api/src/media/image.ts',
-    );
-    // Notes about the sample run and the rules lead to the matching section of /method.
-    expect(hrefs).toContain('/method#sample-run');
-    expect(hrefs).toContain('/method#sources');
-    expect(hrefs).toContain('/method#limits-and-data');
-  });
-
-  it('is remembered per viewer', async () => {
-    await renderLanding();
-    fireEvent.click(switches()[0] as HTMLElement);
-    expect(window.localStorage.getItem(SOURCES_STORAGE_KEY)).toBe('on');
-
-    cleanup();
-    resetShowSources();
-    await renderLanding();
-    for (const button of switches()) expect(button.getAttribute('aria-pressed')).toBe('true');
-
-    fireEvent.click(switches()[0] as HTMLElement);
-    expect(window.localStorage.getItem(SOURCES_STORAGE_KEY)).toBeNull();
-  });
-
-  it('can be turned on from the address with ?sources=on, without storing it', async () => {
-    await renderLanding('/?sources=on');
-    for (const button of switches()) expect(button.getAttribute('aria-pressed')).toBe('true');
-    expect(window.localStorage.getItem(SOURCES_STORAGE_KEY)).toBeNull();
-  });
-
-  it('works when storage is blocked: reading and writing fail, the switch still switches', async () => {
-    const blocked = {
-      getItem: () => {
-        throw new DOMException('blocked', 'SecurityError');
-      },
-      setItem: () => {
-        throw new DOMException('blocked', 'SecurityError');
-      },
-      removeItem: () => {
-        throw new DOMException('blocked', 'SecurityError');
-      },
-    };
-    vi.stubGlobal('localStorage', blocked);
-    resetShowSources();
-    const main = await renderLanding();
-    expect(switches()[0]?.getAttribute('aria-pressed')).toBe('false');
-
-    fireEvent.click(switches()[0] as HTMLElement);
-    expect(switches()[0]?.getAttribute('aria-pressed')).toBe('true');
-    expect(main.querySelectorAll('[data-source-note]').length).toBeGreaterThan(0);
-  });
-
-  it('is a real button: focusable, 44 px, with the state written next to the label', async () => {
-    await renderLanding();
-    const button = switches()[0] as HTMLButtonElement;
-    expect(button.tagName).toBe('BUTTON');
-    expect(button.type).toBe('button');
-    expect(button.className).toContain('min-h-11');
-    expect(button.textContent).toContain('Off');
-    fireEvent.click(button);
-    expect(button.textContent).toContain('On');
-  });
-
-  it('is in the masthead of the landing page only', () => {
-    setRoute('/login');
-    mockFetch({ 'GET /api/auth/me': meSignedOut });
-    renderPage(() => <main />);
-    expect(screen.queryByRole('button', { name: 'Show sources' })).toBeNull();
+    expect(github).toHaveLength(1);
+    expect(github[0]?.getAttribute('href')).toBe(REPOSITORY_URL);
+    expect(github[0]?.closest('footer')).not.toBeNull();
   });
 });
 

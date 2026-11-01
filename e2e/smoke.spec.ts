@@ -5,6 +5,6 @@ test('home page loads', async ({ page }) => {
 
   await expect(page).toHaveTitle(/Evidomo/);
   await expect(
-    page.getByRole('heading', { level: 1, name: /linked to its evidence/ }),
+    page.getByRole('heading', { level: 1, name: /every sentence shows where it came from/ }),
   ).toBeVisible();
 });

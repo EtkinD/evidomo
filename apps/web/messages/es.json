@@ -178,27 +178,6 @@
       "interior1": "Un suelo de roble en espiga que se une a baldosas de terracota, con sombras de hojas y una maceta amarilla con una rama de olivo",
       "interior2": "Una chimenea de ladrillo encalado con repisa de roble, eucalipto en una maceta de terracota y troncos de abedul",
       "illustration": "Una ilustración de una casa blanca con tejado redondeado color crema, una puerta amarilla abierta y una planta verde"
-    },
-    "sources": {
-      "switch": "Mostrar fuentes",
-      "on": "Activado",
-      "off": "Desactivado",
-      "kinds": {
-        "sample": "Proceso de ejemplo",
-        "eval": "Informe de evaluación",
-        "code": "Impuesto por el código",
-        "rule": "Regla de producto"
-      },
-      "screens": {
-        "monitor": "Monitor del proceso",
-        "conflicts": "Conflictos de datos",
-        "review": "Revisión del paquete",
-        "pack": "Paquete de anuncio"
-      },
-      "evalRef": "README, Resultados de la evaluación ({date}, modo fixture)",
-      "ruleRef": "docs/product.md, sección {section}",
-      "number": "fuente {n}",
-      "methodRef": "Método, § {n}"
     }
   },
   "notFound": {
@@ -382,6 +361,7 @@
     },
     "photos": {
       "title": "Fotos",
+      "intro": "Añada de {min} a {max} fotos de la vivienda, habitación por habitación. Solo fotos: no se usa vídeo.",
       "previewUnavailable": "Vista previa no disponible",
       "photoN": "Foto {position}",
       "deleteLabel": "Eliminar la foto {position}",
@@ -1002,17 +982,36 @@
     "lede": "Qué hace un proceso, qué encontró en el expediente de ejemplo y dónde se detiene.",
     "indexLabel": "En esta página",
     "sections": {
+      "inputs": "Qué aporta usted",
       "sources": "Cada afirmación tiene una fuente",
-      "sample-run": "Qué pasó con el anuncio de ejemplo",
-      "numbers": "Los números y sus límites",
-      "limits-and-data": "Lo que no hará y lo que elimina"
+      "example": "Qué pasó con el anuncio de ejemplo",
+      "tests": "Los números y sus límites",
+      "limits": "Lo que no hará y lo que elimina"
     },
     "types": {
       "form": "Un campo del formulario: un valor que introdujiste.",
       "voice": "Una intervención de voz: palabras de tu recorrido, con su momento.",
       "photo": "Una región de foto: la parte de una imagen en que se apoya un dato."
     },
-    "sourcesTitle": "Fuentes",
+    "inputs": {
+      "items": {
+        "photos": {
+          "title": "De 10 a 30 fotos",
+          "text": "Hágalas con el móvil, habitación por habitación. Solo fotos."
+        },
+        "voice": {
+          "title": "Un recorrido hablado",
+          "text": "Recorra la casa y diga lo que ve. Procure de 2 a 10 minutos. Grabe en el navegador o suba un archivo de audio."
+        },
+        "form": {
+          "title": "Un formulario breve",
+          "text": "Datos que usted conoce, como la superficie de la vivienda y el año de construcción."
+        }
+      },
+      "noVideo": "Evidomo no usa vídeo. Use solo fotos y una grabación de voz.",
+      "outputTitle": "Qué recibe",
+      "outputText": "El texto del anuncio, respuestas a las preguntas habituales de los compradores, una publicación breve para redes sociales y sus fotos. Descárguelo todo en un solo paquete."
+    },
     "specimen": {
       "label": "Una frase del expediente de ejemplo",
       "sentenceNote": "Salida del modelo, tal como se escribió (inglés, sin traducir).",
@@ -1069,7 +1068,6 @@
         "planted": "Conflictos plantados detectados en la primera revisión",
         "falseConflicts": "Conflictos inesperados (falsos)",
         "injectedFlagged": "Defectos inyectados marcados en la primera auditoría",
-        "injectedAtGate2": "Defectos inyectados aún sin marcar en la segunda revisión",
         "injectedExported": "Defectos inyectados en un paquete exportado",
         "cleanFlags": "Marcas de la primera auditoría en frases no alteradas"
       },

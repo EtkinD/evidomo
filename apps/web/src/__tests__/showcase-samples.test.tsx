@@ -148,7 +148,7 @@ describe('sample pages', () => {
   it('run monitor: readable step names, no internal step IDs, cost against the cap', () => {
     stubFetch(false);
     renderPage(<SampleRunPage />);
-    expect(screen.getByText('Reading the walkthrough')).toBeDefined();
+    expect(screen.getByText('Listening to the walkthrough')).toBeDefined();
     expect(document.body.textContent).not.toMatch(
       /extract_facts|[a-z]+_[a-z]+_?[a-z]*\b(?=.*step)/,
     );
@@ -191,7 +191,7 @@ describe('review gates (the real views on sample data)', () => {
     const card = await screen.findByRole('group', { name: 'Rooms' });
     expect(within(card).getAllByText(/4 rooms|^4$/).length).toBeGreaterThan(0);
     // The three evidence kinds of the one card.
-    expect(within(card).getAllByText('Form field').length).toBeGreaterThan(0);
+    expect(within(card).getAllByText('Your form').length).toBeGreaterThan(0);
     expect(within(card).getByText(/Four rooms, and a small study at the back\./)).toBeDefined();
     expect(within(card).getAllByRole('button', { name: /Play/ }).length).toBeGreaterThan(0);
     expect(

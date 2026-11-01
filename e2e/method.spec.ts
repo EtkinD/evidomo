@@ -1,67 +1,57 @@
 import { expect, test } from '@playwright/test';
 
-// /method is the detail page the landing page leaves out: four numbered sections, each ending with
-// its sources. It is reached from the masthead, the colophon, and the landing page.
+// /method is the detail page the landing page leaves out: five numbered sections in plain words
+// (what goes in, where a sentence comes from, the example, the tests, the limits). It is reached
+// from the masthead, the colophon, and the landing page, and it links nowhere but the footer's
+// GitHub link.
 test.describe('method page', () => {
   test('is reached from the masthead, the landing page, and the colophon', async ({ page }) => {
     await page.goto('/');
-    await page.getByRole('banner').getByRole('link', { name: 'Method' }).click();
+    await page.getByRole('banner').getByRole('link', { name: 'How it works' }).click();
     await expect(page).toHaveURL(/\/method$/);
-    await expect(
-      page.getByRole('heading', { level: 1, name: 'How Evidomo checks a listing' }),
-    ).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'How Evidomo works' })).toBeVisible();
 
     await page.goto('/');
-    await page
-      .getByRole('main')
-      .getByRole('link', { name: 'How Evidomo checks a listing' })
-      .click();
+    await page.getByRole('main').getByRole('link', { name: 'How Evidomo works' }).click();
     await expect(page).toHaveURL(/\/method$/);
 
     await page.goto('/');
-    await page
-      .getByRole('contentinfo')
-      .getByRole('link', { name: 'How Evidomo checks a listing' })
-      .click();
+    await page.getByRole('contentinfo').getByRole('link', { name: 'How Evidomo works' }).click();
     await expect(page).toHaveURL(/\/method$/);
   });
 
-  test('the index and the landing page notes reach the sections by their anchors', async ({
-    page,
-  }) => {
+  test('the index reaches the sections by their anchors', async ({ page }) => {
     await page.goto('/method');
     const index = page.getByRole('navigation', { name: 'On this page' });
     for (const [name, anchor] of [
-      ['What happened to the sample listing', 'sample-run'],
-      ['The numbers, and their limits', 'numbers'],
-      ['What it will not do, and what it removes', 'limits-and-data'],
-      ['Every claim has a source', 'sources'],
+      ['What you give it', 'inputs'],
+      ['What happened to the example listing', 'example'],
+      ['How well does it work?', 'tests'],
+      ['What it will not do', 'limits'],
+      ['Where every sentence comes from', 'sources'],
     ] as const) {
       await index.getByRole('link', { name }).click();
       await expect(page).toHaveURL(new RegExp(`#${anchor}$`));
       await expect(page.locator(`#${anchor}`)).toBeInViewport();
     }
-
-    // A landing page source note leads to the matching section.
-    await page.goto('/?sources=on');
-    await page.getByRole('main').getByRole('link', { name: 'Method, § 2' }).first().click();
-    await expect(page).toHaveURL(/\/method#sample-run$/);
-    await expect(page.locator('#sample-run')).toBeInViewport();
   });
 
-  test('the specimen opens a claim at a time, and every section ends with sources', async ({
+  test('says what goes in, opens a claim at a time, and links to GitHub only from the footer', async ({
     page,
   }) => {
     await page.goto('/method');
-    await expect(page.getByRole('region', { name: /What “1987” rests on/ })).toContainText(
-      'Build year: 1986',
+    await expect(page.locator('#inputs')).toContainText('10 to 30 photos');
+    await expect(page.locator('#inputs')).toContainText('Evidomo does not use video');
+    await expect(page.getByRole('region', { name: /What “1987” is based on/ })).toContainText(
+      'Year built: 1986',
     );
     await page.getByRole('button', { name: 'Energy label' }).click();
     await expect(page.getByRole('region', { name: /energy label B/ })).toContainText(
       '“Het energielabel is B”',
     );
-    await expect(page.locator('[data-method-sources]')).toHaveCount(4);
     await expect(page.locator('mark.claim')).toHaveCount(1);
+    await expect(page.locator('a[href*="github.com"]')).toHaveCount(1);
+    await expect(page.getByRole('contentinfo').locator('a[href*="github.com"]')).toHaveCount(1);
   });
 
   for (const width of [320, 390]) {

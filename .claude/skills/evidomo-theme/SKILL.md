@@ -100,7 +100,7 @@ Shared building blocks (P4B-06), use them instead of re-creating the pattern:
 - **Demo screens (P4-09, round 5):** `components/demo/` (`DemoRunningHead` at the top of every demo sheet, `DemoFolder` cover and folder tabs, `ReplayControls`, `DemoRunFrame`); the run screens read `useRunSource()` (`lib/run-source.tsx`) and a demo never renders a write control (absent, not disabled).
 - **Whole-card link:** the card title is the link (`min-h-11`) with `after:absolute after:inset-0` on a `relative` card; any other action in the card gets `relative z-10`.
 
-### Round 5 recipes: note, stamp, source note
+### Round 5 recipes: note, stamp
 
 ```tsx
 // Note (components/Note.tsx): replaces every daisyUI alert box. tone = info | success | warning |
@@ -116,19 +116,13 @@ Shared building blocks (P4B-06), use them instead of re-creating the pattern:
 // is generated content. Run status stays a badge (a stamp would crowd the step ledger).
 <Stamp tone="verified">Verified</Stamp>
 <Stamp tone="staged" as="figcaption">Virtually staged</Stamp>
-
-// Source note (components/landing/sources.tsx): <Sourced id> marks a claim in running text
-// (thin honey band + number) and <SourceNotes ids> shows its margin note, both only while
-// "Show sources" is on. The ids and their references live in lib/landing-sources.ts, one entry
-// per claim: sample run screen, eval report, enforced in code (file), product rule (section).
-<p><Sourced id="photos">11 photos are read…</Sourced></p>
-<SourceNotes ids={['photos']} />
 ```
 
 Rules for them: status colours only through tokens (`warning` and `accent` never as text; the
-note's rule may be `border-warning`); a claim without an entry in `landing-sources.ts` does not
-go on the landing page; the facts in `lib/sample-run.ts` are tied to the fixtures by
-`sample-run.test.ts`.
+note's rule may be `border-warning`); the facts in `lib/sample-run.ts` are tied to the fixtures by
+`sample-run.test.ts`. Public pages (landing, `/method`, `/demo`) use plain everyday words and link
+to GitHub only from the footer (`REPOSITORY_URL`); `__tests__/index.test.tsx`, `method.test.tsx`,
+and the e2e specs enforce it.
 
 ## 5. Helpers
 
@@ -161,3 +155,4 @@ When the user comments on the look or feel:
 - **2026-11-01 — Founder feedback on round 5 (round 5b, approved and merged on 2026-11-01).** The founder found the landing "too crowded, too much text, too many underlined phrases" and preferred the version before round 5. The landing returns to the original annotated-dossier structure (hero with the annotated photo, three steps, the claim example, four trust points, the closing band) with its text cut to about half; the approved images (B2-HERO-1, the interiors, the illustration) stay. One primary action ("Open the sample file"), one secondary in the hero (create an account; log in stays in the masthead). Honey marks only the one open claim of the example, which now uses a real sentence of the sample run. **Show sources** stays but is light: off by default, six key claims with one compact note each. The detail (ledger, eval numbers with limits, boundaries, the 1987 conflict, the audio slip) moves to a separate page in a later round; its components stay in the code, unreferenced. Notes, stamps, the demo running head, the `/demo` redirect, and the folder tabs are unchanged.
 - **2026-11-01 — Redesign round 6: the /method detail page (approved and merged on 2026-11-01).** The founder approved round 5b and asked for the detail that the landing no longer carries on a calm, scannable page. `/method` ("How Evidomo checks a listing") is a short spec sheet: four numbered sections in the margin column (§ 1 to § 4, stable anchors), an in-page index, about 560 words of body text, short lines, one idea per block. No honey except the open claim of the specimen; sources are listed at the end of each section (type plus one link), not marked on every line, and the Show sources switch stays landing-only. The landing's source notes now lead to the matching `/method` section. The list of what Evidomo will not do and removes doubles as the data-handling statement; no EU-hosting claim, because the docs call it a target. The masthead gains "Method" and the colophon a link. The round 5 detail components (specimen, ledger, numbers, boundaries) were trimmed and reused; their text moved from `landing.*` to `method.*` messages.
 - **2026-11-01 — Demo replay pace and start.** The founder found the public replay too fast even at 1× and did not want it to start on its own. Every offered speed now plays at half the API's pace (`REPLAY_PACE` in `lib/demo.ts`; the API contract is unchanged), and the replay waits for a "Start the demo" button (`btn btn-primary min-h-11`) with a one-line hint; focus moves to the replay controls once it starts. A new page load waits again.
+- **2026-11-01 — Redesign round 7: plain words, explicit inputs, no GitHub links (awaiting the founder's review).** Non-technical friends with no real-estate background looked at the public pages and said: it is confusing for anyone, it has too many technical details ("a DJ wrote this"), they could not tell whether Evidomo takes photos or a video, and there are GitHub links on the site. Decisions: (1) The public English copy (landing, `/method`, demo list and run pages, header and footer) is rewritten in short everyday sentences; internal terms (gate, claim, audit, portal, segment, integrity check, "sample file") became "stop", "sentence", "check", "listing text", "example", and so on, or got a one-line plain explanation. The headline is now "A listing where every sentence shows where it came from." (2) The inputs are stated wherever the flow is described: 10 to 30 photos (the service definition's limits) and a voice walkthrough of about 2 to 10 minutes (the definition caps it at 600 s), recorded in the browser or uploaded as an audio file, and that video is not used (landing step 1, a new first section of `/method`, and the capture screen's hints for photos and voice). (3) **Every GitHub source link is gone** from every page; the footer's repository link (`REPOSITORY_URL`) is the only one, and tests enforce it. This reverses the round-6 source notes and the `/method` source lists, which led to scripts in the repository: they were removed at the founder's request. (4) **The Show sources switch is removed** (with `?sources=on`, the remembered state, `lib/sources.ts`, `lib/landing-sources.ts`, `components/landing/sources.tsx`, `components/method/SourceList.tsx`, and the `.claim-on` / `.source-in` styles). Without code links it had nothing left that the claim example does not already show: tapping a highlighted part of the example sentence opens the real form field, voice moment, or photo it came from. A second, margin-note version of the same thing would be duplicate noise on a page the founder wants calm. `/method` has five sections (what you give it, where every sentence comes from, the example, how well it works, what it will not do) with new anchors (`#inputs`, `#sources`, `#example`, `#tests`, `#limits`); the nav label is "How it works" and "Demo" is "Example". Brand, layout, images, and tokens are unchanged.

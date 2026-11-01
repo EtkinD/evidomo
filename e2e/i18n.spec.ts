@@ -38,7 +38,7 @@ test.describe('browser language Turkish', () => {
     await page.goto('/');
     await expect(page).not.toHaveURL(/\/tr/);
     await expect(
-      page.getByRole('heading', { level: 1, name: /linked to its evidence/ }),
+      page.getByRole('heading', { level: 1, name: /every sentence shows where it came from/ }),
     ).toBeVisible();
   });
 });
@@ -52,7 +52,7 @@ test.describe('a browser language the app does not offer', () => {
     await expect(page).toHaveURL(/\/$/);
     await expect(page.locator('html')).toHaveAttribute('lang', 'en');
     await expect(
-      page.getByRole('heading', { level: 1, name: /linked to its evidence/ }),
+      page.getByRole('heading', { level: 1, name: /every sentence shows where it came from/ }),
     ).toBeVisible();
   });
 });

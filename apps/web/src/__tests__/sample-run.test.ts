@@ -18,13 +18,6 @@ import {
   SPECIMEN_PARTS,
   SPECIMEN_SENTENCE,
 } from '../lib/sample-run';
-import {
-  METHOD_ANCHORS,
-  METHOD_SOURCES,
-  referencedPaths,
-  SOURCE_NOTES,
-  sourceHref,
-} from '../lib/landing-sources';
 import { LANDING_IMAGES, landingSrc } from '../lib/landing-images';
 
 // The landing page states facts about the sample run. These tests tie every fact that a committed
@@ -286,7 +279,6 @@ describe('the eval numbers', () => {
     planted: 'Planted conflicts surfaced at Gate 1',
     falseConflicts: 'Unexpected (false) conflicts',
     injectedFlagged: 'Injected claim defects flagged in the first audit',
-    injectedAtGate2: 'Injected defects still unflagged at Gate 2',
     injectedExported: 'Injected defects in an exported pack',
     cleanFlags: 'First-audit flags on uninjected segments',
   };
@@ -306,17 +298,7 @@ describe('the eval numbers', () => {
   });
 });
 
-describe('source notes and the /method sources', () => {
-  it('gives every landing note and every /method source at least one reference of a known kind', () => {
-    for (const refs of [...Object.values(SOURCE_NOTES), ...Object.values(METHOD_SOURCES)]) {
-      expect(refs.length).toBeGreaterThan(0);
-      for (const ref of refs)
-        expect(['sample', 'sampleFile', 'eval', 'code', 'rule']).toContain(ref.kind);
-    }
-    // Every section of the page has its sources.
-    expect(Object.keys(METHOD_SOURCES)).toEqual([...METHOD_ANCHORS]);
-  });
-
+describe('the /method boundaries', () => {
   it('backs each boundary and each data-handling statement with the code or rule it names', () => {
     expect(BOUNDARY_IDS).toHaveLength(9);
     const product = read('docs/product.md');
@@ -345,38 +327,5 @@ describe('source notes and the /method sources', () => {
     // target and the architecture's own tests say nothing is deployed to check, so /method says
     // nothing about where it runs.
     expect(JSON.stringify(en.method)).not.toMatch(/\bEU\b|Europe|GDPR/);
-  });
-
-  it('points only at files that exist in the repository', () => {
-    for (const path of referencedPaths()) {
-      expect(existsSync(resolve(REPO, path)), path).toBe(true);
-    }
-  });
-
-  it('anchors README and product links at headings that exist', () => {
-    expect(read('README.md')).toMatch(/^## Eval results$/m);
-    const product = read('docs/product.md');
-    expect(product).toMatch(/^## 8\. Hard boundaries$/m);
-    expect(product).toMatch(/^## 9\. Data, privacy, and trust$/m);
-    const hrefs = Object.values(METHOD_SOURCES).flatMap((refs) => refs.map(sourceHref));
-    expect(hrefs).toContain('https://github.com/EtkinD/evidomo/blob/main/README.md#eval-results');
-    expect(hrefs).toContain(
-      'https://github.com/EtkinD/evidomo/blob/main/docs/product.md#8-hard-boundaries',
-    );
-    expect(hrefs).toContain(
-      'https://github.com/EtkinD/evidomo/blob/main/docs/product.md#9-data-privacy-and-trust',
-    );
-  });
-
-  it('sends sample references to screens the demo entry understands, or to a section of /method', () => {
-    const hrefs = [...Object.values(SOURCE_NOTES), ...Object.values(METHOD_SOURCES)].flatMap(
-      (refs) => refs.map(sourceHref),
-    );
-    for (const href of hrefs.filter((h) => h.startsWith('/'))) {
-      expect(href).toMatch(/^\/(demo(\?tab=(conflicts|review|pack))?|method#[a-z-]+)$/);
-      if (href.startsWith('/method#')) {
-        expect(METHOD_ANCHORS as readonly string[]).toContain(href.slice('/method#'.length));
-      }
-    }
   });
 });

@@ -107,7 +107,7 @@ describe('pack viewer', () => {
     expect(href('Download photo-01.jpg')).toBe(`${fileUrl(IMAGE_ID)}?download=1`);
     expect(href('Download photo-01-staged.jpg')).toBe(`${fileUrl(STAGED_ID)}?download=1`);
     expect(screen.getByText(/Listing pack \(HTML\) · 2\.3 MB/)).toBeDefined();
-    expect(screen.getByText(/Portal fields \(JSON\) · 4\.2 KB/)).toBeDefined();
+    expect(screen.getByText(/Fields for listing sites \(JSON\) · 4\.2 KB/)).toBeDefined();
     expect(screen.getByText(/Image · 612 B/)).toBeDefined();
     expect(screen.getByText('Images (2)')).toBeDefined();
   });

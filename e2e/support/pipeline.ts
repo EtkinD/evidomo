@@ -160,10 +160,10 @@ export async function startFixtureRunAtGate1(page: Page): Promise<void> {
     await expect(page.getByRole('region', { name: 'Review needed' })).toBeVisible({
       timeout: 120_000,
     });
-    await page.getByRole('link', { name: 'Review conflicts' }).click();
+    await page.getByRole('link', { name: 'Settle the facts' }).click();
     await expect(page).toHaveURL(/\/conflicts$/);
     await expect(
-      page.getByRole('heading', { level: 1, name: 'Resolve fact conflicts' }),
+      page.getByRole('heading', { level: 1, name: 'Settle the facts that disagree' }),
     ).toBeVisible();
   });
 }

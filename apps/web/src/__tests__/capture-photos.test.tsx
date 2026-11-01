@@ -62,6 +62,18 @@ function choose(files: File[]): void {
 }
 
 describe('photo capture', () => {
+  it('says how many photos the project takes, that only photos are used, and how to give the voice walkthrough', async () => {
+    await openPage();
+    const photos = screen.getByRole('heading', { name: 'Photos' }).closest('section');
+    // The numbers come from the project's limits (the service definition: 10 to 30 in production).
+    expect(photos?.textContent).toMatch(/Add 3 to \d+ photos of the home, one room at a time/);
+    expect(photos?.textContent).toContain('Photos only: video is not used.');
+    const voice = screen.getByRole('heading', { name: 'Voice walkthrough' }).closest('section');
+    expect(voice?.textContent).toContain('Record here in your browser, or upload an audio file.');
+    expect(voice?.textContent).toContain('Audio only: video is not used.');
+    expect(voice?.textContent).toContain('about 2 minutes or more, up to 10 minutes');
+  });
+
   it('downscales each photo, uploads them one at a time in the chosen order, and shows them', async () => {
     const images = stubImages(4000, 3000);
     const xhr = stubXhr((upload) => accept(upload));

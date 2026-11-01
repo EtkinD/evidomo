@@ -258,6 +258,9 @@ export function PhotoCapture({
         <h2 id="photos-heading" tabIndex={-1} className="card-title text-2xl">
           {t('photos.title')}
         </h2>
+        <p className="text-base-content/70">
+          {t('photos.intro', { min: photos.min, max: photos.max })}
+        </p>
 
         <div className="flex flex-wrap items-center gap-2">
           <p>

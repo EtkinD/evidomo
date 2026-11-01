@@ -29,8 +29,10 @@ describe('header, signed out', () => {
     expect(within(nav).getByRole('link', { name: 'Create account' }).getAttribute('href')).toBe(
       '/register',
     );
-    expect(within(nav).getByRole('link', { name: 'Demo' }).getAttribute('href')).toBe('/demo');
-    expect(within(nav).getByRole('link', { name: 'Method' }).getAttribute('href')).toBe('/method');
+    expect(within(nav).getByRole('link', { name: 'Example' }).getAttribute('href')).toBe('/demo');
+    expect(within(nav).getByRole('link', { name: 'How it works' }).getAttribute('href')).toBe(
+      '/method',
+    );
     expect(within(nav).getAllByRole('link')).toHaveLength(4);
     expect(screen.queryByRole('button', { name: /Account menu/ })).toBeNull();
     expect(screen.queryByRole('navigation', { name: 'Main' })).toBeNull();
@@ -63,13 +65,13 @@ describe('header, signed in', () => {
     expect(link.getAttribute('aria-current')).toBe(expected);
     const main = within(screen.getByRole('navigation', { name: 'Main' }));
     expect(main.getAllByRole('link')).toHaveLength(3);
-    expect(main.getByRole('link', { name: 'Demo' }).getAttribute('href')).toBe('/demo');
+    expect(main.getByRole('link', { name: 'Example' }).getAttribute('href')).toBe('/demo');
   });
 
   it('marks Demo on the demo pages', async () => {
     setRoute('/demo/runs/abc');
     renderPage(Home);
-    const link = await screen.findByRole('link', { name: 'Demo' });
+    const link = await screen.findByRole('link', { name: 'Example' });
     expect(link.getAttribute('aria-current')).toBe('true');
   });
 

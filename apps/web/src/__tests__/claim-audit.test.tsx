@@ -71,11 +71,11 @@ describe('Gate 2 review page', () => {
       renderPage(ReviewPage);
 
       expect(
-        await screen.findByRole('heading', { level: 1, name: 'Review the pack' }),
+        await screen.findByRole('heading', { level: 1, name: 'Check the listing' }),
       ).toBeDefined();
-      expect(screen.getByRole('heading', { level: 3, name: 'Portal text' })).toBeDefined();
-      expect(screen.getByRole('heading', { level: 3, name: 'Social caption' })).toBeDefined();
-      expect(screen.getByText('Flagged claims: 5 (5 open)')).toBeDefined();
+      expect(screen.getByRole('heading', { level: 3, name: 'Listing text' })).toBeDefined();
+      expect(screen.getByRole('heading', { level: 3, name: 'Social media post' })).toBeDefined();
+      expect(screen.getByText('Sentences with a problem: 5 (5 open)')).toBeDefined();
 
       // An unflagged segment is listed and clickable, but is not in a flagged group.
       expect(segmentButton(TEXT.area)).toBeDefined();
@@ -83,7 +83,7 @@ describe('Gate 2 review page', () => {
       expect(screen.queryByRole('button', { name: `Remove: ${TEXT.area}` })).toBeNull();
 
       const rooms = await flagged(`Flagged: ${TEXT.rooms}`);
-      expect(within(rooms).getByText('Claim not supported')).toBeDefined();
+      expect(within(rooms).getByText('Not backed by the facts')).toBeDefined();
       expect(
         within(rooms).getByText('Nothing in the facts says the rooms are quiet.'),
       ).toBeDefined();
@@ -96,21 +96,21 @@ describe('Gate 2 review page', () => {
       }
 
       const best = await flagged(`Flagged: ${TEXT.best}`);
-      expect(within(best).getByText('Unverifiable superlative')).toBeDefined();
+      expect(within(best).getByText('Boasting that cannot be checked')).toBeDefined();
     });
 
     it('shows a form field as the evidence of an unflagged segment and closes it with focus back', async () => {
       mockAudit(serve(auditGate()));
       renderPage(ReviewPage);
-      await screen.findByRole('heading', { level: 1, name: 'Review the pack' });
+      await screen.findByRole('heading', { level: 1, name: 'Check the listing' });
 
       const button = segmentButton(TEXT.area);
       expect(screen.queryByRole('complementary')).toBeNull();
       fireEvent.click(button);
 
       const panel = screen.getByRole('complementary', { name: `Evidence for “${TEXT.area}”` });
-      expect(within(panel).getByText('This segment cites 1 fact.')).toBeDefined();
-      expect(within(panel).getByText('Form field')).toBeDefined();
+      expect(within(panel).getByText('This part is based on 1 fact.')).toBeDefined();
+      expect(within(panel).getByText('Your form')).toBeDefined();
       expect(within(panel).getByText('Living area:', { exact: false })).toBeDefined();
       expect(button.getAttribute('aria-expanded')).toBe('true');
 
@@ -122,15 +122,17 @@ describe('Gate 2 review page', () => {
     it('shows a transcript turn and a photo with its mask for the facts a flagged claim cites', async () => {
       mockAudit(serve(auditGate()));
       renderPage(ReviewPage);
-      await screen.findByRole('heading', { level: 1, name: 'Review the pack' });
+      await screen.findByRole('heading', { level: 1, name: 'Check the listing' });
 
       fireEvent.click(segmentButton(TEXT.rooms));
       const panel = screen.getByRole('complementary', { name: `Evidence for “${TEXT.rooms}”` });
-      expect(within(panel).getByText('This segment cites 2 facts.')).toBeDefined();
+      expect(within(panel).getByText('This part is based on 2 facts.')).toBeDefined();
 
       // Transcript turn: the quote and a play control at the turn's start.
       expect(within(panel).getByText(/about ninety-two square metres/)).toBeDefined();
-      expect(within(panel).getByRole('button', { name: 'Play the turn at 01:23' })).toBeDefined();
+      expect(
+        within(panel).getByRole('button', { name: 'Play the recording at 01:23' }),
+      ).toBeDefined();
 
       // Photo: served from the run's material file, with the mask overlay once the mask loads.
       const photo = within(panel).getByRole('img', { name: 'Photo evidence for Rooms' });
@@ -162,7 +164,7 @@ describe('Gate 2 review page', () => {
     it('switches the evidence to another segment and closes it with Escape', async () => {
       mockAudit(serve(auditGate()));
       renderPage(ReviewPage);
-      await screen.findByRole('heading', { level: 1, name: 'Review the pack' });
+      await screen.findByRole('heading', { level: 1, name: 'Check the listing' });
 
       fireEvent.click(segmentButton(TEXT.area));
       fireEvent.click(segmentButton(TEXT.socialPlain));
@@ -190,7 +192,7 @@ describe('Gate 2 review page', () => {
         within(rooms).getByRole('button', { name: `Approve as written: ${TEXT.rooms}` }),
       );
 
-      expect(await screen.findByText('Flagged claims: 5 (4 open)')).toBeDefined();
+      expect(await screen.findByText('Sentences with a problem: 5 (4 open)')).toBeDefined();
       expect(calls(fetchMock, 'PUT')).toHaveLength(1);
       expect(calls(fetchMock, 'PUT')[0]?.[0]).toBe(claimPath(CLAIM.rooms));
       expect(bodyOf(calls(fetchMock, 'PUT')[0])).toEqual({ choice: 'accept' });
@@ -330,7 +332,7 @@ describe('Gate 2 review page', () => {
 
       expect(await within(rooms).findByText('Removed from the pack.')).toBeDefined();
       expect(bodyOf(calls(fetchMock, 'PUT')[0])).toEqual({ choice: 'remove' });
-      const line = 'Portal text: the required fact “Living area” is no longer mentioned.';
+      const line = 'Listing text: the required fact “Living area” is no longer mentioned.';
       const atItem = within(rooms).getByRole('list', { name: 'Warnings for this removal' });
       expect(within(atItem).getByText(line, { exact: false })).toBeDefined();
 
@@ -338,7 +340,7 @@ describe('Gate 2 review page', () => {
       expect(within(approve).getByText(line, { exact: false })).toBeDefined();
       // The warning sits in the approve section, above the button it concerns.
       const section = screen
-        .getByRole('heading', { level: 2, name: 'Approve the pack' })
+        .getByRole('heading', { level: 2, name: 'Approve the listing' })
         .closest('section');
       expect(section?.contains(approve)).toBe(true);
     });
@@ -366,7 +368,7 @@ describe('Gate 2 review page', () => {
       expect(within(second).getByText('Not needed: this card is dropped.')).toBeDefined();
       expect(within(second).queryByRole('button', { name: /^Remove:/ })).toBeNull();
       // Three copy claims and the unneeded answer are not counted as open.
-      expect(screen.getByText('Flagged claims: 5 (3 open)')).toBeDefined();
+      expect(screen.getByText('Sentences with a problem: 5 (3 open)')).toBeDefined();
     });
 
     it('shows the buyer Q&A cards with the evidence of their answers, flagged or not', async () => {
@@ -384,7 +386,7 @@ describe('Gate 2 review page', () => {
       expect(within(panel).getByText(/about ninety-two square metres/)).toBeDefined();
 
       const card = screen.getByRole('group', { name: 'Question 1: Will the flat gain value?' });
-      expect(within(card).getAllByText('Investment promise')).toHaveLength(2);
+      expect(within(card).getAllByText('Promise about returns')).toHaveLength(2);
     });
   });
 
@@ -448,7 +450,7 @@ describe('Gate 2 review page', () => {
     it('closes on Escape from anywhere, but not when Escape is for the larger-photo dialog', async () => {
       mockAudit(serve(auditGate()));
       renderPage(ReviewPage);
-      await screen.findByRole('heading', { level: 1, name: 'Review the pack' });
+      await screen.findByRole('heading', { level: 1, name: 'Check the listing' });
 
       fireEvent.click(segmentButton(TEXT.rooms));
       const panel = screen.getByRole('complementary', { name: `Evidence for “${TEXT.rooms}”` });
@@ -468,11 +470,11 @@ describe('Gate 2 review page', () => {
       const gate = auditGate();
       mockAudit(serve({ ...gate, facts: gate.facts.filter((f) => f.id !== CFACT.areaTurn) }));
       renderPage(ReviewPage);
-      await screen.findByRole('heading', { level: 1, name: 'Review the pack' });
+      await screen.findByRole('heading', { level: 1, name: 'Check the listing' });
 
       fireEvent.click(segmentButton(TEXT.rooms));
       const panel = screen.getByRole('complementary', { name: `Evidence for “${TEXT.rooms}”` });
-      expect(within(panel).getByText('This segment cites 2 facts.')).toBeDefined();
+      expect(within(panel).getByText('This part is based on 2 facts.')).toBeDefined();
       expect(within(panel).getByText(/Missing evidence:/).textContent).toContain(CFACT.areaTurn);
       expect(within(panel).getByRole('img', { name: 'Photo evidence for Rooms' })).toBeDefined();
     });
@@ -501,7 +503,7 @@ describe('Gate 2 review page', () => {
       expect(caption.tagName).toBe('FIGCAPTION');
       expect(caption.closest('figure')?.contains(staged)).toBe(true);
       expect(within(card).getByText('Original')).toBeDefined();
-      expect(within(card).getByText(/Integrity check passed on the second attempt/)).toBeDefined();
+      expect(within(card).getByText(/Check passed on the second attempt/)).toBeDefined();
       expect(within(card).getByText(/Accept publishes the staged image/)).toBeDefined();
       // Both figures share one grid row on a wide screen.
       expect(original.closest('div')).toBe(staged.closest('div'));
@@ -582,7 +584,7 @@ describe('Gate 2 review page', () => {
       expect(
         await screen.findByRole('heading', {
           level: 3,
-          name: 'Staging rejected by the integrity check',
+          name: 'Staging rejected by the check',
         }),
       ).toBeDefined();
       expect(
@@ -601,12 +603,12 @@ describe('Gate 2 review page', () => {
       renderPage(ReviewPage);
 
       const section = (
-        await screen.findByRole('heading', { level: 2, name: 'Approve the pack' })
+        await screen.findByRole('heading', { level: 2, name: 'Approve the listing' })
       ).closest('section') as HTMLElement;
       expect(isDisabled(within(section).getByRole('button', { name: 'Approve pack' }))).toBe(true);
       expect(within(section).getByText('Still open before you can approve:')).toBeDefined();
-      expect(within(section).getByText('4 flagged claims')).toBeDefined();
-      expect(within(section).getByText('1 staged image')).toBeDefined();
+      expect(within(section).getByText('4 sentences with a problem')).toBeDefined();
+      expect(within(section).getByText('1 staged photo')).toBeDefined();
       expect(calls(fetchMock, 'POST')).toHaveLength(0);
     });
 
@@ -637,7 +639,7 @@ describe('Gate 2 review page', () => {
       expect(calls(fetchMock, 'POST')[0]?.[0]).toBe(APPROVE_PATH);
       // The whole gate came back and replaced the cache; the monitor's cached run was refetched.
       expect(
-        await screen.findByText('This review is finished. Your decisions are shown below.'),
+        await screen.findByText('This check is finished. Your decisions are shown below.'),
       ).toBeDefined();
       expect(screen.queryByRole('button', { name: 'Approve pack' })).toBeNull();
       await waitFor(() => {
@@ -729,7 +731,7 @@ describe('Gate 2 review page', () => {
       mockAudit(serve(auditGate({ state: 'not_reached' })));
       renderPage(ReviewPage);
 
-      expect(await screen.findByText(/The run has not reached this review yet/)).toBeDefined();
+      expect(await screen.findByText(/The run has not reached this check yet/)).toBeDefined();
       expect(screen.queryByRole('heading', { name: 'Copy' })).toBeNull();
       expect(screen.queryByRole('button', { name: /Approve|Remove|Edit/ })).toBeNull();
     });
@@ -746,7 +748,7 @@ describe('Gate 2 review page', () => {
       renderPage(ReviewPage);
 
       expect(
-        await screen.findByText('This review is finished. Your decisions are shown below.'),
+        await screen.findByText('This check is finished. Your decisions are shown below.'),
       ).toBeDefined();
       expect(screen.getByRole('link', { name: 'Open the pack' }).getAttribute('href')).toBe(
         `/runs/${RUN_ID}/pack`,
@@ -756,7 +758,7 @@ describe('Gate 2 review page', () => {
       expect(
         screen.queryByRole('button', { name: /^(Approve|Edit|Remove|Accept|Reject)/ }),
       ).toBeNull();
-      expect(screen.queryByRole('heading', { name: 'Approve the pack' })).toBeNull();
+      expect(screen.queryByRole('heading', { name: 'Approve the listing' })).toBeNull();
       // The evidence stays one click away.
       fireEvent.click(segmentButton(TEXT.area));
       expect(screen.getByRole('complementary')).toBeDefined();
@@ -791,9 +793,9 @@ describe('Gate 2 review page', () => {
       mockAudit(serve(auditGate()));
       renderPage(ReviewPage);
 
-      expect(await screen.findByText('Loading the review…')).toBeDefined();
+      expect(await screen.findByText('Loading the check…')).toBeDefined();
       expect(
-        await screen.findByRole('heading', { level: 1, name: 'Review the pack' }),
+        await screen.findByRole('heading', { level: 1, name: 'Check the listing' }),
       ).toBeDefined();
     });
 
@@ -808,11 +810,11 @@ describe('Gate 2 review page', () => {
       renderPage(ReviewPage);
 
       expect((await screen.findByRole('alert')).textContent).toContain(
-        'We could not load the review.',
+        'We could not load the check.',
       );
       fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
       expect(
-        await screen.findByRole('heading', { level: 1, name: 'Review the pack' }),
+        await screen.findByRole('heading', { level: 1, name: 'Check the listing' }),
       ).toBeDefined();
       expect(reads).toBe(2);
     });

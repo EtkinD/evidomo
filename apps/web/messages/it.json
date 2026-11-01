@@ -178,27 +178,6 @@
       "interior1": "Un pavimento in rovere a spina di pesce che incontra piastrelle in terracotta, con ombre di foglie e un vaso giallo con un ramo d’ulivo",
       "interior2": "Un camino in mattoni alla calce con mensola in rovere, eucalipto in un vaso di terracotta e ceppi di betulla",
       "illustration": "Un’illustrazione di una casa bianca con tetto arrotondato color crema, una porta gialla aperta e una pianta verde"
-    },
-    "sources": {
-      "switch": "Mostra le fonti",
-      "on": "Attivo",
-      "off": "Disattivo",
-      "kinds": {
-        "sample": "Elaborazione di esempio",
-        "eval": "Rapporto di valutazione",
-        "code": "Imposto dal codice",
-        "rule": "Regola di prodotto"
-      },
-      "screens": {
-        "monitor": "Monitor dell’elaborazione",
-        "conflicts": "Conflitti tra i dati",
-        "review": "Revisione del pacchetto",
-        "pack": "Pacchetto annuncio"
-      },
-      "evalRef": "README, Risultati della valutazione ({date}, modalità fixture)",
-      "ruleRef": "docs/product.md, sezione {section}",
-      "number": "fonte {n}",
-      "methodRef": "Metodo, § {n}"
     }
   },
   "notFound": {
@@ -382,6 +361,7 @@
     },
     "photos": {
       "title": "Foto",
+      "intro": "Aggiungete da {min} a {max} foto della casa, una stanza alla volta. Solo foto: il video non viene usato.",
       "previewUnavailable": "Anteprima non disponibile",
       "photoN": "Foto {position}",
       "deleteLabel": "Elimina la foto {position}",
@@ -1002,17 +982,36 @@
     "lede": "Cosa fa un’elaborazione, cosa ha trovato nel fascicolo di esempio e dove si ferma.",
     "indexLabel": "In questa pagina",
     "sections": {
+      "inputs": "Cosa fornire",
       "sources": "Ogni affermazione ha una fonte",
-      "sample-run": "Cosa è successo all’annuncio di esempio",
-      "numbers": "I numeri e i loro limiti",
-      "limits-and-data": "Cosa non farà e cosa rimuove"
+      "example": "Cosa è successo all’annuncio di esempio",
+      "tests": "I numeri e i loro limiti",
+      "limits": "Cosa non farà e cosa rimuove"
     },
     "types": {
       "form": "Un campo del modulo: un valore che hai inserito.",
       "voice": "Un intervento vocale: parole del tuo tour, con l’orario.",
       "photo": "Una regione di foto: la parte di un’immagine su cui si basa un dato."
     },
-    "sourcesTitle": "Fonti",
+    "inputs": {
+      "items": {
+        "photos": {
+          "title": "Da 10 a 30 foto",
+          "text": "Scattale con il telefono, una stanza alla volta. Solo foto."
+        },
+        "voice": {
+          "title": "Un giro raccontato a voce",
+          "text": "Percorrete la casa e dite ciò che vedete. Puntate a 2–10 minuti. Registrate nel browser o caricate un file audio."
+        },
+        "form": {
+          "title": "Un breve modulo",
+          "text": "I dati che conoscete, come la superficie della casa e l’anno di costruzione."
+        }
+      },
+      "noVideo": "Evidomo non usa video. Usate solo foto e una registrazione vocale.",
+      "outputTitle": "Cosa ottenete",
+      "outputText": "Il testo dell’annuncio, le risposte alle domande più frequenti degli acquirenti, un breve post per i social e le vostre foto. Scaricate tutto in un unico pacchetto."
+    },
     "specimen": {
       "label": "Una frase dal fascicolo di esempio",
       "sentenceNote": "Output del modello, come scritto (inglese, non tradotto).",
@@ -1069,7 +1068,6 @@
         "planted": "Conflitti inseriti emersi alla prima revisione",
         "falseConflicts": "Conflitti inattesi (falsi)",
         "injectedFlagged": "Difetti inseriti segnalati nel primo controllo",
-        "injectedAtGate2": "Difetti inseriti ancora non segnalati alla seconda revisione",
         "injectedExported": "Difetti inseriti in un pacchetto esportato",
         "cleanFlags": "Segnalazioni del primo controllo su frasi non alterate"
       },
