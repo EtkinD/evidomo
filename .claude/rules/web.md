@@ -17,5 +17,6 @@ paths:
 - Check layout with tests and DOM measurements (overflow via `scrollWidth`, sizes via `boundingBox()`), not by viewing screenshots (token budget, see `task-protocol`).
 - A new UI rule applies to the existing screens too: the change that adds it (here, in the `evidomo-theme` skill, or in a recipe) also finds and fixes the current violations, or lists them as a follow-up.
 - Every UI string goes through use-intl: add the key to `apps/web/messages/en.json` first (keys are typed from it), then to `tr`, `nl`, `it`, and `es` in the same change; the key-parity test fails otherwise. Model output, server failure reasons, and the HTML pack are not translated.
+- Translations are written as a native speaker would, not word for word, but they keep every fact, number, limit, and promise of the English unchanged ("about 2 minutes" never becomes "at least 2 minutes").
 - Imports use bundler resolution: no `.ts`/`.tsx` extensions in import paths.
 - Only `NEXT_PUBLIC_*` variables reach the browser; they must never hold secrets.
