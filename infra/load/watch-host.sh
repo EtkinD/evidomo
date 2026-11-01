@@ -30,7 +30,7 @@ read -r prev_idle prev_total < <(cpu_times)
 while true; do
   sleep "$interval"
   read -r idle total < <(cpu_times)
-  cpu="$(awk -v i="$((idle - prev_idle))" -v t="$((total - prev_total))" 'BEGIN { printf "%.1f", t > 0 ? 100 * (1 - i / t) : 0 }')"
+  cpu="$(awk -v i="$((idle - prev_idle))" -v t="$((total - prev_total))" 'BEGIN { printf "%.1f", (t > 0 ? 100 * (1 - i / t) : 0) }')"
   prev_idle="$idle"; prev_total="$total"
   mem_total="$(awk '/^MemTotal:/{print int($2/1024)}' /proc/meminfo)"
   mem_used="$(awk '/^MemTotal:/{t=$2} /^MemAvailable:/{a=$2} END{print int((t-a)/1024)}' /proc/meminfo)"
