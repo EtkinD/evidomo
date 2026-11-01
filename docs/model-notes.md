@@ -3147,3 +3147,42 @@ node --env-file=.env apps/api/src/cli/eval.ts --mode record --sets <id> --max-us
 Changing a set's fact form or office tone invalidates its cassette from reconciliation on;
 changing an injection invalidates it from verification on (the creative answer is reused and
 injected again). Delete `fixtures/meta/p5-01/<id>.json` for a clean re-recording.
+
+## P5-02 — Second property on production
+
+A complete live run on the production stack with the `nl` profile (the first property used
+`international`): 20 photos and invented facts, a 1:57 English walkthrough synthesized with
+macOS `say` (no third-party service), output language English. The walkthrough planted two
+conflicts with the fact form and three phrases the verification must keep out of the copy.
+
+What worked:
+
+- **Gate 1** listed exactly the two planted conflicts: build year (form vs. walkthrough) and
+  living area with the **same basis** (NEN 2580), which must be a contradiction. The decisions
+  (one walkthrough value, one form value) reached the fact sheet, the copy, and the Q&A cards.
+- **Facts said in both places agreed** (energy label, no ground lease) and are stored with both
+  sources; the missing VvE contribution stays `missing` although the walkthrough says there is no
+  association (it is kept as a transcript fact instead).
+- **Flagged phrasing:** the unverifiable superlative, the investment promise, and the
+  exclusionary "perfect for a young family" did not reach the portal copy, the social copy, or
+  the Q&A cards.
+- **Staging:** one empty bedroom was furnished (`furnish_bedroom`): a bed and a nightstand were
+  added; window, doors, closet, fixtures, and floor are unchanged (visual check at 800 px); the
+  "Virtually staged" label is burned in; both checklist items pass.
+- Export: HTML pack, portal-fields JSON, and photos download; the pack prints to an 8-page PDF.
+
+Issues found (documented, not fixed):
+
+- **Proper nouns heard only in the walkthrough are trusted as said.** The `nl` profile has no
+  street or place field, so the invented street and place names came only from the transcript,
+  were misheard, and the misspelled place name opens the portal copy. Keyword biasing cannot
+  help because no form value carries the name. Fix candidates: address fields in a future
+  `nl.v2` (form values feed the keyword list and win over the transcript), or a Gate 2 flag for
+  proper nouns whose only source is a transcript turn.
+- **One copy sentence merges two rooms** ("the attached double garage … laundry appliances
+  included in the laundry room"). Every segment cites real facts, so the claim validator passes
+  it; the rubric does not judge readability. A fluency criterion in verification would catch it.
+- **The printed PDF is about 100 MB for 8 pages** although the 21 embedded JPEGs total about 7 MB:
+  the browser's print path re-encodes the full-size (2048 px) images. Downscaling the pack's
+  images for print, or a server-rendered PDF, would bring it near the image total. Not measured
+  across browsers.

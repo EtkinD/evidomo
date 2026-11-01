@@ -245,7 +245,7 @@ Design decisions are made in a dev-only showcase, and only what the founder appr
 - [x] **P5-01 — Seeded-defect eval**
   - Depends on: P3-10
   - Done when: `npm run eval` runs seeded property sets (planted conflicts and unsupported claims) and reports catch rate, in fixture mode by default and live mode on demand.
-- [ ] **P5-02 — Second property**
+- [x] **P5-02 — Second property**
   - Depends on: P4-08, D-05
   - Done when: a second real property completes end to end on production; issues found are fixed or documented.
 - [x] **P5-03 — Failure UX**
