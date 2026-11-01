@@ -99,7 +99,10 @@ check_resource_budget() {
   local host_cpus host_mem
   host_cpus="$(docker info --format '{{.NCPU}}' 2> /dev/null || true)"
   host_mem="$(docker info --format '{{.MemTotal}}' 2> /dev/null || true)"
-  [ -n "$host_cpus" ] && [ -n "$host_mem" ] || { warn "cannot read the host size from docker; skipping the resource budget check"; return 0; }
+  if [ -z "$host_cpus" ] || [ -z "$host_mem" ]; then
+    warn "cannot read the host size from docker; skipping the resource budget check"
+    return 0
+  fi
   compose config --format json | python3 -c '
 import json, sys
 host_cpus, host_mem = float(sys.argv[1]), float(sys.argv[2])

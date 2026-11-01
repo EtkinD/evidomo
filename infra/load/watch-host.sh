@@ -38,7 +38,10 @@ while true; do
   echo "$now $cpu $mem_used $mem_total" >> "$samples"
   {
     echo "== $now host cpu ${cpu}%  ram ${mem_used}/${mem_total} MiB  load $(cut -d' ' -f1-3 /proc/loadavg)"
-    docker stats --no-stream --format '   {{.Name}}  cpu {{.CPUPerc}}  mem {{.MemUsage}}' \
-      $(docker ps -q --filter "label=com.docker.compose.project=$project") 2> /dev/null || true
+    mapfile -t containers < <(docker ps -q --filter "label=com.docker.compose.project=$project" 2> /dev/null || true)
+    if [ "${#containers[@]}" -gt 0 ]; then
+      docker stats --no-stream --format '   {{.Name}}  cpu {{.CPUPerc}}  mem {{.MemUsage}}' \
+        "${containers[@]}" 2> /dev/null || true
+    fi
   } | tee -a "$log"
 done
