@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import {
   STAGED_IMAGE_LABEL,
+  localizedLabel,
   portalFieldsSchema,
   type ApprovedPackContent,
   type MarketProfile,
@@ -23,6 +24,7 @@ import {
   qaCards,
   serializePortalFields,
 } from './portal-fields.ts';
+import { PACK_LANGUAGES, hasPackStrings, packStrings, type PackStrings } from './strings.ts';
 import { syntheticPhoto } from './testing.ts';
 
 // The HTML pack and the portal-fields JSON from synthetic parts: escaping of every untrusted
@@ -174,10 +176,12 @@ function checklist(facts: readonly Fact[], language = 'en'): PublicationChecklis
   );
 }
 
-function fields(options: { energyLabel?: boolean; language?: string } = {}): PortalFields {
+function fields(
+  options: { energyLabel?: boolean; language?: string; livingArea?: number } = {},
+): PortalFields {
   const language = options.language ?? 'en';
   const facts = [
-    verified('living_area', 92.5, 'm2', 'NEN2580'),
+    verified('living_area', options.livingArea ?? 92.5, 'm2', 'NEN2580'),
     verified('build_year', 1932),
     verified('other:street_character', PAYLOAD),
     ...(options.energyLabel === false ? [] : [verified('energy_label', 'B')]),
@@ -427,6 +431,127 @@ describe('renderListingPackHtml', () => {
     expect(html).toContain('<html lang="nl">');
     expect(html).toContain('Nog niet klaar voor publicatie');
     expect(html).toContain('<td>92,5 m²</td>');
+  });
+
+  it.each([
+    {
+      language: 'tr',
+      notReady: 'Yayımlanmaya henüz hazır değil',
+      approved: 'Gate 2’de ',
+      empty: '“sosyal medya metni” bölümündeki tüm cümleler kaldırıldı.',
+      warning:
+        '“portal açıklaması” bölümü artık “@LABEL@” bilgisini içermiyor (bu pazar için zorunlu).',
+    },
+    {
+      language: 'it',
+      notReady: 'Non ancora pronto per la pubblicazione',
+      approved: 'Approvato al Gate 2 il ',
+      empty: 'Nella sezione «didascalia per i social media» tutte le frasi sono state rimosse.',
+      warning:
+        'Nella sezione «descrizione per il portale» non compare più «@LABEL@» (richiesto dal mercato).',
+    },
+    {
+      language: 'es',
+      notReady: 'Aún no está listo para publicar',
+      approved: 'Aprobado en el Gate 2 el ',
+      empty: 'En el apartado «texto para redes sociales» se eliminaron todas las frases.',
+      warning:
+        'En el apartado «descripción para el portal» ya no se menciona «@LABEL@» (obligatorio en este mercado).',
+    },
+  ])(
+    'uses $language wording and decimal commas without grouping',
+    ({ language, notReady, approved, empty, warning }) => {
+      const html = renderListingPackHtml(
+        input(fields({ language, energyLabel: false, livingArea: 1234.5 }), {
+          warnings: [
+            {
+              kind: 'market_fact_unmentioned',
+              variant: 'portal',
+              factKey: 'energy_label',
+              required: true,
+              removedClaimIds: [randomUUID()],
+            },
+            { kind: 'variant_empty', variant: 'social' },
+          ],
+        }),
+      );
+      expect(html).toContain(`<html lang="${language}">`);
+      expect(html).toContain(notReady);
+      expect(html).toContain(approved);
+      expect(html).toContain(empty);
+      const energyLabel = nl.facts.find((fact) => fact.key === 'energy_label');
+      if (energyLabel === undefined) throw new Error('The nl market has no energy_label fact');
+      expect(html).toContain(
+        escapeHtml(warning.replace('@LABEL@', localizedLabel(energyLabel, language))),
+      );
+      // Same rule as Dutch: only the decimal separator changes; the value is never grouped.
+      expect(html).toContain('<td>1234,5 m²</td>');
+      expect(html).toContain('<td>1932</td>');
+      expect(html).not.toContain('Not ready to publish');
+    },
+  );
+
+  it('keeps the point decimal for English', () => {
+    expect(renderListingPackHtml(input(fields({ livingArea: 1234.5 })))).toContain(
+      '<td>1234.5 m²</td>',
+    );
+  });
+
+  it('has complete wording for every pack language and refuses a language it lacks', () => {
+    expect(PACK_LANGUAGES).toEqual(['en', 'tr', 'nl', 'it', 'es']);
+    for (const language of PACK_LANGUAGES) expect(hasPackStrings(language)).toBe(true);
+    for (const language of ['de', 'fr', '', 'constructor', '__proto__', 'nl-NL']) {
+      expect(hasPackStrings(language)).toBe(false);
+    }
+    const english = packStrings('en');
+    const shape = (value: unknown): unknown => {
+      if (typeof value === 'function') return 'function';
+      if (typeof value === 'string') return 'string';
+      if (typeof value === 'object' && value !== null) {
+        return Object.fromEntries(
+          Object.entries(value)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([key, inner]) => [key, shape(inner)]),
+        );
+      }
+      return typeof value;
+    };
+    // Typecheck already enforces the keys; this also catches wording that is empty, identical
+    // to English by accident of a copy-paste, or a function that returns nothing.
+    const strings = (t: PackStrings): string[] => [
+      t.packTitle,
+      t.approved('2026-10-29 14:03'),
+      t.market('X'),
+      t.refusedTitle('C'),
+      t.notReadyBody(1),
+      t.notReadyBody(3),
+      t.warningUnmentioned('V', 'F', true),
+      t.warningUnmentioned('V', 'F', false),
+      t.warningEmpty('V'),
+      t.seenIn('R'),
+      t.photo(2),
+      t.upload(3, true),
+      t.upload(3, false),
+      t.generated('RUN'),
+      ...Object.values(t.phrasingCategory),
+      ...Object.values(t.variantName),
+      ...Object.values(t.sources),
+      ...Object.values(t.withheld),
+      ...Object.values(t.status),
+    ];
+    for (const language of PACK_LANGUAGES) {
+      const t = packStrings(language);
+      expect(shape(t)).toEqual(shape(english));
+      for (const text of strings(t)) expect(text.trim()).not.toBe('');
+      expect(t.warningUnmentioned('V', 'F', true)).toContain('F');
+      expect(t.generated('RUN-1')).toContain('RUN-1');
+      expect(t.notReadyBody(1)).not.toBe(t.notReadyBody(2));
+      if (language !== 'en') {
+        expect(t.packTitle).not.toBe(english.packTitle);
+        expect(t.notReadyTitle).not.toBe(english.notReadyTitle);
+        expect(t.yes).not.toBe(english.yes);
+      }
+    }
   });
 
   it('shows profile labels in the output language and keeps English for the source language', () => {

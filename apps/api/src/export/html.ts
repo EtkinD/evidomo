@@ -92,10 +92,13 @@ export function formatApprovedAt(iso: string): string {
   return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())} ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}`;
 }
 
+const DECIMAL_COMMA_LANGUAGES: ReadonlySet<string> = new Set(['nl', 'tr', 'it', 'es']);
+
 function formatNumber(value: number, language: string): string {
-  // Exactly the verified value: no rounding, grouping, or locale data (deterministic).
+  // Exactly the verified value: no rounding, grouping, or locale data (deterministic). Only the
+  // decimal separator follows the language.
   const text = String(value);
-  return language === 'nl' ? text.replace('.', ',') : text;
+  return DECIMAL_COMMA_LANGUAGES.has(language) ? text.replace('.', ',') : text;
 }
 
 function withUnit(value: number, unit: string | null, language: string): string {
