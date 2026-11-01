@@ -239,7 +239,7 @@ Design decisions are made in a dev-only showcase, and only what the founder appr
 - [x] **D-08 — Load test**
   - Depends on: D-06, D-07
   - Done when: a repeatable load test (k6 in Docker, public read-only routes, no accounts, no live runs) runs against production in steps of concurrent users and reports the first step at which p95 latency or the error rate crosses the thresholds, with host CPU and RAM sampled during the run; the report is kept outside git (`data/load/`).
-- [ ] **D-09 — Continuous deployment**
+- [x] **D-09 — Continuous deployment**
   - Depends on: D-05, P0-08
   - Done when: a `main` commit that carries a `vX.Y.Z` tag deploys that tag from GitHub Actions, in one run, only after lint, tests, image builds, and e2e pass (an untagged push deploys nothing); the job reaches the server with a dedicated SSH key restricted to a forced command that validates the ref, with the host key pinned and the secrets scoped to an environment that admits only `main`; the public job log carries no server details; one deploy has gone through end to end.
 
