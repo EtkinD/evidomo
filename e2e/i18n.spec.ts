@@ -13,7 +13,7 @@ test.describe('browser language Turkish', () => {
     await expect(page).toHaveURL(/\/tr$/);
     await expect(page.locator('html')).toHaveAttribute('lang', 'tr');
     await expect(
-      page.getByRole('heading', { level: 1, name: 'İlanındaki her iddia, kanıtına bağlı.' }),
+      page.getByRole('heading', { level: 1, name: 'Her cümlenin kaynağını gösteren bir ilan.' }),
     ).toBeVisible();
     // The per-language Open Graph image and the language alternates ride along.
     await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
@@ -61,10 +61,10 @@ test('every language has a Turkish, Dutch, Italian, and Spanish landing page und
   page,
 }) => {
   const headings: Record<string, string> = {
-    tr: 'İlanındaki her iddia, kanıtına bağlı.',
-    nl: 'Elke bewering in je advertentie, gekoppeld aan het bewijs.',
-    it: 'Ogni affermazione del tuo annuncio, collegata alla sua prova.',
-    es: 'Cada afirmación de tu anuncio, vinculada a su evidencia.',
+    tr: 'Her cümlenin kaynağını gösteren bir ilan.',
+    nl: 'Een advertentie waarin elke zin laat zien waar hij vandaan komt.',
+    it: 'Un annuncio in cui ogni frase mostra da dove viene.',
+    es: 'Un anuncio donde cada frase muestra de dónde sale.',
   };
   for (const [locale, name] of Object.entries(headings)) {
     await page.goto(`/${locale}`);

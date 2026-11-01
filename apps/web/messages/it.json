@@ -2,11 +2,11 @@
   "common": {
     "tryAgain": "Riprova",
     "required": "obbligatorio",
-    "leaveMessage": "Caricamenti o una registrazione sono ancora in corso. Se esci ora andranno persi. Uscire comunque?",
+    "leaveMessage": "Ci sono ancora foto o una registrazione in caricamento. Se esci ora andranno perse. Vuoi uscire lo stesso?",
     "sessionEnded": "La tua sessione è scaduta. Accedi di nuovo per continuare.",
     "logIn": "Accedi",
     "projectMissing": "Questo progetto non esiste.",
-    "projectLoadError": "Non siamo riusciti a caricare questo progetto. Verifica la connessione e riprova.",
+    "projectLoadError": "Non siamo riusciti a caricare questo progetto. Controlla la connessione e riprova.",
     "loadingProject": "Caricamento del progetto…",
     "yes": "Sì",
     "no": "No"
@@ -14,36 +14,36 @@
   "shell": {
     "accountMenu": "Menu dell’account",
     "logOut": "Esci",
-    "logOutFailed": "Impossibile uscire. Riprova.",
+    "logOutFailed": "Non siamo riusciti a farti uscire. Riprova.",
     "navMain": "Principale",
     "navAccount": "Account",
     "projects": "Progetti",
-    "demo": "Demo",
+    "demo": "Esempio",
     "logIn": "Accedi",
     "createAccount": "Crea account",
-    "mastheadLine": "La prova per ogni casa.",
-    "footerTagline": "Pacchetti annuncio collegati alle prove, per gli agenti immobiliari.",
-    "hackathon": "Realizzato durante l’hackathon di Meta, 26 ott – 4 nov 2026.",
+    "mastheadLine": "Ogni casa, con le sue prove.",
+    "footerTagline": "Annunci in cui ogni frase mostra da dove viene.",
+    "hackathon": "Creato durante l’hackathon di Meta, dal 26 ott al 4 nov 2026.",
     "github": "Evidomo su GitHub",
     "theme": "Tema",
     "themeSystem": "Sistema",
     "themeLight": "Chiaro",
     "themeDark": "Scuro",
     "language": "Lingua",
-    "method": "Metodo"
+    "method": "Come funziona"
   },
   "auth": {
     "checkingSession": "Controllo della sessione…",
-    "sessionCheckFailed": "Non siamo riusciti a controllare la sessione. Verifica la connessione e riprova.",
+    "sessionCheckFailed": "Non siamo riusciti a controllare la sessione. Controlla la connessione e riprova.",
     "email": "Email",
     "password": "Password",
     "emailTaken": "Esiste già un account con questa email.",
-    "logInInstead": "Accedi invece",
+    "logInInstead": "Accedi",
     "passwordHint": "Almeno {min} caratteri.",
     "login": {
       "pageTitle": "Accedi — Evidomo",
       "title": "Accedi",
-      "description": "Torna ai tuoi pacchetti annuncio.",
+      "description": "Torna ai tuoi annunci.",
       "noAccount": "Non hai ancora un account?",
       "createAccountLink": "Crea un account",
       "submit": "Accedi"
@@ -51,7 +51,7 @@
     "register": {
       "pageTitle": "Crea account — Evidomo",
       "title": "Crea il tuo account",
-      "description": "Trasforma le foto dell’immobile e un tour vocale in un pacchetto annuncio con prove.",
+      "description": "Trasforma le foto di una casa e una descrizione a voce in un annuncio con le prove.",
       "haveAccount": "Hai già un account?",
       "logInLink": "Accedi",
       "submit": "Crea account"
@@ -64,114 +64,114 @@
       "passwordTooLong": "Usa al massimo {max} caratteri.",
       "passwordTooShort": "Usa almeno {min} caratteri.",
       "passwordRange": "Usa da {min} a {max} caratteri.",
-      "unreachable": "Impossibile raggiungere Evidomo. Verifica la connessione e riprova.",
-      "generic": "Qualcosa è andato storto da parte nostra. Riprova tra un momento.",
+      "unreachable": "Non riusciamo a raggiungere Evidomo. Controlla la connessione e riprova.",
+      "generic": "Qualcosa è andato storto da parte nostra. Riprova tra poco.",
       "checkForm": "Controlla il modulo e riprova.",
-      "invalidCredentials": "Email o password non corretti.",
-      "rateLimited": "Troppi tentativi. Attendi qualche minuto e riprova.",
+      "invalidCredentials": "Email o password non corrette.",
+      "rateLimited": "Troppi tentativi. Aspetta qualche minuto e riprova.",
       "rateLimitedSeconds": "Troppi tentativi. Riprova tra {count, plural, one {# secondo} other {# secondi}}.",
       "rateLimitedMinutes": "Troppi tentativi. Riprova tra {count, plural, one {# minuto} other {# minuti}}.",
-      "forbiddenOrigin": "La richiesta è stata bloccata perché non proveniva da questo sito. Ricarica la pagina e riprova.",
-      "notSent": "Non è stato possibile inviare il modulo. Ricarica la pagina e riprova."
+      "forbiddenOrigin": "La richiesta è stata bloccata perché non arriva da questo sito. Ricarica la pagina e riprova.",
+      "notSent": "Non siamo riusciti a inviare il modulo. Ricarica la pagina e riprova."
     }
   },
   "meta": {
     "tagline": "La prova per ogni casa.",
     "ogImageAlt": "Evidomo: la prova per ogni casa.",
-    "landingTitle": "Evidomo: pacchetti annuncio in cui ogni affermazione ha una fonte",
-    "landingDescription": "Foto e un tour vocale in ingresso, un pacchetto annuncio in uscita. Ogni frase rimanda al campo del modulo, al passaggio parlato o alla foto da cui deriva, e tu la verifichi prima dell’esportazione.",
-    "methodTitle": "Come Evidomo controlla un annuncio — Evidomo",
-    "methodDescription": "Come un’elaborazione controlla ogni affermazione, cosa mostra il fascicolo di esempio, i numeri della valutazione con i loro limiti e cosa Evidomo non fa."
+    "landingTitle": "Evidomo: annunci in cui ogni frase mostra la sua fonte",
+    "landingDescription": "Fai le foto e racconta la casa a voce. Evidomo scrive l’annuncio e mostra da dove viene ogni frase. Lo controlli tu prima di condividere qualsiasi cosa.",
+    "methodTitle": "Come funziona Evidomo — Evidomo",
+    "methodDescription": "Cosa dai a Evidomo, cosa ricevi, come viene controllata ogni frase e cosa Evidomo non fa."
   },
   "landing": {
     "actions": {
       "goToProjects": "Vai ai tuoi progetti",
       "createAccount": "Crea account",
-      "openSample": "Apri il fascicolo di esempio"
+      "openSample": "Guarda un esempio completo"
     },
     "hero": {
-      "line1": "Ogni affermazione",
-      "line2": "del tuo annuncio,",
-      "line3": "collegata alla sua prova.",
-      "lede": "Gira per l’immobile, parla e scatta foto. Evidomo prepara il pacchetto annuncio e mostra da dove viene ogni frase.",
+      "line1": "Un annuncio in cui",
+      "line2": "ogni frase mostra",
+      "line3": "da dove viene.",
+      "lede": "Scatta da 10 a 30 foto della casa e raccontala a voce per qualche minuto. Evidomo scrive l’annuncio e mostra da dove viene ogni frase.",
       "notesLabel": "Note di esempio sulla foto",
       "claims": {
         "windows": "Due finestre alte",
-        "brick": "Parete in mattoni",
-        "area": "Superficie abitabile 38 m²"
+        "brick": "Parete in mattoni a vista",
+        "area": "Superficie 38 m²"
       },
       "sources": {
         "photo": "Foto",
-        "form": "Campo del modulo"
+        "form": "La tua scheda"
       },
-      "caption": "Un esempio illustrativo, non un annuncio reale."
+      "caption": "Un esempio per far capire l’idea, non un annuncio reale."
     },
     "how": {
-      "title": "Da un sopralluogo a un pacchetto che puoi difendere",
-      "packPreviewLabel": "Esempio di pacchetto annuncio: due frasi, ciascuna con la sua fonte",
+      "title": "Come funziona",
+      "packPreviewLabel": "Esempio di annuncio finito: due frasi, ciascuna con la sua fonte",
       "previewLiving": {
         "text": "Soggiorno luminoso di 38 m².",
-        "source": "Modulo"
+        "source": "La tua scheda"
       },
       "previewGarden": {
         "text": "Giardino esposto a sud.",
-        "source": "Voce, 0:42"
+        "source": "La tua voce, 0:42"
       },
       "steps": {
         "capture": {
-          "title": "Raccogli",
-          "text": "Fotografa ogni stanza, registra un tour vocale e inserisci i dati che conosci."
+          "title": "Fai le foto e racconta",
+          "text": "Scatta da 10 a 30 foto. Poi racconta la casa a voce per 2-10 minuti: registra dal browser o carica un file audio. Niente video."
         },
         "verify": {
-          "title": "Verifica",
-          "text": "Se modulo, voce e foto non concordano, l’elaborazione si ferma e decidi tu."
+          "title": "Controlla",
+          "text": "Se foto, voce e scheda non concordano, Evidomo si ferma e ti chiede cosa fare."
         },
         "pack": {
-          "title": "Pacchetto",
-          "text": "Scarica un pacchetto pronto per la stampa. Ogni affermazione resta rintracciabile."
+          "title": "Ricevi l’annuncio",
+          "text": "Approva il testo e scarica il pacchetto. Ogni frase mostra la sua fonte."
         }
       }
     },
     "evidence": {
-      "title": "Ogni affermazione ha una fonte",
-      "text": "Scegli un’affermazione per vedere su cosa si basa.",
-      "caption": "Dal fascicolo di esempio: il replay di risposte del modello registrate per un appartamento sintetico.",
-      "claimsLabel": "Affermazioni in questa frase",
+      "title": "Scopri da dove viene una frase",
+      "text": "Tocca una parte evidenziata per vedere su cosa si basa.",
+      "caption": "Dall’esempio: un appartamento inventato, riprodotto da risultati salvati.",
+      "claimsLabel": "Parti evidenziate di questa frase",
       "rests": "Su cosa si basa “{claim}”",
       "claims": {
-        "place": "Località",
-        "area": "Superficie abitabile",
+        "place": "Luogo",
+        "area": "Superficie",
         "floor": "Piano"
       },
       "fields": {
-        "place_name": "Località",
-        "living_area": "Superficie abitabile"
+        "place_name": "Luogo",
+        "living_area": "Superficie"
       }
     },
     "trust": {
-      "title": "Pensato per essere verificato",
+      "title": "Decidi sempre tu",
       "items": {
         "calls": {
           "title": "Le decisioni sono tue",
-          "text": "Con i conflitti l’elaborazione si ferma e nulla esce senza la tua approvazione."
+          "text": "Evidomo si ferma quando i dati non coincidono. Niente è definitivo finché non approvi."
         },
         "staging": {
-          "title": "Lo staging è dichiarato",
-          "text": "Le immagini arredate hanno un’etichetta e stanno accanto all’originale."
+          "title": "Le foto arredate sono segnalate",
+          "text": "I mobili aggiunti sono sempre indicati e mostrati accanto all’originale."
         },
         "private": {
-          "title": "I dati privati vengono rimossi",
-          "text": "Il GPS viene rimosso al caricamento; volti e targhe sono sfocati nelle esportazioni."
+          "title": "I dati privati vengono tolti",
+          "text": "I dati di posizione vengono eliminati. Volti e targhe sono sfocati."
         },
         "assists": {
-          "title": "Assiste, non certifica",
-          "text": "Nessuna stima, nessuna consulenza legale, nessuna pubblicazione al posto tuo."
+          "title": "Un aiuto, non un esperto",
+          "text": "Non stima il valore delle case, non dà consulenza legale e non pubblica al posto tuo."
         }
       }
     },
     "cta": {
-      "title": "Pronto per il tuo prossimo annuncio?",
-      "text": "Rivedi la bozza prima che qualcosa esca."
+      "title": "Vuoi provare?",
+      "text": "Guarda prima un esempio completo. Non serve un account."
     },
     "images": {
       "hero": "Un soggiorno luminoso in una casa sul canale, con una parete di mattoni verde crema, un divano beige, una poltrona verde e una pianta in vaso vicino alla finestra",
@@ -184,106 +184,106 @@
     "pageTitle": "Pagina non trovata — Evidomo",
     "title": "Pagina non trovata",
     "text": "La pagina che cerchi non esiste o è stata spostata.",
-    "home": "Torna alla home"
+    "home": "Torna all’inizio"
   },
   "status": {
     "queued": "In coda",
     "running": "In corso",
-    "awaiting_gate": "In attesa della tua revisione",
+    "awaiting_gate": "In attesa del tuo controllo",
     "completed": "Completata",
     "failed": "Non riuscita"
   },
   "steps": {
     "intake": {
-      "label": "Lettura del tour vocale",
-      "description": "La tua memo vocale diventa una trascrizione, un intervento alla volta."
+      "label": "Ascolto della descrizione a voce",
+      "description": "Quello che hai detto diventa testo scritto, con l’orario di ogni parte."
     },
     "fact_extraction": {
-      "label": "Estrazione dei dati",
-      "description": "I dati vengono estratti dalla trascrizione e dal modulo, ciascuno collegato alla sua origine."
+      "label": "Raccolta dei dati",
+      "description": "Estrae i dati da ciò che hai detto e dalla scheda, annotando da dove viene ciascuno."
     },
     "vision_inventory": {
       "label": "Analisi delle foto",
-      "description": "Ogni foto viene controllata per stanze, dotazioni e stato."
+      "description": "Controlla in ogni foto stanze, dotazioni e stato."
     },
     "reconciliation": {
       "label": "Confronto dei dati",
-      "description": "Si cercano i dati che non coincidono tra modulo, voce e foto."
+      "description": "Cerca i dati che non coincidono tra scheda, voce e foto."
     },
     "creative": {
       "label": "Scrittura dell’annuncio",
-      "description": "Si preparano il testo per i portali e la didascalia social a partire dai dati confermati."
+      "description": "Scrive il testo dell’annuncio e un breve post per i social a partire dai dati confermati."
     },
     "qa_cards": {
-      "label": "Preparazione delle domande degli acquirenti",
-      "description": "Si risponde alle domande che gli acquirenti fanno di solito, sulla base degli stessi dati."
+      "label": "Domande degli acquirenti",
+      "description": "Risponde alle domande che gli acquirenti fanno di solito, usando gli stessi dati."
     },
     "staging": {
-      "label": "Staging delle foto",
-      "description": "Si producono versioni arredate delle stanze vuote, sempre indicate come staged."
+      "label": "Arredo virtuale delle foto",
+      "description": "Aggiunge i mobili alle stanze vuote in una copia della foto, sempre indicata come arredata."
     },
     "integrity": {
-      "label": "Controllo delle foto con staging",
-      "description": "Si verifica che lo staging non abbia modificato finestre, porte o altri elementi fissi."
+      "label": "Controllo delle foto arredate",
+      "description": "Verifica che l’arredo non abbia cambiato finestre, porte o altri elementi fissi."
     },
     "verification": {
-      "label": "Verifica di ogni affermazione",
-      "description": "Ogni frase viene confrontata con i dati che cita."
+      "label": "Controllo di ogni frase",
+      "description": "Confronta ogni frase con i dati su cui si basa."
     },
     "export": {
       "label": "Creazione del pacchetto",
-      "description": "Si assemblano il pacchetto HTML, i campi per i portali e le immagini."
+      "description": "Mette insieme il pacchetto dell’annuncio, i campi per i portali e le foto."
     }
   },
   "apiErrors": {
-    "unreachable": "Impossibile raggiungere Evidomo. Verifica la connessione e riprova.",
-    "generic": "Qualcosa è andato storto da parte nostra. Riprova tra un momento.",
+    "unreachable": "Non riusciamo a raggiungere Evidomo. Controlla la connessione e riprova.",
+    "generic": "Qualcosa è andato storto da parte nostra. Riprova tra poco.",
     "sessionEnded": "La tua sessione è scaduta. Accedi di nuovo per continuare.",
     "projectGone": "Questo progetto non esiste più.",
-    "inputsLocked": "È stata avviata un’elaborazione, quindi questi dati non possono più essere modificati.",
-    "forbiddenOrigin": "La richiesta è stata bloccata perché non proveniva da questo sito. Ricarica la pagina e riprova.",
-    "rateLimited": "Troppe richieste. Attendi un momento e riprova."
+    "inputsLocked": "È già partita un’analisi, quindi questi dati non si possono più cambiare.",
+    "forbiddenOrigin": "La richiesta è stata bloccata perché non arriva da questo sito. Ricarica la pagina e riprova.",
+    "rateLimited": "Troppe richieste. Aspetta un momento e riprova."
   },
   "projects": {
     "pageTitle": "I tuoi progetti — Evidomo",
     "title": "I tuoi progetti",
     "signedInAs": "Accesso effettuato come {email}",
     "newProject": "Nuovo progetto",
-    "loading": "Caricamento dei tuoi progetti…",
-    "loadError": "Non siamo riusciti a caricare i tuoi progetti. Verifica la connessione e riprova.",
+    "loading": "Caricamento dei progetti…",
+    "loadError": "Non siamo riusciti a caricare i tuoi progetti. Controlla la connessione e riprova.",
     "unknownMarket": "Mercato sconosciuto",
-    "noRunYet": "Nessuna elaborazione",
+    "noRunYet": "Nessuna analisi",
     "photoCount": "{count, plural, one {# foto} other {# foto}}",
-    "voiceMemoYes": "Memo vocale: sì",
-    "voiceMemoNo": "Memo vocale: no",
-    "viewRun": "Vedi elaborazione",
-    "viewRunFor": "Vedi l’elaborazione per {title}",
+    "voiceMemoYes": "Descrizione a voce: sì",
+    "voiceMemoNo": "Descrizione a voce: no",
+    "viewRun": "Vedi analisi",
+    "viewRunFor": "Vedi l’analisi di {title}",
     "emptyTitle": "Ancora nessun progetto",
-    "emptyText": "Un progetto contiene un solo immobile: le foto, il tour vocale e il pacchetto annuncio. Creane uno quando sei alla porta."
+    "emptyText": "Un progetto contiene una sola casa: le foto, la descrizione a voce e il pacchetto dell’annuncio. Creane uno quando sei davanti alla porta."
   },
   "newProject": {
     "pageTitle": "Nuovo progetto — Evidomo",
     "back": "Torna ai progetti",
     "title": "Nuovo progetto",
     "loadingMarkets": "Caricamento dei mercati…",
-    "marketsError": "Non siamo riusciti a caricare i mercati. Verifica la connessione e riprova.",
-    "noMarkets": "Su questo server non sono ancora disponibili mercati."
+    "marketsError": "Non siamo riusciti a caricare i mercati. Controlla la connessione e riprova.",
+    "noMarkets": "Su questo server non c’è ancora nessun mercato disponibile."
   },
   "projectForm": {
     "title": "Titolo del progetto",
     "marketAndLanguage": "Mercato e lingua",
     "market": "Mercato",
-    "outputLanguage": "Lingua di output",
-    "outputLanguageHint": "La lingua del testo dell’annuncio.",
+    "outputLanguage": "Lingua del testo",
+    "outputLanguageHint": "La lingua in cui viene scritto l’annuncio.",
     "create": "Crea progetto",
-    "officeProfile": "Profilo dell’agenzia",
+    "officeProfile": "Dati dell’agenzia",
     "agencyName": "Nome dell’agenzia",
-    "contactBlock": "Blocco contatti",
-    "contactBlockHint": "Facoltativo. Compare nel pacchetto annuncio, ad esempio indirizzo, telefono e sito web.",
+    "contactBlock": "Contatti",
+    "contactBlockHint": "Facoltativo. Compaiono nel pacchetto dell’annuncio, ad esempio indirizzo, telefono e sito web.",
     "tone": "Tono",
     "toneHint": "Facoltativo. Come deve suonare il testo, ad esempio caloroso e professionale.",
-    "officeLocked": "È stata avviata un’elaborazione, quindi il profilo dell’agenzia è bloccato. Il titolo può ancora essere modificato.",
-    "changedElsewhere": "I valori salvati sono cambiati altrove. Le tue modifiche non sono state salvate.",
+    "officeLocked": "È già partita un’analisi, quindi i dati dell’agenzia sono bloccati. Il titolo si può ancora cambiare.",
+    "changedElsewhere": "I valori salvati sono stati cambiati altrove. Le tue modifiche non sono state salvate.",
     "loadSaved": "Carica i valori salvati",
     "saveDetails": "Salva i dettagli",
     "detailsSaved": "Dettagli salvati.",
@@ -293,10 +293,10 @@
       "titleTooLong": "Usa al massimo {max} caratteri per il titolo.",
       "agencyEmpty": "Inserisci il nome della tua agenzia.",
       "agencyTooLong": "Usa al massimo {max} caratteri per il nome dell’agenzia.",
-      "contactTooLong": "Usa al massimo {max} caratteri per il blocco contatti.",
+      "contactTooLong": "Usa al massimo {max} caratteri per i contatti.",
       "toneTooLong": "Usa al massimo {max} caratteri per il tono.",
       "marketRequired": "Scegli un mercato.",
-      "languageRequired": "Scegli una delle lingue offerte da questo mercato.",
+      "languageRequired": "Scegli una delle lingue disponibili per questo mercato.",
       "checkForm": "Controlla il modulo e riprova."
     }
   },
@@ -305,53 +305,53 @@
     "pageTitleFor": "{title} — Evidomo",
     "back": "Torna ai progetti",
     "unknownMarket": "Mercato sconosciuto",
-    "facts": "Dati dell’immobile",
-    "factsLocked": "È stata avviata un’elaborazione, quindi questi dati sono bloccati: l’elaborazione li cita come prove.",
-    "loadingFacts": "Caricamento della scheda dati…",
-    "factsLoadError": "Non siamo riusciti a caricare la scheda dati. Verifica la connessione e riprova.",
+    "facts": "Dati della casa",
+    "factsLocked": "È già partita un’analisi, quindi questi dati sono bloccati: l’analisi li usa come prove.",
+    "loadingFacts": "Caricamento della scheda…",
+    "factsLoadError": "Non siamo riusciti a caricare la scheda. Controlla la connessione e riprova.",
     "details": "Dettagli del progetto"
   },
   "capture": {
-    "pageTitle": "Raccolta — Evidomo",
-    "pageTitleFor": "Raccolta · {title} — Evidomo",
-    "title": "Raccolta",
+    "pageTitle": "Foto e voce — Evidomo",
+    "pageTitleFor": "Foto e voce · {title} — Evidomo",
+    "title": "Foto e voce",
     "back": "Torna al progetto",
     "stillNeeded": "Cosa manca ancora",
-    "uploading": "Le foto sono ancora in caricamento. Resta su questa pagina.",
-    "recordingNow": "Una registrazione è in corso.",
-    "recordingUnsent": "Una registrazione è pronta ma non ancora caricata.",
-    "inPlace": "Foto e tour vocale sono a posto.",
+    "uploading": "Le foto si stanno ancora caricando. Resta su questa pagina.",
+    "recordingNow": "C’è una registrazione in corso.",
+    "recordingUnsent": "La registrazione è pronta ma non è ancora stata caricata.",
+    "inPlace": "Ci sono le foto e la descrizione a voce.",
     "factsMissing": "{count, plural, one {Manca ancora 1 dato obbligatorio} other {Mancano ancora # dati obbligatori}} nella pagina del progetto.",
-    "goToVoice": "Vai al tour vocale",
-    "continue": "Continua per avviare l’elaborazione",
+    "goToVoice": "Vai alla descrizione a voce",
+    "continue": "Continua per avviare l’analisi",
     "rejections": {
       "empty_file": "Il file è vuoto.",
       "file_too_large": "Il file è troppo grande.",
-      "unsupported_format": "Questo formato di file non è supportato. Usa una foto JPEG, PNG o WebP.",
-      "heic_not_supported": "Le foto HEIC non sono supportate. Nelle impostazioni della fotocamera del telefono scegli “Più compatibile” (JPEG), oppure seleziona un JPEG.",
+      "unsupported_format": "Formato non supportato. Usa una foto JPEG, PNG o WebP.",
+      "heic_not_supported": "Le foto HEIC non sono supportate. Nelle impostazioni della fotocamera del telefono scegli “Più compatibile” (JPEG), oppure scegli una foto JPEG.",
       "too_many_pixels": "La foto ha troppi pixel. Usa una risoluzione più bassa.",
-      "undecodable": "Non è stato possibile leggere il file. Potrebbe essere danneggiato.",
-      "too_long": "La registrazione è più lunga della durata consentita."
+      "undecodable": "Non riusciamo a leggere il file. Potrebbe essere danneggiato.",
+      "too_long": "La registrazione è più lunga del massimo consentito."
     },
     "downscale": {
-      "heic_unreadable": "Questo browser non riesce a leggere le foto HEIC. Imposta la fotocamera su “Più compatibile” (JPEG) oppure seleziona un JPEG.",
-      "undecodable": "Non è stato possibile leggere questa foto sul tuo dispositivo. Prova con un’altra foto.",
-      "encode_failed": "Non è stato possibile preparare questa foto sul tuo dispositivo. Prova con un’altra foto."
+      "heic_unreadable": "Questo browser non riesce a leggere le foto HEIC. Imposta la fotocamera su “Più compatibile” (JPEG) oppure scegli una foto JPEG.",
+      "undecodable": "Non siamo riusciti a leggere questa foto sul tuo dispositivo. Prova con un’altra foto.",
+      "encode_failed": "Non siamo riusciti a preparare questa foto sul tuo dispositivo. Prova con un’altra foto."
     },
     "uploadErrors": {
       "refused": "Il file è stato rifiutato.",
-      "photoLimit": "È stato raggiunto il numero massimo di foto.",
-      "locked": "È stata avviata un’elaborazione, quindi non si possono aggiungere altri file.",
+      "photoLimit": "Hai raggiunto il numero massimo di foto.",
+      "locked": "È già partita un’analisi, quindi non si possono aggiungere altri file.",
       "mediaType": "Questo tipo di file non è supportato.",
-      "busy": "Il server è occupato con altri caricamenti. Riprova tra un momento."
+      "busy": "Il server è occupato con altri caricamenti. Riprova tra poco."
     },
-    "audioFormat": "Questo formato audio non è supportato. Usa WebM, M4A, MP3 o WAV.",
+    "audioFormat": "Formato audio non supportato. Usa WebM, M4A, MP3 o WAV.",
     "limit": {
       "minutes": "{count, plural, one {# minuto} other {# minuti}}",
       "seconds": "{count, plural, one {# secondo} other {# secondi}}"
     },
     "queue": {
-      "notAdded": "{count, plural, one {# foto non aggiunta} other {# foto non aggiunte}}: il progetto non può contenerne altre.",
+      "notAdded": "{count, plural, one {# foto non aggiunta} other {# foto non aggiunte}}: il progetto non ne può contenere altre.",
       "uploading": "Caricamento di {count, plural, one {# foto} other {# foto}}.",
       "uploaded": "{count, plural, one {# foto caricata} other {# foto caricate}}.",
       "skipped": "{count, plural, one {# foto saltata} other {# foto saltate}}.",
@@ -361,7 +361,7 @@
     },
     "photos": {
       "title": "Foto",
-      "intro": "Aggiungete da {min} a {max} foto della casa, una stanza alla volta. Solo foto: il video non viene usato.",
+      "intro": "Aggiungi da {min} a {max} foto della casa, una stanza alla volta. Solo foto: i video non vengono usati.",
       "previewUnavailable": "Anteprima non disponibile",
       "photoN": "Foto {position}",
       "deleteLabel": "Elimina la foto {position}",
@@ -370,7 +370,7 @@
       "preparing": "Preparazione…",
       "uploadingLabel": "Caricamento di {name}",
       "busy": "Server occupato, nuovo tentativo a breve…",
-      "paused": "Caricamento in pausa: {error} Le foto successive sono in attesa.",
+      "paused": "Caricamento in pausa: {error} Le foto successive restano in attesa.",
       "skippedWhy": "Saltata: {error}",
       "retryLabel": "Riprova {name}",
       "retry": "Riprova",
@@ -382,83 +382,83 @@
       "countOf": "{count} foto su {max}",
       "atLeast": "ne servono almeno {min}",
       "enough": "Foto sufficienti",
-      "locked": "È stata avviata un’elaborazione, quindi le foto sono bloccate: l’elaborazione le cita come prove.",
+      "locked": "È già partita un’analisi, quindi le foto sono bloccate: l’analisi le usa come prove.",
       "camera": "Fotocamera",
       "files": "File foto",
       "take": "Scatta una foto",
       "choose": "Scegli le foto",
       "full": "Il progetto può contenere al massimo {max} foto. Eliminane una per aggiungerne un’altra.",
-      "deleteFailed": "Non è stato possibile eliminare la foto. {reason}",
+      "deleteFailed": "Non siamo riusciti a eliminare la foto. {reason}",
       "none": "Ancora nessuna foto."
     },
     "voice": {
-      "title": "Tour vocale",
-      "intro": "Percorri l’immobile e racconta ciò che vedi: stanze, condizioni, tutto ciò che le foto non possono mostrare. Fino a {limit}.",
-      "current": "Tour vocale attuale",
-      "previous": "Tour vocale precedente (sostituito quando carichi)",
-      "playbackFailed": "La riproduzione al momento non è disponibile.",
-      "locked": "È stata avviata un’elaborazione, quindi il tour vocale è bloccato: l’elaborazione lo cita come prova.",
-      "replaces": "Una nuova registrazione o un nuovo file sostituisce il tour vocale attuale.",
+      "title": "Descrizione a voce",
+      "intro": "Gira per la casa e racconta cosa vedi: le stanze, le condizioni, tutto ciò che le foto non mostrano. Parla per circa 2 minuti o più, fino a {limit}. Registra qui nel browser oppure carica un file audio. Solo audio: i video non vengono usati.",
+      "current": "Descrizione attuale",
+      "previous": "Descrizione precedente (viene sostituita quando carichi)",
+      "playbackFailed": "Per ora non si può ascoltare.",
+      "locked": "È già partita un’analisi, quindi la descrizione a voce è bloccata: l’analisi la usa come prova.",
+      "replaces": "Una nuova registrazione o un nuovo file sostituisce la descrizione attuale.",
       "insecure": "Per registrare serve una connessione sicura (HTTPS). In alternativa puoi caricare un file audio.",
-      "unsupported": "Questo browser non può registrare audio. In alternativa puoi caricare un file audio.",
-      "requesting": "In attesa dell’autorizzazione al microfono…",
+      "unsupported": "Questo browser non può registrare l’audio. In alternativa puoi caricare un file audio.",
+      "requesting": "In attesa del permesso per il microfono…",
       "recording": "Registrazione",
       "timer": "Durata della registrazione",
-      "stop": "Interrompi la registrazione",
+      "stop": "Ferma la registrazione",
       "failures": {
-        "denied": "L’accesso al microfono è bloccato. Consenti il microfono per questo sito nelle impostazioni del browser, poi riprova. Puoi anche caricare un file audio.",
-        "no_microphone": "Su questo dispositivo non è stato trovato alcun microfono. In alternativa puoi caricare un file audio.",
-        "unusable_format": "Questo browser registra in un formato che Evidomo non può accettare. Carica invece un file audio.",
+        "denied": "L’accesso al microfono è bloccato. Consenti il microfono per questo sito nelle impostazioni del browser e riprova. Puoi anche caricare un file audio.",
+        "no_microphone": "Su questo dispositivo non c’è nessun microfono. In alternativa puoi caricare un file audio.",
+        "unusable_format": "Questo browser registra in un formato che Evidomo non accetta. Carica invece un file audio.",
         "error": "La registrazione non è riuscita. Riprova oppure carica un file audio."
       },
       "preview": "Anteprima: {label}",
-      "previewLabel": "Anteprima del nuovo tour vocale",
+      "previewLabel": "Anteprima della nuova descrizione",
       "recordingLabel": "Registrazione, {time}",
-      "upload": "Carica il tour vocale",
+      "upload": "Carica la descrizione",
       "uploadAgain": "Riprova il caricamento",
       "recordAgain": "Registra di nuovo",
       "discard": "Scarta",
       "tryAgain": "Riprova a registrare",
-      "start": "Avvia la registrazione",
-      "recordNew": "Registra un nuovo tour vocale",
+      "start": "Inizia a registrare",
+      "recordNew": "Registra una nuova descrizione",
       "chooseFile": "Carica un file audio",
       "fileLabel": "File audio",
-      "announceStarted": "Registrazione avviata.",
-      "announceStopped": "Registrazione interrotta. Puoi ascoltarla in anteprima prima di caricarla.",
+      "announceStarted": "Registrazione iniziata.",
+      "announceStopped": "Registrazione fermata. Puoi ascoltarla in anteprima prima di caricarla.",
       "announceDiscarded": "Registrazione scartata.",
-      "announceUploading": "Caricamento del tour vocale.",
-      "announceUploaded": "Tour vocale caricato.",
+      "announceUploading": "Caricamento della descrizione a voce.",
+      "announceUploaded": "Descrizione a voce caricata.",
       "announceFailed": "Caricamento non riuscito. {message}"
     }
   },
   "readiness": {
     "title": "Pronto per partire?",
-    "activeRun": "Per questo progetto c’è un’elaborazione in corso.",
-    "viewActiveRun": "Vedi l’elaborazione attiva",
-    "stillNeeded": "Ancora necessario prima di avviare un’elaborazione:",
-    "allReady": "Tutti i dati sono a posto. Puoi avviare un’elaborazione.",
-    "inputsChanged": "Alcuni dati sono cambiati da quando la pagina è stata caricata. L’elenco qui sopra mostra cosa manca ora.",
-    "alreadyActive": "Per questo progetto c’è già un’elaborazione in corso.",
-    "budgetUsed": "Il budget di elaborazione di oggi è esaurito. I tuoi dati sono salvati; riavvia l’elaborazione domani.",
-    "codeRateLimited": "Troppi codici errati, riprova più tardi.",
-    "runLimit": "Hai raggiunto il limite di elaborazioni live di oggi.",
-    "runLimitWait": "Hai raggiunto il limite di elaborazioni live di oggi. Potrai avviarne un’altra tra {wait}.",
+    "activeRun": "Per questo progetto c’è un’analisi in corso.",
+    "viewActiveRun": "Vedi l’analisi in corso",
+    "stillNeeded": "Prima di avviare l’analisi manca ancora:",
+    "allReady": "C’è tutto. Puoi avviare l’analisi.",
+    "inputsChanged": "Alcuni dati sono cambiati da quando hai aperto la pagina. L’elenco qui sopra mostra cosa manca adesso.",
+    "alreadyActive": "Per questo progetto c’è già un’analisi in corso.",
+    "budgetUsed": "Il budget di analisi di oggi è esaurito. I tuoi dati sono salvati: avvia l’analisi domani.",
+    "codeRateLimited": "Troppi codici sbagliati, riprova più tardi.",
+    "runLimit": "Hai raggiunto il limite giornaliero di analisi.",
+    "runLimitWait": "Hai raggiunto il limite giornaliero di analisi. Potrai avviarne un’altra tra {wait}.",
     "accessCode": "Codice di accesso",
-    "accessCodeHint": "Le elaborazioni live usano chiamate a pagamento al modello. Se ti è stato dato un codice, inseriscilo; altrimenti lascia vuoto.",
+    "accessCodeHint": "Le analisi vere usano chiamate a pagamento al modello AI. Se ti hanno dato un codice, inseriscilo; altrimenti lascia vuoto.",
     "accessCodeInvalid": "Questo codice di accesso non è valido.",
     "hide": "Nascondi",
     "show": "Mostra",
     "hideCode": "Nascondi il codice di accesso",
     "showCode": "Mostra il codice di accesso",
-    "start": "Avvia elaborazione",
-    "saveFirst": "Salva prima le modifiche.",
-    "viewLatest": "Vedi l’ultima elaborazione",
+    "start": "Avvia l’analisi",
+    "saveFirst": "Prima salva le modifiche.",
+    "viewLatest": "Vedi l’ultima analisi",
     "viewPack": "Vedi il pacchetto",
     "addPhotos": "Aggiungi almeno {min, plural, one {# foto} other {# foto}} (finora {count}).",
-    "removePhotos": "Rimuovi {extra, plural, one {# foto} other {# foto}} (massimo {max} consentite, finora {count}).",
-    "recordVoice": "Registra un tour vocale dell’immobile.",
+    "removePhotos": "Togli {extra, plural, one {# foto} other {# foto}} (ne sono ammesse al massimo {max}, finora {count}).",
+    "recordVoice": "Registra una descrizione a voce della casa.",
     "factMissing": "Compila il dato obbligatorio: {label}.",
-    "factInvalid": "Correggi il valore di {label}: il valore salvato non è più valido.",
+    "factInvalid": "Correggi {label}: il valore salvato non è più valido.",
     "wait": {
       "minute": "un minuto",
       "minutes": "{count, plural, one {# minuto} other {# minuti}}",
@@ -467,29 +467,29 @@
     }
   },
   "materials": {
-    "title": "Materiali",
+    "title": "Materiale",
     "previewUnavailable": "Anteprima non disponibile",
     "photos": "Foto",
     "photosAdded": "{count} aggiunte",
     "photosAddedNeeded": "{count} aggiunte (ne servono da {min} a {max})",
     "previews": "Anteprime delle foto",
     "photoN": "Foto {position}",
-    "showing": "Mostrate {shown} su {total}.",
-    "voice": "Tour vocale",
-    "recorded": "Registrato",
-    "notRecorded": "Non ancora registrato",
-    "viewCapture": "Vedi foto e tour vocale",
-    "addCapture": "Aggiungi foto e tour vocale"
+    "showing": "Ne vedi {shown} su {total}.",
+    "voice": "Descrizione a voce",
+    "recorded": "Registrata",
+    "notRecorded": "Non ancora registrata",
+    "viewCapture": "Vedi foto e descrizione",
+    "addCapture": "Aggiungi foto e descrizione"
   },
   "run": {
-    "pageTitle": "Elaborazione — Evidomo",
-    "title": "Elaborazione",
-    "titleDemo": "Replay di un’elaborazione di esempio",
-    "loading": "Caricamento dell’elaborazione…",
-    "loadError": "Non siamo riusciti a caricare questa elaborazione. Verifica la connessione e riprova.",
-    "notFound": "Questa elaborazione non è stata trovata. Potrebbe appartenere a un altro account o non esistere più.",
-    "demoNotFound": "Questa elaborazione demo non è stata trovata. Potrebbe non essere più pubblicata.",
-    "seeDemoRuns": "Vedi le elaborazioni demo",
+    "pageTitle": "Analisi — Evidomo",
+    "title": "Analisi",
+    "titleDemo": "Riproduzione di un’analisi di esempio",
+    "loading": "Caricamento dell’analisi…",
+    "loadError": "Non siamo riusciti a caricare questa analisi. Controlla la connessione e riprova.",
+    "notFound": "Non troviamo questa analisi. Potrebbe appartenere a un altro account o non esistere più.",
+    "demoNotFound": "Non troviamo questo esempio. Potrebbe non essere più pubblicato.",
+    "seeDemoRuns": "Vedi gli esempi",
     "goToProjects": "Vai ai tuoi progetti",
     "tryAgain": "Riprova",
     "sessionExpired": "La tua sessione è scaduta.",
@@ -503,10 +503,10 @@
       "running": "In corso",
       "completed": "Fatto",
       "failed": "Non riuscito",
-      "needsReview": "Richiede la tua revisione"
+      "needsReview": "Serve il tuo controllo"
     },
     "runStatus": {
-      "awaitingGate": "In attesa della tua revisione",
+      "awaitingGate": "In attesa del tuo controllo",
       "completed": "Completata"
     },
     "attempts": "Tentativi",
@@ -519,208 +519,208 @@
     },
     "costSoFar": "Costo finora",
     "devOnly": "Visibile solo in sviluppo",
-    "ofCap": "sul limite di {cap}",
-    "costAgainstCap": "Costo dell’elaborazione rispetto al limite",
-    "capReached": "L’elaborazione ha raggiunto il limite di costo.",
-    "capClose": "L’elaborazione è vicina al limite di costo.",
-    "capShare": "{share, number, percent} del limite. L’elaborazione si ferma da sola al limite.",
-    "reviewNeeded": "Revisione necessaria",
+    "ofCap": "su un massimo di {cap}",
+    "costAgainstCap": "Costo dell’analisi rispetto al massimo",
+    "capReached": "L’analisi ha raggiunto il costo massimo.",
+    "capClose": "L’analisi è vicina al costo massimo.",
+    "capShare": "{share, number, percent} del massimo. L’analisi si ferma da sola quando lo raggiunge.",
+    "reviewNeeded": "Serve il tuo controllo",
     "paused": "In pausa",
     "gate": {
-      "factConflicts": "Revisione 1: risolvi i dati in conflitto",
-      "claimAudit": "Revisione 2: rivedi il pacchetto"
+      "factConflicts": "Pausa 1: dati che non coincidono",
+      "claimAudit": "Pausa 2: controlla l’annuncio"
     },
-    "gateText": "L’elaborazione resta in pausa finché non completi questa revisione. Aspetta quanto serve; puoi lasciare la pagina e riprenderà dopo la tua ultima decisione.",
-    "gateTextDemo": "Un’elaborazione live si ferma qui finché l’agente non completa questa revisione. In questo replay le decisioni sono già state prese: apri la revisione per vederle, con le prove dietro ogni valore.",
-    "seeConflicts": "Vedi i conflitti",
-    "seeReview": "Vedi la revisione",
-    "reviewConflicts": "Rivedi i conflitti",
-    "reviewPack": "Rivedi il pacchetto",
-    "failed": "L’elaborazione non è riuscita",
-    "noReason": "Non è stato registrato alcun motivo.",
-    "untouched": "Foto, memo vocale e modulo sono intatti; non è stato pubblicato nulla.",
-    "finishedLabel": "Elaborazione terminata",
+    "gateText": "L’analisi resta in pausa finché non finisci questo controllo. Aspetta quanto vuoi: puoi lasciare la pagina e l’analisi riparte dopo la tua ultima decisione.",
+    "gateTextDemo": "In un’analisi vera, qui ci si ferma finché l’agente non finisce questo controllo. In questa riproduzione le scelte sono già state fatte: aprilo per vederle e capire su cosa si basa ciascuna.",
+    "seeConflicts": "Vedi i dati che non coincidono",
+    "seeReview": "Vedi il controllo",
+    "reviewConflicts": "Risolvi i dati",
+    "reviewPack": "Controlla l’annuncio",
+    "failed": "L’analisi non è riuscita",
+    "noReason": "Non è stato registrato nessun motivo.",
+    "untouched": "Foto, descrizione a voce e scheda non sono state toccate; non è stato pubblicato nulla.",
+    "finishedLabel": "Analisi terminata",
     "finished": "Terminata",
-    "packReady": "Il tuo pacchetto annuncio è pronto",
-    "packReadyDemo": "Il pacchetto annuncio è pronto",
-    "exportReady": "Esportazione pronta: {count, plural, one {# file} other {# file}}.",
-    "exportReadyNotPublishable": "Esportazione pronta: {count, plural, one {# file} other {# file}} (non ancora pronta per la pubblicazione).",
-    "noExport": "L’elaborazione è terminata senza un’esportazione.",
+    "packReady": "Il pacchetto del tuo annuncio è pronto",
+    "packReadyDemo": "Il pacchetto dell’annuncio è pronto",
+    "exportReady": "Pacchetto pronto: {count, plural, one {# file} other {# file}}.",
+    "exportReadyNotPublishable": "Pacchetto pronto: {count, plural, one {# file} other {# file}} (non ancora pronto da pubblicare).",
+    "noExport": "L’analisi è terminata senza creare il pacchetto.",
     "tookTime": "Ci sono voluti {duration}.",
     "viewPack": "Vedi il pacchetto",
     "announce": {
-      "queued": "Elaborazione in coda.",
+      "queued": "Analisi in coda.",
       "runningStep": "Passaggio in corso: {step}.",
-      "inProgress": "Elaborazione in corso.",
-      "pausedAt": "Elaborazione in pausa: {gate}.",
-      "paused": "Elaborazione in pausa per la revisione.",
-      "completed": "Elaborazione completata."
+      "inProgress": "Analisi in corso.",
+      "pausedAt": "Analisi in pausa: {gate}.",
+      "paused": "Analisi in pausa per il tuo controllo.",
+      "completed": "Analisi completata."
     },
-    "replayStopped": "Il replay non è potuto proseguire. Riprova tra qualche secondo.",
-    "replayReconnecting": "Il replay è stato interrotto. Riconnessione in corso…",
-    "liveReconnecting": "Aggiornamenti live interrotti. Riconnessione in corso…",
-    "liveUnavailable": "Gli aggiornamenti live sono in pausa. Quello che vedi è l’ultimo stato noto. Prova a riprenderli; se continua a fallire, ricarica la pagina.",
-    "resumeLive": "Riprendi gli aggiornamenti live",
-    "refreshFailed": "Non è stato possibile aggiornare l’elaborazione. Ciò che vedi potrebbe essere leggermente indietro.",
-    "tooManyRequests": "Troppe richieste al momento. Attendi qualche secondo e riprova.",
-    "tooManyRequestsWait": "Troppe richieste al momento. Attendi circa {seconds, plural, one {# secondo} other {# secondi}} e riprova."
+    "replayStopped": "La riproduzione non può continuare. Riprova tra qualche secondo.",
+    "replayReconnecting": "La riproduzione si è interrotta. Riconnessione in corso…",
+    "liveReconnecting": "Aggiornamenti in tempo reale interrotti. Riconnessione in corso…",
+    "liveUnavailable": "Gli aggiornamenti in tempo reale sono in pausa. Quello che vedi è l’ultimo stato noto. Prova a riprenderli; se continua a non funzionare, ricarica la pagina.",
+    "resumeLive": "Riprendi gli aggiornamenti in tempo reale",
+    "refreshFailed": "Non siamo riusciti ad aggiornare l’analisi. Quello che vedi potrebbe essere un po’ indietro.",
+    "tooManyRequests": "Troppe richieste al momento. Aspetta qualche secondo e riprova.",
+    "tooManyRequestsWait": "Troppe richieste al momento. Aspetta circa {seconds, plural, one {# secondo} other {# secondi}} e riprova."
   },
   "evidence": {
-    "formField": "Campo del modulo",
-    "voiceTurn": "Tour vocale, passaggio a {time}",
-    "playTurn": "Riproduci il passaggio a {time}",
-    "stopTurn": "Ferma il passaggio a {time}",
+    "formField": "La tua scheda",
+    "voiceTurn": "Descrizione a voce, a {time}",
+    "playTurn": "Riascolta la registrazione a {time}",
+    "stopTurn": "Ferma la registrazione a {time}",
     "play": "Riproduci",
     "stop": "Ferma",
     "timeRange": "da {start} a {end}",
-    "audioUnavailable": "L’audio di questa parte non è disponibile: la registrazione termina prima di questo punto.",
-    "audioFailed": "Non è stato possibile riprodurre la registrazione. Verifica la connessione e riprova.",
+    "audioUnavailable": "L’audio di questa parte non c’è: la registrazione finisce prima di questo punto.",
+    "audioFailed": "Non siamo riusciti a riprodurre la registrazione. Controlla la connessione e riprova.",
     "yourDecision": "La tua decisione",
-    "yourDecisionText": "Questo valore è stato inserito da te durante la revisione dei dati in conflitto.",
+    "yourDecisionText": "Questo valore l’hai inserito tu quando hai risolto i dati che non coincidevano.",
     "photo": "Foto",
-    "photoEvidenceFor": "Prova fotografica per {subject}",
-    "openLarger": "Apri la foto ingrandita per {subject}",
-    "regionOutlined": "L’area è evidenziata con un riquadro sulla foto.",
-    "regionHighlighted": "L’area è evidenziata sulla foto.",
-    "photoFailed": "Non è stato possibile caricare la foto.",
+    "photoEvidenceFor": "La foto che mostra {subject}",
+    "openLarger": "Apri la foto più grande: {subject}",
+    "regionOutlined": "La zona è cerchiata sulla foto.",
+    "regionHighlighted": "La zona è evidenziata sulla foto.",
+    "photoFailed": "Non siamo riusciti a caricare la foto.",
     "close": "Chiudi"
   },
   "demo": {
-    "pageTitle": "Demo — Evidomo",
+    "pageTitle": "Esempio — Evidomo",
     "title": "Guarda Evidomo al lavoro",
-    "intro": "Rivedi un’elaborazione di esempio già completata: guarda i passaggi, poi apri entrambe le revisioni, le prove dietro ogni affermazione e il pacchetto annuncio. Non serve un account.",
-    "bannerLabel": "Informazioni su questa demo",
-    "controls": "Controlli del replay",
-    "speed": "Velocità del replay",
-    "start": "Avvia la demo",
-    "startHint": "La riproduzione attende il tuo comando. Premi il pulsante per vedere l’esecuzione.",
-    "restart": "Riavvia dall’inizio",
-    "finished": "Il replay è terminato.",
+    "intro": "Guarda un esempio completo: come procedono i passaggi, le due pause in cui decide l’agente, da dove viene ogni frase e l’annuncio finito. Non serve un account.",
+    "bannerLabel": "Su questo esempio",
+    "controls": "Controlli della riproduzione",
+    "speed": "Velocità",
+    "start": "Avvia l’esempio",
+    "startHint": "La riproduzione aspetta te. Premi il pulsante per vedere l’analisi in azione.",
+    "restart": "Riparti dall’inizio",
+    "finished": "La riproduzione è finita.",
     "market": "Mercato",
     "language": "Lingua",
     "finishedOn": "Terminata il",
-    "loadingRuns": "Caricamento delle elaborazioni demo…",
-    "tooManyRequests": "Troppe richieste al momento. Attendi qualche secondo e riprova.",
-    "loadError": "Non siamo riusciti a caricare le elaborazioni demo. Verifica la connessione e riprova.",
+    "loadingRuns": "Caricamento degli esempi…",
+    "tooManyRequests": "Troppe richieste al momento. Aspetta qualche secondo e riprova.",
+    "loadError": "Non siamo riusciti a caricare gli esempi. Controlla la connessione e riprova.",
     "tryAgain": "Riprova",
-    "noneYet": "Nessuna demo è ancora pubblicata. Un’elaborazione demo compare qui quando l’operatore ne pubblica una di esempio; fino ad allora non c’è nulla da rivedere.",
-    "home": "Torna alla home page",
+    "noneYet": "Non c’è ancora nessun esempio. Torna a controllare tra poco.",
+    "home": "Torna alla home",
     "pages": {
       "monitor": {
-        "title": "Elaborazione di esempio — demo di Evidomo",
-        "loading": "Caricamento dell’elaborazione…"
+        "title": "Passaggi dell’esempio — Evidomo",
+        "loading": "Caricamento dell’analisi…"
       },
       "conflicts": {
-        "title": "Dati in conflitto — demo di Evidomo",
-        "loading": "Caricamento dei dati in conflitto…"
+        "title": "Dati che non coincidono — Evidomo",
+        "loading": "Caricamento dei dati che non coincidono…"
       },
       "review": {
-        "title": "Revisione del pacchetto — demo di Evidomo",
-        "loading": "Caricamento della revisione…"
+        "title": "Controlla l’annuncio — Evidomo",
+        "loading": "Caricamento del controllo…"
       },
       "pack": {
-        "title": "Pacchetto annuncio — demo di Evidomo",
+        "title": "Il pacchetto dell’annuncio — Evidomo",
         "loading": "Caricamento del pacchetto…"
       }
     },
-    "runningHead": "Il replay di un’elaborazione sintetica. Nulla di ciò che fai qui viene salvato.",
-    "opening": "Apertura del fascicolo di esempio…",
-    "coverLabel": "Il fascicolo di esempio",
-    "tabsLabel": "Sezioni del fascicolo di esempio",
+    "runningHead": "Riproduzione di un esempio inventato. Niente di ciò che fai qui viene salvato.",
+    "opening": "Apertura dell’esempio…",
+    "coverLabel": "L’esempio",
+    "tabsLabel": "Parti dell’esempio",
     "tabs": {
-      "monitor": "Tour",
-      "conflicts": "Conflitti",
-      "review": "Revisione",
-      "pack": "Pacchetto"
+      "monitor": "Passaggi",
+      "conflicts": "Differenze",
+      "review": "Controllo",
+      "pack": "Annuncio"
     },
     "tabLines": {
-      "monitor": "{total} passaggi, completata il {date}.",
-      "conflicts": "{count, plural, one {# conflitto trovato} other {# conflitti trovati}}, {open} aperti.",
-      "review": "{flagged, plural, one {# affermazione segnalata} other {# affermazioni segnalate}}, {images, plural, one {# immagine arredata proposta} other {# immagini arredate proposte}}.",
-      "pack": "{files, plural, one {# file creato} other {# file creati}}. {ready, select, yes {Pronto per la pubblicazione.} other {Non pronto per la pubblicazione.}}"
+      "monitor": "{total} passaggi, terminata il {date}.",
+      "conflicts": "{count, plural, one {# dato non coincideva} other {# dati non coincidevano}}, {open} ancora da risolvere.",
+      "review": "{flagged, plural, one {# frase con un problema} other {# frasi con un problema}}, {images, plural, one {# foto arredata da approvare} other {# foto arredate da approvare}}.",
+      "pack": "{files, plural, one {# file creato} other {# file creati}}. {ready, select, yes {Pronto da pubblicare.} other {Non pronto da pubblicare.}}"
     }
   },
   "conflicts": {
-    "pageTitle": "Dati in conflitto — Evidomo",
-    "loading": "Caricamento dei dati in conflitto…",
-    "loadError": "Non siamo riusciti a caricare i dati in conflitto. Verifica la connessione e riprova.",
-    "backToRun": "Torna all’elaborazione",
-    "backToTheRun": "Torna all’elaborazione",
-    "title": "Dati in conflitto",
-    "titleResolve": "Risolvi i dati in conflitto",
-    "allDecided": "Tutti i conflitti sono stati decisi. L’elaborazione prosegue.",
-    "notReached": "L’elaborazione non è ancora arrivata a questa revisione. I conflitti compaiono qui dopo il confronto dei dati.",
-    "suspended": "L’elaborazione si è fermata in attesa di questa revisione, quindi le decisioni sono sospese. Riprendi l’elaborazione dalla sua pagina per riaprire la revisione; le decisioni già prese restano salvate.",
-    "releasedNone": "Nessun conflitto richiedeva una decisione.",
-    "releasedDemo": "Questa revisione è stata completata nell’elaborazione originale. Le decisioni prese sono mostrate qui sotto.",
-    "released": "Questa revisione è conclusa. Le tue decisioni sono mostrate qui sotto.",
-    "intro": "Questi dati non concordano. Confronta le prove di ciascun valore, poi tienine uno, rifiutali tutti o inserisci il valore giusto. L’elaborazione prosegue dopo l’ultima decisione.",
+    "pageTitle": "Dati che non coincidono — Evidomo",
+    "loading": "Caricamento dei dati che non coincidono…",
+    "loadError": "Non siamo riusciti a caricare i dati che non coincidono. Controlla la connessione e riprova.",
+    "backToRun": "Torna all’analisi",
+    "backToTheRun": "Torna all’analisi",
+    "title": "Dati che non coincidono",
+    "titleResolve": "Risolvi i dati che non coincidono",
+    "allDecided": "Tutto risolto. L’analisi riparte.",
+    "notReached": "L’analisi non è ancora arrivata a questo controllo. I dati che non coincidono compaiono qui dopo il confronto.",
+    "suspended": "L’analisi si è fermata mentre aspettava questo controllo, quindi le decisioni sono in pausa. Riprendi l’analisi dalla sua pagina per riaprire il controllo: le decisioni già prese restano salvate.",
+    "releasedNone": "Nessun dato non coincideva.",
+    "releasedDemo": "Questo controllo era già finito nell’analisi originale. Qui sotto trovi le scelte fatte.",
+    "released": "Questo controllo è finito. Qui sotto trovi le tue scelte.",
+    "intro": "Questi dati non coincidono. Guarda su cosa si basa ogni valore, poi tienine uno, scartali tutti o scrivi il valore giusto. L’analisi riparte dopo l’ultima decisione.",
     "sourceKinds": {
-      "form": "campo del modulo",
-      "voice": "tour vocale",
+      "form": "campo della scheda",
+      "voice": "descrizione a voce",
       "photo": "foto",
       "decision": "la tua decisione"
     },
     "sourcesList": "{count, plural, one {# fonte} other {# fonti}}: {kinds}",
     "sourceCount": "{count, plural, one {# fonte} other {# fonti}}",
-    "kept": "Mantenuto",
+    "kept": "Scelto",
     "useValueLabel": "Usa questo valore: {value}",
     "useValue": "Usa questo valore",
     "decided": "Deciso",
-    "valuesInConflict": "Valori in conflitto",
+    "valuesInConflict": "Valori diversi",
     "saving": "Salvataggio della tua decisione…",
-    "rejectAllLabel": "Rifiuta tutti i valori per {label}",
-    "rejectAll": "Rifiuta tutto",
-    "enterValueLabel": "Inserisci un valore per {label}",
-    "enterValue": "Inserisci un valore",
+    "rejectAllLabel": "Scarta tutti i valori per {label}",
+    "rejectAll": "Scarta tutti",
+    "enterValueLabel": "Scrivi un valore per {label}",
+    "enterValue": "Scrivi un valore",
     "loadingFieldType": "Caricamento del tipo di campo…",
     "progress": "Avanzamento",
-    "progressText": "Conflitti ancora aperti: {open} su {total}",
-    "conflictsDecided": "Conflitti decisi",
+    "progressText": "{open} su {total} {total, plural, one {dato} other {dati}} ancora da risolvere",
+    "conflictsDecided": "Dati risolti",
     "edit": {
       "numberChooseUnit": "Un numero. Scegli l’unità qui sotto.",
       "numberNoUnit": "Un numero, senza unità.",
       "numberInUnit": "Un numero, in {unit}.",
       "unit": "Unità",
-      "basis": "Base di misura",
+      "basis": "Criterio di misura",
       "choose": "Scegli…",
       "noUnit": "Nessuna unità",
-      "noBasis": "Nessuna base",
+      "noBasis": "Nessun criterio",
       "newValueFor": "Nuovo valore per {label}",
       "save": "Salva il valore",
       "cancel": "Annulla"
     },
     "failures": {
-      "gateNotOpen": "Questa revisione non è più aperta, quindi la decisione non è stata salvata. La pagina mostra ora lo stato attuale.",
-      "notInConflict": "Quel valore non fa più parte di questo conflitto. La pagina mostra ora lo stato attuale.",
-      "notAccepted": "Quel valore non è stato accettato. Controllalo e riprova.",
-      "notAcceptedReason": "Quel valore non è stato accettato: {reason}",
-      "notFound": "Questa elaborazione o questo conflitto non è stato trovato."
+      "gateNotOpen": "Questo controllo non è più aperto, quindi la decisione non è stata salvata. La pagina mostra la situazione attuale.",
+      "notInConflict": "Questo valore non fa più parte dei dati che non coincidono. La pagina mostra la situazione attuale.",
+      "notAccepted": "Questo valore non è stato accettato. Controllalo e riprova.",
+      "notAcceptedReason": "Questo valore non è stato accettato: {reason}",
+      "notFound": "Non troviamo questa analisi o questo dato."
     },
     "summary": {
-      "kept": "Hai mantenuto {value}.",
+      "kept": "Hai scelto {value}.",
       "oneValue": "un valore",
-      "entered": "Hai inserito {value}.",
-      "rejected": "Hai rifiutato tutti i valori. Per questo dato non viene mantenuto nulla."
+      "entered": "Hai scritto {value}.",
+      "rejected": "Hai scartato tutti i valori. Per questo dato non resta nulla."
     }
   },
   "factForm": {
     "yes": "Sì",
     "no": "No",
-    "unknown": "Sconosciuto",
+    "unknown": "Non so",
     "invalidValue": "(non valido)",
-    "serverRefusedExtra": "Il server ha rifiutato i campi extra salvati: {fields}.",
+    "serverRefusedExtra": "Il server ha rifiutato i campi in più già salvati: {fields}.",
     "checkForm": "Controlla il modulo e riprova.",
-    "changedElsewhere": "I valori salvati sono cambiati altrove. Le tue modifiche non sono state salvate.",
+    "changedElsewhere": "I valori salvati sono stati cambiati altrove. Le tue modifiche non sono state salvate.",
     "loadSaved": "Carica i valori salvati",
-    "intro": "Lascia vuoto un dato che non conosci. I dati obbligatori possono restare vuoti mentre prepari la bozza, ma per avviare un’elaborazione servono.",
-    "extras": "{count, plural, one {# campo aggiuntivo è salvato} other {# campi aggiuntivi sono salvati}} con questo progetto e viene mantenuto così com’è.",
+    "intro": "Se non conosci un dato, lascialo vuoto. I dati obbligatori possono restare vuoti mentre prepari la bozza, ma servono per avviare l’analisi.",
+    "extras": "{count, plural, one {# campo in più è salvato} other {# campi in più sono salvati}} con questo progetto e resta com’è.",
     "save": "Salva i dati",
     "saved": "Dati salvati.",
     "unsaved": "Hai modifiche non salvate.",
-    "needAttention": "{count, plural, one {# campo richiede attenzione.} other {# campi richiedono attenzione.}}",
+    "needAttention": "{count, plural, one {# campo da controllare.} other {# campi da controllare.}}",
     "hints": {
-      "area": "In {unit}. Base: {basis}.",
+      "area": "In {unit}. Criterio: {basis}.",
       "volume": "In {unit}.",
       "money": "In {currency}.",
       "integerRange": "Numero intero da {min} a {max}.",
@@ -729,69 +729,69 @@
       "integer": "Numero intero."
     },
     "problems": {
-      "chooseYesNo": "Scegli sì, no o sconosciuto.",
-      "chooseListed": "Scegli una delle opzioni elencate.",
-      "enterNumber": "Inserisci un numero, usando una sola virgola o un solo punto per i decimali e nessun separatore delle migliaia.",
-      "wholeNumber": "Inserisci un numero intero.",
-      "rangeBoth": "Inserisci un numero da {min} a {max}.",
-      "rangeMin": "Inserisci un numero di almeno {min}.",
-      "rangeMax": "Inserisci un numero di al massimo {max}.",
-      "nonNegative": "Inserisci un numero pari o superiore a 0.",
+      "chooseYesNo": "Scegli sì, no o non so.",
+      "chooseListed": "Scegli una delle opzioni dell’elenco.",
+      "enterNumber": "Scrivi un numero, con una sola virgola o un solo punto per i decimali e senza separatore delle migliaia.",
+      "wholeNumber": "Scrivi un numero intero.",
+      "rangeBoth": "Scrivi un numero da {min} a {max}.",
+      "rangeMin": "Scrivi un numero di almeno {min}.",
+      "rangeMax": "Scrivi un numero non superiore a {max}.",
+      "nonNegative": "Scrivi un numero uguale o maggiore di 0.",
       "chooseOneOf": "Scegli uno tra: {options}.",
       "notAllowed": "Questo valore non è consentito.",
       "refused": "Questo valore è stato rifiutato."
     },
     "edit": {
-      "enterValue": "Inserisci un valore.",
+      "enterValue": "Scrivi un valore.",
       "chooseUnit": "Scegli l’unità del valore.",
-      "chooseBasis": "Scegli la base di misura del valore.",
+      "chooseBasis": "Scegli come è stato misurato il valore.",
       "chooseYesNo": "Scegli sì o no.",
       "tooLong": "Usa al massimo {max} caratteri."
     }
   },
   "claimAudit": {
-    "pageTitle": "Rivedi il pacchetto — Evidomo",
-    "loading": "Caricamento della revisione…",
-    "loadError": "Non siamo riusciti a caricare la revisione. Verifica la connessione e riprova.",
-    "backToRun": "Torna all’elaborazione",
-    "title": "Revisione del pacchetto",
-    "titleOpen": "Rivedi il pacchetto",
-    "notReached": "L’elaborazione non è ancora arrivata a questa revisione. Testi e immagini con staging compaiono qui al termine della verifica.",
-    "suspended": "L’elaborazione si è fermata in attesa di questa revisione, quindi le decisioni sono sospese. Riprendi l’elaborazione dalla sua pagina per riaprire la revisione; le decisioni già prese restano salvate.",
-    "released": "Questa revisione è conclusa. Le tue decisioni sono mostrate qui sotto.",
-    "releasedDemo": "Questa revisione è stata completata nell’elaborazione originale. Le decisioni prese sono mostrate qui sotto.",
+    "pageTitle": "Controlla l’annuncio — Evidomo",
+    "loading": "Caricamento del controllo…",
+    "loadError": "Non siamo riusciti a caricare il controllo. Controlla la connessione e riprova.",
+    "backToRun": "Torna all’analisi",
+    "title": "Controllo dell’annuncio",
+    "titleOpen": "Controlla l’annuncio",
+    "notReached": "L’analisi non è ancora arrivata a questo controllo. Il testo e le foto arredate compaiono qui quando ogni frase è stata controllata.",
+    "suspended": "L’analisi si è fermata mentre aspettava questo controllo, quindi le decisioni sono in pausa. Riprendi l’analisi dalla sua pagina per riaprire il controllo: le decisioni già prese restano salvate.",
+    "released": "Questo controllo è finito. Qui sotto trovi le tue decisioni.",
+    "releasedDemo": "Questo controllo era già finito nell’analisi originale. Qui sotto trovi le decisioni prese.",
     "openPack": "Apri il pacchetto",
-    "select": "Seleziona una frase per vedere i dati e le fonti che la sostengono. Le frasi segnalate richiedono una decisione.",
-    "copy": "Testi",
+    "select": "Seleziona una frase per vedere i dati su cui si basa. Una frase con un problema richiede la tua decisione.",
+    "copy": "Testo",
     "buyerQuestions": "Domande degli acquirenti",
     "questionLabel": "Domanda {number}: {question}",
-    "dropped": "Scartata: questa scheda non viene pubblicata.",
+    "dropped": "Eliminata: questa scheda non viene pubblicata.",
     "summary": "Riepilogo",
-    "flaggedClaims": "Affermazioni segnalate: {total} ({open} aperte)",
-    "stagedOffered": "Immagini con staging proposte: {total} ({open} aperte)",
+    "flaggedClaims": "Frasi con un problema: {total} ({open} da decidere)",
+    "stagedOffered": "Foto arredate proposte: {total} ({open} da decidere)",
     "warningsLabel": "Avvisi",
-    "approveTitle": "Approva il pacchetto",
-    "stillOpen": "Ancora aperto prima di poter approvare:",
-    "openClaims": "{count, plural, one {# affermazione segnalata} other {# affermazioni segnalate}}",
-    "openImages": "{count, plural, one {# immagine con staging} other {# immagini con staging}}",
-    "allDecided": "Tutto è stato deciso. Approvare avvia l’esportazione del pacchetto.",
-    "finishEditing": "Salva o annulla prima il testo che stai modificando.",
+    "approveTitle": "Approva l’annuncio",
+    "stillOpen": "Prima di approvare manca ancora:",
+    "openClaims": "{count, plural, one {# frase con un problema} other {# frasi con un problema}}",
+    "openImages": "{count, plural, one {# foto arredata} other {# foto arredate}}",
+    "allDecided": "Hai deciso tutto. Con l’approvazione si crea il pacchetto finale.",
+    "finishEditing": "Prima salva o annulla il testo che stai modificando.",
     "approve": "Approva il pacchetto",
     "noText": "Nessun testo.",
     "decided": "Deciso",
     "saving": "Salvataggio della tua decisione…",
     "evidenceFor": "Prove per “{text}”",
     "closeEvidence": "Chiudi le prove",
-    "cites": "{count, plural, =0 {Questo passaggio non cita alcun dato.} one {Questo passaggio cita 1 dato.} other {Questo passaggio cita # dati.}}",
-    "missingEvidence": "Prova mancante: un dato citato da questo passaggio ({id}) non fa parte di questa revisione.",
+    "cites": "{count, plural, =0 {Questa parte non si basa su nessun dato.} one {Questa parte si basa su 1 dato.} other {Questa parte si basa su # dati.}}",
+    "missingEvidence": "Prova mancante: un dato su cui si basa questa parte ({id}) non fa parte di questo controllo.",
     "showEvidenceFor": "Mostra le prove per:",
     "flaggedLabel": "Segnalata: {name}",
     "original": "Originale: “{text}”",
     "flagsLabel": "Segnalazioni",
     "suggestion": "Suggerimento: {text}",
-    "exclusionaryNote": "Approvare così com’è mantiene una formulazione discriminatoria. La checklist di pubblicazione risulterà comunque non superata.",
-    "dropNote": "Rimuovere questa risposta elimina l’intera scheda, domanda compresa.",
-    "checklistFails": "La checklist di pubblicazione risulterà comunque non superata per questa formulazione.",
+    "exclusionaryNote": "Se approvi così com’è, resta una formulazione che esclude alcune persone. La lista di controllo per la pubblicazione risulterà comunque non superata.",
+    "dropNote": "Se togli questa risposta, viene eliminata tutta la scheda, domanda compresa.",
+    "checklistFails": "La lista di controllo per la pubblicazione risulterà comunque non superata per questa formulazione.",
     "removalWarnings": "Avvisi per questa rimozione",
     "approveAsWrittenLabel": "Approva così com’è: {name}",
     "approveAsWritten": "Approva così com’è",
@@ -799,48 +799,48 @@
     "remove": "Rimuovi",
     "removeLabel": "Rimuovi: {name}",
     "failures": {
-      "gateNotOpen": "Questa revisione non è più aperta, quindi la decisione non è stata salvata. La pagina mostra ora lo stato attuale.",
-      "decisionsPending": "C’è ancora qualcosa che richiede una decisione, quindi il pacchetto non è stato approvato. La pagina mostra ora cosa è aperto.",
-      "notFound": "Questo elemento non è stato trovato. La pagina mostra ora lo stato attuale.",
-      "editRejected": "Quel testo non ha superato il controllo rispetto ai suoi dati, quindi non è stato salvato.",
-      "notAccepted": "Quella decisione non è stata accettata. Controllala e riprova."
+      "gateNotOpen": "Questo controllo non è più aperto, quindi la decisione non è stata salvata. La pagina mostra la situazione attuale.",
+      "decisionsPending": "C’è ancora qualcosa da decidere, quindi il pacchetto non è stato approvato. La pagina mostra cosa resta.",
+      "notFound": "Non troviamo questo elemento. La pagina mostra la situazione attuale.",
+      "editRejected": "Questo testo non ha superato il confronto con i suoi dati, quindi non è stato salvato.",
+      "notAccepted": "Questa decisione non è stata accettata. Controllala e riprova."
     },
     "categories": {
-      "claim_support": "Affermazione non supportata",
-      "unverifiable_superlative": "Superlativo non verificabile",
-      "investment_promise": "Promessa di investimento",
-      "exclusionary": "Formulazione discriminatoria",
-      "area_basis": "Base di misura della superficie"
+      "claim_support": "Non confermata dai dati",
+      "unverifiable_superlative": "Vanto non verificabile",
+      "investment_promise": "Promessa di rendimento",
+      "exclusionary": "Formulazione che esclude",
+      "area_basis": "Non è chiaro come è stata misurata la superficie"
     },
     "stopReasons": {
-      "clean": "La verifica non ha trovato altri problemi nei testi.",
-      "loop_limit": "La verifica ha raggiunto il limite di riscritture e alcune frasi sono ancora segnalate. Decidi qui sotto su ogni frase segnalata.",
-      "budget": "La verifica si è fermata in anticipo per restare entro il limite di costo dell’elaborazione, quindi alcune frasi potrebbero avere ancora problemi.",
-      "revision_failed": "Una riscrittura non ha funzionato, quindi viene mostrata l’ultima bozza verificata con le sue segnalazioni."
+      "clean": "Il controllo non ha trovato altri problemi nel testo.",
+      "loop_limit": "Il controllo ha raggiunto il limite di riscritture e alcune frasi hanno ancora un problema. Decidi tu su ciascuna qui sotto.",
+      "budget": "Il controllo si è fermato prima per restare entro il costo massimo dell’analisi, quindi alcune frasi potrebbero avere ancora dei problemi.",
+      "revision_failed": "Una riscrittura non è riuscita, quindi vedi l’ultima bozza controllata con le sue segnalazioni."
     },
     "status": {
-      "needsDecision": "Richiede la tua decisione.",
+      "needsDecision": "Serve la tua decisione.",
       "approved": "Approvata così com’è.",
       "edited": "Modificata da te.",
-      "removedCard": "Rimossa. L’intera scheda è eliminata dal pacchetto.",
-      "removedFromPack": "Rimossa dal pacchetto.",
+      "removedCard": "Rimossa. Tutta la scheda viene tolta dal pacchetto.",
+      "removedFromPack": "Tolta dal pacchetto.",
       "removed": "Rimossa.",
-      "moot": "Non necessaria: questa scheda è scartata."
+      "moot": "Non serve: questa scheda viene eliminata."
     },
     "variants": {
-      "portal": "Testo per i portali",
-      "social": "Didascalia social"
+      "portal": "Testo dell’annuncio",
+      "social": "Post per i social"
     },
     "warnings": {
-      "variantEmpty": "{where}: tutti i passaggi sono rimossi, quindi il pacchetto non pubblica alcun testo per questo.",
-      "requiredUnmentioned": "{where}: il dato obbligatorio “{label}” non è più menzionato.",
-      "unmentioned": "{where}: il dato “{label}” non è più menzionato."
+      "variantEmpty": "{where}: sono state tolte tutte le frasi, quindi il pacchetto non pubblica nessun testo.",
+      "requiredUnmentioned": "{where}: il dato obbligatorio “{label}” non viene più citato.",
+      "unmentioned": "{where}: il dato “{label}” non viene più citato."
     },
     "edit": {
-      "empty": "Inserisci il nuovo testo oppure annulla.",
+      "empty": "Scrivi il nuovo testo oppure annulla.",
       "newTextFor": "Nuovo testo per “{text}”",
-      "hint": "Le citazioni restano le stesse. Numeri e unità devono corrispondere ai dati citati da questo testo.",
-      "rejected": "Questo testo non ha superato il controllo rispetto ai suoi dati:",
+      "hint": "Resta collegato alle stesse fonti. Numeri e unità devono corrispondere ai dati su cui si basa.",
+      "rejected": "Questo testo non ha superato il confronto con i suoi dati:",
       "save": "Salva il testo",
       "cancel": "Annulla",
       "open": "Modifica"
@@ -848,66 +848,66 @@
     "staged": {
       "attemptEditFailed": "Tentativo {n}: la modifica non è riuscita.",
       "attemptEditFailedWhy": "Tentativo {n}: la modifica non è riuscita ({reason}).",
-      "attemptUnchecked": "Tentativo {n}: non è stato possibile verificarlo.",
-      "attemptUncheckedTarget": "Tentativo {n}: non è stato possibile verificarlo (immagine {target} non segmentata).",
+      "attemptUnchecked": "Tentativo {n}: non è stato possibile controllarlo.",
+      "attemptUncheckedTarget": "Tentativo {n}: non è stato possibile controllarlo (l’immagine {target} non è stata analizzata).",
       "passed": "superato",
       "failed": "non superato",
-      "changedClasses": ", modificati: {classes}",
-      "personDrawn": ", è stata aggiunta una persona",
+      "changedClasses": ", cambiati: {classes}",
+      "personDrawn": ", è comparsa una persona",
       "attemptResult": "Tentativo {n}: {result}{failed}{privacy}.",
       "originalAlt": "Foto originale per {operation}",
       "original": "Originale",
-      "stagedAlt": "Versione con staging per {operation}",
+      "stagedAlt": "Versione arredata per {operation}",
       "operation": "{name} (foto {n})",
-      "imageLabel": "Immagine con staging: {operation}",
-      "integrityPassed": "Controllo di integrità superato: finestre, porte e altri elementi fissi sono invariati.",
-      "integritySecond": "Controllo di integrità superato al secondo tentativo: finestre, porte e altri elementi fissi sono invariati.",
-      "integrityFor": "Controllo di integrità per {operation}",
+      "imageLabel": "Foto arredata: {operation}",
+      "integrityPassed": "Controllo superato: finestre, porte e altri elementi fissi non sono cambiati.",
+      "integritySecond": "Controllo superato al secondo tentativo: finestre, porte e altri elementi fissi non sono cambiati.",
+      "integrityFor": "Controllo per {operation}",
       "outcomePassed": "Esito: superato.",
       "outcomeSecond": "Esito: superato al secondo tentativo.",
-      "aspectChange": "Maggiore variazione delle proporzioni: {change}.",
+      "aspectChange": "Variazione maggiore delle proporzioni: {change}.",
       "fixedElements": "Elementi fissi",
-      "classCount": "{label}: {original} nell’originale, {edit} nell’immagine con staging",
+      "classCount": "{label}: {original} nell’originale, {edit} nella foto arredata",
       "attempts": "Tentativi",
-      "accepted": "Accettata: l’immagine con staging viene pubblicata accanto all’originale.",
-      "rejected": "Rifiutata: viene pubblicato solo l’originale.",
-      "explain": "Accettare pubblica l’immagine con staging accanto all’originale, con l’etichetta “{label}”. Rifiutare pubblica solo l’originale.",
-      "acceptLabel": "Accetta l’immagine con staging: {operation}",
+      "accepted": "Accettata: la foto arredata viene pubblicata accanto all’originale.",
+      "rejected": "Rifiutata: viene pubblicata solo l’originale.",
+      "explain": "Se accetti, la foto arredata viene pubblicata accanto all’originale con l’etichetta “{label}”. Se rifiuti, viene pubblicata solo l’originale.",
+      "acceptLabel": "Accetta la foto arredata: {operation}",
       "accept": "Accetta e pubblica",
-      "rejectLabel": "Rifiuta l’immagine con staging: {operation}",
-      "reject": "Rifiuta, mantieni l’originale",
-      "title": "Immagini con staging",
-      "fallbackTitle": "Staging respinto dal controllo di integrità",
-      "fallbackText": "Per questi viene pubblicata solo la foto originale.",
-      "rejectedName": "{name} (rifiutato)"
+      "rejectLabel": "Rifiuta la foto arredata: {operation}",
+      "reject": "Rifiuta, tieni l’originale",
+      "title": "Foto arredate",
+      "fallbackTitle": "Arredo respinto dal controllo",
+      "fallbackText": "Per queste viene pubblicata solo la foto originale.",
+      "rejectedName": "{name} (rifiutata)"
     }
   },
   "pack": {
-    "pageTitle": "Pacchetto annuncio — Evidomo",
+    "pageTitle": "Pacchetto dell’annuncio — Evidomo",
     "loading": "Caricamento del pacchetto…",
-    "title": "Pacchetto annuncio",
-    "backToRun": "Torna all’elaborazione",
-    "ready": "Pronto per la pubblicazione: tutti i controlli di pubblicazione sono superati.",
-    "notReady": "Non pronto per la pubblicazione",
-    "notReadyText": "Almeno un controllo di pubblicazione non è stato superato. La checklist nel pacchetto indica quale; correggi prima di pubblicare questo annuncio.",
+    "title": "Pacchetto dell’annuncio",
+    "backToRun": "Torna all’analisi",
+    "ready": "Pronto da pubblicare: tutti i controlli finali sono superati.",
+    "notReady": "Non pronto da pubblicare",
+    "notReadyText": "Almeno un controllo finale non è stato superato. La lista di controllo nel pacchetto dice quale: correggilo prima di pubblicare l’annuncio.",
     "preview": "Anteprima",
-    "previewTitle": "Anteprima del pacchetto annuncio",
+    "previewTitle": "Anteprima del pacchetto dell’annuncio",
     "print": "Stampa / Salva come PDF",
     "fullScreen": "Apri a schermo intero",
     "downloads": "Download",
     "downloadAll": "Scarica tutto (ZIP)",
-    "downloadAllLabel": "Scarica tutti i file come ZIP",
+    "downloadAllLabel": "Scarica tutti i file in un ZIP",
     "downloadAllHint": "Circa {size}, {count, plural, one {# file} other {# file}}",
     "images": "Immagini ({count})",
     "files": {
-      "html": "Pacchetto annuncio (HTML)",
-      "portalFields": "Campi per i portali (JSON)",
+      "html": "Pacchetto dell’annuncio (HTML)",
+      "portalFields": "Campi per i portali immobiliari (JSON)",
       "image": "Immagine"
     },
     "downloadLabel": "Scarica {name}",
     "download": "Scarica",
-    "notReadyYet": "Il pacchetto non è ancora pronto. Compare quando l’elaborazione ha terminato l’esportazione.",
-    "loadError": "Non siamo riusciti a caricare questo pacchetto. Verifica la connessione e riprova.",
+    "notReadyYet": "Il pacchetto non è ancora pronto. Compare quando l’analisi ha finito di crearlo.",
+    "loadError": "Non siamo riusciti a caricare questo pacchetto. Controlla la connessione e riprova.",
     "size": {
       "bytes": "{value} B",
       "kb": "{value} KB",
@@ -915,51 +915,51 @@
     }
   },
   "runFailure": {
-    "failedAt": "Interrotta al passaggio: {step}",
-    "failedBetween": "Interrotta tra due passaggi",
+    "failedAt": "Si è fermata a: {step}",
+    "failedBetween": "Si è fermata tra due passaggi",
     "reasonLabel": "Motivo indicato",
-    "kept": "I passaggi conclusi sono conservati: {done} su {total} non verranno rieseguiti.",
-    "allowance": "Riprendere usa una delle elaborazioni che puoi avviare oggi, come avviarne una nuova.",
-    "runActive": "Per questo progetto c’è già un’altra elaborazione in corso, quindi questa non può essere ripresa ora. Apri il progetto per vederla; riprendi questa quando sarà terminata.",
-    "inputsChanged": "Foto, memo vocale o dati del progetto sono cambiati dopo l’avvio di questa elaborazione, quindi non può essere ripresa. Avviane una nuova dal progetto.",
-    "definitionUnavailable": "Questa elaborazione è stata creata con una versione del servizio che non è più disponibile, quindi non può essere ripresa. Avviane una nuova dal progetto.",
-    "notResumable": "Questa elaborazione non può essere ripresa: non è più in errore, oppure foto, memo vocale o dati del progetto sono cambiati dopo l’avvio. La pagina mostra lo stato attuale; se risulta ancora in errore, avviane una nuova dal progetto.",
+    "kept": "I passaggi già finiti restano: {done} su {total} non verranno rifatti.",
+    "allowance": "Riprendere conta come una delle analisi che puoi avviare oggi, come se ne avviassi una nuova.",
+    "runActive": "Per questo progetto c’è già un’altra analisi in corso, quindi questa ora non si può riprendere. Apri il progetto per vederla; riprendi questa quando l’altra è finita.",
+    "inputsChanged": "Le foto, la descrizione a voce o i dati del progetto sono cambiati dopo l’avvio di questa analisi, quindi non si può riprendere. Avviane una nuova dal progetto.",
+    "definitionUnavailable": "Questa analisi è stata fatta con una versione del servizio che non esiste più, quindi non si può riprendere. Avviane una nuova dal progetto.",
+    "notResumable": "Questa analisi non si può riprendere: non risulta più fallita, oppure le foto, la descrizione a voce o i dati del progetto sono cambiati dopo l’avvio. La pagina mostra la situazione attuale; se risulta ancora fallita, avviane una nuova dal progetto.",
     "openProject": "Apri il progetto",
-    "nextTitle": "Cosa fare ora",
-    "resumeText": "Riprendere continua da “{step}”. I passaggi già conclusi non vengono rieseguiti.",
-    "resumeTextGeneric": "Riprendere continua da dove l’elaborazione si è fermata. I passaggi già conclusi non vengono rieseguiti.",
-    "resume": "Riprendi elaborazione",
-    "resuming": "Ripresa dell’elaborazione in corso…",
-    "resumed": "Ripresa da “{step}”. I passaggi già conclusi sono stati conservati.",
-    "resumedGeneric": "L’elaborazione è ripresa. I passaggi già conclusi sono stati conservati.",
-    "budgetExhausted": "Questa elaborazione ha esaurito il proprio margine di costo e non può essere ripresa. Avviane una nuova dal progetto; foto, memo vocale e dati sono ancora lì.",
-    "startNewRun": "Avvia una nuova elaborazione dal progetto",
-    "dailyBudget": "Il budget di elaborazione di oggi è esaurito. I passaggi conclusi sono conservati; riprendi questa elaborazione domani.",
-    "dailyBudgetWait": "Il budget di elaborazione di oggi è esaurito. I passaggi conclusi sono conservati; potrai riprenderla tra {wait}.",
-    "codeRateLimited": "Troppi codici errati. Riprova più tardi.",
-    "runLimit": "Hai raggiunto il limite di elaborazioni live di oggi. Riprova più tardi.",
-    "runLimitWait": "Hai raggiunto il limite di elaborazioni live di oggi. Potrai riprovare tra {wait}.",
-    "gone": "Questa elaborazione non esiste più.",
+    "nextTitle": "Cosa fare adesso",
+    "resumeText": "Riprendendo, si riparte da “{step}”. I passaggi già finiti non vengono rifatti.",
+    "resumeTextGeneric": "Riprendendo, si riparte da dove l’analisi si era fermata. I passaggi già finiti non vengono rifatti.",
+    "resume": "Riprendi l’analisi",
+    "resuming": "Ripresa dell’analisi in corso…",
+    "resumed": "Ripresa da “{step}”. I passaggi già finiti sono stati mantenuti.",
+    "resumedGeneric": "L’analisi è ripartita. I passaggi già finiti sono stati mantenuti.",
+    "budgetExhausted": "Questa analisi ha esaurito il costo massimo che le era concesso, quindi non si può riprendere. Avviane una nuova dal progetto: foto, descrizione a voce e dati ci sono ancora.",
+    "startNewRun": "Avvia una nuova analisi dal progetto",
+    "dailyBudget": "Il budget di analisi di oggi è esaurito. I passaggi già finiti restano; riprendi questa analisi domani.",
+    "dailyBudgetWait": "Il budget di analisi di oggi è esaurito. I passaggi già finiti restano; potrai riprendere questa analisi tra {wait}.",
+    "codeRateLimited": "Troppi codici sbagliati. Riprova più tardi.",
+    "runLimit": "Hai raggiunto il limite giornaliero di analisi. Riprova più tardi.",
+    "runLimitWait": "Hai raggiunto il limite giornaliero di analisi. Potrai riprovare tra {wait}.",
+    "gone": "Questa analisi non esiste più.",
     "retrying": "Nuovo tentativo",
     "retryingNote": "Nuovo tentativo automatico dopo: {reason}",
     "retryingGeneric": "Nuovo tentativo automatico.",
-    "demoFailed": "In un’elaborazione live, l’agente può riprendere da qui."
+    "demoFailed": "In un’analisi vera, l’agente può riprendere da qui."
   },
   "deleteProject": {
     "heading": "Elimina questo progetto",
-    "intro": "Rimuove il progetto e tutto ciò che contiene. Non si può annullare.",
+    "intro": "Elimina il progetto e tutto ciò che contiene. Non si può annullare.",
     "open": "Elimina progetto…",
     "title": "Eliminare “{title}”?",
-    "lead": "Il progetto verrà eliminato definitivamente, insieme a:",
-    "photos": "tutte le foto",
-    "voice": "il memo vocale",
-    "runs": "tutte le elaborazioni e ogni pacchetto annuncio creato da esse",
-    "spend": "I dati su quanto sono costate le elaborazioni restano al gestore del servizio.",
+    "lead": "Verranno eliminati per sempre il progetto e:",
+    "photos": "tutte le sue foto",
+    "voice": "la descrizione a voce",
+    "runs": "tutte le analisi e ogni pacchetto creato con esse",
+    "spend": "I dati su quanto sono costate le analisi restano al gestore del servizio.",
     "cancel": "Tieni il progetto",
-    "confirm": "Elimina definitivamente",
-    "deleting": "Eliminazione del progetto in corso…",
-    "runInProgress": "Per questo progetto c’è un’elaborazione in corso, quindi non si può ancora eliminare. Attendi che vada in pausa o termini, poi riprova.",
-    "openMonitor": "Apri il monitor dell’elaborazione",
+    "confirm": "Elimina per sempre",
+    "deleting": "Eliminazione del progetto…",
+    "runInProgress": "Per questo progetto c’è un’analisi in corso, quindi non si può ancora eliminare. Aspetta che vada in pausa o finisca, poi riprova.",
+    "openMonitor": "Apri l’avanzamento dell’analisi",
     "gone": "Questo progetto è già stato eliminato.",
     "goToProjects": "Vai ai tuoi progetti",
     "deletedNotice": "“{title}” è stato eliminato.",
@@ -969,29 +969,29 @@
   "serverError": {
     "pageTitle": "Qualcosa è andato storto — Evidomo",
     "title": "Qualcosa è andato storto",
-    "text": "Il server non è riuscito a gestire questa richiesta. Riprova tra un momento; il lavoro salvato non è interessato.",
-    "home": "Torna alla home"
+    "text": "Il server non è riuscito a gestire la richiesta. Riprova tra poco: il lavoro che hai salvato non è toccato.",
+    "home": "Torna all’inizio"
   },
   "stamps": {
     "verified": "Verificato",
-    "decision": "Attende la tua decisione",
-    "sample": "Fascicolo di esempio"
+    "decision": "Serve la tua decisione",
+    "sample": "Esempio"
   },
   "method": {
-    "title": "Come Evidomo controlla un annuncio",
-    "lede": "Cosa fa un’elaborazione, cosa ha trovato nel fascicolo di esempio e dove si ferma.",
+    "title": "Come funziona Evidomo",
+    "lede": "Dai a Evidomo le foto e una descrizione a voce di una casa. Evidomo scrive l’annuncio. Ogni frase mostra da dove viene, e tu controlli tutto prima che venga condiviso qualcosa.",
     "indexLabel": "In questa pagina",
     "sections": {
-      "inputs": "Cosa fornire",
-      "sources": "Ogni affermazione ha una fonte",
+      "inputs": "Cosa gli dai",
+      "sources": "Da dove viene ogni frase",
       "example": "Cosa è successo all’annuncio di esempio",
-      "tests": "I numeri e i loro limiti",
-      "limits": "Cosa non farà e cosa rimuove"
+      "tests": "Funziona bene?",
+      "limits": "Cosa non fa"
     },
     "types": {
-      "form": "Un campo del modulo: un valore che hai inserito.",
-      "voice": "Un intervento vocale: parole del tuo tour, con l’orario.",
-      "photo": "Una regione di foto: la parte di un’immagine su cui si basa un dato."
+      "form": "La tua scheda: un dato che hai scritto tu.",
+      "voice": "La tua voce: parole della tua descrizione, con il momento in cui le hai dette.",
+      "photo": "Una foto: la parte dell’immagine che lo mostra."
     },
     "inputs": {
       "items": {
@@ -1000,27 +1000,27 @@
           "text": "Scattale con il telefono, una stanza alla volta. Solo foto."
         },
         "voice": {
-          "title": "Un giro raccontato a voce",
-          "text": "Percorrete la casa e dite ciò che vedete. Puntate a 2–10 minuti. Registrate nel browser o caricate un file audio."
+          "title": "Una descrizione a voce",
+          "text": "Gira per la casa e racconta cosa vedi. Punta a 2-10 minuti. Registra dal browser oppure carica un file audio."
         },
         "form": {
-          "title": "Un breve modulo",
-          "text": "I dati che conoscete, come la superficie della casa e l’anno di costruzione."
+          "title": "Una breve scheda",
+          "text": "I dati che conosci, come la superficie e l’anno di costruzione."
         }
       },
-      "noVideo": "Evidomo non usa video. Usate solo foto e una registrazione vocale.",
-      "outputTitle": "Cosa ottenete",
-      "outputText": "Il testo dell’annuncio, le risposte alle domande più frequenti degli acquirenti, un breve post per i social e le vostre foto. Scaricate tutto in un unico pacchetto."
+      "noVideo": "Evidomo non usa i video. Usa solo foto e una registrazione audio.",
+      "outputTitle": "Cosa ricevi",
+      "outputText": "Il testo dell’annuncio, le risposte alle domande che gli acquirenti fanno spesso, un breve post per i social e le tue foto. Scarichi tutto in un unico pacchetto."
     },
     "specimen": {
-      "label": "Una frase dal fascicolo di esempio",
-      "sentenceNote": "Output del modello, come scritto (inglese, non tradotto).",
-      "prompt": "Scegli un’affermazione evidenziata per vedere su cosa si basa.",
-      "claimsLabel": "Affermazioni in questa frase",
+      "label": "Una frase dell’annuncio di esempio",
+      "sentenceNote": "Scritta dall’AI e mostrata così com’è (in inglese).",
+      "prompt": "Tocca una parte evidenziata per vedere su cosa si basa.",
+      "claimsLabel": "Parti evidenziate di questa frase",
       "claimNames": {
         "year": "Anno di costruzione",
         "label": "Classe energetica",
-        "issued": "Anno di rilascio della classe"
+        "issued": "Anno della classe"
       },
       "evidenceTitle": "Su cosa si basa “{claim}”",
       "fieldNames": {
@@ -1029,75 +1029,75 @@
       },
       "formValue": "{field}: {value}",
       "notUsed": "Non usato",
-      "conflict": "Il modulo diceva {form}. L’elaborazione si è fermata alla prima revisione ed è stato mantenuto {voice}, detto a voce.",
-      "replayNote": "Un replay: le risposte del modello sono state registrate una volta, il tour era voce sintetica e il fascicolo di esempio riproduce silenzio."
+      "conflict": "La scheda diceva {form}, la voce {voice}. Evidomo si è fermato e ha chiesto all’agente, che ha tenuto {voice}.",
+      "replayNote": "È la riproduzione di un esempio salvato. La casa è inventata e la voce è generata al computer. La riproduzione fa sentire silenzio al suo posto."
     },
     "ledger": {
-      "intro": "Evidomo esegue ogni passaggio. Alle due soste decidi tu.",
-      "stop": "L’elaborazione si ferma qui",
-      "scripted": "Nel fascicolo di esempio le decisioni sono state scritte in anticipo in uno script.",
+      "intro": "Evidomo fa da solo tutti i passaggi. In due punti si ferma e aspetta la tua decisione.",
+      "stop": "Qui Evidomo si ferma",
+      "scripted": "Nell’esempio, queste scelte sono state fatte in anticipo.",
       "gateTitles": {
-        "gate1": "Revisione 1 di 2: conflitti tra i dati",
-        "gate2": "Revisione 2 di 2: il testo e l’immagine arredata"
+        "gate1": "Pausa 1 di 2: dati che non coincidono",
+        "gate2": "Pausa 2 di 2: controllo del testo e della foto arredata"
       },
       "rows": {
-        "intake": "Un tour vocale in olandese diventa una serie di interventi con orario.",
-        "fact_extraction": "I dati vengono letti dal modulo e dalla voce, ciascuno con la sua fonte.",
-        "vision_inventory": "{photos} foto vengono lette e controllate per volti e targhe. Nessuna ha richiesto sfocature.",
-        "reconciliation": "Emergono {conflicts} conflitti. Una foto di camera mostra la moquette dove la voce diceva laminato.",
-        "gate1": "Il {voice} detto a voce prevale sul {form} del modulo. Restano 175 € e non 165 €. Il pavimento della camera cade.",
-        "creative": "{portal} frasi per i portali e {social} per i social, ciascuna con i fatti su cui si basa.",
-        "qa_cards": "{questions} domande degli acquirenti, con risposta in {answers} frasi dagli stessi fatti.",
-        "staging": "Il modello ha scambiato un soggiorno vuoto per una camera e l’ha arredato così. Etichetta: “Virtually staged”.",
-        "integrity": "Finestre, porte e altri elementi fissi vengono contati prima e dopo. Tutto invariato.",
-        "verification": "{audited} frasi vengono verificate rispetto ai loro fatti. {flagged} vengono segnalate.",
-        "gate2": "Nessuna segnalazione. L’immagine arredata e il testo sono approvati.",
-        "export": "Vengono creati {files} file. Tutti i controlli di pubblicazione sono superati."
+        "intake": "La descrizione a voce, in olandese, diventa testo con gli orari.",
+        "fact_extraction": "Dalla scheda e dalla voce si estraggono i dati. Ognuno conserva la sua fonte.",
+        "vision_inventory": "{photos} foto vengono controllate per trovare volti e targhe. Nessuna ha richiesto sfocature.",
+        "reconciliation": "{conflicts} dati non coincidono. Un esempio: la voce diceva laminato, ma la foto della camera mostra la moquette.",
+        "gate1": "L’agente sceglie {voice} (dalla voce) al posto di {form} (dalla scheda), e 175 € al posto di 165 €. Il pavimento della camera viene escluso.",
+        "creative": "{portal} frasi per il testo dell’annuncio e {social} per i social. Ognuna indica i suoi dati.",
+        "qa_cards": "{questions} domande che gli acquirenti fanno spesso, con risposta in {answers} frasi basate sugli stessi dati.",
+        "staging": "L’AI ha scambiato una stanza vuota per una camera da letto e ha aggiunto un letto. La foto riporta “Virtually staged”.",
+        "integrity": "Prima e dopo si contano finestre, porte e altri elementi fissi. Non è cambiato nulla.",
+        "verification": "{audited} frasi vengono confrontate con i dati su cui si basano. {flagged} avevano un problema.",
+        "gate2": "Nessuna segnalazione. L’agente approva la foto arredata e il testo.",
+        "export": "Vengono creati {files} file e tutti i controlli finali sono superati."
       },
-      "bedroomCaption": "La voce diceva laminato. Questa foto della camera mostra la moquette. Una foto di input generata da un modello, non un immobile reale.",
+      "bedroomCaption": "La voce diceva laminato. Questa foto della camera mostra la moquette. Foto creata dall’AI, non una casa vera.",
       "stagingBefore": "Prima",
       "stagingAfter": "Dopo",
-      "stagingCaption": "A sinistra: una foto di input generata da un modello di una stanza vuota inventata. A destra: il risultato del passaggio di arredo, con l’etichetta “Virtually staged”."
+      "stagingCaption": "A sinistra: foto creata dall’AI di una stanza vuota inventata. A destra: il risultato con i mobili, con l’etichetta “Virtually staged”."
     },
     "numbers": {
-      "intro": "Problemi noti vengono piantati in input sintetici e contiamo quanti ne coglie la pipeline. Registrata il {date}, modalità fixture, {sets} set sintetici.",
-      "caption": "Risultati della valutazione",
-      "measure": "Misura",
+      "intro": "Abbiamo nascosto errori noti in case di prova inventate e contato quanti ne ha trovati Evidomo. Provato il {date}, con {sets} set inventati.",
+      "caption": "Risultati dei test",
+      "measure": "Cosa abbiamo provato",
       "result": "Risultato",
       "rows": {
-        "planted": "Conflitti inseriti emersi alla prima revisione",
-        "falseConflicts": "Conflitti inattesi (falsi)",
-        "injectedFlagged": "Difetti inseriti segnalati nel primo controllo",
-        "injectedExported": "Difetti inseriti in un pacchetto esportato",
-        "cleanFlags": "Segnalazioni del primo controllo su frasi non alterate"
+        "planted": "Dati che non coincidevano, trovati",
+        "falseConflicts": "Differenze inventate dal sistema",
+        "injectedFlagged": "Frasi sbagliate inserite da noi, segnalate",
+        "injectedExported": "Frasi sbagliate arrivate in un pacchetto finale",
+        "cleanFlags": "Frasi giuste segnalate per errore"
       },
-      "limitsTitle": "Limiti",
+      "limitsTitle": "Cosa non dimostra",
       "limits": {
-        "blatant": "I difetti inseriti sono evidenti. I numeri mostrano che i controlli colgono un testo simile, non quanto spesso il modello lo produce da solo.",
-        "oneApartment": "Tutti e sei i set sono variazioni di un solo appartamento sintetico: prova che il meccanismo funziona, non un tasso su annunci reali.",
-        "freeform": "I conflitti su dettagli liberi, come il materiale di un pavimento, vengono trovati dal modello al meglio delle sue possibilità.",
-        "audio": "Il controllo legge fatti e citazioni, non l’audio. Lo script dice “L-vormige”, la trascrizione “ellipsvormige”, il testo “elliptical”: lo coglieresti alla revisione 2."
+        "blatant": "Gli errori nascosti erano facili da notare. Questo mostra che i controlli funzionano, non quanto spesso gli annunci veri contengano errori.",
+        "oneApartment": "Tutti e sei i set sono versioni di un solo appartamento inventato. Mostra che l’idea funziona, non come va con le case vere.",
+        "freeform": "I dettagli piccoli, come il materiale di un pavimento, si trovano al meglio delle possibilità.",
+        "audio": "Evidomo controlla il testo scritto, non il suono. Se una parola viene capita male, può passare: te ne accorgi al controllo finale."
       }
     },
     "boundaries": {
-      "lead": "Non farà:",
+      "lead": "Evidomo non:",
       "items": {
-        "valuation": "Stimare il valore di un immobile o dare consigli di investimento.",
-        "legal": "Interpretare la legge, redigere contratti o dare consulenza sul titolo. La checklist non certifica la conformità.",
-        "buyers": "Selezionare, valutare o classificare acquirenti o inquilini.",
-        "publishing": "Pubblicare su un portale al posto tuo.",
-        "edits": "Modificare una foto per nascondere un difetto o cambiare la struttura.",
-        "metadata": "Conservare il GPS o altri metadati: vengono rimossi al caricamento.",
-        "blur": "Esportare un volto o una targa: entrambi vengono sfocati.",
-        "deletion": "Conservare un progetto eliminato: foto, memo vocale, dati e pacchetto vengono cancellati.",
-        "training": "Lasciare che un modello si alleni sui tuoi contenuti: si usano solo modelli in modalità Standard."
+        "valuation": "Stima il valore di una casa e non dà consigli di investimento.",
+        "legal": "Dà consulenza legale. La sua lista di controllo non è una verifica legale.",
+        "buyers": "Seleziona, valuta o classifica acquirenti o inquilini.",
+        "publishing": "Pubblica su un portale al posto tuo.",
+        "edits": "Modifica una foto per nascondere un difetto o cambiare l’edificio.",
+        "metadata": "Conserva i dati di posizione delle tue foto. Vengono eliminati al caricamento.",
+        "blur": "Mostra un volto o una targa. Entrambi sono sfocati.",
+        "deletion": "Tiene un progetto eliminato. Foto, voce, dati e annuncio vengono cancellati.",
+        "training": "Permette all’AI di allenarsi sui tuoi contenuti."
       }
     },
     "photos": {
-      "cover": "Un soggiorno con pavimento in rovere chiaro, un divano grigio a tre posti, una finestra alta e una porta bianca. Foto sintetica.",
-      "bedroom": "Una camera da letto con moquette grigia, un letto matrimoniale con lenzuola bianche, una finestra e un armadio a muro. Foto sintetica.",
-      "stagingBefore": "Una stanza vuota con pavimento in rovere chiaro, una finestra con un termosifone sotto e una porta bianca. Foto sintetica.",
-      "stagingAfter": "La stessa stanza con un letto e un comodino aggiunti. Foto sintetica, arredata virtualmente."
+      "cover": "Un soggiorno con pavimento in rovere chiaro, un divano grigio a tre posti, una finestra alta e una porta bianca. Foto creata dall’AI.",
+      "bedroom": "Una camera da letto con moquette grigia, un letto matrimoniale con lenzuola bianche, una finestra e un armadio a muro. Foto creata dall’AI.",
+      "stagingBefore": "Una stanza vuota con pavimento in rovere chiaro, una finestra con un termosifone sotto e una porta bianca. Foto creata dall’AI.",
+      "stagingAfter": "La stessa stanza con un letto e un comodino aggiunti. Foto creata dall’AI, arredata virtualmente."
     }
   }
 }
