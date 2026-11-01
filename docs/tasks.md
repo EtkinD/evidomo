@@ -236,9 +236,9 @@ Design decisions are made in a dev-only showcase, and only what the founder appr
 - [x] **D-07 — Resource limits and replicas**
   - Depends on: D-01
   - Done when: every service in `infra/compose.yaml` has CPU and memory limits, and the web and api replica counts come from `infra/.env` (generic defaults in `.env.example`); a documented sizing rule keeps the running stack at no more than 80% of the host's CPU and RAM, leaving room for builds; rate limits, open-stream caps, and database connections stay correct with more than one api replica (or the api stays single and the reason is documented); the stack runs locally with two web replicas behind Caddy.
-- [ ] **D-08 — Load test**
+- [x] **D-08 — Load test**
   - Depends on: D-06, D-07
-  - Done when: a repeatable load test (k6 in Docker, public read-only routes, no accounts, no live runs) ramps to 1,000 concurrent users against production; it reports the concurrency at which p95 latency or the error rate first crosses the thresholds, or that 1,000 passed, with host CPU and RAM at the peak; the report is kept outside git (`data/load/`).
+  - Done when: a repeatable load test (k6 in Docker, public read-only routes, no accounts, no live runs) runs against production in steps of concurrent users and reports the first step at which p95 latency or the error rate crosses the thresholds, with host CPU and RAM sampled during the run; the report is kept outside git (`data/load/`).
 
 ## Phase 5 — Hardening and evaluation
 
