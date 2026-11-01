@@ -32,6 +32,42 @@ export const marketList: MarketListResponse = marketListResponseSchema.parse({
   ],
 });
 
+/** Two versions of one market (as the API lists them after a profile update) plus an older-only one. */
+export const versionedMarketList: MarketListResponse = marketListResponseSchema.parse({
+  markets: [
+    {
+      id: 'nl',
+      version: 1,
+      name: 'Netherlands',
+      names: { tr: 'Hollanda' },
+      outputLanguages: ['en', 'nl'],
+      defaultOutputLanguage: 'en',
+    },
+    {
+      id: 'international',
+      version: 1,
+      name: 'International',
+      outputLanguages: ['en'],
+      defaultOutputLanguage: 'en',
+    },
+    {
+      id: 'nl',
+      version: 2,
+      name: 'Netherlands',
+      names: { tr: 'Hollanda' },
+      outputLanguages: ['en', 'nl', 'tr', 'it', 'es'],
+      defaultOutputLanguage: 'en',
+    },
+    {
+      id: 'international',
+      version: 2,
+      name: 'International',
+      outputLanguages: ['en', 'tr', 'it', 'es'],
+      defaultOutputLanguage: 'en',
+    },
+  ],
+});
+
 export const marketForm: MarketFormResponse = marketFormResponseSchema.parse({
   market: {
     id: 'germany',

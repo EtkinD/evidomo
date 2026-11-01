@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from 'use-intl';
 import {
   describeProjectFailure,
   emptyOfficeProfile,
+  latestMarkets,
   marketValue,
   PROJECT_FORM_FIELDS,
   type ProjectFormField,
@@ -25,7 +26,7 @@ const ID = 'create-project';
  * Create form. The market selection and the language override are the only derived state: the
  * effective language is computed from them, so there is no effect to keep the two in sync.
  */
-export function CreateProjectForm({ markets }: { markets: readonly MarketSummary[] }) {
+export function CreateProjectForm({ markets: allMarkets }: { markets: readonly MarketSummary[] }) {
   const t = useTranslations('projectForm');
   const tApi = useTranslations('apiErrors');
   const locale = useLocale();
@@ -41,6 +42,7 @@ export function CreateProjectForm({ markets }: { markets: readonly MarketSummary
   const [errors, setErrors] = useState<ProjectFormErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
 
+  const markets = latestMarkets(allMarkets);
   const firstMarket = markets[0];
   const market =
     markets.find((candidate) => marketValue(candidate) === marketChoice) ?? firstMarket;

@@ -1,7 +1,7 @@
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import NewProjectPage from '../pages/projects/new';
-import { PROJECT_ID, marketList, projectDetail } from './project-fixtures';
+import { PROJECT_ID, marketList, projectDetail, versionedMarketList } from './project-fixtures';
 import { mockRouter, setRoute } from './router-mock';
 import { jsonResponse, meSignedIn, mockFetch, renderPage, type FetchCall } from './test-utils';
 
@@ -50,6 +50,30 @@ describe('new project page', () => {
     // Back to a market whose default differs: the earlier override ('en') is still offered.
     fireEvent.change(market, { target: { value: 'germany@1' } });
     expect((language as HTMLSelectElement).value).toBe('en');
+  });
+
+  it('offers the latest version of each market and resets a language the new market lacks', async () => {
+    await renderForm({ 'GET /api/markets': () => jsonResponse(200, versionedMarketList) });
+
+    const market = screen.getByRole<HTMLSelectElement>('combobox', { name: /Market/ });
+    const language = screen.getByRole<HTMLSelectElement>('combobox', { name: /Output language/ });
+    expect(Array.from(market.options).map((o) => [o.value, o.text])).toEqual([
+      ['nl@2', 'Netherlands'],
+      ['international@2', 'International'],
+    ]);
+    expect(market.value).toBe('nl@2');
+    expect(Array.from(language.options).map((o) => o.text)).toEqual([
+      'English',
+      'Dutch',
+      'Turkish',
+      'Italian',
+      'Spanish',
+    ]);
+
+    fireEvent.change(language, { target: { value: 'nl' } });
+    fireEvent.change(market, { target: { value: 'international@2' } });
+    expect(Array.from(language.options).map((o) => o.value)).toEqual(['en', 'tr', 'it', 'es']);
+    expect(language.value).toBe('en');
   });
 
   it('validates on the client, focuses the first invalid field, and sends nothing', async () => {

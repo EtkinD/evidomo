@@ -1,7 +1,7 @@
 import { screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import ProjectsPage from '../pages/projects';
-import { PROJECT_ID, RUN_ID, projectDetail, run } from './project-fixtures';
+import { PROJECT_ID, RUN_ID, projectDetail, run, versionedMarketList } from './project-fixtures';
 import { setRoute } from './router-mock';
 import { jsonResponse, meSignedIn, mockFetch, renderPage } from './test-utils';
 
@@ -20,6 +20,21 @@ function summary(overrides: Record<string, unknown> = {}) {
 
 describe('projects page', () => {
   beforeEach(() => setRoute('/projects'));
+
+  it('names a project by its pinned market version when newer versions exist', async () => {
+    mockFetch({
+      'GET /api/auth/me': meSignedIn,
+      'GET /api/markets': () => jsonResponse(200, versionedMarketList),
+      'GET /api/projects': () =>
+        jsonResponse(200, {
+          projects: [summary({ market: { id: 'nl', version: 1, name: null } })],
+        }),
+    });
+    renderPage(ProjectsPage);
+
+    await screen.findByRole('link', { name: 'Alder Falls Cottage 4' });
+    expect(await screen.findByText('Netherlands · German')).toBeDefined();
+  });
 
   it('lists projects with market, counts, and the latest run linking to the run monitor', async () => {
     mockFetch({

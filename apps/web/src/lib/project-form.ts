@@ -71,6 +71,21 @@ export function marketValue(ref: { id: string; version: number }): string {
   return `${ref.id}@${ref.version}`;
 }
 
+/**
+ * One profile per market id for the create form: the highest version, kept at the position where
+ * the id first appears, so older pinned versions are never offered for a new project.
+ */
+export function latestMarkets<T extends { id: string; version: number }>(
+  markets: readonly T[],
+): T[] {
+  const latest = new Map<string, T>();
+  for (const market of markets) {
+    const current = latest.get(market.id);
+    if (current === undefined || market.version > current.version) latest.set(market.id, market);
+  }
+  return [...latest.values()];
+}
+
 function parseMarketValue(value: string): { id: string; version: number } | null {
   const at = value.lastIndexOf('@');
   if (at < 1) return null;
