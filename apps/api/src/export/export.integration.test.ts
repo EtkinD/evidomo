@@ -48,6 +48,8 @@ import { serializePortalFields } from './portal-fields.ts';
 import {
   EDITED_BALCONY_TEXT,
   EDITED_QA_YEAR_TEXT,
+  FRAME,
+  PLATE_BOX,
   QA_EXPORT_CARDS,
   SEGMENT_TEXT,
   seedExportScenario,
@@ -371,7 +373,9 @@ describe('export step', () => {
     expect(html).toContain('id="not-ready"');
     expect(html).toContain('Upload 3: withheld: privacy check incomplete');
     expect(html).toContain('Upload 4: withheld: privacy check incomplete');
-    // Embedded images are exactly the exported files; the withheld originals are nowhere.
+    // The fixture photos are narrower than the print cap, so the embedded copies are the
+    // exported files themselves (the next test narrows the cap); the withheld originals are
+    // nowhere.
     const embedded = [...html.matchAll(/src="data:image\/jpeg;base64,([^"]+)"/g)].map(
       (m) => m[1] ?? '',
     );
@@ -403,6 +407,80 @@ describe('export step', () => {
     expect(stagedMetadata.xmp?.toString('utf8')).toContain(STAGED_DIGITAL_SOURCE_TYPE);
     const blurredMetadata = await sharp(blurred).metadata();
     expect([blurredMetadata.exif, blurredMetadata.xmp]).toEqual([undefined, undefined]);
+  });
+
+  it('embeds print-sized copies in the HTML while the exported files stay full-size', async () => {
+    const narrow = await buildRunExport(
+      { storage, markets: definitions, packImageMaxWidthPx: 400 },
+      testDb.db,
+      scenario.run,
+    );
+    // Everything but the HTML is that of the default build, byte for byte.
+    const notHtml = (entry: { role: string }): boolean => entry.role !== 'html';
+    expect(narrow.manifest.files.filter(notHtml)).toEqual(stored.manifest.files.filter(notHtml));
+    expect(narrow.manifest.counts).toEqual(stored.manifest.counts);
+    for (const file of narrow.files.filter(notHtml)) {
+      const original = stored.files.get(file.fileName);
+      expect(Buffer.from(file.bytes).equals(original?.bytes ?? Buffer.alloc(0))).toBe(true);
+    }
+    const htmlFile = narrow.files.find((f) => f.role === 'html');
+    const html = Buffer.from(htmlFile?.bytes ?? new Uint8Array()).toString('utf8');
+    const embedded = [...html.matchAll(/src="data:image\/jpeg;base64,([^"]+)"/g)].map((m) =>
+      Buffer.from(m[1] ?? '', 'base64'),
+    );
+    expect(embedded).toHaveLength(stored.fields.images.length);
+    for (const [i, bytes] of embedded.entries()) {
+      const meta = await sharp(bytes).metadata();
+      expect(meta.width, `image ${i + 1}`).toBe(400);
+      expect(meta.height).toBe(Math.round((400 * FRAME.height) / FRAME.width));
+    }
+    // The copy of the masked photo derives from the blurred export: the plate region (a
+    // checkerboard in the stored original) is as smooth in it as in the exported file, and much
+    // smoother than the same region of the downscaled original.
+    const blurredIndex = stored.fields.images.findIndex(
+      (image) => image.fileName === 'photo-01.jpg',
+    );
+    const blurredCopy = embedded[blurredIndex];
+    if (blurredCopy === undefined) throw new Error('no blurred photo');
+    const downscaledOriginal = await sharp(scenario.photos.bedroom.bytes)
+      .resize({ width: 400 })
+      .jpeg({ quality: 80 })
+      .toBuffer();
+    const plateRoughness = async (bytes: Uint8Array): Promise<number> => {
+      const { data, info } = await sharp(bytes)
+        .greyscale()
+        .raw()
+        .toBuffer({ resolveWithObject: true });
+      const k = info.width / FRAME.width;
+      let sum = 0;
+      let count = 0;
+      for (let y = Math.round(PLATE_BOX.y0 * k); y < Math.round(PLATE_BOX.y1 * k); y += 1) {
+        for (let x = Math.round(PLATE_BOX.x0 * k); x < Math.round(PLATE_BOX.x1 * k) - 1; x += 1) {
+          sum += Math.abs((data[y * info.width + x] ?? 0) - (data[y * info.width + x + 1] ?? 0));
+          count += 1;
+        }
+      }
+      return sum / count;
+    };
+    expect(await plateRoughness(downscaledOriginal)).toBeGreaterThan(15);
+    expect(await plateRoughness(blurredCopy)).toBeLessThan(
+      (await plateRoughness(downscaledOriginal)) / 3,
+    );
+    // Determinism holds with real re-encoding, not only when the copies are the exported files.
+    const again = await buildRunExport(
+      { storage, markets: definitions, packImageMaxWidthPx: 400 },
+      testDb.db,
+      scenario.run,
+    );
+    const againHtml = again.files.find((f) => f.role === 'html');
+    expect(
+      Buffer.from(againHtml?.bytes ?? new Uint8Array()).equals(
+        Buffer.from(htmlFile?.bytes ?? new Uint8Array()),
+      ),
+    ).toBe(true);
+    // The default build's HTML differs (it embeds the full-size files).
+    expect(html).not.toBe(stored.html);
+    expect(html.length).toBeLessThan(stored.html.length);
   });
 
   it('rebuilds byte-identical files from the same stored artifacts', async () => {

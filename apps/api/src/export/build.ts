@@ -56,6 +56,7 @@ import { renderListingPackHtml } from './html.ts';
 import { exportArtifactId } from './ids.ts';
 import { exportPhotoOrder, imageFileName, isPublishableStaged } from './images.ts';
 import { composePortalFields, serializePortalFields } from './portal-fields.ts';
+import { packImage, PackImageError } from './print-image.ts';
 import { burnStagedLabel, StagedLabelError } from './label.ts';
 
 // Builds a run's export in memory from its stored artifacts (docs/architecture.md §5, "Export
@@ -67,6 +68,8 @@ import { burnStagedLabel, StagedLabelError } from './label.ts';
 export interface ExportDeps {
   readonly storage: Storage;
   readonly markets: Pick<DefinitionRegistry, 'getMarket'>;
+  /** Width cap of the pack's embedded copies; `PACK_IMAGE_MAX_WIDTH_PX` unless a test narrows it. */
+  readonly packImageMaxWidthPx?: number;
 }
 
 export interface BuiltExportFile {
@@ -461,9 +464,32 @@ async function exportImages(
 }
 
 /**
+ * The HTML pack's copies of the exported images (`print-image.ts`), from the already blurred and
+ * labelled export bytes. The exported files themselves stay full-size.
+ */
+async function printSizedImages(
+  exported: ReadonlyMap<string, Uint8Array>,
+  maxWidthPx: number | undefined,
+  signal: AbortSignal | undefined,
+): Promise<Map<string, Uint8Array>> {
+  const derived = new Map<string, Uint8Array>();
+  for (const [fileName, bytes] of exported) {
+    signal?.throwIfAborted();
+    try {
+      derived.set(fileName, await packImage(bytes, maxWidthPx));
+    } catch (error) {
+      if (!(error instanceof PackImageError)) throw error;
+      throw new NonRetryableStepError(`The pack cannot embed ${fileName}`, { cause: error });
+    }
+  }
+  return derived;
+}
+
+/**
  * Builds the export of a run whose Gate 2 is approved. The same stored artifacts always give
- * byte-identical HTML and JSON (and, on one machine, identical images): no clock, stable order,
- * content-derived artifact IDs, and the schema's key order.
+ * byte-identical JSON and, on one machine, identical images and HTML (the HTML embeds print-sized
+ * re-encodings of the images): no clock, stable order, content-derived artifact IDs, and the
+ * schema's key order.
  */
 export async function buildRunExport(
   deps: ExportDeps,
@@ -512,12 +538,17 @@ export async function buildRunExport(
     checklist,
   });
   const json = serializePortalFields(fields);
+  const packImages = await printSizedImages(
+    exported.bytes,
+    deps.packImageMaxWidthPx,
+    options.signal,
+  );
   const html = renderListingPackHtml({
     fields,
     market,
     title: project.title,
     office: project.officeProfile,
-    images: exported.bytes,
+    images: packImages,
     warnings: pack.content.warnings,
     flagCategories: pack.flagCategories,
   });

@@ -26,14 +26,19 @@ import { packStrings, type PackStrings } from './strings.ts';
 //
 // Why embedded images: the pack is downloaded and printed as one file, and P4-08 can serve it
 // without a file route that maps relative names to artifacts. The images are also exported as
-// separate files for portal uploads; the HTML costs about 4/3 of their size again.
+// separate files for portal uploads. The HTML embeds print-sized copies (`print-image.ts`), not the
+// full-size files: a browser that prints the pack would otherwise write every photo into the PDF
+// as raw pixels.
 
 export interface ListingPackHtmlInput {
   readonly fields: PortalFields;
   readonly market: MarketProfile;
   readonly title: string;
   readonly office: OfficeProfile;
-  /** Exported image bytes by file name; every image in `fields.images` must be present. */
+  /**
+   * The JPEG bytes to embed, by exported file name; every image in `fields.images` must be
+   * present. The pack embeds them as given (`build.ts` passes print-sized copies).
+   */
   readonly images: ReadonlyMap<string, Uint8Array>;
   readonly warnings: readonly ClaimAuditWarning[];
   /** The claim audit's remaining flag categories per claim ID (for Gate 2 overrides). */
