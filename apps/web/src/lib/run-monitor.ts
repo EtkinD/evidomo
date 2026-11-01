@@ -182,7 +182,10 @@ export function formatDuration(
   finishedAt: string | null,
 ): string | null {
   if (startedAt === null || finishedAt === null) return null;
-  const seconds = Math.max(0, Math.round((Date.parse(finishedAt) - Date.parse(startedAt)) / 1000));
+  const elapsedMs = Date.parse(finishedAt) - Date.parse(startedAt);
+  // "0 s" reads as broken; a step that took less than a second says so.
+  if (elapsedMs < 1000) return t('duration.underOne');
+  const seconds = Math.round(elapsedMs / 1000);
   if (seconds < 60) return t('duration.seconds', { seconds });
   return t('duration.minutes', { minutes: Math.floor(seconds / 60), seconds: seconds % 60 });
 }

@@ -9,7 +9,8 @@
     "projectLoadError": "We konden dit project niet laden. Controleer je verbinding en probeer het opnieuw.",
     "loadingProject": "Project laden…",
     "yes": "Ja",
-    "no": "Nee"
+    "no": "Nee",
+    "footnote": "Noot {n}"
   },
   "shell": {
     "accountMenu": "Accountmenu",
@@ -23,13 +24,14 @@
     "createAccount": "Account aanmaken",
     "mastheadLine": "Bewijs voor elk huis.",
     "footerTagline": "Advertenties die laten zien waar elke zin vandaan komt.",
-    "hackathon": "Gebouwd tijdens de Meta-hackathon, 26 okt – 4 nov 2026.",
+    "hackathon": "In tien dagen gemaakt, okt–nov 2026, voor de Meta-hackathon.",
     "github": "Evidomo op GitHub",
     "theme": "Thema",
     "themeSystem": "Systeem",
     "themeLight": "Licht",
     "themeDark": "Donker",
     "language": "Taal",
+    "languageCurrent": "Taal: {language}",
     "method": "Zo werkt het"
   },
   "auth": {
@@ -94,6 +96,7 @@
       "line2": "elke zin laat zien",
       "line3": "waar hij vandaan komt.",
       "lede": "Maak 10 tot 30 foto’s van de woning en vertel er een paar minuten over. Evidomo schrijft de advertentie en laat zien waar elke zin vandaan komt.",
+      "audience": "Voor makelaars en eigenaren die een woning verkopen of verhuren. Niet voor woningzoekers.",
       "notesLabel": "Voorbeeldnotities bij de foto",
       "claims": {
         "windows": "Twee hoge ramen",
@@ -515,6 +518,7 @@
     "duration": {
       "label": "Duur",
       "seconds": "{seconds} sec",
+      "underOne": "minder dan 1 sec",
       "minutes": "{minutes} min {seconds} sec"
     },
     "costSoFar": "Kosten tot nu toe",
@@ -592,13 +596,14 @@
     "bannerLabel": "Over dit voorbeeld",
     "controls": "Bediening van het afspelen",
     "speed": "Afspeelsnelheid",
-    "start": "Start het voorbeeld",
-    "startHint": "Het afspelen wacht op jou. Druk op de knop om de run te zien verlopen.",
+    "start": "Bekijk het opnieuw, stap voor stap",
+    "startHint": "Je ziet de afgeronde run. Druk op de knop om hem opnieuw af te spelen vanaf de eerste stap.",
     "restart": "Opnieuw afspelen vanaf het begin",
     "finished": "Het afspelen is klaar.",
-    "market": "Markt",
+    "market": "Land",
     "language": "Taal",
     "finishedOn": "Klaar op",
+    "cardLine": "Een verzonnen voorbeeld: één complete run, van foto’s en stem tot een kant-en-klare advertentie. De cijfers horen alleen bij deze run.",
     "loadingRuns": "Voorbeelden laden…",
     "tooManyRequests": "Er zijn nu te veel verzoeken. Wacht een paar seconden en probeer het opnieuw.",
     "loadError": "We konden de voorbeelden niet laden. Controleer je verbinding en probeer het opnieuw.",
@@ -637,7 +642,7 @@
       "monitor": "{total} stappen, klaar op {date}.",
       "conflicts": "{count, plural, one {# gegeven sprak} other {# gegevens spraken}} elkaar tegen, {open} nog open.",
       "review": "{flagged, plural, one {# zin met een probleem} other {# zinnen met een probleem}}, {images, plural, one {# ingerichte foto} other {# ingerichte foto’s}} om goed te keuren.",
-      "pack": "{files, plural, one {# bestand} other {# bestanden}} gemaakt. {ready, select, yes {Klaar om te publiceren.} other {Nog niet klaar om te publiceren.}}"
+      "pack": "{files, plural, one {# bestand} other {# bestanden}} gemaakt. {ready, select, yes {Alle controles goed: klaar voor jou om te publiceren.} other {Nog niet klaar om te publiceren.}}"
     }
   },
   "conflicts": {
@@ -887,7 +892,7 @@
     "loading": "Pakket laden…",
     "title": "Advertentiepakket",
     "backToRun": "Terug naar de run",
-    "ready": "Klaar om te publiceren: alle laatste controles zijn goed.",
+    "ready": "Alle controles goed: klaar voor jou om te publiceren.",
     "notReady": "Nog niet klaar om te publiceren",
     "notReadyText": "Minstens één laatste controle is afgekeurd. In de controlelijst in het pakket staat welke. Los dat op voordat de advertentie online gaat.",
     "preview": "Voorbeeld",
@@ -1034,6 +1039,8 @@
     },
     "ledger": {
       "intro": "Evidomo doet alle stappen zelf. Op twee momenten stopt het en wacht het op jouw keuze.",
+      "fromRun": "Deze cijfers komen uit één voorbeeld: het verzonnen driekamerappartement in Zandmeer. Andere voorbeelden hebben eigen cijfers.",
+      "fromRunLink": "Open de voorbeelden",
       "stop": "Hier stopt Evidomo",
       "scripted": "In het voorbeeld zijn deze keuzes van tevoren gemaakt.",
       "gateTitles": {
@@ -1057,6 +1064,7 @@
       "bedroomCaption": "In de rondleiding werd laminaat genoemd. Deze foto van de slaapkamer laat tapijt zien. Een door AI gemaakte foto, geen echte woning.",
       "stagingBefore": "Voor",
       "stagingAfter": "Na",
+      "stagedStamp": "Virtueel ingericht",
       "stagingCaption": "Links: een door AI gemaakte foto van een verzonnen lege kamer. Rechts: het resultaat na het inrichten, met het label “Virtueel ingericht”."
     },
     "numbers": {

@@ -6,7 +6,7 @@ const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
 
 // The locale proxy reads this cookie on a visit to `/`, so the choice sticks. It is not personal
 // data and holds only a locale code.
-function rememberLocale(locale: AppLocale): void {
+export function rememberLocale(locale: AppLocale): void {
   document.cookie = `NEXT_LOCALE=${locale}; path=/; max-age=${ONE_YEAR_SECONDS}; samesite=lax`;
 }
 

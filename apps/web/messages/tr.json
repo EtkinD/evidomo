@@ -9,7 +9,8 @@
     "projectLoadError": "Proje yüklenemedi. Bağlantınızı kontrol edip tekrar deneyin.",
     "loadingProject": "Proje yükleniyor…",
     "yes": "Evet",
-    "no": "Hayır"
+    "no": "Hayır",
+    "footnote": "Not {n}"
   },
   "shell": {
     "accountMenu": "Hesap menüsü",
@@ -23,13 +24,14 @@
     "createAccount": "Hesap oluştur",
     "mastheadLine": "Her ev için kanıt.",
     "footerTagline": "Her cümlenin nereden geldiğini gösteren ilanlar.",
-    "hackathon": "Meta hackathon sırasında geliştirildi, 26 Ekim – 4 Kasım 2026.",
+    "hackathon": "Ekim–Kasım 2026’da on günde, Meta hackathonu için yapıldı.",
     "github": "Evidomo GitHub’da",
     "theme": "Tema",
     "themeSystem": "Sistem",
     "themeLight": "Açık",
     "themeDark": "Koyu",
     "language": "Dil",
+    "languageCurrent": "Dil: {language}",
     "method": "Nasıl çalışır"
   },
   "auth": {
@@ -94,6 +96,7 @@
       "line2": "kaynağını gösteren",
       "line3": "bir ilan.",
       "lede": "Evin 10 ila 30 fotoğrafını çekin, sonra birkaç dakika boyunca evi anlatın. Evidomo ilanı yazar ve her cümlenin nereden geldiğini gösterir.",
+      "audience": "Ev satan ya da kiraya veren emlakçılar ve ev sahipleri için. Ev arayanlar için değil.",
       "notesLabel": "Fotoğraf üzerinde örnek notlar",
       "claims": {
         "windows": "İki uzun pencere",
@@ -515,6 +518,7 @@
     "duration": {
       "label": "Süre",
       "seconds": "{seconds} sn",
+      "underOne": "1 sn’den kısa",
       "minutes": "{minutes} dk {seconds} sn"
     },
     "costSoFar": "Şimdiye kadarki maliyet",
@@ -592,13 +596,14 @@
     "bannerLabel": "Bu örnek hakkında",
     "controls": "Tekrar kontrolleri",
     "speed": "Tekrar hızı",
-    "start": "Demoyu başlat",
-    "startHint": "Tekrar sizi bekliyor. Analizin nasıl ilerlediğini izlemek için düğmeye basın.",
+    "start": "Adım adım yeniden izle",
+    "startHint": "Tamamlanmış analizi görüyorsunuz. İlk adımdan tekrar oynatmak için düğmeye basın.",
     "restart": "Baştan oynat",
     "finished": "Tekrar bitti.",
-    "market": "Pazar",
+    "market": "Ülke",
     "language": "Dil",
     "finishedOn": "Bitiş",
+    "cardLine": "Kurgusal bir örnek: fotoğraf ve sesli anlatımdan hazır ilana kadar tek bir tam analiz. Sayılar yalnızca bu analize aittir.",
     "loadingRuns": "Örnekler yükleniyor…",
     "tooManyRequests": "Şu an çok fazla istek var. Birkaç saniye bekleyip tekrar deneyin.",
     "loadError": "Örnekler yüklenemedi. Bağlantınızı kontrol edip tekrar deneyin.",
@@ -637,7 +642,7 @@
       "monitor": "{total} adım, {date} tarihinde bitti.",
       "conflicts": "{count, plural, one {# bilgi} other {# bilgi}} birbirini tutmadı, {open} tanesi hâlâ açık.",
       "review": "{flagged, plural, one {# cümlede} other {# cümlede}} sorun var, onaylanacak {images, plural, one {# döşenmiş fotoğraf} other {# döşenmiş fotoğraf}} var.",
-      "pack": "{files, plural, one {# dosya} other {# dosya}} hazırlandı. {ready, select, yes {Yayına hazır.} other {Yayına hazır değil.}}"
+      "pack": "{files, plural, one {# dosya} other {# dosya}} hazırlandı. {ready, select, yes {Tüm kontroller geçti: yayınlamanız için hazır.} other {Yayına hazır değil.}}"
     }
   },
   "conflicts": {
@@ -887,7 +892,7 @@
     "loading": "İlan dosyası yükleniyor…",
     "title": "İlan dosyası",
     "backToRun": "Analize dön",
-    "ready": "Yayına hazır: tüm son kontroller geçti.",
+    "ready": "Tüm kontroller geçti: yayınlamanız için hazır.",
     "notReady": "Yayına hazır değil",
     "notReadyText": "En az bir son kontrol geçmedi. Hangisi olduğunu ilan dosyasının içindeki kontrol listesinde görürsünüz; ilan yayınlanmadan önce düzeltin.",
     "preview": "Önizleme",
@@ -1034,6 +1039,8 @@
     },
     "ledger": {
       "intro": "Evidomo her adımı kendi başına yapar. İki noktada durur ve sizin karar vermenizi bekler.",
+      "fromRun": "Bu sayılar tek bir örnekten gelir: Zandmeer’deki kurgusal üç odalı daire. Diğer örneklerin sayıları kendilerine aittir.",
+      "fromRunLink": "Örnekleri aç",
       "stop": "Evidomo burada durur",
       "scripted": "Örnekte bu kararlar önceden verilmişti.",
       "gateTitles": {
@@ -1057,6 +1064,7 @@
       "bedroomCaption": "Ses laminat dedi. Bu yatak odası fotoğrafında halı var. Yapay zekâ yapımı bir fotoğraf, gerçek bir ev değil.",
       "stagingBefore": "Önce",
       "stagingAfter": "Sonra",
+      "stagedStamp": "Sanal döşenmiş",
       "stagingCaption": "Solda: yapay zekâ yapımı, kurgusal boş bir oda fotoğrafı. Sağda: “Sanal döşenmiş” etiketli sonuç."
     },
     "numbers": {

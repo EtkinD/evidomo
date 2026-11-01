@@ -75,7 +75,7 @@ describe('pack viewer', () => {
     const frame = await screen.findByTitle<HTMLIFrameElement>('Listing pack preview');
     expect(frame.getAttribute('src')).toBe(fileUrl(HTML_ID));
     expect(frame.getAttribute('sandbox')).toBe('allow-same-origin allow-modals');
-    expect(screen.getByRole('status').textContent).toContain('Ready to publish');
+    expect(screen.getByRole('status').textContent).toContain('ready for you to publish');
     expect(screen.queryByText('Not ready to publish')).toBeNull();
   });
 

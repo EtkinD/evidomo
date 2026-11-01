@@ -23,6 +23,7 @@ function DemoRunCard({ run }: { run: DemoRun }) {
             {run.title}
           </Link>
         </h2>
+        <p className="max-w-prose">{t('cardLine')}</p>
         <dl className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-base-content/70">
           <div className="flex gap-1">
             <dt>{t('market')}</dt>

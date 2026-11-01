@@ -31,8 +31,13 @@ test.describe('demo, signed out', () => {
         slow,
       );
       await expect(page.getByRole('heading', { level: 1 })).toBeVisible(slow);
-      // No autoplay: the replay waits for the button (not pressed here, so this stays read-only).
-      await expect(page.getByRole('button', { name: 'Start the demo' })).toBeVisible(slow);
+      await expect(page.getByText(/\d+ of \d+ steps done/)).toBeVisible(slow);
+      await expect(page.getByText('0 of')).toHaveCount(0);
+      // No autoplay: the finished run shows first and the replay waits for the button (not pressed
+      // here, so this stays read-only).
+      await expect(page.getByRole('button', { name: 'Watch it again step by step' })).toBeVisible(
+        slow,
+      );
     } else {
       await expect(page).toHaveURL(/\/demo$/);
       await expect(

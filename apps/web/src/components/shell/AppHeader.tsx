@@ -4,6 +4,7 @@ import { useTranslations } from 'use-intl';
 import { useMe } from '../../lib/auth';
 import { Logo } from '../brand/Logo';
 import { AccountMenu } from './AccountMenu';
+import { HeaderLanguageMenu } from './HeaderLanguageMenu';
 
 interface NavItem {
   label: 'projects' | 'demo' | 'method';
@@ -97,6 +98,7 @@ export function AppHeader() {
         </p>
         <div className="flex flex-wrap items-center justify-end gap-1">
           <HeaderActions />
+          <HeaderLanguageMenu />
         </div>
       </div>
     </header>

@@ -70,7 +70,7 @@ test('capture, run, Gate 1, Gate 2, and export', async ({ page }) => {
   });
 
   await test.step('the pack renders and its portal fields download', async () => {
-    await expect(page.getByText('Ready to publish: every final check passed.')).toBeVisible();
+    await expect(page.getByText('All checks passed: ready for you to publish.')).toBeVisible();
     const preview = page.frameLocator('iframe[title="Listing pack preview"]');
     await expect(preview.locator('body')).toContainText('Zandmeer');
 

@@ -100,7 +100,7 @@ describe('landing page: structure', () => {
   });
 
   it('keeps the page short: within the per-block budgets', () => {
-    expect(bodyWords()).toBeLessThanOrEqual(280);
+    expect(bodyWords()).toBeLessThanOrEqual(295);
     const words = (text: string): number => text.split(/\s+/).length;
     expect(words(en.landing.hero.lede)).toBeLessThanOrEqual(30);
     for (const step of Object.values(en.landing.how.steps)) {
@@ -166,10 +166,16 @@ describe('landing page: the claim example', () => {
   it('uses a real sentence of the sample run, says it is a replay, and opens one claim', async () => {
     const main = await renderLanding();
     const sentence = main.querySelector('blockquote[lang="en"]');
-    // (The footnote numbers sit inside the sentence.)
+    // (Each footnote marker is bracketed and spaced, with a screen-reader name.)
     expect(sentence?.textContent).toMatch(
-      /^This apartment in Zandmeer\d offers 92 m²\d of living space on floor 2\d\.$/,
+      /^This apartment in Zandmeer\[1\], Note 1 offers 92 m²\[2\], Note 2 of living space on floor 2\[3\], Note 3\.$/,
     );
+    const markers = [...(sentence?.querySelectorAll('sup') ?? [])];
+    expect(markers).toHaveLength(3);
+    for (const marker of markers) {
+      expect(marker.querySelector('[aria-hidden]')?.textContent).toMatch(/^\[\d\]$/);
+      expect(marker.querySelector('.sr-only')?.textContent).toMatch(/^, Note \d$/);
+    }
     expect(main.textContent).toMatch(/made-up apartment, replayed from saved results/);
     const area = within(main).getByRole('button', { name: /Living area/ });
     expect(area.getAttribute('aria-pressed')).toBe('true');

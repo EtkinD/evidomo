@@ -188,7 +188,7 @@ describe('footer', () => {
 
     expect(within(footer).getByText('Evidomo')).toBeDefined();
     expect(
-      within(footer).getByText(/Built during the Meta hackathon, Oct 26 – Nov 4, 2026/),
+      within(footer).getByText(/Made in ten days, Oct–Nov 2026, for the Meta hackathon/),
     ).toBeDefined();
     // The repository link, then the five languages (the language switcher).
     const links = within(footer).getAllByRole('link');

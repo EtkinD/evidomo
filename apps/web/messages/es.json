@@ -9,7 +9,8 @@
     "projectLoadError": "No hemos podido cargar este proyecto. Revisa tu conexión e inténtalo de nuevo.",
     "loadingProject": "Cargando el proyecto…",
     "yes": "Sí",
-    "no": "No"
+    "no": "No",
+    "footnote": "Nota {n}"
   },
   "shell": {
     "accountMenu": "Menú de la cuenta",
@@ -23,13 +24,14 @@
     "createAccount": "Crear cuenta",
     "mastheadLine": "Cada vivienda, con sus pruebas.",
     "footerTagline": "Anuncios que muestran de dónde sale cada frase.",
-    "hackathon": "Creado durante el hackathon de Meta, del 26 de oct. al 4 de nov. de 2026.",
+    "hackathon": "Hecho en diez días, en octubre–noviembre de 2026, para el hackathon de Meta.",
     "github": "Evidomo en GitHub",
     "theme": "Tema",
     "themeSystem": "Sistema",
     "themeLight": "Claro",
     "themeDark": "Oscuro",
     "language": "Idioma",
+    "languageCurrent": "Idioma: {language}",
     "method": "Cómo funciona"
   },
   "auth": {
@@ -94,6 +96,7 @@
       "line2": "cada frase muestra",
       "line3": "de dónde sale.",
       "lede": "Haz de 10 a 30 fotos de la vivienda y cuéntala en voz alta durante unos minutos. Evidomo redacta el anuncio y muestra de dónde sale cada frase.",
+      "audience": "Para agentes y propietarios que venden o alquilan una vivienda. No para quien la busca.",
       "notesLabel": "Notas de ejemplo sobre la foto",
       "claims": {
         "windows": "Dos ventanas altas",
@@ -515,6 +518,7 @@
     "duration": {
       "label": "Duración",
       "seconds": "{seconds} s",
+      "underOne": "menos de 1 s",
       "minutes": "{minutes} min {seconds} s"
     },
     "costSoFar": "Coste hasta ahora",
@@ -592,13 +596,14 @@
     "bannerLabel": "Sobre este ejemplo",
     "controls": "Controles de reproducción",
     "speed": "Velocidad de reproducción",
-    "start": "Empezar el ejemplo",
-    "startHint": "La reproducción espera. Pulsa el botón para ver cómo avanza el proceso.",
+    "start": "Volver a verlo paso a paso",
+    "startHint": "Estás viendo el proceso terminado. Pulsa el botón para reproducirlo de nuevo desde el primer paso.",
     "restart": "Volver a empezar",
     "finished": "La reproducción ha terminado.",
-    "market": "Mercado",
+    "market": "País",
     "language": "Idioma",
     "finishedOn": "Terminado el",
+    "cardLine": "Un ejemplo inventado: un proceso completo, desde fotos y voz hasta un anuncio terminado. Las cifras son solo de este proceso.",
     "loadingRuns": "Cargando los ejemplos…",
     "tooManyRequests": "Demasiadas solicitudes ahora mismo. Espera unos segundos e inténtalo de nuevo.",
     "loadError": "No hemos podido cargar los ejemplos. Revisa tu conexión e inténtalo de nuevo.",
@@ -637,7 +642,7 @@
       "monitor": "{total} pasos, terminado el {date}.",
       "conflicts": "{count, plural, one {# dato no coincidía} other {# datos no coincidían}}, {open} sin resolver.",
       "review": "{flagged, plural, one {# frase con un problema} other {# frases con un problema}}, {images, plural, one {# foto amueblada por aprobar} other {# fotos amuebladas por aprobar}}.",
-      "pack": "{files, plural, one {# archivo creado} other {# archivos creados}}. {ready, select, yes {Listo para publicar.} other {Todavía no se puede publicar.}}"
+      "pack": "{files, plural, one {# archivo creado} other {# archivos creados}}. {ready, select, yes {Todas las comprobaciones superadas: listo para que lo publiques.} other {Todavía no se puede publicar.}}"
     }
   },
   "conflicts": {
@@ -887,7 +892,7 @@
     "loading": "Cargando el paquete…",
     "title": "Paquete del anuncio",
     "backToRun": "Volver al proceso",
-    "ready": "Listo para publicar: ha pasado todas las comprobaciones finales.",
+    "ready": "Todas las comprobaciones superadas: listo para que lo publiques.",
     "notReady": "Todavía no se puede publicar",
     "notReadyText": "Ha fallado al menos una comprobación final. La lista de control del paquete indica cuál; corrígela antes de publicar este anuncio.",
     "preview": "Vista previa",
@@ -1034,6 +1039,8 @@
     },
     "ledger": {
       "intro": "Evidomo hace cada paso por sí solo. En dos momentos se detiene y espera tu decisión.",
+      "fromRun": "Estas cifras salen de un solo ejemplo: el apartamento inventado de tres estancias en Zandmeer. Los demás ejemplos tienen las suyas.",
+      "fromRunLink": "Abrir los ejemplos",
       "stop": "Evidomo se detiene aquí",
       "scripted": "En el ejemplo, estas decisiones estaban tomadas de antemano.",
       "gateTitles": {
@@ -1057,6 +1064,7 @@
       "bedroomCaption": "La voz dijo laminado. Esta foto del dormitorio muestra moqueta. Foto hecha con IA, no de una vivienda real.",
       "stagingBefore": "Antes",
       "stagingAfter": "Después",
+      "stagedStamp": "Amueblado virtualmente",
       "stagingCaption": "Izquierda: foto hecha con IA de una estancia vacía inventada. Derecha: el resultado amueblado, con la etiqueta “Virtually staged”."
     },
     "numbers": {

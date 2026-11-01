@@ -24,6 +24,12 @@ test.describe('landing page', () => {
     await expect(page.locator('mark.claim')).toHaveCount(1);
   });
 
+  test('says near the top who it is for', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.getByRole('main')).toContainText('For agents and owners who list a home');
+    await expect(page.getByRole('main')).toContainText('Not for people searching');
+  });
+
   test('says what goes in: 10 to 30 photos and a voice walkthrough, and that video is not used', async ({
     page,
   }) => {

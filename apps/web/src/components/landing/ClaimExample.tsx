@@ -46,6 +46,7 @@ function EvidenceItem({ item }: { item: ExampleEvidence }) {
  */
 export function ClaimExample() {
   const t = useTranslations('landing.evidence');
+  const tCommon = useTranslations('common');
   const tStamps = useTranslations('stamps');
   const [selected, setSelected] = useState<ExampleClaimId>(EXAMPLE_FIRST_CLAIM);
   const claimText = EXAMPLE_PARTS.find((part) => 'claim' in part && part.claim === selected)?.text;
@@ -84,11 +85,12 @@ export function ClaimExample() {
                     >
                       {part.text}
                     </mark>
-                    <sup
-                      aria-hidden
-                      className="ml-0.5 font-sans text-[0.4em] font-semibold text-primary"
-                    >
-                      {CLAIMS.indexOf(part.claim) + 1}
+                    <sup className="ml-1.5 font-sans text-[0.45em] font-semibold tracking-wide text-primary">
+                      {/* Bracketed and spaced so "1987" never reads as "19871"; a screen reader gets the note by name. */}
+                      <span aria-hidden>[{CLAIMS.indexOf(part.claim) + 1}]</span>
+                      <span className="sr-only">
+                        , {tCommon('footnote', { n: CLAIMS.indexOf(part.claim) + 1 })}
+                      </span>
                     </sup>
                   </span>
                 ) : (

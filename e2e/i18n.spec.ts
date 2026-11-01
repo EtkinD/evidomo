@@ -43,6 +43,25 @@ test.describe('browser language Turkish', () => {
   });
 });
 
+test.describe('the language menu in the header', () => {
+  test('a visitor on a deep link switches language from the masthead', async ({ page }) => {
+    await page.goto('/method');
+    const button = page.getByRole('banner').getByRole('button', { name: 'Language: English' });
+    const box = await button.boundingBox();
+    expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
+    expect(box?.width ?? 0).toBeGreaterThanOrEqual(44);
+    await button.click();
+    await page.getByRole('banner').getByRole('link', { name: 'Türkçe' }).click();
+    await expect(page).toHaveURL(/\/tr\/method$/);
+    await expect(page.locator('html')).toHaveAttribute('lang', 'tr');
+    await expect(
+      page.getByRole('banner').getByRole('button', { name: 'Dil: Türkçe' }),
+    ).toBeVisible();
+    // The footer switcher still works next to it.
+    await expect(page.getByRole('navigation', { name: 'Dil' })).toBeVisible();
+  });
+});
+
 test.describe('a browser language the app does not offer', () => {
   test.use({ locale: 'de-DE' });
 

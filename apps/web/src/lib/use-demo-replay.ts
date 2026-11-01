@@ -16,10 +16,11 @@ import { RECONNECT_NOTICE_DELAY_MS, type RunMonitor, type StreamState } from './
 
 export interface DemoReplay {
   monitor: RunMonitor;
-  /** The viewer pressed "start"; nothing streams before that. */
+  /** The viewer pressed the replay button; nothing streams before that. */
   started: boolean;
+  /** Resets the run to its beginning and plays it, whatever state the replay is in. */
   start: () => void;
-  /** Starts again from the first event, whatever state the replay is in. */
+  /** Starts again from the first event; the same reset as `start`. */
   restart: () => void;
   /** The replay reached its end (the stream said so). */
   finished: boolean;
@@ -34,10 +35,11 @@ function rawSeq(data: unknown): number {
 }
 
 /**
- * The run monitor's data for a demo: the finished run's snapshot is read once, taken back to
- * "nothing started", and the demo stream's stored events move it forward at their original pace
- * (`speed`, as displayed to the viewer, multiplies the halved base pace). Nothing streams until
- * `start()` is called; a new page load waits again. Unlike the live monitor it never refetches the
+ * The run monitor's data for a demo: the finished run's snapshot is read once and shown as it is
+ * (all steps done, matching the header and the folder). Only when the viewer presses the replay
+ * button is it taken back to "nothing started" and moved forward by the demo stream's stored
+ * events at their original pace (`speed`, as displayed to the viewer, multiplies the halved base
+ * pace). Nothing streams until `start()` is called; a new page load shows the finished run again. Unlike the live monitor it never refetches the
  * snapshot mid-replay, which would show the end result at once. Changing `speed` reconnects from the last event seen;
  * after the replay ended it only applies to the next replay. Mount it with `key={runId}`.
  */
@@ -69,13 +71,8 @@ export function useDemoReplay(runId: string, speed: number): DemoReplay {
   useEffect(() => {
     if (final === undefined || armedRef.current) return;
     armedRef.current = true;
-    setReplay(replayStart(final));
+    setReplay(final);
   }, [final]);
-
-  const start = useCallback(() => {
-    setStreamState('connecting');
-    setStarted(true);
-  }, []);
 
   const restart = useCallback(() => {
     const current = finalRef.current;
@@ -180,7 +177,7 @@ export function useDemoReplay(runId: string, speed: number): DemoReplay {
       retryStream,
     },
     started,
-    start,
+    start: restart,
     restart,
     finished,
   };

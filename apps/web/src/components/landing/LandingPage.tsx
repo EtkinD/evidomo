@@ -111,6 +111,7 @@ function Hero() {
           <p className="max-w-prose font-display text-xl leading-relaxed md:text-2xl">
             {t('lede')}
           </p>
+          <p className="max-w-prose text-base-content/70">{t('audience')}</p>
           <Actions surface="light" />
         </div>
 

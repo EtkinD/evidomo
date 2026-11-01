@@ -160,10 +160,10 @@ async function renderUnstartedMonitor() {
   return view;
 }
 
-/** Renders the monitor and presses "Start the demo". */
+/** Renders the monitor and presses "Watch it again step by step". */
 async function renderMonitor() {
   const view = await renderUnstartedMonitor();
-  fireEvent.click(await screen.findByRole('button', { name: 'Start the demo' }));
+  fireEvent.click(await screen.findByRole('button', { name: 'Watch it again step by step' }));
   await waitFor(() => {
     expect(FakeEventSource.instances).toHaveLength(1);
   });
@@ -214,6 +214,7 @@ describe('demo list', () => {
     expect(card?.textContent).toContain('Netherlands');
     expect(card?.textContent).toContain('English');
     expect(card?.textContent).toContain('Oct 29, 2026');
+    expect(card?.textContent).toContain('A made-up example: one complete run');
     expect(screen.queryByText(/redirect|log in to/i)).toBeNull();
     expect((await screen.findByRole('link', { name: other.title })).getAttribute('href')).toBe(
       `/demo/runs/${OTHER_RUN_ID}`,
@@ -380,15 +381,18 @@ describe('demo replay monitor', () => {
     expectOnlyPublicReads(fetchMock);
   });
 
-  it('waits for the start button: nothing streams or progresses before it is pressed', async () => {
+  it('shows the finished run first: nothing streams or resets until the replay button is pressed', async () => {
     const fetchMock = mockDemo();
     await renderUnstartedMonitor();
 
-    expect(screen.getByRole('button', { name: 'Start the demo' })).toBeDefined();
+    // Matches the header and the folder: every step done, no speed control yet.
+    expect(within(stepItem('intake')).getByText('Done')).toBeDefined();
+    expect(within(stepItem('write')).getByText('Done')).toBeDefined();
+    expect(screen.queryByText('Waiting')).toBeNull();
+    expect(screen.getByText('3 of 3 steps done')).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Watch it again step by step' })).toBeDefined();
     expect(screen.queryByRole('button', { name: 'Replay from the start' })).toBeNull();
     expect(screen.queryByRole('radio', { name: '1×' })).toBeNull();
-    expect(within(stepItem('intake')).getByText('Waiting')).toBeDefined();
-    expect(screen.getByText('0 of 3 steps done')).toBeDefined();
     // Give a stray effect the chance to open a stream.
     await act(async () => {
       await Promise.resolve();
@@ -396,20 +400,40 @@ describe('demo replay monitor', () => {
     expect(FakeEventSource.instances).toHaveLength(0);
     expect(fetchMock.mock.calls.filter(([url]) => url === DEMO_RUN)).toHaveLength(1);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Start the demo' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Watch it again step by step' }));
     await waitFor(() => {
       expect(FakeEventSource.instances).toHaveLength(1);
     });
-    expect(screen.queryByRole('button', { name: 'Start the demo' })).toBeNull();
+    // Pressed: the run is taken back to its beginning and streams at the halved pace.
+    expect(FakeEventSource.last.url).toBe(`${DEMO_RUN}/events?speed=0.5`);
+    expect(within(stepItem('intake')).getByText('Waiting')).toBeDefined();
+    expect(screen.getByText('0 of 3 steps done')).toBeDefined();
+    expect(screen.queryByRole('button', { name: 'Watch it again step by step' })).toBeNull();
     expect(screen.getByRole('radio', { name: '1×' })).toHaveProperty('checked', true);
     // Focus stays inside the controls instead of falling to the page.
     expect(document.activeElement).toBe(screen.getByRole('region', { name: 'Replay controls' }));
   });
 
+  it('shows the finished run again after a reload', async () => {
+    mockDemo();
+    const first = await renderUnstartedMonitor();
+    fireEvent.click(screen.getByRole('button', { name: 'Watch it again step by step' }));
+    await waitFor(() => {
+      expect(screen.getByText('0 of 3 steps done')).toBeDefined();
+    });
+    first.unmount();
+    FakeEventSource.instances = [];
+
+    await renderUnstartedMonitor();
+    expect(screen.getByText('3 of 3 steps done')).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Watch it again step by step' })).toBeDefined();
+    expect(FakeEventSource.instances).toHaveLength(0);
+  });
+
   it('plays every offered speed at half its pace', async () => {
     mockDemo();
     await renderUnstartedMonitor();
-    fireEvent.click(screen.getByRole('button', { name: 'Start the demo' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Watch it again step by step' }));
     await waitFor(() => {
       expect(FakeEventSource.instances).toHaveLength(1);
     });
@@ -596,7 +620,10 @@ describe('demo replay monitor', () => {
     await renderMonitor();
 
     // Replay controls only change how stored events are played; nothing here writes.
-    const buttons = screen.getAllByRole('button').map((b) => b.textContent);
+    const buttons = screen
+      .getAllByRole('button')
+      .filter((b) => !b.getAttribute('aria-label')?.startsWith('Language:'))
+      .map((b) => b.textContent);
     expect(buttons.filter((t) => t !== 'Replay from the start' && !/account/i.test(t))).toEqual([]);
     const head = screen.getByRole('region', { name: 'About this example' });
     expect(head.textContent).toMatch(
@@ -905,7 +932,9 @@ describe('demo folder: cover and tabs', () => {
       expect(nav.textContent).toContain('3 steps, finished Oct 29, 2026.');
       expect(nav.textContent).toContain('3 facts disagreed, 0 still open.');
       expect(nav.textContent).toMatch(/sentences? with a problem, \d+ staged photos? to approve\./);
-      expect(nav.textContent).toMatch(/2 files built\. (Ready|Not ready) to publish\./);
+      expect(nav.textContent).toMatch(
+        /2 files built\. (All checks passed: ready for you to publish|Not ready to publish)\./,
+      );
     });
   });
 

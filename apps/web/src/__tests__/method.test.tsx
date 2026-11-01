@@ -215,3 +215,25 @@ describe('/method: §4 how well it works and §5 what it will not do', () => {
     expect(main.textContent).not.toMatch(/\bEU\b|Europe|GDPR/);
   });
 });
+
+describe('/method: round 8 clarity fixes', () => {
+  it('separates footnote markers from numbers and gives each an accessible name', () => {
+    const main = renderMethod();
+    const sentence = main.querySelector('blockquote[lang="en"]');
+    expect(sentence?.textContent).toBe(
+      'The building dates from 1987[1], Note 1 and has energy label B[2], Note 2 issued in 2023[3], Note 3.',
+    );
+    for (const marker of sentence?.querySelectorAll('sup') ?? []) {
+      expect(marker.querySelector('[aria-hidden]')?.textContent).toMatch(/^\[\d\]$/);
+      expect(marker.querySelector('.sr-only')?.textContent).toMatch(/^, Note \d$/);
+    }
+  });
+
+  it('says which example its numbers come from and links to the examples', () => {
+    const main = renderMethod();
+    const note = within(main).getByText(/are from one example: the made-up three-room apartment/);
+    expect(note.textContent).toContain('Other examples differ');
+    const link = within(note).getByRole('link', { name: 'All examples' });
+    expect(link.getAttribute('href')).toBe('/demo');
+  });
+});

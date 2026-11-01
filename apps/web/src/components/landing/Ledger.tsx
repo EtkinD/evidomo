@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { useTranslations } from 'use-intl';
 import { LEDGER_PARAMS, LEDGER_ROWS, type LedgerRowId } from '../../lib/sample-run';
 import { Stamp } from '../Stamp';
@@ -30,8 +31,8 @@ function RowPhotos({ kind }: { kind: 'bedroom' | 'staging' }) {
               ) : (
                 <>
                   {t('stagingAfter')}
-                  {/* The label the pack carries on every staged image (the model's own, in English). */}
-                  <Stamp tone="staged">Virtually staged</Stamp>
+                  {/* The UI caption is translated; the label burned into the image stays English. */}
+                  <Stamp tone="staged">{t('stagedStamp')}</Stamp>
                 </>
               )}
             </p>
@@ -60,6 +61,12 @@ export function Ledger() {
   return (
     <div className="flex flex-col gap-4">
       <p className="max-w-prose text-base-content/70">{t('intro')}</p>
+      <p className="max-w-prose">
+        {t('fromRun')}{' '}
+        <Link href="/demo" className="inline-flex min-h-11 items-center underline">
+          {t('fromRunLink')}
+        </Link>
+      </p>
       <ol className="flex flex-col">
         {LEDGER_ROWS.map((row, index) => {
           const gate = row.kind === 'gate';

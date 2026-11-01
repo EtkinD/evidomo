@@ -9,7 +9,8 @@
     "projectLoadError": "We could not load this project. Check your connection and try again.",
     "loadingProject": "Loading the project…",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "footnote": "Note {n}"
   },
   "shell": {
     "accountMenu": "Account menu",
@@ -23,13 +24,14 @@
     "createAccount": "Create account",
     "mastheadLine": "Evidence for every home.",
     "footerTagline": "Listings that show where every sentence came from.",
-    "hackathon": "Built during the Meta hackathon, Oct 26 – Nov 4, 2026.",
+    "hackathon": "Made in ten days, Oct–Nov 2026, for the Meta hackathon.",
     "github": "Evidomo on GitHub",
     "theme": "Theme",
     "themeSystem": "System",
     "themeLight": "Light",
     "themeDark": "Dark",
     "language": "Language",
+    "languageCurrent": "Language: {language}",
     "method": "How it works"
   },
   "auth": {
@@ -94,6 +96,7 @@
       "line2": "every sentence shows",
       "line3": "where it came from.",
       "lede": "Take 10 to 30 photos of the home and talk through it for a few minutes. Evidomo writes the listing and shows where every sentence came from.",
+      "audience": "For agents and owners who list a home to sell or rent. Not for people searching.",
       "notesLabel": "Example notes on the photo",
       "claims": {
         "windows": "Two tall windows",
@@ -515,6 +518,7 @@
     "duration": {
       "label": "Duration",
       "seconds": "{seconds} s",
+      "underOne": "under 1 s",
       "minutes": "{minutes} min {seconds} s"
     },
     "costSoFar": "Cost so far",
@@ -592,13 +596,14 @@
     "bannerLabel": "About this example",
     "controls": "Replay controls",
     "speed": "Replay speed",
-    "start": "Start the demo",
-    "startHint": "The replay waits for you. Press the button to watch the run unfold.",
+    "start": "Watch it again step by step",
+    "startHint": "You are seeing the finished run. Press the button to play it again from the first step.",
     "restart": "Replay from the start",
     "finished": "The replay has finished.",
-    "market": "Market",
+    "market": "Country",
     "language": "Language",
     "finishedOn": "Finished",
+    "cardLine": "A made-up example: one complete run, from photos and voice to a finished listing. Its numbers belong to this run only.",
     "loadingRuns": "Loading the examples…",
     "tooManyRequests": "Too many requests right now. Wait a few seconds and try again.",
     "loadError": "We could not load the examples. Check your connection and try again.",
@@ -637,7 +642,7 @@
       "monitor": "{total} steps, finished {date}.",
       "conflicts": "{count, plural, one {# fact} other {# facts}} disagreed, {open} still open.",
       "review": "{flagged, plural, one {# sentence} other {# sentences}} with a problem, {images, plural, one {# staged photo} other {# staged photos}} to approve.",
-      "pack": "{files, plural, one {# file} other {# files}} built. {ready, select, yes {Ready to publish.} other {Not ready to publish.}}"
+      "pack": "{files, plural, one {# file} other {# files}} built. {ready, select, yes {All checks passed: ready for you to publish.} other {Not ready to publish.}}"
     }
   },
   "conflicts": {
@@ -887,7 +892,7 @@
     "loading": "Loading the pack…",
     "title": "Listing pack",
     "backToRun": "Back to the run",
-    "ready": "Ready to publish: every final check passed.",
+    "ready": "All checks passed: ready for you to publish.",
     "notReady": "Not ready to publish",
     "notReadyText": "At least one final check failed. The checklist inside the pack shows which; fix it before this listing goes out.",
     "preview": "Preview",
@@ -1034,6 +1039,8 @@
     },
     "ledger": {
       "intro": "Evidomo does every step by itself. At two points it stops and waits for you to decide.",
+      "fromRun": "These numbers are from one example: the made-up three-room apartment in Zandmeer. Other examples differ.",
+      "fromRunLink": "All examples",
       "stop": "Evidomo stops here",
       "scripted": "In the example, these choices were made ahead of time.",
       "gateTitles": {
@@ -1057,6 +1064,7 @@
       "bedroomCaption": "The voice said laminate. This bedroom photo shows carpet. An AI-made photo, not a real home.",
       "stagingBefore": "Before",
       "stagingAfter": "After",
+      "stagedStamp": "Virtually staged",
       "stagingCaption": "Left: an AI-made photo of an invented empty room. Right: the staged result, labelled “Virtually staged”."
     },
     "numbers": {

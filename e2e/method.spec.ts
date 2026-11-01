@@ -54,6 +54,18 @@ test.describe('method page', () => {
     await expect(page.getByRole('contentinfo').locator('a[href*="github.com"]')).toHaveCount(1);
   });
 
+  test('separates footnote markers from the numbers and says which example the numbers come from', async ({
+    page,
+  }) => {
+    await page.goto('/method');
+    const sentence = page.locator('blockquote[lang="en"]');
+    await expect(sentence).toContainText('1987[1]');
+    await expect(sentence.locator('sup .sr-only').first()).toHaveText(', Note 1');
+    const note = page.locator('#example').getByText(/These numbers are from one example/);
+    await expect(note).toContainText('Zandmeer');
+    await expect(note.getByRole('link', { name: 'All examples' })).toHaveAttribute('href', '/demo');
+  });
+
   for (const width of [320, 390]) {
     test(`fits ${width} px without horizontal scroll, with 44 px targets, masthead included`, async ({
       page,
