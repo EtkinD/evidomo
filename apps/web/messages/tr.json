@@ -140,12 +140,12 @@
       "rests": "“{claim}” neye dayanıyor",
       "claims": {
         "place": "Yer",
-        "area": "Oturma alanı",
+        "area": "Yaşam alanı",
         "floor": "Kat"
       },
       "fields": {
         "place_name": "Yer",
-        "living_area": "Oturma alanı"
+        "living_area": "Yaşam alanı"
       }
     },
     "trust": {
