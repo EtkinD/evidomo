@@ -915,6 +915,9 @@
     "print": "Stampa / Salva come PDF",
     "fullScreen": "Apri a schermo intero",
     "downloads": "Download",
+    "downloadAll": "Scarica tutto (ZIP)",
+    "downloadAllLabel": "Scarica tutti i file come ZIP",
+    "downloadAllHint": "Circa {size}, {count, plural, one {# file} other {# file}}",
     "images": "Immagini ({count})",
     "files": {
       "html": "Pacchetto annuncio (HTML)",

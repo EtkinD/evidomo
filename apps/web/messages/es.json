@@ -915,6 +915,9 @@
     "print": "Imprimir / Guardar como PDF",
     "fullScreen": "Abrir en pantalla completa",
     "downloads": "Descargas",
+    "downloadAll": "Descargar todo (ZIP)",
+    "downloadAllLabel": "Descargar todos los archivos como ZIP",
+    "downloadAllHint": "Unos {size}, {count, plural, one {# archivo} other {# archivos}}",
     "images": "Imágenes ({count})",
     "files": {
       "html": "Paquete de anuncio (HTML)",

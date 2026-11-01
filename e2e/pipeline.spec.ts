@@ -74,6 +74,13 @@ test('capture, run, Gate 1, Gate 2, and export', async ({ page }) => {
     const preview = page.frameLocator('iframe[title="Listing pack preview"]');
     await expect(preview.locator('body')).toContainText('Zandmeer');
 
+    const zipLink = page.getByRole('link', { name: 'Download all files as a ZIP' });
+    await expect(zipLink).toHaveAttribute('href', /\/api\/runs\/[0-9a-f-]{36}\/export\/archive$/);
+    const zip = await page.request.get((await zipLink.getAttribute('href')) ?? '');
+    expect(zip.status()).toBe(200);
+    expect(zip.headers()['content-type']).toContain('application/zip');
+    expect((await zip.body()).subarray(0, 4)).toEqual(Buffer.from([0x50, 0x4b, 0x03, 0x04]));
+
     const downloading = page.waitForEvent('download');
     await page.getByRole('link', { name: 'Download portal-fields.json' }).click();
     const download = await downloading;

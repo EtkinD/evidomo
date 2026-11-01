@@ -49,6 +49,7 @@ function FileRow({ file }: { file: RunExportFile }) {
 
 function PackReady({ pack }: { pack: RunExportResponse }) {
   const t = useTranslations('pack');
+  const format = useFormatter();
   const frame = useRef<HTMLIFrameElement>(null);
   const [html, ...rest] = pack.files;
   if (html === undefined) return null;
@@ -114,6 +115,26 @@ function PackReady({ pack }: { pack: RunExportResponse }) {
         <h2 id="pack-files-heading" className="text-2xl font-medium">
           {t('downloads')}
         </h2>
+        <div className="flex flex-col items-start gap-2 bg-base-100 p-4 shadow-sheet sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-base-content/70">
+            {t('downloadAllHint', {
+              size: formatBytes(
+                t,
+                format,
+                pack.files.reduce((sum, f) => sum + f.sizeBytes, 0),
+              ),
+              count: pack.files.length,
+            })}
+          </p>
+          <a
+            href={pack.archiveUrl}
+            download
+            className="btn btn-primary min-h-11 w-full sm:w-auto"
+            aria-label={t('downloadAllLabel')}
+          >
+            {t('downloadAll')}
+          </a>
+        </div>
         <ul className="flex flex-col bg-base-100 px-4 py-2 shadow-sheet">
           <FileRow file={html} />
           {json !== undefined && <FileRow file={json} />}

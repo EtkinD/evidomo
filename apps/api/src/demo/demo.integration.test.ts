@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { mkdtemp, rm } from 'node:fs/promises';
 import type { Server } from 'node:http';
 import { tmpdir } from 'node:os';
@@ -10,6 +10,7 @@ import {
   demoArtifactFileUrl,
   demoClaimAuditGateResponseSchema,
   demoClaimAuditGateUrl,
+  demoExportArchiveUrl,
   demoExportUrl,
   demoFactConflictsGateUrl,
   demoFactMaskUrl,
@@ -48,6 +49,7 @@ import {
 } from '../db/testing.ts';
 import { loadDefinitions, type DefinitionRegistry } from '../definitions/loader.ts';
 import { loadEnv } from '../env.ts';
+import { parseZip } from '../export/zip-testing.ts';
 import { unusedRunDeps } from '../http/testing.ts';
 import { createLogger } from '../logger.ts';
 import { openSse } from '../run-api/testing.ts';
@@ -252,6 +254,7 @@ describe('demo API', () => {
       expectNotFound(await request(app).get(demoRunUrl(runId)));
       expectNotFound(await request(app).get(demoFactConflictsGateUrl(runId)));
       expectNotFound(await request(app).get(demoExportUrl(runId)));
+      expectNotFound(await request(app).get(demoExportArchiveUrl(runId)));
     }
     expect((await request(app).get('/api/demo/runs/not-a-uuid')).status).toBe(400);
     // The customer's run is completed and listed, but not the demo owner's: never served.
@@ -373,6 +376,45 @@ describe('demo API', () => {
     expect(page.text).toContain('Virtually staged');
     const fields = await request(app).get(json.url);
     expect(fields.headers['content-disposition']).toBe('attachment; filename="portal-fields.json"');
+  });
+
+  it('serves the export archive of a published run with the public cache policy', async () => {
+    const manifest = demoRunExportResponseSchema.parse(
+      (await request(app).get(demoExportUrl(first.runId))).body,
+    );
+    expect(manifest.archiveUrl).toBe(demoExportArchiveUrl(first.runId));
+    const response = await request(app)
+      .get(manifest.archiveUrl)
+      .buffer(true)
+      .parse((res, done) => {
+        const chunks: Buffer[] = [];
+        res.on('data', (chunk: Buffer) => chunks.push(chunk));
+        res.on('end', () => {
+          done(null, Buffer.concat(chunks));
+        });
+      });
+    expect(response.status).toBe(200);
+    expect(response.headers['content-type']).toBe('application/zip');
+    expect(response.headers['content-disposition']).toBe(
+      `attachment; filename="evidomo-listing-pack-${first.runId.slice(0, 8)}.zip"`,
+    );
+    expect(response.headers['cache-control']).toBe('public, max-age=3600, no-transform');
+    const zip: unknown = response.body;
+    if (!Buffer.isBuffer(zip)) throw new Error('Expected a binary body');
+    expect(response.headers['content-length']).toBe(String(zip.byteLength));
+    const entries = parseZip(zip);
+    expect(entries.map((e) => e.name)).toEqual(manifest.files.map((f) => f.fileName));
+    expect(entries.map((e) => createHash('sha256').update(e.bytes).digest('hex'))).toEqual(
+      manifest.files.map((f) => f.sha256),
+    );
+
+    // One archive is one request for the per-IP limiter.
+    const limited = buildApp({
+      runIds: [first.runId],
+      requestLimit: { limit: 1, windowMs: 60_000 },
+    });
+    expect((await request(limited).head(manifest.archiveUrl)).status).toBe(200);
+    expect((await request(limited).get(manifest.archiveUrl)).status).toBe(429);
   });
 
   it('cannot change anything: no other methods, and the database is untouched', async () => {

@@ -1,10 +1,12 @@
 import {
+  demoExportArchiveUrl,
   demoExportFileUrl,
   demoRunExportResponseSchema,
   EXPORT_MANIFEST_ARTIFACT_KIND,
   PHOTO_INVENTORY_ARTIFACT_KIND,
   TRANSCRIPT_ARTIFACT_KIND,
   photoInventoryContentSchema,
+  runExportArchiveUrl,
   runExportResponseSchema,
   runExportFileUrl,
   runSnapshotSchema,
@@ -175,7 +177,16 @@ export interface ServableExportFile {
   readonly role: ExportFileRole;
   readonly fileName: string;
   readonly mimeType: 'text/html' | 'application/json' | 'image/jpeg';
+  readonly sizeBytes: number;
   readonly sha256: string;
+}
+
+/** Every file of the stored export, in manifest order, for the ZIP route. */
+export interface ServableExportArchive {
+  readonly manifestArtifactId: string;
+  /** When the export step stored the manifest: the archive's (deterministic) file timestamp. */
+  readonly storedAt: Date;
+  readonly files: readonly ServableExportFile[];
 }
 
 /** A `photo_region` fact that cites a mask: what identifies its overlay (and versions it). */
@@ -212,6 +223,8 @@ export interface RunApiService {
   /** `undefined` when the run has no export yet. File links default to the owner's API. */
   exportManifest(run: Run, links?: ExportLinks): Promise<RunExportResponse | undefined>;
   exportFile(run: Run, artifactId: string): Promise<ServableExportFile | undefined>;
+  /** `undefined` when the run has no export yet. */
+  exportArchive(run: Run): Promise<ServableExportArchive | undefined>;
 }
 
 export function createRunApiService({
@@ -225,6 +238,26 @@ export function createRunApiService({
   async function runArtifact(run: Run, artifactId: string): Promise<Artifact | undefined> {
     const artifact = await getArtifact(db, artifactId);
     return artifact?.runId === run.id ? artifact : undefined;
+  }
+
+  /** A manifest entry with its stored file; a missing artifact or file is a broken export. */
+  async function servableExportFile(
+    run: Run,
+    file: ExportManifestContent['files'][number],
+  ): Promise<ServableExportFile> {
+    const artifact = await runArtifact(run, file.artifactId);
+    // The manifest lists only file artifacts of this run; anything else is a broken export.
+    if (artifact?.storageKey == null) {
+      throw new Error('An export manifest lists an artifact without a stored file');
+    }
+    return {
+      artifact: { ...artifact, storageKey: artifact.storageKey },
+      role: file.role,
+      fileName: file.fileName,
+      mimeType: file.mimeType,
+      sizeBytes: file.sizeBytes,
+      sha256: file.sha256,
+    };
   }
 
   /**
@@ -381,6 +414,7 @@ export function createRunApiService({
       if (stored === undefined) return undefined;
       const { manifest } = stored;
       const fileUrl = links === 'owner' ? runExportFileUrl : demoExportFileUrl;
+      const archiveUrl = links === 'owner' ? runExportArchiveUrl : demoExportArchiveUrl;
       const schema = links === 'owner' ? runExportResponseSchema : demoRunExportResponseSchema;
       return schema.parse({
         runId: run.id,
@@ -388,6 +422,7 @@ export function createRunApiService({
         approvedPackArtifactId: manifest.approvedPackArtifactId,
         readyToPublish: manifest.readyToPublish,
         counts: manifest.counts,
+        archiveUrl: archiveUrl(run.id),
         files: manifest.files.map((file) => ({
           ...file,
           url: fileUrl(run.id, file.artifactId),
@@ -399,18 +434,18 @@ export function createRunApiService({
     async exportFile(run, artifactId) {
       const stored = await loadRunExport(db, run.id);
       const file = stored?.manifest.files.find((entry) => entry.artifactId === artifactId);
-      if (file === undefined) return undefined;
-      const artifact = await runArtifact(run, artifactId);
-      // The manifest lists only file artifacts of this run; anything else is a broken export.
-      if (artifact?.storageKey == null) {
-        throw new Error('An export manifest lists an artifact without a stored file');
-      }
+      return file === undefined ? undefined : servableExportFile(run, file);
+    },
+
+    async exportArchive(run) {
+      const stored = await loadRunExport(db, run.id);
+      if (stored === undefined) return undefined;
+      const files: ServableExportFile[] = [];
+      for (const file of stored.manifest.files) files.push(await servableExportFile(run, file));
       return {
-        artifact: { ...artifact, storageKey: artifact.storageKey },
-        role: file.role,
-        fileName: file.fileName,
-        mimeType: file.mimeType,
-        sha256: file.sha256,
+        manifestArtifactId: stored.artifact.id,
+        storedAt: stored.artifact.createdAt,
+        files,
       };
     },
   };

@@ -149,6 +149,17 @@ export function runExportFileUrl(
   );
 }
 
+/** Path suffix of the export archive; `runExportResponseSchemaFor` pins `archiveUrl` to it. */
+export const EXPORT_ARCHIVE_PATH_SUFFIX = '/export/archive';
+
+/**
+ * `GET` every file of the export manifest as one stored ZIP (`application/zip`, always an
+ * attachment). Same readiness rules as the manifest: 409 `export_not_ready` before the export.
+ */
+export function runExportArchiveUrl(runId: string): string {
+  return `/api/runs/${pathSegment(runId)}${EXPORT_ARCHIVE_PATH_SUFFIX}`;
+}
+
 /**
  * A project's stored material (photo JPEG or voice memo WAV) before or without a run: the
  * capture screen's thumbnails and memo playback. Owner-only, Range-capable.
@@ -479,6 +490,11 @@ export function runExportResponseSchemaFor(urlPrefix: string) {
     approvedPackArtifactId: z.uuid(),
     readyToPublish: z.boolean(),
     counts: exportManifestContentSchema.shape.counts,
+    /**
+     * All `files` in one ZIP, under their `fileName`s (flat, no folders): the HTML pack,
+     * `portal-fields.json`, and the full-size images. Always an attachment.
+     */
+    archiveUrl: z.string().startsWith(urlPrefix).endsWith(EXPORT_ARCHIVE_PATH_SUFFIX),
     files: z.array(file).min(2),
   });
 }

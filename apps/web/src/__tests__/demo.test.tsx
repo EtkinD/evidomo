@@ -123,6 +123,7 @@ const demoManifest = () =>
       blurredRegions: 0,
       withheld: 0,
     },
+    archiveUrl: `${EXPORT_PATH}/archive`,
     files: [
       fileEntry(HTML_ID, 'html', 'listing-pack.html', 'text/html'),
       fileEntry(JSON_ID, 'portal_fields', 'portal-fields.json', 'application/json'),

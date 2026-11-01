@@ -167,3 +167,8 @@ export function demoExportFileUrl(
 ): string {
   return withDownload(demoRunPath(runId, 'export', 'files', artifactId), options.download);
 }
+
+/** `GET` every file of the export as one ZIP attachment (same contract as `runExportArchiveUrl`). */
+export function demoExportArchiveUrl(runId: string): string {
+  return demoRunPath(runId, 'export', 'archive');
+}

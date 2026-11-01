@@ -64,7 +64,7 @@ export function etagMatches(header: string | undefined, quoted: string): boolean
     .some((value) => value === '*' || value === quoted);
 }
 
-function isClientAbort(error: unknown, res: Response): boolean {
+export function isClientAbort(error: unknown, res: Response): boolean {
   return (
     res.destroyed ||
     (error instanceof Error &&

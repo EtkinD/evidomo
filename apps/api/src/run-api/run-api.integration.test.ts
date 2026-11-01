@@ -32,7 +32,11 @@ import sharp from 'sharp';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { appConfigFromEnv, createApp } from '../app.ts';
-import { insertArtifact, insertSingletonArtifact } from '../db/repositories/artifacts.ts';
+import {
+  insertArtifact,
+  insertSingletonArtifact,
+  listArtifacts,
+} from '../db/repositories/artifacts.ts';
 import { insertFacts } from '../db/repositories/facts.ts';
 import { addMaterial, setMaterialStatus } from '../db/repositories/materials.ts';
 import { appendRunEvent } from '../db/repositories/run-events.ts';
@@ -49,6 +53,7 @@ import {
   sha256Hex,
   syntheticPhoto,
 } from '../export/testing.ts';
+import { parseZip } from '../export/zip-testing.ts';
 import { unusedProjectDeps, unusedRunDeps } from '../http/testing.ts';
 import { createLogger } from '../logger.ts';
 import { encodePcm16Wav } from '../media/wav.ts';
@@ -982,5 +987,81 @@ describe('export', () => {
     // Only files the manifest lists, and only for the owner.
     expectNotFound(await get(owner, `/api/runs/${run.id}/export/files/${manifestId}`));
     expectNotFound(await get(stranger, html.url));
+  });
+
+  describe('archive', () => {
+    it('answers 409 before the export and 404 for a stranger or an unknown run', async () => {
+      const { run } = await seedScenario(owner.id);
+      const response = await get(owner, `/api/runs/${run.id}/export/archive`);
+      expect(response.status).toBe(409);
+      expect(apiErrorSchema.parse(response.body).error).toBe('export_not_ready');
+      expect(response.get('cache-control')).toBe('no-store');
+      expectNotFound(await get(stranger, `/api/runs/${run.id}/export/archive`));
+      expectNotFound(await get(owner, `/api/runs/${randomUUID()}/export/archive`));
+      expect((await get(undefined, `/api/runs/${run.id}/export/archive`)).status).toBe(401);
+    });
+
+    it('serves every manifest file in one stored ZIP, for the owner only', async () => {
+      const { run } = await seedScenario(owner.id);
+      const { fileIds } = await storeExport(run);
+      const manifest = runExportResponseSchema.parse(
+        (await get(owner, `/api/runs/${run.id}/export`)).body,
+      );
+      expect(manifest.archiveUrl).toBe(`/api/runs/${run.id}/export/archive`);
+
+      const response = await binary(get(owner, manifest.archiveUrl));
+      expect(response.status).toBe(200);
+      expect(response.get('content-type')).toBe('application/zip');
+      expect(response.get('content-disposition')).toBe(
+        `attachment; filename="evidomo-listing-pack-${run.id.slice(0, 8)}.zip"`,
+      );
+      expect(response.get('cache-control')).toBe('private, no-cache, no-transform');
+      expect(response.get('x-content-type-options')).toBe('nosniff');
+      expect(response.get('cross-origin-resource-policy')).toBe('same-origin');
+      expect(response.get('etag')).toMatch(/^"export-zip-v1-[0-9a-f-]{36}"$/);
+      const zip = bodyBytes(response);
+      expect(response.get('content-length')).toBe(String(zip.byteLength));
+
+      // Exactly the manifest's files, flat, byte for byte.
+      const entries = parseZip(zip);
+      expect(entries.map((e) => e.name)).toEqual(manifest.files.map((f) => f.fileName));
+      expect(entries.map((e) => sha256Hex(e.bytes))).toEqual(manifest.files.map((f) => f.sha256));
+      expect(entries.map((e) => e.bytes.byteLength)).toEqual(
+        manifest.files.map((f) => f.sizeBytes),
+      );
+      expect(fileIds).toHaveLength(entries.length);
+      expect(entries.every((e) => e.flags === 0x0800 && e.method === 0)).toBe(true);
+
+      // Deterministic: the same stored export gives the same bytes.
+      const again = bodyBytes(await binary(get(owner, manifest.archiveUrl)));
+      expect(again.equals(zip)).toBe(true);
+
+      // Conditional requests, HEAD, and another user's session.
+      const etag = response.get('etag') ?? '';
+      expect((await get(owner, manifest.archiveUrl).set('If-None-Match', etag)).status).toBe(304);
+      const head = await request(server).head(manifest.archiveUrl).set('Cookie', owner.cookie);
+      expect(head.status).toBe(200);
+      expect(head.get('content-length')).toBe(String(zip.byteLength));
+      expect(head.get('content-type')).toBe('application/zip');
+      expectNotFound(await get(stranger, manifest.archiveUrl));
+    });
+
+    it('answers 500 before any byte when a stored file no longer matches the manifest', async () => {
+      const { run } = await seedScenario(owner.id);
+      await storeExport(run);
+      const manifest = runExportResponseSchema.parse(
+        (await get(owner, `/api/runs/${run.id}/export`)).body,
+      );
+      const [artifact] = await listArtifacts(testDb.db, run.id, {
+        kind: EXPORT_HTML_ARTIFACT_KIND,
+      });
+      if (artifact?.storageKey == null) throw new Error('html artifact');
+      await storage.put(artifact.storageKey, new TextEncoder().encode(PACK_HTML.toUpperCase()));
+
+      const response = await get(owner, manifest.archiveUrl);
+      expect(response.status).toBe(500);
+      expect(apiErrorSchema.parse(response.body).error).toBe('internal_error');
+      expect(response.get('content-type')).not.toBe('application/zip');
+    });
   });
 });

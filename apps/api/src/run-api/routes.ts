@@ -27,6 +27,7 @@ import type { Storage } from '../storage/storage.ts';
 import type { RunEventStreams } from './event-stream.ts';
 import { encodeMaskPng } from './mask.ts';
 import type { RunResumer } from './resume.ts';
+import { sendExportArchive } from './send-archive.ts';
 import {
   etagMatches,
   sendStoredFile,
@@ -126,7 +127,7 @@ export interface RunReadRoutesDeps {
 
 /**
  * The read-only run routes both APIs share: snapshot, evidence files (material, transcript
- * audio, image artifact, fact mask), and the export with its files. All are GET (HEAD works too).
+ * audio, image artifact, fact mask), and the export with its files and its ZIP archive. All are GET (HEAD works too).
  */
 export function addRunReadRoutes(
   router: Router,
@@ -281,6 +282,19 @@ export function addRunReadRoutes(
       return;
     }
     sendJson(res, body satisfies RunExportResponse);
+  });
+
+  // Every manifest file in one stored ZIP (flat, manifest names). Registered next to `files/` and
+  // sharing the manifest's readiness rule: 409 until the export step has stored its manifest.
+  router.get('/:runId/export/archive', ...guards, async (req, res) => {
+    const readable = await readableRun(req, res, runParamsSchema);
+    if (readable === undefined) return;
+    const archive = await service.exportArchive(readable.run);
+    if (archive === undefined) {
+      sendError(res, 409, 'export_not_ready');
+      return;
+    }
+    await sendExportArchive(req, res, storage, archive, readable.run.id, fileCache, logger);
   });
 
   router.get('/:runId/export/files/:artifactId', ...guards, async (req, res) => {

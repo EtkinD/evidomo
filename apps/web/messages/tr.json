@@ -915,6 +915,9 @@
     "print": "Yazdır / PDF olarak kaydet",
     "fullScreen": "Tam ekran aç",
     "downloads": "İndirilenler",
+    "downloadAll": "Tümünü indir (ZIP)",
+    "downloadAllLabel": "Tüm dosyaları ZIP olarak indir",
+    "downloadAllHint": "Yaklaşık {size}, {count, plural, one {# dosya} other {# dosya}}",
     "images": "Görseller ({count})",
     "files": {
       "html": "İlan paketi (HTML)",

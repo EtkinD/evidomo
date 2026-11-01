@@ -5,7 +5,9 @@ import {
   RUN_STREAM_WITHHELD_TYPE,
   runEventCursorSchema,
   runEventsUrl,
+  runExportArchiveUrl,
   runExportFileUrl,
+  runExportResponseSchema,
   runFactMaskUrl,
   runMaterialFileUrl,
   projectMaterialFileUrl,
@@ -109,6 +111,17 @@ describe('URL builders', () => {
     expect(runExportFileUrl(uuid, other, { download: true })).toBe(
       `/api/runs/${uuid}/export/files/${other}?download=1`,
     );
+    expect(runExportArchiveUrl(uuid)).toBe(`/api/runs/${uuid}/export/archive`);
+    expect(runExportArchiveUrl('../x')).toBe('/api/runs/..%2Fx/export/archive');
+  });
+});
+
+describe('export response archive link', () => {
+  it('must point at the archive route under the owner prefix', () => {
+    const archiveUrl = runExportResponseSchema.shape.archiveUrl;
+    expect(archiveUrl.safeParse(runExportArchiveUrl(uuid)).success).toBe(true);
+    expect(archiveUrl.safeParse(`/api/runs/${uuid}/export`).success).toBe(false);
+    expect(archiveUrl.safeParse(`/api/demo/runs/${uuid}/export/archive`).success).toBe(false);
   });
 });
 

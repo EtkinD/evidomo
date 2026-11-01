@@ -49,6 +49,7 @@ function manifest(readyToPublish: boolean): RunExportResponse {
       blurredRegions: 0,
       withheld: 0,
     },
+    archiveUrl: `${EXPORT_PATH}/archive`,
     files: [
       file(HTML_ID, 'html', 'listing-pack.html', 'text/html', 2_411_008),
       file(JSON_ID, 'portal_fields', 'portal-fields.json', 'application/json', 4_300),
@@ -85,6 +86,15 @@ describe('pack viewer', () => {
     expect(within(warning).getByRole('heading', { name: 'Not ready to publish' })).toBeDefined();
     // The pack is still viewable: the failing checks are inside it.
     expect(screen.getByTitle('Listing pack preview')).toBeDefined();
+  });
+
+  it('offers the whole pack as one ZIP', async () => {
+    await openPack(jsonResponse(200, manifest(true)));
+
+    const zip = screen.getByRole('link', { name: 'Download all files as a ZIP' });
+    expect(zip.getAttribute('href')).toBe(`${EXPORT_PATH}/archive`);
+    expect(zip.hasAttribute('download')).toBe(true);
+    expect(zip.textContent).toBe('Download all (ZIP)');
   });
 
   it('links each file to its download URL, with names and sizes', async () => {

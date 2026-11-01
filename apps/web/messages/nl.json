@@ -915,6 +915,9 @@
     "print": "Afdrukken / Opslaan als pdf",
     "fullScreen": "Open op volledig scherm",
     "downloads": "Downloads",
+    "downloadAll": "Alles downloaden (ZIP)",
+    "downloadAllLabel": "Alle bestanden downloaden als ZIP",
+    "downloadAllHint": "Ongeveer {size}, {count, plural, one {# bestand} other {# bestanden}}",
     "images": "Afbeeldingen ({count})",
     "files": {
       "html": "Advertentiepakket (HTML)",

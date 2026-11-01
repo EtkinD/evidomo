@@ -915,6 +915,9 @@
     "print": "Print / Save as PDF",
     "fullScreen": "Open full screen",
     "downloads": "Downloads",
+    "downloadAll": "Download all (ZIP)",
+    "downloadAllLabel": "Download all files as a ZIP",
+    "downloadAllHint": "About {size} in {count, plural, one {# file} other {# files}}",
     "images": "Images ({count})",
     "files": {
       "html": "Listing pack (HTML)",

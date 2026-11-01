@@ -3,6 +3,7 @@ import {
   demoArtifactFileUrl,
   demoClaimAuditGateResponseSchema,
   demoClaimAuditGateUrl,
+  demoExportArchiveUrl,
   demoExportFileUrl,
   demoExportUrl,
   demoFactConflictsGateUrl,
@@ -42,6 +43,7 @@ describe('demo URL builders', () => {
     expect(demoExportFileUrl(uuid, other, { download: true })).toBe(
       `/api/demo/runs/${uuid}/export/files/${other}?download=1`,
     );
+    expect(demoExportArchiveUrl(uuid)).toBe(`/api/demo/runs/${uuid}/export/archive`);
   });
 
   it('never let input change the path', () => {
@@ -86,5 +88,8 @@ describe('demo responses', () => {
       true,
     );
     expect(file.shape.url.safeParse(`/api/runs/${uuid}/export/files/${other}`).success).toBe(false);
+    const archiveUrl = demoRunExportResponseSchema.shape.archiveUrl;
+    expect(archiveUrl.safeParse(demoExportArchiveUrl(uuid)).success).toBe(true);
+    expect(archiveUrl.safeParse(`/api/runs/${uuid}/export/archive`).success).toBe(false);
   });
 });
