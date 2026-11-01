@@ -9,6 +9,8 @@ node_modules/
 # Build output
 .next/
 .next-e2e/
+# Any other NEXT_DIST_DIR (e.g. a review server on its own port).
+.next-*/
 out/
 dist/
 *.tsbuildinfo
