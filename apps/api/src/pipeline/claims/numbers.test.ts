@@ -606,6 +606,10 @@ describe('homographs of number words', () => {
     ['Sei pronto per una nuova vita?', 'it'],
     ['Secondo il catasto la casa è in classe A.', 'it'],
     ['Secondo me è perfetta.', 'it'],
+    // Recorded Italian Q&A: the area basis, "according to NEN 2580" (the standard is no claim).
+    ['La superficie abitabile è secondo NEN 2580.', 'it'],
+    ['Misurata secondo la norma NEN-2580.', 'it'],
+    ['Misurata secondo norma UNI.', 'it'],
     ['Prima di tutto, la luce.', 'it'],
     ['Ideale come prima casa o come seconda casa.', 'it'],
     ['Arredi di seconda mano.', 'it'],
@@ -623,6 +627,7 @@ describe('homographs of number words', () => {
   it.each<[string, ClaimLanguage, string, number]>([
     ['La casa ha sei camere.', 'it', 'sei', 6],
     ['Al secondo piano.', 'it', 'secondo', 2],
+    ['Il secondo nella via.', 'it', 'secondo', 2],
     ['Al primo piano.', 'it', 'primo', 1],
     ['La prima camera da letto.', 'it', 'prima', 1],
     ['En el cuarto piso.', 'es', 'cuarto', 4],

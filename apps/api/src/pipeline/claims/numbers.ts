@@ -193,8 +193,11 @@ interface LanguageRules {
   readonly wordPrefix?: { readonly pattern: RegExp; readonly unit: string };
   /** Wording before a number that makes it a decade ("anni '90", "años 80"): unreadable. */
   readonly decadeBefore?: RegExp;
-  /** A word from `words` that is another word here (Italian "se sei" = "if you are"). */
-  readonly skipWord?: (word: string, before: string, after: string) => boolean;
+  /**
+   * A word from `words` that is another word here (Italian "se sei" = "if you are"). `before`
+   * and `after` have allowlisted names and digits blanked; `named` is `after` with them kept.
+   */
+  readonly skipWord?: (word: string, before: string, after: string, named: string) => boolean;
   /** Two number words with only a space between them are a range (Turkish "iki üç oda"). */
   readonly juxtaposedWordRange?: boolean;
   /** A fraction after the counted noun makes the number unreadable ("tre vani e mezzo"). */
@@ -830,8 +833,11 @@ const IT_SEI_VERB_BEFORE = new Set([
 /** "sei alla ricerca", "sei pronto", "sei interessata": phrases only the verb starts. */
 const IT_SEI_VERB_PHRASE =
   /^\s+(?:alla\s+ricerca|in\s+cerca|pront[oaie]|interessat[oaie]|stanc[oa]|stanch[ie]|sicur[oaie]|curios[oaie]|appassionat[oaie]|innamorat[oaie]|benvenut[oaie]|un\s+amante|un['’]amante|nel\s+posto\s+giusto)(?![\p{L}\p{N}])/iu;
-/** "secondo il catasto", "secondo me": the preposition "according to". */
+/** "secondo il catasto", "secondo me", "secondo norma": the preposition "according to". */
 const IT_SECONDO_PREPOSITION_AFTER = new Set([
+  'norma',
+  'norme',
+  'normativa',
   'il',
   'lo',
   'la',
@@ -860,6 +866,12 @@ const IT_SECONDO_PREPOSITION_AFTER = new Set([
   'molti',
   'tutti',
 ]);
+/**
+ * "secondo NEN 2580", "secondo UNI 10750": "according to" before a standard's name, never an
+ * ordinal (Spark wrote "92 m² secondo NEN 2580" in the first recorded Italian Q&A cards). Read
+ * from the text with names kept: the allowlist blanks "NEN 2580" out of `after`.
+ */
+const IT_SECONDO_STANDARD_AFTER = /^\s+(?:NEN|ISO|UNI|EN|DIN)(?:[\s-]|$)/u;
 /** "prima di", "prima che", "prima casa" (a tax status), "prima volta": not a stated count. */
 const IT_PRIMA_OTHER_AFTER = new Set([
   'di',
@@ -880,13 +892,13 @@ const IT_PRIMA_OTHER_AFTER = new Set([
 ]);
 
 /** Italian homographs of number words; everything else in the table is read. */
-function skipItalian(word: string, before: string, after: string): boolean {
+function skipItalian(word: string, before: string, after: string, named: string): boolean {
   const next = nextWord(after);
   switch (word) {
     case 'sei':
       return IT_SEI_VERB_BEFORE.has(previousWord(before)) || IT_SEI_VERB_PHRASE.test(after);
     case 'secondo':
-      return IT_SECONDO_PREPOSITION_AFTER.has(next);
+      return IT_SECONDO_PREPOSITION_AFTER.has(next) || IT_SECONDO_STANDARD_AFTER.test(named);
     case 'prima':
       // At the end of a clause "prima" is the adverb "before".
       return next === '' || IT_PRIMA_OTHER_AFTER.has(next);
@@ -1270,7 +1282,8 @@ function readDigits(text: string, rules: LanguageRules): RawToken[] {
 /** How far homograph rules and word prefixes look around a number word. */
 const CONTEXT_WINDOW = 40;
 
-function readWords(text: string, language: ClaimLanguage): RawToken[] {
+/** `named` is `text` before allowlisted names and digits were blanked (same offsets). */
+function readWords(text: string, language: ClaimLanguage, named: string): RawToken[] {
   const rules = RULES[language];
   const tokens: RawToken[] = [];
   const pattern = new RegExp(WORD_PATTERNS[language].source, WORD_PATTERNS[language].flags);
@@ -1285,6 +1298,7 @@ function readWords(text: string, language: ClaimLanguage): RawToken[] {
         word,
         text.slice(Math.max(0, match.index - CONTEXT_WINDOW), match.index),
         text.slice(matchEnd, matchEnd + CONTEXT_WINDOW),
+        named.slice(matchEnd, matchEnd + CONTEXT_WINDOW),
       ) === true
     ) {
       continue;
@@ -1341,7 +1355,7 @@ export function readNumbers(text: string, language: ClaimLanguage): NumberToken[
   for (const token of digits) {
     scan = scan.slice(0, token.start) + ' '.repeat(token.end - token.start) + scan.slice(token.end);
   }
-  raw.push(...digits, ...readWords(scan, language));
+  raw.push(...digits, ...readWords(scan, language, source));
   raw.sort((a, b) => a.start - b.start);
 
   // Markers and range gaps are read from the text with allowlisted names blanked out.

@@ -46,6 +46,34 @@ describe('copy language check', () => {
     }
   });
 
+  it('does not count Spanish, Italian, or Turkish words that are on another list against them', () => {
+    // The recorded es caption (fictional town): "de" and "en" are Spanish here, not Dutch.
+    const caption =
+      'Apartamento de 92 m² en Zandmeer con salón en forma de L de 34 m². Puertas francesas conectan con el balcón de 7 m² orientado al suroeste con sol por la tarde. Cocina y baño de 2021 con placa de inducción y ducha de lluvia.';
+    expect(checkLanguage(caption, 'es')).toBe('match');
+    // en and nl read as before: Dutch still counts "de" and "en", so this caption checked as nl
+    // is a (known, unchanged) false match; as en it is no match.
+    expect(checkLanguage(caption, 'en')).toBe('mismatch');
+    expect(
+      checkLanguage(
+        'Il balcone a sud-ovest e la cucina a vista sono del 2021; a Zandmeer è anche vicina la stazione, che è a 10 minuti.',
+        'it',
+      ),
+    ).toBe('match');
+    // Turkish endings after an apostrophe are part of their word, not Dutch "de" or English "a".
+    expect(
+      checkLanguage(
+        "Zandmeer'de bu daire 1987'de inşa edildi ve İstasyon'a 10 dakika uzaklıkta; balkon ve mutfak da yenidir, en güzel yer de burası.",
+        'tr',
+      ),
+    ).toBe('match');
+    // Dutch and English copy still fail as Spanish, Italian, or Turkish.
+    for (const language of ['es', 'it', 'tr']) {
+      expect(checkLanguage(NL, language)).toBe('mismatch');
+      expect(checkLanguage(EN, language)).toBe('mismatch');
+    }
+  });
+
   it('does not check languages it has no word list for', () => {
     expect(checkLanguage(NL, 'de')).toBe('unchecked');
   });

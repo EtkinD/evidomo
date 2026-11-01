@@ -183,6 +183,25 @@ const FUNCTION_WORDS: Readonly<Record<string, ReadonlySet<string>>> = {
   ]),
 };
 
+/**
+ * Words on another language's list that are also ordinary words of the checked language, so they
+ * are no evidence against it: Spanish "de", "en" ("of", "in"), "a", "u" ("or"), and "van" ("they
+ * go"), Italian "a", and Turkish "de"/"da" written apart and "en" ("most", "width"). Without this,
+ * plain Spanish copy ("Apartamento de 92 m² en Zandmeer con ...") counted as Dutch and failed.
+ * Only the checked language's own homographs are dropped, so en and nl results are unchanged.
+ */
+const NOT_EVIDENCE_AGAINST: Readonly<Record<string, ReadonlySet<string>>> = {
+  tr: new Set(['de', 'en']),
+  it: new Set(['a']),
+  es: new Set(['de', 'en', 'a', 'u', 'van']),
+};
+
+/**
+ * Turkish case endings after an apostrophe ("Zandmeer'de", "1987'de", "İstasyon'a") belong to
+ * the word before them; split off, they would read as Dutch "de" or English "a".
+ */
+const TURKISH_APOSTROPHE_ENDING = /['’]\p{L}+/gu;
+
 /** Function-word hits a language needs before the check decides anything. */
 const MIN_HITS = 4;
 /** How far the leading language must be ahead of the runner-up. */
@@ -196,13 +215,19 @@ export type LanguageCheckResult = CopyLanguageCheck | 'mismatch';
 export function checkLanguage(text: string, language: string): LanguageCheckResult {
   if (FUNCTION_WORDS[language] === undefined) return 'unchecked';
   // "İ" lowercases to "i" plus a combining dot, which would split Turkish words ("İçin").
+  const normalized = text.replace(/İ/g, 'i').toLowerCase();
   const words =
-    text
-      .replace(/İ/g, 'i')
-      .toLowerCase()
-      .match(/\p{L}+/gu) ?? [];
+    (language === 'tr' ? normalized.replace(TURKISH_APOSTROPHE_ENDING, '') : normalized).match(
+      /\p{L}+/gu,
+    ) ?? [];
+  const ignored = NOT_EVIDENCE_AGAINST[language];
   const hits = Object.entries(FUNCTION_WORDS).map(
-    ([code, list]) => [code, words.filter((word) => list.has(word)).length] as const,
+    ([code, list]) =>
+      [
+        code,
+        words.filter((word) => list.has(word) && (code === language || ignored?.has(word) !== true))
+          .length,
+      ] as const,
   );
   hits.sort((a, b) => b[1] - a[1]);
   const [first, second] = hits;
