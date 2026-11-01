@@ -260,7 +260,7 @@ Design decisions are made in a dev-only showcase, and only what the founder appr
 - [x] **P5-05 — E2E flow**
   - Depends on: P4-09
   - Done when: Playwright covers capture → run → Gate 1 → Gate 2 → export against the stack in fixture mode.
-- [ ] **P5-06 — Demo run**
+- [x] **P5-06 — Demo run**
   - Depends on: P5-02, P4-09
   - Done when: the demo property's run is recorded as the public replay and verified on production.
 
