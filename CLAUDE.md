@@ -54,4 +54,5 @@
   - Fixes after a phase release → `npm version patch`.
   - `major` is reserved for the first production release.
   - Use npm's default commit message and tag (`vX.Y.Z`); `preversion` runs lint, typecheck, tests, and the audit first.
+- **Releasing:** `npm version`, push `main`, then push the tag. A `vX.Y.Z` tag on a main commit deploys production through CI after the founder approves it in GitHub; an untagged push only runs the checks.
 - Never push commits or tags without explicit approval in the current conversation.
