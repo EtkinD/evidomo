@@ -3228,3 +3228,99 @@ work is code-side: claim validator number rules, Q&A question checks, and the la
   `ona`, `onun`, `bina`, `yüzme` as numbers.
 - `nl.v2` now holds the language change; the address fields suggested under P5-02 would go
   into the next version (`nl.v3`).
+
+## Output languages: live check (tr, it, es)
+
+First Spark-written copy in Turkish, Italian, and Spanish (2026-11-01), on the `nl` v2 market
+profile. Two parts: step recordings over the recorded walkthrough's post-Gate-1 facts (the same
+input as the en/nl P3-01/P3-03/P3-06 cassettes), and one full live run per language with the
+headless CLI on a scratch copy of `fixtures/projects/synthetic-walkthrough` (market `nl` v2,
+output language set, the local TTS walkthrough, the project's decisions file). Run outputs stayed
+outside the repository.
+
+### Step recordings (committed)
+
+`fixtures/meta/p3-01/copy-{tr,it,es}`, `p3-03/qa-{tr,it,es}`, and `p3-06/qa-clean-{tr,it,es}`
+(copy and Q&A audited together as written), wired through `COPY_CASSETTES`, `QA_CASSETTES`,
+`VERIFICATION_SCENARIOS`, and `RECORDED_MARKET_VERSION` (en/nl stay on `nl` v1; the profiles
+differ only in `output_languages`, which reaches no prompt). Replay tests:
+`creative-copy-{tr,it,es}`, `qa-cards-{tr,it,es}`, `verification-qa-clean-{tr,it,es}`.
+
+| Language | Copy (Spark `medium`)                                         | Q&A (Spark `low`)                                   | Verification                                              | Total  |
+| -------- | ------------------------------------------------------------- | --------------------------------------------------- | --------------------------------------------------------- | ------ |
+| tr       | $0.0410; 30 segments, 19 numbers, pass; social `inconclusive` | $0.0158; 7 cards, 17 segments, 9 numbers, pass      | $0.1166; 3 verifier flags, 1 loop (copy and cards), clean | 0.1734 |
+| it       | $0.0331; 18 segments, 21 numbers, pass                        | $0.0151; 8 cards, 11 segments; 2 validator findings | $0.1338; 2 validator + 2 verifier flags, 1 loop, clean    | 0.1820 |
+| es       | $0.0307; 20 segments, 17 numbers, pass                        | $0.0128; 8 cards, 16 segments, 8 numbers, pass      | $0.1060; 1 verifier flag, 1 loop (cards only), clean      | 0.1495 |
+
+- **Turkish copy reasons longest:** 8.3k output tokens (7.2k reasoning) against 5.9–6.4k for
+  it/es and 5.8k (nl) to 7.1k (en) for the current P3-01 recordings, so about $0.01 more per
+  generation. Spark kept to digits for quantities (number words appeared only as the
+  ordinals and "due" below), wrote `92 m²`, `€165`/`165 €`, `10 dakika`/`minuti`/`minutos`, and
+  wrote Turkish apostrophe endings after names and numbers (`Zandmeer'de`, `NEN 2580'e`,
+  `92 m²'dir`), all read as intended; no `unreadable` token in any recording or run.
+- **Two code bugs found and fixed** (each with a failing-then-passing test):
+  - `checkLanguage` failed plain Spanish copy as Dutch. The recorded es caption ("Apartamento de
+    92 m² en Zandmeer con salón en forma de L de 34 m² ...") has 9 hits on the Dutch list (`de`,
+    `en`) against 4 Spanish ones, so `checkCopyOutput` threw `wrong_language` (a paid retry in a
+    run, a failed step if the retry writes alike). Checking `tr`, `it`, or `es`, other lists'
+    words that are ordinary words of the checked language no longer count against it, and
+    Turkish endings after an apostrophe stay with their word. en/nl checks are unchanged (so
+    Spanish text checked as `nl` can still pass as Dutch; no market offers that combination
+    with es copy).
+  - Italian `secondo NEN 2580` ("according to NEN 2580") read as the ordinal 2: the allowlist
+    blanks "NEN 2580" out of the context the homograph rule sees, so "secondo" looked
+    clause-final. `skipWord` now also gets the text with names kept, and `secondo` before a
+    standard's name or `norma/normativa` is the preposition. en/nl readings are unchanged
+    (golden test).
+- **Validator findings that are by design, not false rejects:** "la seconda camera", "tra le due
+  camere" (it), "El segundo dormitorio" (es): number words and ordinals are claims (P3-02), and
+  no cited fact was 2. Each cost one cheap revision. The Italian and Spanish models write these
+  more often than the English one did; if the loops get expensive, the prompt's numbers rule
+  could name ordinals explicitly.
+- **Verifier flags were real:** service-cost items credited to the VvE (tr, es), "Park
+  ücretsizdir" (parking is free) from "no paid parking", the afternoon sun placed on the balcony,
+  "camera da letto principale", and "La VvE ... di 12 appartamenti" from the complex's 12
+  dwellings. Revisions fixed each in one loop.
+- **Language check:** every portal and Q&A set `match`; the tr caption (and the it/es captions
+  in the live runs) `inconclusive`: telegraphic captions carry fewer than 4 function words.
+  Inconclusive never fails copy.
+
+### Full live runs (CLI, `--mode live`)
+
+| Language | Run cost | Calls | Copy rev 0 validator          | Q&A rev 0 validator     | Audit passes | Export                  |
+| -------- | -------- | ----- | ----------------------------- | ----------------------- | ------------ | ----------------------- |
+| tr       | 0.5433   | 62    | (not captured)                | 2 failing segments      | 2, clean     | readyToPublish, 8 cards |
+| it       | 0.6208   | 77    | 12 segments, 1 fail (unit)    | 2 failing (`due`, unit) | 3, clean     | readyToPublish, 8 cards |
+| es       | 0.5043   | 70    | 15 segments, 18 numbers, pass | 1 failing (`segundo`)   | 2, clean     | readyToPublish, 8 cards |
+
+Per step (tr / it / es): creative 0.0379 / 0.0424 / 0.0361, Q&A 0.0204 / 0.0156 / 0.0186,
+verification 0.1477 / 0.1881 / 0.1152; everything before Gate 1 (~0.31–0.33) and staging and
+integrity do not depend on the output language. Every step completed on its first attempt; Gate 1
+had the same three conflicts as P3-10 (build year, VvE contribution, the model's bedroom floor).
+The it/es revision artifacts were read from the CLI's throwaway database while the runs were
+going; the tr run's were not captured.
+
+- **The HTML pack's fixed wording is in the output language** (`<html lang>`, headings, fact
+  sheet labels, `Doğrulanmadı`/`Non verificato`/`No verificado`, checklist item names, footer).
+  Still English, as documented in `export/strings.ts`: the "Virtually staged" label (also in the
+  photo's alt text), checklist details, and the fact sheet's "other verified facts" rows, whose
+  labels come from extraction's English `other:` keys and whose text values are English
+  ("southwest", "between the two bedrooms").
+- **False reject (open, not language-specific): a free-text key with the unit before a
+  qualifier.** Extraction named the station fact `other:station_travel_time_minutes_by_bike`
+  (10, no unit) in the it run; `unitOfKey` reads only the key's last word (`bike`), so "10
+  minuti" was a `unit_mismatch` in the copy and a Q&A answer. The revision dropped the unit to
+  satisfy the validator and published "stazione a 10 in bici" and "tempo di percorrenza 10":
+  correct, but worse copy. English "10 minutes" fails the same way against that key. Not fixed
+  here because the fix changes en/nl validation; proposed: take the unit from the key's unique
+  unit word when the words after it are not units (`..._minutes_by_bike` → minute).
+- **Upstream quirk:** the es run's extraction stored the station fact as "Zandmeermeer station
+  reachable in ten minutes by bike", and the Q&A repeated "Zandmeermeer"; neither the validator
+  (no number) nor the verifier (the fact says so) can catch a misspelt name in a fact value.
+
+### Spend
+
+Budget 10 USD (stop at 8). Step recordings 0.5049 (copy 0.1048, Q&A 0.0437, verification
+0.3564; priced from the recorded usage, every call live once, no TLS losses with
+`maxRetries: 0`), live runs 1.6684 (ledger of each throwaway database, live mode, no replay):
+**2.1733 USD in total.** Per language, everything included: tr 0.7167, it 0.8028, es 0.6538.

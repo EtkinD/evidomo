@@ -39,11 +39,39 @@ const responseBodySchema = z.object({
   }),
 });
 
-/** Segments and number claims the validator reads in each recording (P3-02). */
+/** Segments and number claims the validator reads in each recording (P3-02; tr, it, es: nl v2). */
 const RECORDED_NUMBER_COUNTS = {
   en: { segments: 17, numbers: 16 },
   nl: { segments: 18, numbers: 19 },
+  tr: { segments: 30, numbers: 19 },
+  it: { segments: 18, numbers: 21 },
+  es: { segments: 20, numbers: 17 },
 } as const satisfies Record<RecordedCopyLanguage, { segments: number; numbers: number }>;
+
+/**
+ * The language check of each recorded variant. The tr caption is telegraphic (four short
+ * sentences with two function words: "ve", "ve"), too little evidence to decide, which the check
+ * reports instead of guessing.
+ */
+const RECORDED_LANGUAGE_CHECKS = {
+  en: { portal: 'match', social: 'match' },
+  nl: { portal: 'match', social: 'match' },
+  tr: { portal: 'match', social: 'inconclusive' },
+  it: { portal: 'match', social: 'match' },
+  es: { portal: 'match', social: 'match' },
+} as const satisfies Record<
+  RecordedCopyLanguage,
+  Record<'portal' | 'social', 'match' | 'inconclusive'>
+>;
+
+/** An approximation word the validator rejects before a number, per language. */
+const APPROXIMATION = {
+  en: 'about',
+  nl: 'ca.',
+  tr: 'yaklaşık',
+  it: 'circa',
+  es: 'aproximadamente',
+} as const satisfies Record<RecordedCopyLanguage, string>;
 
 export function describeRecordedCopy(language: RecordedCopyLanguage): void {
   const replay = createMetaReplay({
@@ -125,9 +153,10 @@ export function describeRecordedCopy(language: RecordedCopyLanguage): void {
       });
       expect(listingCopyContentSchema.safeParse(content).success).toBe(true);
       expect(content.outputLanguage).toBe(language);
+      const checks = RECORDED_LANGUAGE_CHECKS[language];
       expect(content.variants.map((v) => [v.kind, v.languageCheck])).toEqual([
-        ['portal', 'match'],
-        ['social', 'match'],
+        ['portal', checks.portal],
+        ['social', checks.social],
       ]);
       for (const segment of content.variants.flatMap((variant) => variant.segments)) {
         expect(segment.factIds.length).toBeGreaterThan(0);
@@ -136,7 +165,8 @@ export function describeRecordedCopy(language: RecordedCopyLanguage): void {
       expect(content.counts.citedCatalogFacts).toBeGreaterThan(5);
 
       // The claim validator (P3-02): every number in the recorded copy is a cited fact's value
-      // (hand-checked in P3-01), so both recordings pass with every number read.
+      // (hand-checked: en and nl in P3-01, tr, it, and es with their recording), so every
+      // recording passes with every number read.
       expect(content.validation).toMatchObject({
         language,
         result: 'pass',
@@ -160,7 +190,7 @@ export function describeRecordedCopy(language: RecordedCopyLanguage): void {
           sources.facts,
           language,
         ).findings.map((finding) => [finding.segmentIndex, finding.code, finding.token]);
-      const about = language === 'en' ? 'about' : 'ca.';
+      const about = APPROXIMATION[language];
       expect(seeded(withArea.text.replace('92 m²', '95 m²'))).toEqual([
         [withArea.index, 'number_not_in_facts', '95 m²'],
       ]);

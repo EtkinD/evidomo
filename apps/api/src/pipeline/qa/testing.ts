@@ -14,7 +14,13 @@ import type { ClaimFact } from '../claims/validator.ts';
 import { recordedCopySources, type RecordedCopyLanguage } from '../creative/testing.ts';
 import { validateQa, type QaSources } from './generate.ts';
 
-export const QA_CASSETTES = { en: 'p3-03/qa-en', nl: 'p3-03/qa-nl' } as const;
+export const QA_CASSETTES = {
+  en: 'p3-03/qa-en',
+  nl: 'p3-03/qa-nl',
+  tr: 'p3-03/qa-tr',
+  it: 'p3-03/qa-it',
+  es: 'p3-03/qa-es',
+} as const satisfies Record<RecordedCopyLanguage, string>;
 
 /**
  * The Q&A step of `listing-launch` v1 with the settings the fixtures were recorded with, so they

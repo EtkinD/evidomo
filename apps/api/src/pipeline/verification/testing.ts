@@ -62,6 +62,10 @@ export const VERIFICATION_SCENARIOS = {
   'qa-en': { language: 'en', edits: 'none', qa: 'seeded' },
   /** P3-03: the recorded en draft and the recorded en Q&A cards, both as written. */
   'qa-clean-en': { language: 'en', edits: 'none', qa: 'recorded' },
+  /** Output languages on `nl` v2: the recorded draft and Q&A cards, both as written. */
+  'qa-clean-tr': { language: 'tr', edits: 'none', qa: 'recorded' },
+  'qa-clean-it': { language: 'it', edits: 'none', qa: 'recorded' },
+  'qa-clean-es': { language: 'es', edits: 'none', qa: 'recorded' },
 } as const satisfies Record<
   string,
   {
@@ -80,13 +84,11 @@ export function verificationCassette(scenario: VerificationScenario): string {
   return `p3-06/${scenario}`;
 }
 
-/** Earlier recordings served read-only: the post-Gate-1 facts and both P3-01 drafts. */
+/** Served read-only: the post-Gate-1 facts, every recorded copy draft and Q&A card set. */
 export const VERIFICATION_INCLUDED_CASSETTES = [
   ...COPY_INCLUDED_CASSETTES,
-  COPY_CASSETTES.en,
-  COPY_CASSETTES.nl,
-  QA_CASSETTES.en,
-  QA_CASSETTES.nl,
+  ...Object.values(COPY_CASSETTES),
+  ...Object.values(QA_CASSETTES),
 ] as const;
 
 /**

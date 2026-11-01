@@ -29,6 +29,32 @@ import {
 import { QA_OUTPUT_NAME } from './prompt.ts';
 import { QA_CASSETTES, recordedQaSources, recordedQaStep } from './testing.ts';
 
+/** Referral filler ("contact the agent", "ask at the viewing") per output language. */
+const REFERRAL = {
+  en: /contact|makelaar|agent|bezichtiging/,
+  nl: /contact|makelaar|agent|bezichtiging/,
+  tr: /iletişim|emlak|danışman|randevu/,
+  it: /contatt|agenzia|agente|visita/,
+  es: /contact|agencia|agente|inmobiliaria|visita/,
+} as const satisfies Record<RecordedCopyLanguage, RegExp>;
+
+/**
+ * The validator's findings on each recording as `[code, token]`. The it cards say "la seconda
+ * camera" (the second bedroom) and "tra le due camere" (between the two bedrooms) without citing
+ * a 2: number words are claims by design (docs/architecture.md §5, "Number words"), so both
+ * segments fail and verification turns them into revision flags (`qa-clean-it`).
+ */
+const RECORDED_QA_FINDINGS = {
+  en: [],
+  nl: [],
+  tr: [],
+  it: [
+    ['number_not_in_facts', 'seconda'],
+    ['number_not_in_facts', 'due'],
+  ],
+  es: [],
+} as const satisfies Record<RecordedCopyLanguage, readonly (readonly [string, string])[]>;
+
 const responseBodySchema = z.object({
   status: z.literal('completed'),
   reasoning: z.object({ effort: z.string() }),
@@ -127,16 +153,19 @@ export function describeRecordedQa(language: RecordedCopyLanguage): void {
           expect(segment.factIds.length).toBeGreaterThan(0);
           for (const id of segment.factIds) expect(verified.has(id)).toBe(true);
           // No referral filler: every answer segment states a fact.
-          expect(segment.text.toLowerCase()).not.toMatch(/contact|makelaar|agent|bezichtiging/);
+          expect(segment.text.toLowerCase()).not.toMatch(REFERRAL[language]);
         }
       }
 
-      // Done when (P3-03): generated from verified facts only and passing the claim validator.
+      // Done when (P3-03): generated from verified facts only and passing the claim validator
+      // (or failing exactly where the recording states an uncited number word).
+      const findings = RECORDED_QA_FINDINGS[language];
       expect(content.validation).toMatchObject({
         language,
-        result: 'pass',
-        counts: { failedSegments: 0, findings: 0 },
+        result: findings.length === 0 ? 'pass' : 'fail',
+        counts: { failedSegments: findings.length, findings: findings.length },
       });
+      expect(content.validation.findings.map((f) => [f.code, f.token])).toEqual(findings);
       // Seeded defect on the recorded text: a changed number fails the same segment.
       const withNumber = content.cards
         .flatMap((card) => card.segments)

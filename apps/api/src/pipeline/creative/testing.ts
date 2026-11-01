@@ -29,8 +29,27 @@ import {
 import { buildCopyFactCatalog, photoContext } from './catalog.ts';
 import type { CopySources } from './generate.ts';
 
-export const COPY_CASSETTES = { en: 'p3-01/copy-en', nl: 'p3-01/copy-nl' } as const;
+export const COPY_CASSETTES = {
+  en: 'p3-01/copy-en',
+  nl: 'p3-01/copy-nl',
+  tr: 'p3-01/copy-tr',
+  it: 'p3-01/copy-it',
+  es: 'p3-01/copy-es',
+} as const;
 export type RecordedCopyLanguage = keyof typeof COPY_CASSETTES;
+
+/**
+ * The `nl` market profile version each language was recorded with: en and nl on v1 (P3-01),
+ * tr, it, and es on v2, the first version that offers them. The profiles differ only in
+ * `output_languages`, which never reaches a prompt, so the facts and catalog are the same.
+ */
+export const RECORDED_MARKET_VERSION = {
+  en: 1,
+  nl: 1,
+  tr: 2,
+  it: 2,
+  es: 2,
+} as const satisfies Record<RecordedCopyLanguage, number>;
 /** The earlier steps' recordings, served read-only (`createMetaReplay({ include })`). */
 export const COPY_INCLUDED_CASSETTES = [
   ...RECONCILIATION_INCLUDED_CASSETTES,
@@ -171,7 +190,7 @@ export function recordedCopySources(
   inventory: PhotoInventoryContent,
   outputLanguage: RecordedCopyLanguage,
 ): CopySources {
-  const market = registry.getMarket('nl', 1);
+  const market = registry.getMarket('nl', RECORDED_MARKET_VERSION[outputLanguage]);
   const verified = facts.filter((fact) => fact.status === 'verified');
   return {
     market,
