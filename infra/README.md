@@ -256,11 +256,51 @@ It asks you to type the database name, takes a safety backup of the current stat
 
 **Backups sit on the same disk as the data.** They protect against mistakes and bad deploys, not against losing the server. Before real customer data arrives, get a copy off the server: enable the Linode Backups add-on, or pull a set out of the volume, for example `docker run --rm -v evidomo-prod_backups:/b:ro alpine tar -C /b -cz daily | ssh you@laptop 'cat > evidomo-backups.tgz'`. Rehearse a restore on a throwaway stack now and then (see the last section).
 
+## Continuous deployment (D-09)
+
+A push to `main` deploys that commit, and a `vX.Y.Z` tag deploys the tag, once lint, tests, the image builds, and e2e pass (`deploy` job in `.github/workflows/ci.yml`). The job connects with its own SSH key, which can run only `infra/cd/ssh-deploy.sh` on the server. Design and threat model: `docs/architecture.md` section 13.
+
+Set it up once. Nothing below goes into the repository; keep every value out of issues, commits, and chat.
+
+1. **A dedicated key** (on your laptop, in a temporary folder):
+
+   ```sh
+   ssh-keygen -t ed25519 -N '' -C evidomo-cd -f evidomo-cd
+   ```
+
+2. **Restrict it on the server.** Append one line to `~/.ssh/authorized_keys` of the account that runs deploys. Use the absolute path of the checkout and the contents of `evidomo-cd.pub`:
+
+   ```text
+   restrict,command="/absolute/path/to/evidomo/infra/cd/ssh-deploy.sh" ssh-ed25519 AAAA... evidomo-cd
+   ```
+
+   `restrict` turns off the shell's PTY and every kind of forwarding; `command=` makes the deploy script the only thing this key can run, whatever the client asks for.
+
+3. **The server's host key**, so the job refuses any other machine: on the server, `cat /etc/ssh/ssh_host_ed25519_key.pub` and copy the first two fields (`ssh-ed25519 AAAA...`).
+
+4. **GitHub environment.** Repository Settings → Environments → New environment `production`:
+   - Deployment branches and tags: **Selected branches and tags**, add the branch `main` and the tag pattern `v*`.
+   - Optional: Required reviewers, if every deploy should wait for your click.
+   - Environment secrets: `DEPLOY_SSH_KEY` (the whole private key file `evidomo-cd`), `DEPLOY_SSH_HOST_KEY` (step 3), `DEPLOY_SSH_HOST` (address or domain), `DEPLOY_SSH_USER`, and `DEPLOY_SSH_PORT` only if SSH does not listen on 22.
+
+5. **Turn it on:** Settings → Secrets and variables → Actions → Variables → New repository variable `DEPLOY_ENABLED` = `true`. Without it the job is skipped; set it to anything else to pause CD. A manual run of the CI workflow on `main` (Actions → CI → Run workflow) deploys main's head, or answers that it is already deployed.
+
+6. **Check the restriction** from your laptop; both must be refused:
+
+   ```sh
+   ssh -i evidomo-cd <user>@<host> 'deploy main'
+   ssh -i evidomo-cd <user>@<host> 'id'
+   ```
+
+   Then delete `evidomo-cd` and `evidomo-cd.pub` from the laptop. To revoke the key, remove its line from `authorized_keys`.
+
+**Day to day:** the job's log shows the deploy stages and the result only (Actions logs of a public repository are public). The full output of each deploy is on the server in `~/evidomo-deploy-logs/`. A commit older than the deployed one is refused; roll back by hand with `infra/deploy.sh <tag or commit>`. After a CD deploy the checkout is a detached HEAD, so deploy the latest `main` by hand with `infra/deploy.sh main` instead of `git pull`.
+
 ## Day to day
 
 | Task                       | Command                                                                          |
 | -------------------------- | -------------------------------------------------------------------------------- |
-| Deploy the latest `main`   | `infra/deploy.sh`                                                                |
+| Deploy the latest `main`   | `infra/deploy.sh main` (after CD, HEAD is detached, so not `git pull`)           |
 | Deploy or roll back to ref | `infra/deploy.sh v0.6.0` (tag, branch, or commit)                                |
 | Change a setting           | edit `infra/.env`, then `infra/deploy.sh` (or `docker compose ... up -d --wait`) |
 | Status                     | `docker compose -p evidomo-prod -f infra/compose.yaml --env-file infra/.env ps`  |

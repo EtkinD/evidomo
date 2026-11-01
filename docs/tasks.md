@@ -22,7 +22,7 @@ The orchestrator (main session) delegates each task to its owner — see `.claud
 | P4-10                             | backend-developer                                                     |
 | P4B-01                            | ai-pipeline-engineer (Muse assets), then frontend-developer           |
 | P4B-02 … P4B-06                   | frontend-developer                                                    |
-| D-01, D-05 … D-08                 | devops-engineer                                                       |
+| D-01, D-05 … D-09                 | devops-engineer                                                       |
 | D-02 … D-04                       | devops-engineer prepares, user executes (VPS, DNS, secrets)           |
 | P5-01                             | ai-pipeline-engineer                                                  |
 | P5-02, P5-06                      | orchestrator with the user                                            |
@@ -239,6 +239,9 @@ Design decisions are made in a dev-only showcase, and only what the founder appr
 - [x] **D-08 — Load test**
   - Depends on: D-06, D-07
   - Done when: a repeatable load test (k6 in Docker, public read-only routes, no accounts, no live runs) runs against production in steps of concurrent users and reports the first step at which p95 latency or the error rate crosses the thresholds, with host CPU and RAM sampled during the run; the report is kept outside git (`data/load/`).
+- [ ] **D-09 — Continuous deployment**
+  - Depends on: D-05, P0-08
+  - Done when: a push to `main` or a `vX.Y.Z` tag deploys that commit or tag from GitHub Actions only after lint, tests, image builds, and e2e pass; the job reaches the server with a dedicated SSH key restricted to a forced command that validates the ref, with the host key pinned and the secrets scoped to an environment that admits only `main` and `v*` tags; the public job log carries no server details; one deploy has gone through end to end.
 
 ## Phase 5 — Hardening and evaluation
 

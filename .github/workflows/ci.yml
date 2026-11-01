@@ -3,6 +3,8 @@ name: CI
 on:
   push:
     branches: [main]
+    # Release tags run the full pipeline and deploy (the deploy job below).
+    tags: ['v*']
   pull_request:
   schedule:
     # Daily dependency audit, so new advisories surface even without code changes.
@@ -11,7 +13,9 @@ on:
 
 concurrency:
   group: ci-${{ github.ref }}-${{ github.event_name }}
-  cancel-in-progress: true
+  # Only pull requests cancel their older runs: a push to main or a tag may carry a deploy, and a
+  # cancelled run would skip it (the deploy job has its own queue below).
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   checks:
@@ -40,7 +44,7 @@ jobs:
 
       # shellcheck ships with the ubuntu runner image.
       - name: Shell scripts
-        run: shellcheck -x infra/*.sh infra/backup/backup.sh infra/provision/provision.sh .github/scripts/*.sh
+        run: shellcheck -x infra/*.sh infra/cd/*.sh infra/load/*.sh infra/backup/backup.sh infra/provision/provision.sh .github/scripts/*.sh
 
       - name: Compose file
         run: >-
@@ -173,3 +177,49 @@ jobs:
             playwright-report/
             test-results/
           retention-days: 7
+
+  # Continuous deployment (infra/README.md, "Continuous deployment"). A push to main deploys that
+  # exact commit, a vX.Y.Z tag deploys the tag, once lint, tests, the image builds, and e2e pass.
+  # The server's key only runs infra/cd/ssh-deploy.sh, which validates the ref again and prints
+  # stage lines and the result only (this log is public). The SSH secrets belong to the
+  # `production` environment, whose deployment rules admit main and v* tags only. The audit job
+  # is not a gate (it covers dev tooling); the production dependency tree is audited here.
+  deploy:
+    name: Deploy to production
+    needs: [checks, images, e2e]
+    # DEPLOY_ENABLED (a repository variable) is the switch: unset, the job is skipped, not red.
+    # A manual run of this workflow on main deploys main's head (or says it is already deployed).
+    if: >-
+      vars.DEPLOY_ENABLED == 'true' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+      (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: production
+    # One deploy at a time; a newer pending deploy replaces an older pending one.
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=moderate --package-lock-only
+
+      - name: Deploy over SSH
+        env:
+          REF: ${{ github.ref_type == 'tag' && github.ref_name || github.sha }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_SSH_HOST_KEY: ${{ secrets.DEPLOY_SSH_HOST_KEY }}
+          DEPLOY_SSH_HOST: ${{ secrets.DEPLOY_SSH_HOST }}
+          DEPLOY_SSH_USER: ${{ secrets.DEPLOY_SSH_USER }}
+          DEPLOY_SSH_PORT: ${{ secrets.DEPLOY_SSH_PORT }}
+        run: .github/scripts/deploy-ssh.sh "$REF"
