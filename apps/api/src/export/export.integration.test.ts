@@ -231,7 +231,11 @@ beforeAll(async () => {
     dailyCapUsd: '5.00',
     handlers: {
       verifier: verifierStub,
-      exporter: createExportHandler({ storage, markets: definitions }),
+      exporter: createExportHandler({
+        storage,
+        markets: definitions,
+        packImageMaxWidthPx: FIXTURE_PHOTO_WIDTH_PX,
+      }),
     },
     createMetaClients: (usage) =>
       createMetaClients({ apiKey: 'test-placeholder-key', usage, maxRetries: 0 }),
@@ -249,6 +253,10 @@ afterAll(async () => {
   if (storageDir !== undefined) await rm(storageDir, { recursive: true, force: true });
 });
 
+// The fixture photos are this wide. The suite's export uses it as the pack's print cap, so the
+// embedded copies stay the exported files (the default cap is narrower); the narrowing tests
+// below set their own.
+const FIXTURE_PHOTO_WIDTH_PX = 1024;
 describe('export step', () => {
   let scenario: ExportScenario;
   let stored: StoredExport;
@@ -373,9 +381,8 @@ describe('export step', () => {
     expect(html).toContain('id="not-ready"');
     expect(html).toContain('Upload 3: withheld: privacy check incomplete');
     expect(html).toContain('Upload 4: withheld: privacy check incomplete');
-    // The fixture photos are narrower than the print cap, so the embedded copies are the
-    // exported files themselves (the next test narrows the cap); the withheld originals are
-    // nowhere.
+    // The cap is the fixture photos' width, so the embedded copies are the exported files
+    // themselves (the next test narrows the cap); the withheld originals are nowhere.
     const embedded = [...html.matchAll(/src="data:image\/jpeg;base64,([^"]+)"/g)].map(
       (m) => m[1] ?? '',
     );
@@ -485,7 +492,7 @@ describe('export step', () => {
 
   it('rebuilds byte-identical files from the same stored artifacts', async () => {
     const rebuilt = await buildRunExport(
-      { storage, markets: definitions },
+      { storage, markets: definitions, packImageMaxWidthPx: FIXTURE_PHOTO_WIDTH_PX },
       testDb.db,
       scenario.run,
     );
