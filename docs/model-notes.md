@@ -3171,7 +3171,7 @@ What worked:
   "Virtually staged" label is burned in; both checklist items pass.
 - Export: HTML pack, portal-fields JSON, and photos download; the pack prints to an 8-page PDF.
 
-Issues found (documented, not fixed):
+Issues found:
 
 - **Proper nouns heard only in the walkthrough are trusted as said.** The `nl` profile has no
   street or place field, so the invented street and place names came only from the transcript,
@@ -3182,7 +3182,8 @@ Issues found (documented, not fixed):
 - **One copy sentence merges two rooms** ("the attached double garage … laundry appliances
   included in the laundry room"). Every segment cites real facts, so the claim validator passes
   it; the rubric does not judge readability. A fluency criterion in verification would catch it.
-- **The printed PDF is about 100 MB for 8 pages** although the 21 embedded JPEGs total about 7 MB:
-  the browser's print path re-encodes the full-size (2048 px) images. Downscaling the pack's
-  images for print, or a server-rendered PDF, would bring it near the image total. Not measured
-  across browsers.
+- **The printed PDF was about 100 MB for 8 pages** although the 21 embedded JPEGs total about
+  7 MB: Firefox stores every image as raw Flate pixels at full size (2048 px). **Fixed:** the
+  HTML pack now embeds 800 px print copies (architecture.md §5, "Print-sized images in the
+  HTML"); the same photos then need about 20 MB in Firefox, and Chromium, which passes JPEGs
+  through, stays under 1 MB. Packs exported before the fix keep their full-size images.
