@@ -48,6 +48,7 @@ fi
 
 # Compose validates required variables (POSTGRES_PASSWORD, LIVE_RUN_ACCESS_CODE) here.
 compose config -q || die "compose configuration is invalid (see above)"
+check_resource_budget
 
 site_address="$(env_get SITE_ADDRESS)"
 app_origin="$(env_get APP_ORIGIN)"

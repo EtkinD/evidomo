@@ -70,6 +70,14 @@ const limitCount = (fallback: number) =>
 export const DEFAULT_RUN_STARTS_PER_ACCOUNT_PER_DAY = 3;
 export const DEFAULT_RUN_STARTS_PER_IP_PER_DAY = 5;
 export const DEFAULT_ACCESS_CODE_FAILURES_PER_IP_PER_HOUR = 10;
+/**
+ * Optional overrides of the public demo API's per-IP limits (docs/architecture.md section 13,
+ * "Load test"). Unset keeps the built-in defaults (`DEFAULT_DEMO_REQUEST_LIMIT`, 3 streams); the
+ * load test raises them for its window because it generates all traffic from one address.
+ */
+const demoLimit = (max: number) =>
+  z.preprocess(emptyAsUnset, z.coerce.number().int().min(1).max(max).optional());
+
 /** More demo runs than a landing page can sensibly show is a misconfiguration. */
 export const MAX_DEMO_RUN_IDS = 20;
 
@@ -173,6 +181,9 @@ const envSchemaFor = (role: EnvRole) =>
         DEFAULT_ACCESS_CODE_FAILURES_PER_IP_PER_HOUR,
       ),
       DEMO_RUN_IDS: demoRunIdsSchema,
+      // Demo API requests per client IP per 15 minutes, and open replay streams per client IP.
+      DEMO_REQUESTS_PER_IP_PER_15_MIN: demoLimit(10_000_000),
+      DEMO_STREAMS_PER_IP: demoLimit(100_000),
       // Whether the run and demo APIs send run costs (snapshot, events, budget amounts in
       // failure reasons) to clients. Costs are for operators: on by default outside production,
       // off in production unless set. Ledger, caps, and stored reasons are unaffected.

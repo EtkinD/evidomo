@@ -290,6 +290,27 @@ describe('loadEnv', () => {
       }
     });
 
+    it('leaves the demo limits unset by default and bounds them when set', () => {
+      const unset = loadEnv({ DATABASE_URL, DEMO_REQUESTS_PER_IP_PER_15_MIN: '' });
+      expect(unset.DEMO_REQUESTS_PER_IP_PER_15_MIN).toBeUndefined();
+      expect(unset.DEMO_STREAMS_PER_IP).toBeUndefined();
+      const set = loadEnv({
+        DATABASE_URL,
+        DEMO_REQUESTS_PER_IP_PER_15_MIN: '1000000',
+        DEMO_STREAMS_PER_IP: '2000',
+      });
+      expect(set.DEMO_REQUESTS_PER_IP_PER_15_MIN).toBe(1_000_000);
+      expect(set.DEMO_STREAMS_PER_IP).toBe(2000);
+      for (const value of ['0', '-1', '1.5', 'many', '10000001']) {
+        expect(() => loadEnv({ DATABASE_URL, DEMO_REQUESTS_PER_IP_PER_15_MIN: value })).toThrow(
+          /DEMO_REQUESTS_PER_IP_PER_15_MIN/,
+        );
+      }
+      expect(() => loadEnv({ DATABASE_URL, DEMO_STREAMS_PER_IP: '100001' })).toThrow(
+        /DEMO_STREAMS_PER_IP/,
+      );
+    });
+
     it('parses DEMO_RUN_IDS as a deduplicated, lower-cased list of UUIDs', () => {
       const a = '3BFCF0BB-5581-4E10-8691-6CC7A8E66DCF';
       const b = '9c1f0a52-7a43-4b8e-9d0e-2f1e3c4b5a69';

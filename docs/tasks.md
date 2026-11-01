@@ -233,7 +233,7 @@ Design decisions are made in a dev-only showcase, and only what the founder appr
 - [x] **D-06 — Production smoke test**
   - Depends on: D-05, P0-07
   - Done when: the Playwright smoke suite passes against the production URL.
-- [ ] **D-07 — Resource limits and replicas**
+- [x] **D-07 — Resource limits and replicas**
   - Depends on: D-01
   - Done when: every service in `infra/compose.yaml` has CPU and memory limits, and the web and api replica counts come from `infra/.env` (generic defaults in `.env.example`); a documented sizing rule keeps the running stack at no more than 80% of the host's CPU and RAM, leaving room for builds; rate limits, open-stream caps, and database connections stay correct with more than one api replica (or the api stays single and the reason is documented); the stack runs locally with two web replicas behind Caddy.
 - [ ] **D-08 — Load test**

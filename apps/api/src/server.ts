@@ -1,6 +1,7 @@
 import { PgBoss } from 'pg-boss';
 import { appConfigFromEnv, createApp } from './app.ts';
 import { createDbClient } from './db/client.ts';
+import { DEFAULT_DEMO_REQUEST_LIMIT } from './demo/routes.ts';
 import { bootDefinitions } from './definitions/boot.ts';
 import { loadEnv } from './env.ts';
 import { createLogger } from './logger.ts';
@@ -67,7 +68,20 @@ try {
         logger,
       }),
     },
-    demo: { runIds: env.DEMO_RUN_IDS },
+    demo: {
+      runIds: env.DEMO_RUN_IDS,
+      ...(env.DEMO_REQUESTS_PER_IP_PER_15_MIN === undefined
+        ? {}
+        : {
+            requestLimit: {
+              ...DEFAULT_DEMO_REQUEST_LIMIT,
+              limit: env.DEMO_REQUESTS_PER_IP_PER_15_MIN,
+            },
+          }),
+      ...(env.DEMO_STREAMS_PER_IP === undefined
+        ? {}
+        : { replay: { maxStreamsPerIp: env.DEMO_STREAMS_PER_IP } }),
+    },
   });
 } catch (error) {
   // E.g. the pinned service (listing-launch v1) is missing or cannot be captured.

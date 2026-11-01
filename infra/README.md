@@ -175,6 +175,62 @@ E2E_BASE_URL=https://evidomo.example npx playwright test
 
 With `E2E_BASE_URL` set, Playwright starts no local servers. The specs that run against production: `e2e/smoke.spec.ts` (landing page) and `e2e/demo.spec.ts` (public demo pages: header link, landing link, a not-published run answers "not found"). All of them only read. `auth`, `projects`, and `capture` specs skip themselves because they create accounts and projects (`test.skip` on `E2E_BASE_URL`). Nothing needs a seeded database; with a demo run published, the demo list test just sees the run. The same command against a local run of the production stack: `E2E_BASE_URL=http://localhost:8080`.
 
+## Sizing, limits, and replicas
+
+Every service has a CPU and memory limit, and `web` can run several copies. Both come from `infra/.env` (the "Resources and replicas" block of `infra/.env.example`); the defaults fit the documented minimum host (4 GB RAM, 2 vCPU).
+
+**Sizing rule.** Add up the limits of everything that runs all the time (caddy, web, api, worker, postgres, backup; `replicas x limit` for web). The sum of CPUs and the sum of memory must each stay at or below **80% of the host**. The other 20% is for the operating system, ssh, and above all for builds: `infra/deploy.sh` builds on the server and `next build` peaks near 2 GB of RAM, while the running stack normally uses far less than its limits (the limits are ceilings). `infra/deploy.sh` prints the sum and warns when it is over (it reads the host size from `docker info`); the check needs `python3`, which Ubuntu has. The one-off `tools` services (migrate, demo-seed) have their own small limits and are not counted.
+
+To size a bigger host: take 80% of its vCPU and RAM, give the api, worker, and postgres what the load needs, and spend the rest on `WEB_REPLICAS` (each copy is single threaded, so about one vCPU of limit per copy is the useful ceiling). Apply with `infra/deploy.sh` or `docker compose ... up -d --wait`.
+
+**Why the api and the worker are single instances.** The api keeps its rate limits (login, registration, run starts, the public demo API per IP) and the open replay-stream cap per IP in process memory. Every extra api copy would multiply each of them, and a client could land on a fresh counter on every request. A local run measured the api at about a quarter of one core at 200 simulated visitors, so one Node thread should carry several hundred; the server's load test (below) is what shows whether it is the first bottleneck. Only if it is, a shared limiter store (a table or Redis, and a change to every limiter) is worth its cost. The worker is single because it is the only place model spend is paced; its concurrency is a pipeline setting, not a replica count. `web` has no state (static pages, no sessions, no in-process cache), so it scales freely.
+
+**Database connections** at the shipped shape: api pool 10 plus pg-boss 10, worker pool 10 plus pg-boss 10, backup 1, plus a one-off `migrate` or `demo-seed` at deploy time: at most 42 of PostgreSQL's default 100 (`max_connections`). Web copies do not connect to the database. If you ever run more than one api, multiply the api's 20.
+
+**Node memory.** Node sizes its heap from the container's memory limit, so no `--max-old-space-size` is set; the limits above leave room for the heap plus buffers (sharp and ffmpeg in the worker). If a container is killed for memory (`docker inspect <container> --format '{{.State.OOMKilled}}'`), raise its `*_MEMORY` and recheck the 80% rule.
+
+**How Caddy finds the copies.** `infra/caddy/Caddyfile` uses `dynamic a` for `web`: Caddy reads every address behind the service name (refreshed each second), balances with `least_conn`, and retries a request on another copy for up to 5 seconds when one is down. A static `web:3000` would lean on Docker's DNS shuffling per new connection. Active health checks do not run for dynamic upstreams; docker's own healthcheck and `up --wait` cover that. The api route retries the connection for up to 10 seconds in the same way, so a deploy or restart of the single api shows visitors a slow request instead of a 502. Checked on a local run with 2 web copies and constant traffic: restarting, killing (the restart policy brings it back), and force-recreating web copies, and recreating the api, produced no failed requests; the slowest request during those events took 1 to 3 seconds.
+
+Check it on a running stack:
+
+```sh
+docker compose -p evidomo-prod -f infra/compose.yaml --env-file infra/.env ps web
+docker stats --no-stream      # per container CPU and memory against the limits
+```
+
+## Load test (D-08)
+
+A repeatable test of the public, read-only surface with [k6](https://k6.io) in Docker (`grafana/k6`, pinned to an exact version in `infra/load/run.sh`; nothing is installed). It ramps concurrent visitors in steps (default 50, 100, 250, 500, 750, 1000, 2 minutes each plus a 30 second ramp) and reports the first step whose p95 latency or error rate crosses the thresholds (default: p95 above 1 s, errors above 1%), or "1,000 passed".
+
+What each visitor does (GET only; no registration, login, project, live run, or POST): views a page with 1 to 4 seconds of think time in between (landing `/` 20%, `/tr` 10%, `/method` 10%, `/demo` 15% plus its API call, a demo run page 35% plus its snapshot call, `/api/healthz` 10%); 20% of the page views also download the page's scripts, styles, and fonts as a first-time visitor would; and 10% of the visitors watch the demo replay stream (`/api/demo/runs/<id>/events?speed=...`, about 11 seconds, 16 KB) in a loop. The demo run comes from `GET /api/demo/runs`, so a demo run must be published (step 8). All settings (steps, hold time, thresholds, shares) are listed at the top of `infra/load/evidomo.js`.
+
+**1. Raise the per-IP demo limits for the window.** The test sends all traffic from one address, and the demo API allows 2000 requests per 15 minutes and 3 replay streams per address, so without this it measures the limiter. In the server's `infra/.env` set `DEMO_REQUESTS_PER_IP_PER_15_MIN=10000000` and `DEMO_STREAMS_PER_IP=1000`, then `docker compose -p evidomo-prod -f infra/compose.yaml --env-file infra/.env up -d --wait api`. **Empty both again afterwards** and recreate the api. As a second guard the report counts 429 responses separately (left out of the error rate) and prints a warning when there were any: such a run says nothing about the routes that were limited.
+
+**2. Watch the server.** On the server, in a second terminal (Linux only; stop it with Ctrl-C to get the peak):
+
+```sh
+infra/load/watch-host.sh 5        # host CPU and RAM plus per-container usage every 5 s, with the peak at the end
+```
+
+**3. Run the test** from a machine that is not the server, with Docker, a wired or datacenter connection, and `data/load/` free (reports are git-ignored):
+
+```sh
+infra/load/run.sh https://evidomo.example                   # the full ramp, about 17 minutes
+infra/load/run.sh https://evidomo.example STEPS=50,100 HOLD=30s RAMP=10s     # a short rehearsal
+infra/load/run.sh https://evidomo.example STOP_AT_FIRST_FAIL=1              # stop the ramp at the first failing step
+```
+
+The report (`data/load/load-<time>.txt` and `.json`) has one row per step: requests per second, p95 and p99 latency, time to first byte, client-side blocking, error rate, 429 count, decoded body volume, and the stream's time to first byte. Keep it, with the peak from step 2, outside git. Do not run it while a deploy or backup runs; do not run it without telling anyone who uses the site.
+
+**Single-source caveat: is the client or the server the bottleneck?** One machine generates all load, so its own limits can show up as "server" failures.
+
+- Client signs: `blocked95` climbs while `ttfb95` stays flat (requests wait for a free local socket); the Mbit/s column plateaus while VUs grow (your uplink or downlink is full: a first-time page view is about 0.9 MB of assets, so lower `COLD_SHARE` before suspecting the server); k6 prints `too many open files` or dial errors; `docker stats` on the k6 machine shows its container near 100% of a core per 250 VUs or more, or the machine is swapping. Fix: a stronger client, `COLD_SHARE=0.05`, or running k6 on two machines with half the steps each.
+- Server signs: `ttfb95` grows together with p95, `watch-host.sh` shows host CPU near 100% or a container at its limit, errors are 502/503/504 from Caddy.
+- Also expected: the server's network allowance (bandwidth, packets per second) can be the limit before CPU is; the host log will then show idle CPU with falling throughput.
+- The result is for one source address and the path between the two machines. It says what the stack serves for visitors on a good connection, not how it handles thousands of different addresses.
+
+Numbers from a laptop (Docker Desktop) do not predict the server; use the local run only to check that the script and the reporting work.
+
 ## Backups and restore
 
 The `backup` service runs next to the stack. At start (if the newest backup is older than 24 hours) and daily at `BACKUP_AT` (UTC, default 03:15) it writes, into the `backups` volume:

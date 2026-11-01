@@ -88,3 +88,36 @@ smoke_check() { # <base url>
   fi
   echo "ok: only caddy publishes host ports"
 }
+
+# Adds up the CPU and memory limits of the services that run all the time (not the `tools`
+# profile; replicas multiply) and warns when they exceed 80% of what the docker host has. The
+# rest is headroom for builds, deploys, and the operating system (infra/README.md, "Sizing").
+# A warning, never a failure: a laptop VM is allowed to be small. python3 ships with Ubuntu; the
+# check is skipped without it.
+check_resource_budget() {
+  command -v python3 > /dev/null || { warn "python3 is missing; skipping the resource budget check"; return 0; }
+  local host_cpus host_mem
+  host_cpus="$(docker info --format '{{.NCPU}}' 2> /dev/null || true)"
+  host_mem="$(docker info --format '{{.MemTotal}}' 2> /dev/null || true)"
+  [ -n "$host_cpus" ] && [ -n "$host_mem" ] || { warn "cannot read the host size from docker; skipping the resource budget check"; return 0; }
+  compose config --format json | python3 -c '
+import json, sys
+host_cpus, host_mem = float(sys.argv[1]), float(sys.argv[2])
+cpus = mem = 0.0
+for service in json.load(sys.stdin)["services"].values():
+    if service.get("profiles"):
+        continue
+    deploy = service.get("deploy") or {}
+    limits = (deploy.get("resources") or {}).get("limits") or {}
+    replicas = deploy.get("replicas", 1)
+    cpus += float(limits.get("cpus", 0)) * replicas
+    mem += float(limits.get("memory", 0)) * replicas
+gib = 1024 ** 3
+line = "limits add up to %.2f of %g vCPU and %.2f of %.2f GiB RAM (80%% = %.2f vCPU, %.2f GiB)" % (
+    cpus, host_cpus, mem / gib, host_mem / gib, 0.8 * host_cpus, 0.8 * host_mem / gib)
+if cpus > 0.8 * host_cpus or mem > 0.8 * host_mem:
+    print("WARNING: " + line + ". Lower the *_CPUS / *_MEMORY / WEB_REPLICAS values in the env file.", file=sys.stderr)
+else:
+    print("ok: " + line)
+' "$host_cpus" "$host_mem"
+}

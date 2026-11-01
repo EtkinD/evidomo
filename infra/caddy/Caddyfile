@@ -54,6 +54,11 @@
 
 	handle /api/* {
 		reverse_proxy api:4000 {
+			# The api is a single instance: while it restarts (a deploy), hold the request for up
+			# to 10 s and retry the connection instead of answering 502. Only failed connections
+			# are retried for every method; a request the api already received is not repeated.
+			lb_try_duration 10s
+			lb_try_interval 250ms
 			# SSE (run monitor, demo replay): send every frame at once instead of buffering.
 			flush_interval -1
 			# Below Node's 5 s keep-alive timeout, so Caddy never reuses a connection
@@ -65,7 +70,24 @@
 	}
 
 	handle {
-		reverse_proxy web:3000 {
+		# web runs WEB_REPLICAS copies behind one service name. A static `web:3000` would be
+		# resolved by the dialer on every new connection and Docker's DNS answers in shuffled
+		# order, which spreads connections only by chance and, with keepalive, pins a client to
+		# one copy. `dynamic a` reads every address of the name (refreshed every second, so a
+		# restarted copy is picked up quickly) and `least_conn` sends each request to the copy with
+		# the fewest requests in flight. A request that cannot reach a copy is tried on another for
+		# up to 5 s, which covers the moment a copy restarts. Active health checks do not run for
+		# dynamic upstreams; docker's own healthcheck plus `compose up --wait` cover that.
+		reverse_proxy {
+			dynamic a {
+				name web
+				port 3000
+				refresh 1s
+				versions ipv4
+			}
+			lb_policy least_conn
+			lb_try_duration 5s
+			lb_try_interval 250ms
 			transport http {
 				keepalive 4s
 			}
