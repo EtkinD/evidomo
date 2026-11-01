@@ -165,6 +165,23 @@ curl -s https://evidomo.example/api/demo/runs
 
 Every listed run is public without login, in full. Only runs printed by `demo-seed` (synthetic data) belong there. Re-seeding creates a new run; remove old IDs from the list.
 
+**Publishing a live run.** The demo API serves a listed run only if its project belongs to the demo account (`demo-replay@evidomo.invalid`, created by `demo-seed`); a customer's run listed by mistake stays 404. A live run qualifies only when every input is invented or freely licensed (no real address, person, or voice) and you accept that photos, recording, transcript, decisions, and pack become public. Move its project to the demo account (it leaves your own project list; storage keys depend on the project, not the owner), then list the run ID as above:
+
+```sh
+docker compose -p evidomo-prod -f infra/compose.yaml --env-file infra/.env exec -T postgres \
+  sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -v ON_ERROR_STOP=1 -v run=<run-id>' <<'SQL'
+begin;
+-- Before: the project and its current owner (keep this to move it back).
+select p.id as project_id, u.email as owner from runs r
+  join projects p on p.id = r.project_id join users u on u.id = p.owner_id where r.id = :'run';
+update projects set owner_id = (select id from users where email = 'demo-replay@evidomo.invalid')
+  where id = (select project_id from runs where id = :'run' and status = 'completed')
+    and exists (select 1 from users where email = 'demo-replay@evidomo.invalid');
+-- Expect "UPDATE 1". On "UPDATE 0" (unknown or unfinished run, no demo account) nothing changed.
+commit;
+SQL
+```
+
 ## 9. Production smoke test (D-06)
 
 From your laptop, in the repository (once: `npm ci --ignore-scripts && npx playwright install chromium`):
